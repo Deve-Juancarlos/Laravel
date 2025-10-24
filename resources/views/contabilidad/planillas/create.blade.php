@@ -230,6 +230,6 @@ function guardarPlanilla() {
             alert(' Error: ' + data.message);
         }
     });
-}
+};
 </script>
 @endsection

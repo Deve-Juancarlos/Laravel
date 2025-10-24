@@ -137,8 +137,9 @@ Route::prefix('contabilidad/clientes')
 
 
  Route::middleware(['auth', 'check.contador'])->group(function () {
-    Route::get('dashboard', [DashboardContador::class, 'index'])
-            ->name('contabilidad.dashboard');
+    Route::get('/dashboard/contador', [App\Http\Controllers\Contabilidad\DashboardContador::class, 'index'])
+    ->name('contabilidad.dashboard');
+
      
  
     
