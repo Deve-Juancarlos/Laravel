@@ -334,16 +334,16 @@
             new Chart(ctx1, {
                 type: 'line',
                 data: {
-                    labels: {!! json_encode($mesesLabels ?? []) !!},
+                    labels: @json($mesesLabels ?? []),
                     datasets: [{
                         label: 'Ingresos',
-                        data: {!! json_encode($ingresosData ?? []) !!},
+                        data: @json($ingresosData ?? []),
                         borderColor: '#10b981',
                         backgroundColor: 'rgba(16, 185, 129, 0.1)',
                         tension: 0.4
                     }, {
                         label: 'Gastos',
-                        data: {!! json_encode($gastosData ?? []) !!},
+                        data: @json($gastosData ?? []),
                         borderColor: '#f59e0b',
                         backgroundColor: 'rgba(245, 158, 11, 0.1)',
                         tension: 0.4
@@ -353,14 +353,10 @@
                     responsive: true,
                     maintainAspectRatio: false,
                     plugins: {
-                        legend: {
-                            position: 'top'
-                        }
+                        legend: { position: 'top' }
                     },
                     scales: {
-                        y: {
-                            beginAtZero: true
-                        }
+                        y: { beginAtZero: true }
                     }
                 }
             });
@@ -369,40 +365,37 @@
         // Gráfico de distribución de gastos
         const ctx2 = document.getElementById('expenseDistributionChart');
         if (ctx2) {
-            new Chart(ctx1, {
-    type: 'line',
-        data: {
-            labels: @json($mesesLabels ?? []),
-            datasets: [{
-                label: 'Ingresos',
-                data: @json($ingresosData ?? []),
-                borderColor: '#10b981',
-                backgroundColor: 'rgba(16, 185, 129, 0.1)',
-                tension: 0.4
-            }, {
-                label: 'Gastos',
-                data: @json($gastosData ?? []),
-                borderColor: '#f59e0b',
-                backgroundColor: 'rgba(245, 158, 11, 0.1)',
-                tension: 0.4
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    position: 'top'
+            new Chart(ctx2, {  // Aquí debe ser ctx2, no ctx1
+                type: 'line',
+                data: {
+                    labels: @json($mesesLabels ?? []),
+                    datasets: [{
+                        label: 'Ingresos',
+                        data: @json($ingresosData ?? []),
+                        borderColor: '#10b981',
+                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                        tension: 0.4
+                    }, {
+                        label: 'Gastos',
+                        data: @json($gastosData ?? []),
+                        borderColor: '#f59e0b',
+                        backgroundColor: 'rgba(245, 158, 11, 0.1)',
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'top' }
+                    },
+                    scales: {
+                        y: { beginAtZero: true }
+                    }
                 }
-            },
-            scales: {
-                y: {
-                    beginAtZero: true
-                }
-            }
+            });
         }
-});
-
+    }
 
     // Auto-refresh financial data
     function refreshFinancialData() {

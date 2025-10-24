@@ -214,13 +214,13 @@
 
 @section('farmacia-content')
 <!-- Alertas Críticas -->
-@if(($alertasCriticas ?? [])->count() > 0)
+@if(($alertasCriticas ?? [])->$count() > 0)
 <div class="critical-alert">
     <div class="d-flex align-items-center">
         <i class="fas fa-exclamation-triangle me-3"></i>
         <div>
             <strong>Alertas Críticas Activas:</strong>
-            <span id="criticalCount">{{ ($alertasCriticas ?? [])->count() }}</span> alertas requieren atención inmediata
+            <span id="criticalCount">{{ ($alertasCriticas ?? [])->$count() }}</span> alertas requieren atención inmediata
             <button class="btn btn-sm btn-light ms-3" onclick="showCriticalAlerts()">
                 Ver Detalles
             </button>
@@ -229,13 +229,13 @@
 </div>
 @endif
 
-@if(($alertasAdvertencia ?? [])->count() > 0)
+@if(($alertasAdvertencia ?? [])->$count() > 0)
 <div class="warning-alert">
     <div class="d-flex align-items-center">
         <i class="fas fa-exclamation-circle me-3"></i>
         <div>
             <strong>Advertencias:</strong>
-            <span id="warningCount">{{ ($alertasAdvertencia ?? [])->count() }}</span> elementos requieren atención
+            <span id="warningCount">{{ ($alertasAdvertencia ?? [])->$count() }}</span> elementos requieren atención
             <button class="btn btn-sm btn-light ms-3" onclick="showWarningAlerts()">
                 Ver Lista
             </button>
@@ -349,19 +349,19 @@
             <div class="row" id="temperatureSensors">
                 @foreach(($sensoresTemperatura ?? []) as $sensor)
                 <div class="col-md-6 mb-3">
-                    <div class="sensor-reading {{ $sensor->estado_css }}">
-                        <h6>{{ $sensor->nombre }}</h6>
-                        <div class="temperature-value {{ $sensor->estado_css }}">
-                            {{ number_format($sensor->temperatura_actual, 1) }}°C
+                    <div class="sensor-reading {{ $sensor->$estado_css }}">
+                        <h6>{{ $sensor->$nombre }}</h6>
+                        <div class="temperature-value {{ $sensor->$estado_css }}">
+                            {{ number_format($sensor->$temperatura_actual, 1) }}°C
                         </div>
                         <div class="d-flex justify-content-between align-items-center">
-                            <small class="text-muted">Rango: {{ $sensor->rango_min }}° - {{ $sensor->rango_max }}°C</small>
-                            <span class="badge bg-{{ $sensor->estado_color }}">
-                                {{ $sensor->estado }}
+                            <small class="text-muted">Rango: {{ $sensor->$rango_min }}° - {{ $sensor->$rango_max }}°C</small>
+                            <span class="badge bg-{{ $sensor->$estado_color }}">
+                                {{ $sensor->$estado }}
                             </span>
                         </div>
                         <small class="text-muted d-block mt-1">
-                            Última: {{ date('d/m H:i', strtotime($sensor->ultima_lectura)) }}
+                            Última: {{ date('d/m H:i', strtotime($sensor->$ultima_lectura)) }}
                         </small>
                     </div>
                 </div>
@@ -434,16 +434,16 @@
             @forelse(($productosVencerRecientes ?? []) as $producto)
             <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
                 <div>
-                    <strong>{{ $producto->nombre }}</strong>
+                    <strong>{{ $producto->$nombre }}</strong>
                     <br>
-                    <small class="text-muted">{{ $producto->codigo }}</small>
+                    <small class="text-muted">{{ $producto->$codigo }}</small>
                 </div>
                 <div class="text-end">
-                    <div class="badge bg-{{ $producto->dias_para_vencer <= 7 ? 'danger' : ($producto->dias_para_vencer <= 30 ? 'warning' : 'info') }}">
-                        {{ $producto->dias_para_vencer }} días
+                    <div class="badge bg-{{ $producto->$dias_para_vencer <= 7 ? 'danger' : ($producto->$dias_para_vencer <= 30 ? 'warning' : 'info') }}">
+                        {{ $producto->$dias_para_vencer }} días
                     </div>
                     <br>
-                    <small class="text-muted">{{ date('d/m/Y', strtotime($producto->fecha_vencimiento)) }}</small>
+                    <small class="text-muted">{{ date('d/m/Y', strtotime($producto->$fecha_vencimiento)) }}</small>
                 </div>
             </div>
             @empty
@@ -472,16 +472,16 @@
             @forelse(($productosStockBajo ?? []) as $producto)
             <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
                 <div>
-                    <strong>{{ $producto->nombre }}</strong>
+                    <strong>{{ $producto->$nombre }}</strong>
                     <br>
-                    <small class="text-muted">{{ $producto->codigo }}</small>
+                    <small class="text-muted">{{ $producto->$codigo }}</small>
                 </div>
                 <div class="text-end">
                     <div class="d-flex align-items-center">
-                        <span class="stock-indicator {{ $producto->stock_actual <= 0 ? 'stock-out' : ($producto->stock_actual <= $producto->stock_minimo ? 'stock-low' : 'stock-medium') }}"></span>
-                        <span class="fw-bold">{{ $producto->stock_actual }}</span>
+                        <span class="stock-indicator {{ $producto->$stock_actual <= 0 ? 'stock-out' : ($producto->$stock_actual <= $producto->$stock_minimo ? 'stock-low' : 'stock-medium') }}"></span>
+                        <span class="fw-bold">{{ $producto->$stock_actual }}</span>
                     </div>
-                    <small class="text-muted">Mín: {{ $producto->stock_minimo }}</small>
+                    <small class="text-muted">Mín: {{ $producto->$stock_minimo }}</small>
                 </div>
             </div>
             @empty
@@ -513,23 +513,23 @@
             <div class="controlled-medication-card">
                 <div class="row align-items-center">
                     <div class="col-md-3">
-                        <strong>{{ $venta->producto_nombre }}</strong>
+                        <strong>{{ $venta->$producto_nombre }}</strong>
                         <br>
-                        <small class="text-muted">{{ $venta->producto_codigo }}</small>
+                        <small class="text-muted">{{ $venta->$producto_codigo }}</small>
                     </div>
                     <div class="col-md-2">
-                        <span class="badge bg-danger">Cant: {{ $venta->cantidad }}</span>
+                        <span class="badge bg-danger">Cant: {{ $venta->$cantidad }}</span>
                     </div>
                     <div class="col-md-3">
-                        <small><strong>Cliente:</strong> {{ $venta->cliente_nombre }}</small>
+                        <small><strong>Cliente:</strong> {{ $venta->$cliente_nombre }}</small>
                         <br>
-                        <small><strong>DNI:</strong> {{ $venta->cliente_dni }}</small>
+                        <small><strong>DNI:</strong> {{ $venta->$cliente_dni }}</small>
                     </div>
                     <div class="col-md-2">
-                        <small><strong>Receta:</strong> {{ $venta->numero_receta }}</small>
+                        <small><strong>Receta:</strong> {{ $venta->$numero_receta }}</small>
                     </div>
                     <div class="col-md-2 text-end">
-                        <small class="text-muted">{{ date('d/m/Y H:i', strtotime($venta->fecha_venta)) }}</small>
+                        <small class="text-muted">{{ date('d/m/Y H:i', strtotime($venta->$fecha_venta)) }}</small>
                     </div>
                 </div>
             </div>

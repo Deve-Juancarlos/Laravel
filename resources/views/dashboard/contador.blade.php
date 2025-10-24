@@ -226,14 +226,14 @@
 </div>
 
 <!-- Alertas Financieras -->
-@if(($alertasFinancieras ?? [])->count() > 0)
+@if(($alertasFinancieras ?? [])->$count() > 0)
 @foreach(($alertasFinancieras ?? []) as $alerta)
-<div class="financial-alert {{ $alerta->nivel === 'critico' ? 'critical' : '' }}">
+<div class="financial-alert {{ $alerta->$nivel === 'critico' ? 'critical' : '' }}">
     <div class="d-flex align-items-center">
-        <i class="fas fa-{{ $alerta->icono }} me-2"></i>
+        <i class="fas fa-{{ $alerta->$icono }} me-2"></i>
         <div>
-            <strong>{{ $alerta->titulo }}</strong>
-            <p class="mb-0">{{ $alerta->mensaje }}</p>
+            <strong>{{ $alerta->$titulo }}</strong>
+            <p class="mb-0">{{ $alerta->$mensaje }}</p>
         </div>
     </div>
 </div>
@@ -354,22 +354,22 @@
                         <tbody>
                             @forelse(($movimientosRecientes ?? []) as $movimiento)
                             <tr>
-                                <td>{{ date('d/m/Y H:i', strtotime($movimiento->fecha)) }}</td>
+                                <td>{{ date('d/m/Y H:i', strtotime($movimiento->$fecha)) }}</td>
                                 <td>
-                                    <span class="badge bg-{{ $movimiento->tipo === 'ingreso' ? 'success' : 'warning' }}">
-                                        {{ ucfirst($movimiento->tipo) }}
+                                    <span class="badge bg-{{ $movimiento->$tipo === 'ingreso' ? 'success' : 'warning' }}">
+                                        {{ ucfirst($movimiento->$tipo) }}
                                     </span>
                                 </td>
-                                <td>{{ $movimiento->concepto }}</td>
-                                <td class="fw-bold {{ $movimiento->tipo === 'ingreso' ? 'text-success' : 'text-warning' }}">
-                                    {{ $movimiento->tipo === 'ingreso' ? '+' : '-' }}S/ {{ number_format($movimiento->monto, 2) }}
+                                <td>{{ $movimiento->$concepto }}</td>
+                                <td class="fw-bold {{ $movimiento->$tipo === 'ingreso' ? 'text-success' : 'text-warning' }}">
+                                    {{ $movimiento->$tipo === 'ingreso' ? '+' : '-' }}S/ {{ number_format($movimiento->$monto, 2) }}
                                 </td>
                                 <td>
-                                    <span class="badge bg-{{ $movimiento->estado === 'confirmado' ? 'success' : 'secondary' }}">
-                                        {{ ucfirst($movimiento->estado) }}
+                                    <span class="badge bg-{{ $movimiento->$estado === 'confirmado' ? 'success' : 'secondary' }}">
+                                        {{ ucfirst($movimiento->$estado) }}
                                     </span>
                                 </td>
-                                <td>{{ $movimiento->usuario_nombre ?? 'N/A' }}</td>
+                                <td>{{ $movimiento->$usuario_nombre ?? 'N/A' }}</td>
                             </tr>
                             @empty
                             <tr>
