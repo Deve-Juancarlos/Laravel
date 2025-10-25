@@ -9,27 +9,14 @@ use Carbon\Carbon;
 
 class KpiController extends Controller
 {
-    /**
-     * MÓDULO REPORTES - Controlador de KPIs
-     * KPIs y métricas clave para monitoreo empresarial
-     * Integrado con base de datos SIFANO existente
-     * Total de líneas: ~950
-     */
+    
 
     public function __construct()
     {
         $this->middleware(['auth', 'rol:administrador|vendedor|contador|gerente']);
     }
 
-    /**
-     * ===============================================
-     * MÉTODOS PRINCIPALES DE KPIs
-     * ===============================================
-     */
-
-    /**
-     * Dashboard principal de KPIs
-     */
+    
     public function index(Request $request)
     {
         $periodo = $request->periodo ?? '1m'; // Por defecto 1 mes
@@ -43,9 +30,6 @@ class KpiController extends Controller
         return compact('kpis_principales', 'comparacion_periodo', 'alertas_kpis', 'objetivos', 'periodo', 'vista');
     }
 
-    /**
-     * Obtiene KPIs específicos por categoría
-     */
     public function kpisPorCategoria(Request $request)
     {
         $categoria = $request->categoria ?? 'ventas';
@@ -61,15 +45,6 @@ class KpiController extends Controller
         };
     }
 
-    /**
-     * ===============================================
-     * KPIs DE VENTAS Y COMERCIALES
-     * ===============================================
-     */
-
-    /**
-     * KPIs específicos de ventas
-     */
     public function kpisVentas($periodo = '1m')
     {
         $fecha_desde = $this->calcularFechaDesde($periodo);

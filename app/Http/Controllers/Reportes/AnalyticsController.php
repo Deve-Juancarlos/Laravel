@@ -67,7 +67,7 @@ class AnalyticsController extends Controller
             ->orderBy('total_ventas', 'desc')
             ->get();
 
-        // Análisis de estacionalidad
+        
         $estacionalidad = $this->analizarEstacionalidad($fecha_desde, $fecha_hasta);
 
         return [

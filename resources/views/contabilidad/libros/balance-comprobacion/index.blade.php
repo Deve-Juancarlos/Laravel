@@ -112,7 +112,7 @@
     </div>
 </div>
 
-@if(($cuentasBalance ?? [])->count() > 0)
+@if(($cuentasBalance ?? [])->$count() > 0)
 <!-- Resumen del Balance -->
 <div class="row mb-4">
     <div class="col-md-3">
@@ -233,27 +233,27 @@
                         @foreach($cuentasBalance ?? [] as $cuenta)
                         @php
                             // Calcular saldos según el tipo de cuenta
-                            $saldoAnteriorDeudor = $cuenta->$saldo_anterior > 0 ? $cuenta->saldo_anterior : 0;
-                            $saldoAnteriorAcreedor = $cuenta->saldo_anterior < 0 ? abs($cuenta->saldo_anterior) : 0;
-                            $saldoActualDeudor = $cuenta->$saldo_actual > 0 ? $cuenta->saldo_actual : 0;
-                            $saldoActualAcreedor = $cuenta->saldo_actual < 0 ? abs($cuenta->saldo_actual) : 0;
+                            $saldoAnteriorDeudor = $cuenta->$saldo_anterior > 0 ? $cuenta->$saldo_anterior : 0;
+                            $saldoAnteriorAcreedor = $cuenta->$saldo_anterior < 0 ? abs($cuenta->$saldo_anterior) : 0;
+                            $saldoActualDeudor = $cuenta->$saldo_actual > 0 ? $cuenta->$saldo_actual : 0;
+                            $saldoActualAcreedor = $cuenta->$saldo_actual < 0 ? abs($cuenta->$saldo_actual) : 0;
                             
                             $totalSaldoAnteriorDeudor += $saldoAnteriorDeudor;
                             $totalSaldoAnteriorAcreedor += $saldoAnteriorAcreedor;
                             $totalDebe += $cuenta->$total_debe;
-                            $totalHaber += $cuenta->total_haber;
+                            $totalHaber += $cuenta->$total_haber;
                             $totalSaldoActualDeudor += $saldoActualDeudor;
                             $totalSaldoActualAcreedor += $saldoActualAcreedor;
                         @endphp
                         
-                        <tr class="{{ $cuenta->nivel == 1 ? 'table-light fw-bold' : '' }}">
+                        <tr class="{{ $cuenta->$nivel == 1 ? 'table-light fw-bold' : '' }}">
                             <td>
-                                <strong>{{ $cuenta->codigo }}</strong>
-                                @if($cuenta->nivel == 1)
+                                <strong>{{ $cuenta->$codigo }}</strong>
+                                @if($cuenta->$nivel == 1)
                                     <i class="fas fa-chevron-right text-muted ms-1"></i>
                                 @endif
                             </td>
-                            <td>{{ Str::padLeft('', ($cuenta->nivel - 1) * 3, ' ') }}{{ $cuenta->nombre }}</td>
+                            <td>{{ Str::padLeft('', ($cuenta->$nivel - 1) * 3, ' ') }}{{ $cuenta->$nombre }}</td>
                             <td class="text-end {{ $saldoAnteriorDeudor > 0 ? 'fw-bold' : '' }}">
                                 @if($saldoAnteriorDeudor > 0)
                                     S/ {{ number_format($saldoAnteriorDeudor, 2) }}
@@ -268,16 +268,16 @@
                                     -
                                 @endif
                             </td>
-                            <td class="text-end text-danger {{ $cuenta->total_debe > 0 ? 'fw-bold' : '' }}">
-                                @if($cuenta->total_debe > 0)
-                                    S/ {{ number_format($cuenta->total_debe, 2) }}
+                            <td class="text-end text-danger {{ $cuenta->$total_debe > 0 ? 'fw-bold' : '' }}">
+                                @if($cuenta->$total_debe > 0)
+                                    S/ {{ number_format($cuenta->$total_debe, 2) }}
                                 @else
                                     -
                                 @endif
                             </td>
-                            <td class="text-end text-primary {{ $cuenta->total_haber > 0 ? 'fw-bold' : '' }}">
-                                @if($cuenta->total_haber > 0)
-                                    S/ {{ number_format($cuenta->total_haber, 2) }}
+                            <td class="text-end text-primary {{ $cuenta->$total_haber > 0 ? 'fw-bold' : '' }}">
+                                @if($cuenta->$total_haber > 0)
+                                    S/ {{ number_format($cuenta->$total_haber, 2) }}
                                 @else
                                     -
                                 @endif
@@ -332,29 +332,29 @@
                         @forelse($resumenPorTipo ?? [] as $resumen)
                         <tr>
                             <td class="fw-bold text-center">
-                                <span class="badge bg-{{ $resumen->color }}">{{ strtoupper($resumen->tipo) }}</span>
+                                <span class="badge bg-{{ $resumen->$color }}">{{ strtoupper($resumen->$tipo) }}</span>
                             </td>
-                            <td class="text-center">{{ $resumen->cantidad_cuentas }}</td>
+                            <td class="text-center">{{ $resumen->$cantidad_cuentas }}</td>
                             <td class="text-end fw-bold text-success">
-                                S/ {{ number_format($resumen->total_deudor, 2) }}
+                                S/ {{ number_format($resumen->$total_deudor, 2) }}
                             </td>
                             <td class="text-end fw-bold text-info">
-                                S/ {{ number_format($resumen->total_acreedor, 2) }}
+                                S/ {{ number_format($resumen->$total_acreedor, 2) }}
                             </td>
-                            <td class="text-end fw-bold {{ $resumen->saldo_neto >= 0 ? 'text-success' : 'text-danger' }}">
-                                S/ {{ number_format($resumen->saldo_neto, 2) }}
+                            <td class="text-end fw-bold {{ $resumen->$saldo_neto >= 0 ? 'text-success' : 'text-danger' }}">
+                                S/ {{ number_format($resumen->$saldo_neto, 2) }}
                             </td>
                             <td>
                                 <div class="progress">
                                     @php
-                                        $porcentaje = $resumen->total_cuentas > 0 ? ($resumen->cantidad_cuentas / $resumen->total_cuentas) * 100 : 0;
+                                        $porcentaje = $resumen->$total_cuentas > 0 ? ($resumen->$cantidad_cuentas / $resumen->$total_cuentas) * 100 : 0;
                                     @endphp
-                                    <div class="progress-bar bg-{{ $resumen->color }}" 
+                                    <div class="progress-bar bg-{{ $resumen->$color }}" 
                                          style="width: {{ $porcentaje }}%">
                                         {{ number_format($porcentaje, 1) }}%
                                     </div>
                                 </div>
-                                <small class="text-muted">{{ $resumen->porcentaje_del_total }}% del total</small>
+                                <small class="text-muted">{{ $resumen->$porcentaje_del_total }}% del total</small>
                             </td>
                         </tr>
                         @empty
