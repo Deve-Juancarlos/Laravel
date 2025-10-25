@@ -297,15 +297,15 @@
                                 <div class="col-auto">
                                     <div class="btn-group-vertical">
                                         <button type="button" class="btn btn-sm btn-outline-info mb-1" 
-                                                onclick="verCliente({{ $i }})" title="Ver">
+                                                onclick="verCliente('{{ $i }}')" title="Ver">
                                             <i class="fas fa-eye"></i>
                                         </button>
                                         <button type="button" class="btn btn-sm btn-outline-primary mb-1" 
-                                                onclick="editarCliente({{ $i }})" title="Editar">
+                                                onclick="editarCliente('{{ $i }}')" title="Editar">
                                             <i class="fas fa-edit"></i>
                                         </button>
                                         <button type="button" class="btn btn-sm btn-outline-success" 
-                                                onclick="estadoCuenta({{ $i }})" title="Estado Cuenta">
+                                                onclick="estadoCuenta('{{ $i }}')" title="Estado Cuenta">
                                             <i class="fas fa-file-invoice-dollar"></i>
                                         </button>
                                     </div>
@@ -390,13 +390,13 @@
                                 <td>{{ date('d/m/Y', strtotime("-$i days")) }}</td>
                                 <td>
                                     <div class="btn-group" role="group">
-                                        <button type="button" class="btn btn-sm btn-outline-info" onclick="verCliente({{ $i }})">
+                                        <button type="button" class="btn btn-sm btn-outline-info" onclick="verCliente('{{ $i }}')">
                                             <i class="fas fa-eye"></i>
                                         </button>
-                                        <button type="button" class="btn btn-sm btn-outline-primary" onclick="editarCliente({{ $i }})">
+                                        <button type="button" class="btn btn-sm btn-outline-primary" onclick="editarCliente('{{ $i }}')">
                                             <i class="fas fa-edit"></i>
                                         </button>
-                                        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="estadoCuenta({{ $i }})">
+                                        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="estadoCuenta('{{ $i }}')">
                                             <i class="fas fa-file-invoice-dollar"></i>
                                         </button>
                                     </div>
