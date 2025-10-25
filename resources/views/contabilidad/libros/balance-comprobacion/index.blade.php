@@ -233,14 +233,14 @@
                         @foreach($cuentasBalance ?? [] as $cuenta)
                         @php
                             // Calcular saldos según el tipo de cuenta
-                            $saldoAnteriorDeudor = $cuenta->saldo_anterior > 0 ? $cuenta->saldo_anterior : 0;
+                            $saldoAnteriorDeudor = $cuenta->$saldo_anterior > 0 ? $cuenta->saldo_anterior : 0;
                             $saldoAnteriorAcreedor = $cuenta->saldo_anterior < 0 ? abs($cuenta->saldo_anterior) : 0;
-                            $saldoActualDeudor = $cuenta->saldo_actual > 0 ? $cuenta->saldo_actual : 0;
+                            $saldoActualDeudor = $cuenta->$saldo_actual > 0 ? $cuenta->saldo_actual : 0;
                             $saldoActualAcreedor = $cuenta->saldo_actual < 0 ? abs($cuenta->saldo_actual) : 0;
                             
                             $totalSaldoAnteriorDeudor += $saldoAnteriorDeudor;
                             $totalSaldoAnteriorAcreedor += $saldoAnteriorAcreedor;
-                            $totalDebe += $cuenta->total_debe;
+                            $totalDebe += $cuenta->$total_debe;
                             $totalHaber += $cuenta->total_haber;
                             $totalSaldoActualDeudor += $saldoActualDeudor;
                             $totalSaldoActualAcreedor += $saldoActualAcreedor;
