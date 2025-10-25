@@ -12,27 +12,7 @@ use Carbon\Carbon;
 
 class DashboardApiController extends Controller
 {
-    /**
-     * ================================================
-     * CONTROLLER: DASHBOARD API CONTROLLER
-     * ================================================
-     * Descripción: API REST para dashboard ejecutivo y métricas en tiempo real
-     * Autor: MiniMax Agent
-     * Fecha: 2025-10-24
-     * Líneas de código: 1,500+
-     * Endpoints: 70+ rutas API especializadas
-     * ================================================
-     */
-
-    /*
-    |--------------------------------------------------------------------------
-    | CONFIGURACIÓN GENERAL
-    |--------------------------------------------------------------------------
-    */
-    
-    /**
-     * Constructor con middleware API
-     */
+  
     public function __construct()
     {
         // Middleware de autenticación API
@@ -45,16 +25,6 @@ class DashboardApiController extends Controller
         $this->middleware('api.permission:dashboard');
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | MÉTODOS PRINCIPALES DEL DASHBOARD
-    |--------------------------------------------------------------------------
-    */
-
-    /**
-     * Obtener datos completos del dashboard ejecutivo
-     * GET /api/dashboard/ejecutivo
-     */
     public function dashboardEjecutivo(Request $request): JsonResponse
     {
         try {
