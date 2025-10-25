@@ -9,27 +9,13 @@ use Carbon\Carbon;
 
 class AnalyticsController extends Controller
 {
-    /**
-     * MÓDULO REPORTES - Controlador de Analytics
-     * Analytics avanzado y análisis de datos para la empresa
-     * Integrado con base de datos SIFANO existente
-     * Total de líneas: ~950
-     */
-
+    
     public function __construct()
     {
         $this->middleware(['auth', 'rol:administrador|vendedor|contador|gerente']);
     }
 
-    /**
-     * ===============================================
-     * MÉTODOS PRINCIPALES DE ANALYTICS
-     * ===============================================
-     */
-
-    /**
-     * Dashboard principal de analytics
-     */
+    
     public function index(Request $request)
     {
         $periodo = $request->periodo ?? '12m'; // Últimos 12 meses
@@ -41,17 +27,8 @@ class AnalyticsController extends Controller
         $alertas_analiticas = $this->generarAlertasAnaliticas();
 
         return compact('resumen_ejecutivo', 'tendencias_principales', 'metricas_clave', 'alertas_analiticas', 'periodo', 'tipo_analisis');
-    }
+    } 
 
-    /**
-     * ===============================================
-     * ANALYTICS DE VENTAS AVANZADO
-     * ===============================================
-     */
-
-    /**
-     * Análisis detallado de patrones de ventas
-     */
     public function analizarPatronesVentas(Request $request)
     {
         $fecha_desde = $request->fecha_desde ?? now()->subMonths(12)->format('Y-m-d');
@@ -103,9 +80,6 @@ class AnalyticsController extends Controller
         ];
     }
 
-    /**
-     * Análisis de cohortes de clientes
-     */
     public function analisisCohortes(Request $request)
     {
         $meses_analisis = $request->meses_analisis ?? 12;
@@ -166,9 +140,6 @@ class AnalyticsController extends Controller
         ];
     }
 
-    /**
-     * Análisis de segmentación RFM
-     */
     public function segmentacionRFM(Request $request)
     {
         $fecha_referencia = now();
@@ -230,15 +201,7 @@ class AnalyticsController extends Controller
         ];
     }
 
-    /**
-     * ===============================================
-     * ANALYTICS DE PRODUCTOS
-     * ===============================================
-     */
-
-    /**
-     * Análisis ABC de productos
-     */
+    
     public function analisisABCProductos(Request $request)
     {
         $fecha_desde = $request->fecha_desde ?? now()->subYear()->format('Y-m-d');
@@ -312,9 +275,6 @@ class AnalyticsController extends Controller
         ];
     }
 
-    /**
-     * Análisis de productos relacionados
-     */
     public function productosRelacionados(Request $request)
     {
         $producto_id = $request->producto_id;
@@ -358,15 +318,7 @@ class AnalyticsController extends Controller
         ];
     }
 
-    /**
-     * ===============================================
-     * ANALYTICS PREDICTIVO
-     * ===============================================
-     */
-
-    /**
-     * Predicción de ventas usando regresión lineal
-     */
+    
     public function predecirVentas(Request $request)
     {
         $meses_historicos = $request->meses_historicos ?? 24;
@@ -424,9 +376,6 @@ class AnalyticsController extends Controller
         ];
     }
 
-    /**
-     * Análisis de estacionalidad
-     */
     public function analizarEstacionalidad(Request $request)
     {
         $años_analisis = $request->años_analisis ?? 3;
@@ -484,15 +433,6 @@ class AnalyticsController extends Controller
         ];
     }
 
-    /**
-     * ===============================================
-     * ANÁLISIS COMPETITIVO Y BENCHMARKING
-     * ===============================================
-     */
-
-    /**
-     * Análisis de participación de mercado (simulado)
-     */
     public function participacionMercado(Request $request)
     {
         // En un sistema real, esto vendría de datos externos o APIs
@@ -554,15 +494,6 @@ class AnalyticsController extends Controller
         ];
     }
 
-    /**
-     * ===============================================
-     * MÉTODOS DE CÁLCULO Y UTILIDAD
-     * ===============================================
-     */
-
-    /**
-     * Genera resumen ejecutivo de analytics
-     */
     private function generarResumenEjecutivo($periodo)
     {
         $fecha_desde = $this->calcularFechaDesde($periodo);
@@ -593,9 +524,6 @@ class AnalyticsController extends Controller
         ];
     }
 
-    /**
-     * Analiza tendencias principales
-     */
     private function analizarTendenciasPrincipales($periodo)
     {
         $fecha_desde = $this->calcularFechaDesde($periodo);
@@ -637,9 +565,7 @@ class AnalyticsController extends Controller
         ];
     }
 
-    /**
-     * Calcula métricas clave
-     */
+    
     private function calcularMetricasClave($periodo)
     {
         $fecha_desde = $this->calcularFechaDesde($periodo);
@@ -706,11 +632,6 @@ class AnalyticsController extends Controller
         return $alertas;
     }
 
-    /**
-     * ===============================================
-     * MÉTODOS PRIVADOS DE CÁLCULO
-     * ===============================================
-     */
 
     private function calcularFechaDesde($periodo)
     {

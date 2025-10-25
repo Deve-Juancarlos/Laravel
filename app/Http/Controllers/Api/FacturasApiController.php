@@ -12,27 +12,7 @@ use Carbon\Carbon;
 
 class FacturasApiController extends Controller
 {
-    /**
-     * ================================================
-     * CONTROLLER: FACTURAS API CONTROLLER
-     * ================================================
-     * Descripción: API REST para gestión completa de facturas y documentos
-     * Autor: MiniMax Agent
-     * Fecha: 2025-10-24
-     * Líneas de código: 1,400+
-     * Endpoints: 60+ rutas API especializadas
-     * ================================================
-     */
 
-    /*
-    |--------------------------------------------------------------------------
-    | CONFIGURACIÓN GENERAL
-    |--------------------------------------------------------------------------
-    */
-    
-    /**
-     * Constructor con middleware API
-     */
     public function __construct()
     {
         // Middleware de autenticación API
@@ -45,16 +25,7 @@ class FacturasApiController extends Controller
         $this->middleware('api.permission:facturas');
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | MÉTODOS CRUD BÁSICOS PARA DOCUMENTOS
-    |--------------------------------------------------------------------------
-    */
-
-    /**
-     * Listar documentos/facturas con paginación y filtros
-     * GET /api/facturas
-     */
+   
     public function index(Request $request): JsonResponse
     {
         try {
@@ -161,10 +132,6 @@ class FacturasApiController extends Controller
         }
     }
 
-    /**
-     * Obtener documento por ID
-     * GET /api/facturas/{id}
-     */
     public function show(Request $request, $id): JsonResponse
     {
         try {
@@ -335,7 +302,7 @@ class FacturasApiController extends Controller
                 }
 
                 // Actualizar estadísticas del cliente
-                DB::table('Clientes'),
+                DB::table('Clientes');
                 ->where('Codigo', $request->Codcli)
                 ->increment('TotalCompras', $totales['total_con_igv'])
                 ->update(['UltimaCompra' => $request->Fecha]);
@@ -371,10 +338,7 @@ class FacturasApiController extends Controller
         }
     }
 
-    /**
-     * Actualizar documento
-     * PUT /api/facturas/{id}
-     */
+
     public function update(Request $request, $id): JsonResponse
     {
         try {
@@ -455,10 +419,6 @@ class FacturasApiController extends Controller
         }
     }
 
-    /**
-     * Eliminar/anular documento
-     * DELETE /api/facturas/{id}
-     */
     public function destroy(Request $request, $id): JsonResponse
     {
         try {
@@ -546,16 +506,7 @@ class FacturasApiController extends Controller
         }
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | MÉTODOS ESPECIALIZADOS PARA API
-    |--------------------------------------------------------------------------
-    */
-
-    /**
-     * Buscar documentos por número o cliente
-     * GET /api/facturas/search
-     */
+  
     public function search(Request $request): JsonResponse
     {
         try {
@@ -617,10 +568,6 @@ class FacturasApiController extends Controller
         }
     }
 
-    /**
-     * Obtener estadísticas de documentos
-     * GET /api/facturas/statistics
-     */
     public function statistics(Request $request): JsonResponse
     {
         try {
@@ -681,10 +628,6 @@ class FacturasApiController extends Controller
         }
     }
 
-    /**
-     * Obtener detalle de documento específico
-     * GET /api/facturas/{id}/detalle
-     */
     public function detalle(Request $request, $id): JsonResponse
     {
         try {
@@ -751,10 +694,7 @@ class FacturasApiController extends Controller
         }
     }
 
-    /**
-     * Obtener cuentas por cobrar
-     * GET /api/facturas/cuentas-cobrar
-     */
+  
     public function cuentasPorCobrar(Request $request): JsonResponse
     {
         try {
@@ -837,10 +777,6 @@ class FacturasApiController extends Controller
         }
     }
 
-    /**
-     * Registrar pago de documento
-     * POST /api/facturas/{id}/pago
-     */
     public function registrarPago(Request $request, $id): JsonResponse
     {
         try {
@@ -938,15 +874,7 @@ class FacturasApiController extends Controller
         }
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | MÉTODOS DE SOPORTE Y UTILIDADES
-    |--------------------------------------------------------------------------
-    */
-
-    /**
-     * Aplicar filtros a la query
-     */
+  
     private function applyFilters($query, Request $request)
     {
         // Filtro de búsqueda
@@ -1003,9 +931,7 @@ class FacturasApiController extends Controller
         }
     }
 
-    /**
-     * Calcular estadísticas de facturas
-     */
+ 
     private function calcularEstadisticasFacturas($baseQuery)
     {
         $hoy = Carbon::now();
@@ -1032,9 +958,6 @@ class FacturasApiController extends Controller
         ];
     }
 
-    /**
-     * Generar número de documento único
-     */
     private function generarNumeroDocumento($tipoDoc, $serie)
     {
         $prefijo = match($tipoDoc) {
@@ -1061,9 +984,6 @@ class FacturasApiController extends Controller
         return str_pad($numero, 8, '0', STR_PAD_LEFT);
     }
 
-    /**
-     * Calcular totales para nuevo documento
-     */
     private function calcularTotalesNuevoDocumento($detalles, $descuentoGlobal)
     {
         $subtotal = 0;
@@ -1086,9 +1006,6 @@ class FacturasApiController extends Controller
         ];
     }
 
-    /**
-     * Calcular totales del documento
-     */
     private function calcularTotalesDocumento($documento, $detalles)
     {
         $subtotal = $detalles->sum('Total');
@@ -1102,9 +1019,6 @@ class FacturasApiController extends Controller
         ];
     }
 
-    /**
-     * Obtener historial de pagos
-     */
     private function obtenerHistorialPagos($numeroDocumento)
     {
         // Esta tabla podría estar en una tabla separada de movimientos de pago
@@ -1115,9 +1029,6 @@ class FacturasApiController extends Controller
             ->get();
     }
 
-    /**
-     * Obtener documentos relacionados
-     */
     private function obtenerDocumentosRelacionados($numeroDocumento)
     {
         return DB::table('Doccab')
@@ -1129,9 +1040,6 @@ class FacturasApiController extends Controller
             ->get();
     }
 
-    /**
-     * Registrar movimiento de caja
-     */
     private function registrarMovimientoCaja($documento, $request)
     {
         try {
@@ -1151,9 +1059,6 @@ class FacturasApiController extends Controller
         }
     }
 
-    /**
-     * Registrar auditoría
-     */
     private function registrarAuditoria($accion, $tabla, $registroId, $datos, Request $request)
     {
         try {
