@@ -301,11 +301,14 @@ class FacturasApiController extends Controller
                     }
                 }
 
-                // Actualizar estadísticas del cliente
-                DB::table('Clientes');
-                ->where('Codigo', $request->Codcli)
-                ->increment('TotalCompras', $totales['total_con_igv'])
-                ->update(['UltimaCompra' => $request->Fecha]);
+               // Actualizar estadísticas del cliente
+                DB::table('Clientes')
+                    ->where('Codigo', $request->Codcli)
+                    ->increment('TotalCompras', $totales['total_con_igv']);
+
+                DB::table('Clientes')
+                    ->where('Codigo', $request->Codcli)
+                    ->update(['UltimaCompra' => $request->Fecha]);
 
                 DB::commit();
 
@@ -1069,7 +1072,7 @@ class FacturasApiController extends Controller
                 'datos_anteriores' => is_string($datos) ? $datos : json_encode($datos),
                 'ip_address' => $request->ip(),
                 'user_agent' => $request->userAgent(),
-                'user_id' => auth()->id(),
+                'user_id' => auth('sanctum')->id() ?? null,
                 'created_at' => Carbon::now()
             ]);
         } catch (\Exception $e) {

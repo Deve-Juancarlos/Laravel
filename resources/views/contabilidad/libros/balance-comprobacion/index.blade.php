@@ -350,9 +350,11 @@
                                         $porcentaje = $resumen->$total_cuentas > 0 ? ($resumen->$cantidad_cuentas / $resumen->$total_cuentas) * 100 : 0;
                                     @endphp
                                     <div class="progress-bar bg-{{ $resumen->$color }}" 
-                                         style="width: {{ $porcentaje }}%">
+                                        style="width : {{ $porcentaje}}%">
                                         {{ number_format($porcentaje, 1) }}%
                                     </div>
+
+
                                 </div>
                                 <small class="text-muted">{{ $resumen->$porcentaje_del_total }}% del total</small>
                             </td>
@@ -490,13 +492,14 @@
     // Gráfico de distribución del balance
     document.addEventListener('DOMContentLoaded', function() {
         const ctx = document.getElementById('balanceDistributionChart');
-        if (ctx) {
+            if (ctx) {
             new Chart(ctx, {
                 type: 'doughnut',
                 data: {
-                    labels: {!! json_encode($nombresTipos ?? []) !!},
+                    labels: @json($nombresTipos ?? []),
                     datasets: [{
-                        data: {!! json_encode($saldosPorTipo ?? []) !!},
+                        data: @json($saldosPorTipo ?? []),
+
                         backgroundColor: [
                             '#3b82f6',
                             '#f59e0b', 

@@ -1,0 +1,1097 @@
+/* CSS para Módulo de Contabilidad - Farmacia SIFANO */
+/* Estilos específicos para libros contables y reportes SUNAT */
+
+:root {
+    --color-contabilidad-primary: #6f42c1;
+    --color-contabilidad-secondary: #6c757d;
+    --color-contabilidad-success: #28a745;
+    --color-contabilidad-warning: #ffc107;
+    --color-contabilidad-danger: #dc3545;
+    --color-contabilidad-info: #17a2b8;
+    --color-contabilidad-light: #f8f9fa;
+    --color-contabilidad-dark: #343a40;
+    
+    --color-contabilidad-indigo: #6610f2;
+    --color-contabilidad-pink: #e83e8c;
+    --color-contabilidad-teal: #20c997;
+    --color-contabilidad-orange: #fd7e14;
+    --color-contabilidad-cyan: #0dcaf0;
+    
+    --shadow-contabilidad: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    --shadow-contabilidad-lg: 0 1rem 3rem rgba(0, 0, 0, 0.175);
+    --shadow-contabilidad-xl: 0 2rem 4rem rgba(0, 0, 0, 0.15);
+    
+    --border-radius-contabilidad: 0.375rem;
+    --border-radius-contabilidad-lg: 0.5rem;
+    --border-radius-contabilidad-xl: 0.75rem;
+    
+    --gradient-contabilidad-primary: linear-gradient(135deg, var(--color-contabilidad-primary) 0%, var(--color-contabilidad-indigo) 100%);
+    --gradient-contabilidad-success: linear-gradient(135deg, var(--color-contabilidad-success) 0%, var(--color-contabilidad-teal) 100%);
+    --gradient-contabilidad-warning: linear-gradient(135deg, var(--color-contabilidad-warning) 0%, var(--color-contabilidad-orange) 100%);
+    --gradient-contabilidad-danger: linear-gradient(135deg, var(--color-contabilidad-danger) 0%, var(--color-contabilidad-pink) 100%);
+}
+
+/* Header del módulo de contabilidad */
+.contabilidad-header {
+    background: var(--gradient-contabilidad-primary);
+    color: white;
+    padding: 2.5rem 0;
+    margin-bottom: 2rem;
+    border-radius: var(--border-radius-contabilidad-xl);
+    box-shadow: var(--shadow-contabilidad-xl);
+    position: relative;
+    overflow: hidden;
+}
+
+.contabilidad-header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="contabilidad-pattern" width="20" height="20" patternUnits="userSpaceOnUse"><rect width="10" height="10" fill="rgba(255,255,255,0.1)"/><rect x="10" y="10" width="10" height="10" fill="rgba(255,255,255,0.1)"/></pattern></defs><rect width="100" height="100" fill="url(%23contabilidad-pattern)"/></svg>') repeat;
+    opacity: 0.4;
+}
+
+.contabilidad-header .container {
+    position: relative;
+    z-index: 2;
+}
+
+.contabilidad-header .breadcrumb {
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: var(--border-radius-contabilidad);
+    padding: 0.75rem 1.5rem;
+    margin-bottom: 1.5rem;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.contabilidad-header .breadcrumb-item a {
+    color: rgba(255, 255, 255, 0.9);
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+.contabilidad-header .breadcrumb-item a:hover {
+    color: white;
+    text-decoration: underline;
+}
+
+.contabilidad-header .breadcrumb-item.active {
+    color: white;
+    font-weight: 600;
+}
+
+.contabilidad-header h1 {
+    font-size: 3rem;
+    font-weight: 700;
+    margin: 0;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    animation: fadeInUp 0.8s ease-out;
+}
+
+.contabilidad-header .subtitle {
+    font-size: 1.25rem;
+    opacity: 0.9;
+    margin-top: 0.5rem;
+    animation: fadeInUp 0.8s ease-out 0.2s both;
+}
+
+.contabilidad-header .status-info {
+    margin-top: 1.5rem;
+    animation: fadeInUp 0.8s ease-out 0.4s both;
+}
+
+.contabilidad-header .status-item {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.5rem 1rem;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: var(--border-radius-contabilidad-lg);
+    margin: 0 0.5rem 0.5rem 0;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.contabilidad-header .status-icon {
+    margin-right: 0.5rem;
+    font-size: 1.1rem;
+}
+
+/* Navegación de libros */
+.libros-nav {
+    background: white;
+    border-radius: var(--border-radius-contabilidad-xl);
+    box-shadow: var(--shadow-contabilidad);
+    border: 1px solid #e9ecef;
+    overflow: hidden;
+    margin-bottom: 2rem;
+}
+
+.libros-nav .nav-tabs {
+    border-bottom: 2px solid #e9ecef;
+    background: var(--color-contabilidad-light);
+    padding: 0;
+    margin: 0;
+}
+
+.libros-nav .nav-link {
+    border: none;
+    padding: 1rem 1.5rem;
+    font-weight: 600;
+    color: var(--color-contabilidad-secondary);
+    background: transparent;
+    transition: all 0.3s ease;
+    position: relative;
+    border-radius: 0;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-size: 0.875rem;
+}
+
+.libros-nav .nav-link:hover {
+    background: rgba(111, 66, 193, 0.1);
+    color: var(--color-contabilidad-primary);
+    border-bottom: 3px solid transparent;
+}
+
+.libros-nav .nav-link.active {
+    background: white;
+    color: var(--color-contabilidad-primary);
+    border-bottom: 3px solid var(--color-contabilidad-primary);
+    font-weight: 700;
+}
+
+.libros-nav .nav-link.active::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: var(--gradient-contabilidad-primary);
+}
+
+.libros-nav .tab-content {
+    padding: 2rem;
+}
+
+/* Secciones de libros */
+.libro-section {
+    background: white;
+    border-radius: var(--border-radius-contabilidad-xl);
+    box-shadow: var(--shadow-contabilidad);
+    border: 1px solid #e9ecef;
+    overflow: hidden;
+    display: none;
+}
+
+.libro-section.active {
+    display: block;
+    animation: slideInRight 0.5s ease-out;
+}
+
+@keyframes slideInRight {
+    from {
+        opacity: 0;
+        transform: translateX(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Header de sección */
+.libro-section-header {
+    background: var(--color-contabilidad-light);
+    padding: 1.5rem 2rem;
+    border-bottom: 1px solid #e9ecef;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.libro-section-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--color-contabilidad-dark);
+    margin: 0;
+    display: flex;
+    align-items: center;
+}
+
+.libro-section-title .title-icon {
+    margin-right: 0.75rem;
+    color: var(--color-contabilidad-primary);
+    font-size: 1.75rem;
+}
+
+.libro-section-actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+/* Tablas contables */
+.tabla-contabilidad {
+    background: white;
+    border-radius: var(--border-radius-contabilidad-lg);
+    box-shadow: var(--shadow-contabilidad);
+    overflow: hidden;
+    border: 1px solid #e9ecef;
+}
+
+.tabla-contabilidad .table {
+    margin-bottom: 0;
+    font-size: 0.9rem;
+}
+
+.tabla-contabilidad .table thead th {
+    background: var(--color-contabilidad-light);
+    border-bottom: 2px solid var(--color-contabilidad-primary);
+    color: var(--color-contabilidad-dark);
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size: 0.8rem;
+    letter-spacing: 0.5px;
+    padding: 1.25rem 0.75rem;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.tabla-contabilidad .table tbody td {
+    padding: 0.875rem 0.75rem;
+    vertical-align: middle;
+    border-top: 1px solid #f1f3f4;
+    transition: all 0.3s ease;
+}
+
+.tabla-contabilidad .table tbody tr {
+    transition: all 0.3s ease;
+}
+
+.tabla-contabilidad .table tbody tr:hover {
+    background: rgba(111, 66, 193, 0.03);
+}
+
+.tabla-contabilidad .table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.tabla-contabilidad .table tbody tr.table-info {
+    background: rgba(23, 162, 184, 0.05);
+    font-weight: 600;
+}
+
+/* Columnas específicas para contabilidad */
+.tabla-contabilidad .col-numero {
+    font-family: 'Courier New', monospace;
+    font-weight: 600;
+    color: var(--color-contabilidad-primary);
+}
+
+.tabla-contabilidad .col-cuenta {
+    font-family: 'Courier New', monospace;
+    background: var(--color-contabilidad-light);
+    font-weight: 600;
+    border-radius: var(--border-radius-contabilidad);
+    padding: 0.375rem 0.5rem;
+    display: inline-block;
+}
+
+.tabla-contabilidad .col-importe {
+    font-family: 'Courier New', monospace;
+    text-align: right;
+    font-weight: 600;
+}
+
+.tabla-contabilidad .col-importe.debe {
+    color: var(--color-contabilidad-success);
+}
+
+.tabla-contabilidad .col-importe.haber {
+    color: var(--color-contabilidad-danger);
+}
+
+.tabla-contabilidad .col-importe.total {
+    color: var(--color-contabilidad-primary);
+    background: rgba(111, 66, 193, 0.1);
+    border-radius: var(--border-radius-contabilidad);
+    padding: 0.375rem 0.5rem;
+}
+
+/* Formularios de asientos */
+.asiento-form {
+    background: white;
+    border-radius: var(--border-radius-contabilidad-xl);
+    box-shadow: var(--shadow-contabilidad);
+    border: 1px solid #e9ecef;
+    padding: 2rem;
+    margin-bottom: 2rem;
+}
+
+.asiento-form .form-header {
+    background: var(--gradient-contabilidad-primary);
+    color: white;
+    margin: -2rem -2rem 2rem -2rem;
+    padding: 1.5rem 2rem;
+    border-radius: var(--border-radius-contabilidad-xl) var(--border-radius-contabilidad-xl) 0 0;
+}
+
+.asiento-form .form-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin: 0;
+}
+
+.asiento-form .form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.asiento-form .form-group {
+    margin-bottom: 1rem;
+}
+
+.asiento-form .form-label {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--color-contabilidad-dark);
+    margin-bottom: 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.asiento-form .form-control,
+.asiento-form .form-select {
+    border-radius: var(--border-radius-contabilidad);
+    border: 1px solid #ced4da;
+    padding: 0.75rem 1rem;
+    transition: all 0.3s ease;
+    font-family: 'Courier New', monospace;
+}
+
+.asiento-form .form-control:focus,
+.asiento-form .form-select:focus {
+    border-color: var(--color-contabilidad-primary);
+    box-shadow: 0 0 0 0.2rem rgba(111, 66, 193, 0.25);
+}
+
+/* Tabla de movimientos contables */
+.movimientos-table {
+    background: var(--color-contabilidad-light);
+    border-radius: var(--border-radius-contabilidad);
+    padding: 1.5rem;
+    margin-top: 1rem;
+}
+
+.movimientos-table .table {
+    background: white;
+    border-radius: var(--border-radius-contabilidad);
+    overflow: hidden;
+    box-shadow: var(--shadow-contabilidad);
+}
+
+.movimientos-table .table thead th {
+    background: var(--color-contabilidad-primary);
+    color: white;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-size: 0.75rem;
+    padding: 0.75rem 0.5rem;
+}
+
+.movimientos-table .table tbody td {
+    padding: 0.75rem 0.5rem;
+    vertical-align: middle;
+}
+
+.movimientos-table .movimiento-row {
+    transition: all 0.3s ease;
+}
+
+.movimientos-table .movimiento-row:hover {
+    background: rgba(111, 66, 193, 0.05);
+}
+
+/* Estados de validación */
+.validation-state {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.375rem 0.75rem;
+    border-radius: var(--border-radius-contabilidad);
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.validation-state.valid {
+    background: rgba(40, 167, 69, 0.1);
+    color: var(--color-contabilidad-success);
+    border: 1px solid rgba(40, 167, 69, 0.3);
+}
+
+.validation-state.invalid {
+    background: rgba(220, 53, 69, 0.1);
+    color: var(--color-contabilidad-danger);
+    border: 1px solid rgba(220, 53, 69, 0.3);
+}
+
+.validation-state.pending {
+    background: rgba(255, 193, 7, 0.1);
+    color: #856404;
+    border: 1px solid rgba(255, 193, 7, 0.3);
+}
+
+.validation-state .validation-icon {
+    margin-right: 0.5rem;
+}
+
+/* Indicadores de equilibrio */
+.balance-indicator {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 1.5rem;
+    border-radius: var(--border-radius-contabilidad-lg);
+    margin-bottom: 1.5rem;
+    font-weight: 600;
+}
+
+.balance-indicator.equilibrado {
+    background: rgba(40, 167, 69, 0.1);
+    color: var(--color-contabilidad-success);
+    border: 1px solid rgba(40, 167, 69, 0.3);
+}
+
+.balance-indicator.desequilibrado {
+    background: rgba(220, 53, 69, 0.1);
+    color: var(--color-contabilidad-danger);
+    border: 1px solid rgba(220, 53, 69, 0.3);
+}
+
+.balance-indicator .balance-icon {
+    font-size: 1.25rem;
+    margin-right: 0.5rem;
+}
+
+.balance-indicator .balance-amount {
+    font-family: 'Courier New', monospace;
+    font-size: 1.1rem;
+}
+
+/* Reportes SUNAT */
+.sunat-reportes-container {
+    background: white;
+    border-radius: var(--border-radius-contabilidad-xl);
+    box-shadow: var(--shadow-contabilidad);
+    border: 1px solid #e9ecef;
+    overflow: hidden;
+}
+
+.sunat-reportes-header {
+    background: var(--gradient-contabilidad-primary);
+    color: white;
+    padding: 1.5rem 2rem;
+}
+
+.sunat-reportes-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin: 0;
+    display: flex;
+    align-items: center;
+}
+
+.sunat-reportes-title .title-icon {
+    margin-right: 0.75rem;
+    font-size: 1.75rem;
+}
+
+.sunat-reportes-content {
+    padding: 2rem;
+}
+
+/* Cards de reportes SUNAT */
+.reporte-sunat-card {
+    background: white;
+    border: 1px solid #e9ecef;
+    border-radius: var(--border-radius-contabilidad-lg);
+    transition: all 0.3s ease;
+    margin-bottom: 1.5rem;
+    overflow: hidden;
+    position: relative;
+}
+
+.reporte-sunat-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
+    background: var(--color-contabilidad-primary);
+}
+
+.reporte-sunat-card:hover {
+    box-shadow: var(--shadow-contabilidad-lg);
+    transform: translateY(-2px);
+}
+
+.reporte-sunat-card .reporte-header {
+    padding: 1.5rem;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.reporte-sunat-card .reporte-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--color-contabilidad-dark);
+    margin-bottom: 0.5rem;
+}
+
+.reporte-sunat-card .reporte-subtitle {
+    font-size: 0.875rem;
+    color: var(--color-contabilidad-secondary);
+    margin-bottom: 0.75rem;
+}
+
+.reporte-sunat-card .reporte-status {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.reporte-sunat-card .reporte-body {
+    padding: 1.5rem;
+}
+
+.reporte-sunat-card .reporte-metricas {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.reporte-sunat-card .metrica-item {
+    text-align: center;
+    padding: 0.75rem;
+    background: var(--color-contabilidad-light);
+    border-radius: var(--border-radius-contabilidad);
+}
+
+.reporte-sunat-card .metrica-label {
+    font-size: 0.75rem;
+    color: var(--color-contabilidad-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 0.25rem;
+}
+
+.reporte-sunat-card .metrica-value {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--color-contabilidad-primary);
+    font-family: 'Courier New', monospace;
+}
+
+.reporte-sunat-card .reporte-files {
+    margin-top: 1rem;
+}
+
+.reporte-sunat-card .archivo-item {
+    display: flex;
+    align-items: center;
+    padding: 0.5rem 0.75rem;
+    background: var(--color-contabilidad-light);
+    border-radius: var(--border-radius-contabilidad);
+    margin-bottom: 0.5rem;
+    transition: all 0.3s ease;
+}
+
+.reporte-sunat-card .archivo-item:hover {
+    background: rgba(111, 66, 193, 0.1);
+}
+
+.reporte-sunat-card .archivo-icon {
+    margin-right: 0.75rem;
+    color: var(--color-contabilidad-primary);
+    font-size: 1.1rem;
+}
+
+.reporte-sunat-card .archivo-info {
+    flex: 1;
+}
+
+.reporte-sunat-card .archivo-nombre {
+    font-weight: 600;
+    color: var(--color-contabilidad-dark);
+    font-size: 0.875rem;
+}
+
+.reporte-sunat-card .archivo-tamaño {
+    font-size: 0.75rem;
+    color: var(--color-contabilidad-secondary);
+}
+
+.reporte-sunat-card .reporte-actions {
+    padding: 1rem 1.5rem;
+    background: var(--color-contabilidad-light);
+    border-top: 1px solid #e9ecef;
+    display: flex;
+    gap: 0.5rem;
+    justify-content: flex-end;
+}
+
+/* Alertas específicas de contabilidad */
+.alert-contabilidad {
+    border-radius: var(--border-radius-contabilidad-lg);
+    border: none;
+    padding: 1.5rem 2rem;
+    margin-bottom: 1.5rem;
+    position: relative;
+    overflow: hidden;
+    box-shadow: var(--shadow-contabilidad);
+}
+
+.alert-contabilidad::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
+    background: var(--color-contabilidad-primary);
+}
+
+.alert-contabilidad.alert-success::before {
+    background: var(--color-contabilidad-success);
+}
+
+.alert-contabilidad.alert-warning::before {
+    background: var(--color-contabilidad-warning);
+}
+
+.alert-contabilidad.alert-danger::before {
+    background: var(--color-contabilidad-danger);
+}
+
+.alert-contabilidad.alert-info::before {
+    background: var(--color-contabilidad-info);
+}
+
+.alert-contabilidad .alert-icon {
+    font-size: 1.5rem;
+    margin-right: 1rem;
+    opacity: 0.8;
+}
+
+.alert-contabilidad.alert-success .alert-icon { color: var(--color-contabilidad-success); }
+.alert-contabilidad.alert-warning .alert-icon { color: #856404; }
+.alert-contabilidad.alert-danger .alert-icon { color: var(--color-contabilidad-danger); }
+.alert-contabilidad.alert-info .alert-icon { color: var(--color-contabilidad-info); }
+
+/* Botones específicos de contabilidad */
+.btn-contabilidad {
+    border-radius: var(--border-radius-contabilidad);
+    font-weight: 600;
+    padding: 0.75rem 1.5rem;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-size: 0.875rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-contabilidad::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s;
+}
+
+.btn-contabilidad:hover::before {
+    left: 100%;
+}
+
+.btn-contabilidad:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.btn-contabilidad.btn-primary {
+    background: var(--gradient-contabilidad-primary);
+    border: none;
+}
+
+.btn-contabilidad.btn-success {
+    background: var(--gradient-contabilidad-success);
+    border: none;
+}
+
+.btn-contabilidad.btn-warning {
+    background: var(--gradient-contabilidad-warning);
+    border: none;
+    color: var(--color-contabilidad-dark);
+}
+
+.btn-contabilidad.btn-danger {
+    background: var(--gradient-contabilidad-danger);
+    border: none;
+}
+
+.btn-contabilidad.btn-outline-primary {
+    border: 2px solid var(--color-contabilidad-primary);
+    color: var(--color-contabilidad-primary);
+    background: transparent;
+}
+
+.btn-contabilidad.btn-outline-primary:hover {
+    background: var(--color-contabilidad-primary);
+    color: white;
+}
+
+/* Panel de control de libros */
+.libros-control-panel {
+    background: white;
+    border-radius: var(--border-radius-contabilidad-xl);
+    box-shadow: var(--shadow-contabilidad);
+    padding: 2rem;
+    margin-bottom: 2rem;
+    border: 1px solid #e9ecef;
+}
+
+.libros-control-panel .control-section {
+    margin-bottom: 2rem;
+}
+
+.libros-control-panel .control-section:last-child {
+    margin-bottom: 0;
+}
+
+.libros-control-panel .control-section-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--color-contabilidad-dark);
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+}
+
+.libros-control-panel .control-section-title .title-icon {
+    margin-right: 0.5rem;
+    color: var(--color-contabilidad-primary);
+}
+
+.libros-control-panel .control-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+}
+
+.libros-control-panel .control-item {
+    display: flex;
+    flex-direction: column;
+}
+
+.libros-control-panel .control-label {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--color-contabilidad-dark);
+    margin-bottom: 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.libros-control-panel .form-control,
+.libros-control-panel .form-select {
+    border-radius: var(--border-radius-contabilidad);
+    border: 1px solid #ced4da;
+    padding: 0.75rem 1rem;
+    transition: all 0.3s ease;
+}
+
+.libros-control-panel .form-control:focus,
+.libros-control-panel .form-select:focus {
+    border-color: var(--color-contabilidad-primary);
+    box-shadow: 0 0 0 0.2rem rgba(111, 66, 193, 0.25);
+}
+
+/* Responsive design */
+@media (max-width: 1200px) {
+    .contabilidad-header h1 {
+        font-size: 2.5rem;
+    }
+    
+    .libro-section-header {
+        flex-direction: column;
+        text-align: center;
+        gap: 1rem;
+    }
+    
+    .libro-section-actions {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+@media (max-width: 768px) {
+    .contabilidad-header {
+        padding: 2rem 0;
+        text-align: center;
+    }
+    
+    .contabilidad-header h1 {
+        font-size: 2rem;
+    }
+    
+    .libros-nav .nav-link {
+        padding: 0.75rem 1rem;
+        font-size: 0.8rem;
+    }
+    
+    .libros-nav .tab-content {
+        padding: 1rem;
+    }
+    
+    .asiento-form {
+        padding: 1.5rem;
+    }
+    
+    .asiento-form .form-header {
+        margin: -1.5rem -1.5rem 1.5rem -1.5rem;
+        padding: 1rem 1.5rem;
+    }
+    
+    .tabla-contabilidad .table thead th,
+    .tabla-contabilidad .table tbody td {
+        padding: 0.5rem;
+        font-size: 0.8rem;
+    }
+    
+    .reporte-sunat-card .reporte-metricas {
+        grid-template-columns: 1fr 1fr;
+    }
+    
+    .libros-control-panel {
+        padding: 1.5rem;
+    }
+    
+    .libros-control-panel .control-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 576px) {
+    .contabilidad-header {
+        padding: 1.5rem 0;
+    }
+    
+    .contabilidad-header h1 {
+        font-size: 1.75rem;
+    }
+    
+    .libros-nav .nav-link {
+        padding: 0.5rem 0.75rem;
+        font-size: 0.75rem;
+    }
+    
+    .asiento-form {
+        padding: 1rem;
+    }
+    
+    .asiento-form .form-header {
+        margin: -1rem -1rem 1rem -1rem;
+        padding: 0.75rem 1rem;
+    }
+    
+    .asiento-form .form-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .movimientos-table {
+        padding: 1rem;
+    }
+    
+    .reporte-sunat-card .reporte-actions {
+        flex-direction: column;
+    }
+    
+    .btn-contabilidad {
+        width: 100%;
+        margin-bottom: 0.5rem;
+    }
+}
+
+/* Utilidades específicas para contabilidad */
+.text-contabilidad-primary { color: var(--color-contabilidad-primary) !important; }
+.text-contabilidad-success { color: var(--color-contabilidad-success) !important; }
+.text-contabilidad-warning { color: #856404 !important; }
+.text-contabilidad-danger { color: var(--color-contabilidad-danger) !important; }
+.text-contabilidad-info { color: var(--color-contabilidad-info) !important; }
+
+.bg-contabilidad-primary { background-color: var(--color-contabilidad-primary) !important; }
+.bg-contabilidad-success { background-color: var(--color-contabilidad-success) !important; }
+.bg-contabilidad-warning { background-color: var(--color-contabilidad-warning) !important; }
+.bg-contabilidad-danger { background-color: var(--color-contabilidad-danger) !important; }
+.bg-contabilidad-info { background-color: var(--color-contabilidad-info) !important; }
+
+/* Dark mode para contabilidad */
+@media (prefers-color-scheme: dark) {
+    .dark-mode .contabilidad-header {
+        background: linear-gradient(135deg, #4a2c7a 0%, #6a4c93 100%);
+    }
+    
+    .dark-mode .libros-nav,
+    .dark-mode .libro-section,
+    .dark-mode .asiento-form,
+    .dark-mode .tabla-contabilidad,
+    .dark-mode .sunat-reportes-container,
+    .dark-mode .libros-control-panel {
+        background: #2d3748;
+        border-color: #4a5568;
+        color: #e2e8f0;
+    }
+    
+    .dark-mode .tabla-contabilidad .table thead th {
+        background: #4a5568;
+        color: #e2e8f0;
+    }
+    
+    .dark-mode .form-control,
+    .dark-mode .form-select {
+        background: #4a5568;
+        border-color: #718096;
+        color: #e2e8f0;
+    }
+    
+    .dark-mode .form-control:focus,
+    .dark-mode .form-select:focus {
+        border-color: var(--color-contabilidad-primary);
+        box-shadow: 0 0 0 0.2rem rgba(111, 66, 193, 0.25);
+    }
+}
+
+/* Print styles para contabilidad */
+@media print {
+    .contabilidad-header {
+        background: var(--color-contabilidad-primary) !important;
+        -webkit-print-color-adjust: exact;
+        color-adjust: exact;
+    }
+    
+    .libros-nav,
+    .libro-section,
+    .asiento-form,
+    .tabla-contabilidad,
+    .sunat-reportes-container,
+    .libros-control-panel {
+        box-shadow: none;
+        border: 1px solid #000;
+        break-inside: avoid;
+        margin-bottom: 1rem;
+    }
+    
+    .btn-contabilidad {
+        display: none;
+    }
+    
+    .tabla-contabilidad .table {
+        font-size: 0.7rem;
+    }
+    
+    .tabla-contabilidad .table thead th,
+    .tabla-contabilidad .table tbody td {
+        padding: 0.375rem 0.25rem;
+    }
+    
+    .reporte-sunat-card .reporte-actions {
+        display: none;
+    }
+    
+    .libro-section-header {
+        background: #f5f5f5 !important;
+        -webkit-print-color-adjust: exact;
+        color-adjust: exact;
+    }
+}
+
+/* Animaciones y transiciones adicionales */
+.slide-in-left {
+    animation: slideInLeft 0.5s ease-out;
+}
+
+@keyframes slideInLeft {
+    from {
+        opacity: 0;
+        transform: translateX(-50px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.bounce-in {
+    animation: bounceIn 0.8s ease-out;
+}
+
+@keyframes bounceIn {
+    0% {
+        opacity: 0;
+        transform: scale(0.3);
+    }
+    50% {
+        opacity: 1;
+        transform: scale(1.05);
+    }
+    70% {
+        transform: scale(0.9);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.pulse-contabilidad {
+    animation: pulseContabilidad 2s infinite;
+}
+
+@keyframes pulseContabilidad {
+    0% {
+        box-shadow: 0 0 0 0 rgba(111, 66, 193, 0.7);
+    }
+    70% {
+        box-shadow: 0 0 0 10px rgba(111, 66, 193, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(111, 66, 193, 0);
+    }
+}

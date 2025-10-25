@@ -1,12 +1,3 @@
-{{-- ==========================================
-     VISTA: DASHBOARD MEDICAMENTOS CONTROLADOS
-     MÓDULO: Medicamentos Controlados - Index
-     DESARROLLADO POR: MiniMax Agent
-     FECHA: 2025-10-25
-     DESCRIPCIÓN: Dashboard principal para control de medicamentos controlados,
-                  seguimiento especial según normativa DIGEMID y disposiciones legales
-========================================== --}}
-
 @extends('layouts.app')
 
 @section('title', 'Medicamentos Controlados - Dashboard')
@@ -568,7 +559,7 @@
                                 <div class="flex-grow-1">
                                     <div class="d-flex justify-content-between align-items-start">
                                         <h6 class="mb-1">Alprazolam 0.5mg</h6>
-                                        <small class="text-muted">{{ date('d/m/Y H:i', strtotate('-6 hours')) }}</small>
+                                        <small class="text-muted">{{ date('d/m/Y H:i', $strtotate('-6 hours')) }}</small>
                                     </div>
                                     <p class="mb-1">
                                         <strong>Receta:</strong> Dr. Carlos Mendoza | <strong>Paciente:</strong> Carmen López

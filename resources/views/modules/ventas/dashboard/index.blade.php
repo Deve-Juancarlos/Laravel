@@ -48,7 +48,7 @@
                             <select class="form-select" id="vendedor">
                                 <option value="">Todos los vendedores</option>
                                 @foreach($vendedores ?? [] as $vendedor)
-                                <option value="{{ $vendedor->id }}">{{ $vendedor->nombre }}</option>
+                                <option value="{{ $vendedor->$id }}">{{ $vendedor->$nombre }}</option>
                                 @endforeach
                             </select>
                         </div>

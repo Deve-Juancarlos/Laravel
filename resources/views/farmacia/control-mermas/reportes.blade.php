@@ -1,12 +1,3 @@
-{{-- ==========================================
-     VISTA: REPORTES DE MERMAS
-     MÓDULO: Control de Mermas - Reportes
-     DESARROLLADO POR: MiniMax Agent
-     FECHA: 2025-10-25
-     DESCRIPCIÓN: Generación de reportes completos y análisis detallado de mermas
-                  con gráficos, estadísticas y exportación según normativa DIGEMID
-========================================== --}}
-
 @extends('layouts.app')
 
 @section('title', 'Reportes de Mermas - Control de Mermas')

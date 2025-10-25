@@ -1,0 +1,891 @@
+/* CSS para Dashboard de Ventas - Farmacia SIFANO */
+/* Estilos específicos para el módulo de ventas y dashboard */
+
+:root {
+    --color-ventas-primary: #007bff;
+    --color-ventas-secondary: #6c757d;
+    --color-ventas-success: #28a745;
+    --color-ventas-warning: #ffc107;
+    --color-ventas-danger: #dc3545;
+    --color-ventas-info: #17a2b8;
+    --color-ventas-light: #f8f9fa;
+    --color-ventas-dark: #343a40;
+    
+    --color-ventas-rose: #e83e8c;
+    --color-ventas-purple: #6f42c1;
+    --color-ventas-teal: #20c997;
+    --color-ventas-orange: #fd7e14;
+    
+    --shadow-ventas: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    --shadow-ventas-lg: 0 1rem 3rem rgba(0, 0, 0, 0.175);
+    --shadow-ventas-xl: 0 2rem 4rem rgba(0, 0, 0, 0.15);
+    
+    --border-radius-ventas: 0.375rem;
+    --border-radius-ventas-lg: 0.5rem;
+    --border-radius-ventas-xl: 0.75rem;
+    
+    --gradient-ventas-primary: linear-gradient(135deg, var(--color-ventas-primary) 0%, var(--color-ventas-info) 100%);
+    --gradient-ventas-success: linear-gradient(135deg, var(--color-ventas-success) 0%, var(--color-ventas-teal) 100%);
+    --gradient-ventas-warning: linear-gradient(135deg, var(--color-ventas-warning) 0%, var(--color-ventas-orange) 100%);
+    --gradient-ventas-danger: linear-gradient(135deg, var(--color-ventas-danger) 0%, var(--color-ventas-rose) 100%);
+}
+
+/* Header principal del dashboard */
+.ventas-dashboard-header {
+    background: var(--gradient-ventas-primary);
+    color: white;
+    padding: 2.5rem 0;
+    margin-bottom: 2rem;
+    border-radius: var(--border-radius-ventas-xl);
+    box-shadow: var(--shadow-ventas-xl);
+    position: relative;
+    overflow: hidden;
+}
+
+.ventas-dashboard-header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="75" cy="75" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="50" cy="10" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="10" cy="60" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="90" cy="40" r="1" fill="rgba(255,255,255,0.1)"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>') repeat;
+    opacity: 0.3;
+}
+
+.ventas-dashboard-header .container {
+    position: relative;
+    z-index: 2;
+}
+
+.ventas-dashboard-header .breadcrumb {
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: var(--border-radius-ventas);
+    padding: 0.75rem 1.5rem;
+    margin-bottom: 1.5rem;
+    backdrop-filter: blur(10px);
+}
+
+.ventas-dashboard-header .breadcrumb-item a {
+    color: rgba(255, 255, 255, 0.9);
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+.ventas-dashboard-header .breadcrumb-item a:hover {
+    color: white;
+}
+
+.ventas-dashboard-header .breadcrumb-item.active {
+    color: white;
+    font-weight: 600;
+}
+
+.ventas-dashboard-header h1 {
+    font-size: 3rem;
+    font-weight: 700;
+    margin: 0;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    animation: fadeInUp 0.8s ease-out;
+}
+
+.ventas-dashboard-header .subtitle {
+    font-size: 1.25rem;
+    opacity: 0.9;
+    margin-top: 0.5rem;
+    animation: fadeInUp 0.8s ease-out 0.2s both;
+}
+
+.ventas-dashboard-header .metrics-summary {
+    margin-top: 2rem;
+    animation: fadeInUp 0.8s ease-out 0.4s both;
+}
+
+.ventas-dashboard-header .metric-summary-item {
+    text-align: center;
+    padding: 1rem;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: var(--border-radius-ventas-lg);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    transition: all 0.3s ease;
+}
+
+.ventas-dashboard-header .metric-summary-item:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: translateY(-2px);
+}
+
+.ventas-dashboard-header .metric-summary-value {
+    font-size: 2rem;
+    font-weight: 700;
+    display: block;
+}
+
+.ventas-dashboard-header .metric-summary-label {
+    font-size: 0.9rem;
+    opacity: 0.9;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Animaciones de entrada */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+/* Cards de métricas principales */
+.metric-card-ventas {
+    background: white;
+    border-radius: var(--border-radius-ventas-xl);
+    box-shadow: var(--shadow-ventas);
+    border: 1px solid #e9ecef;
+    overflow: hidden;
+    transition: all 0.4s ease;
+    height: 100%;
+    position: relative;
+}
+
+.metric-card-ventas:hover {
+    transform: translateY(-8px);
+    box-shadow: var(--shadow-ventas-xl);
+}
+
+.metric-card-ventas::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: var(--gradient-ventas-primary);
+}
+
+.metric-card-ventas.primary::before { background: var(--gradient-ventas-primary); }
+.metric-card-ventas.success::before { background: var(--gradient-ventas-success); }
+.metric-card-ventas.warning::before { background: var(--gradient-ventas-warning); }
+.metric-card-ventas.danger::before { background: var(--gradient-ventas-danger); }
+
+.metric-card-ventas .metric-header {
+    padding: 1.5rem 1.5rem 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.metric-card-ventas .metric-icon {
+    width: 4rem;
+    height: 4rem;
+    border-radius: var(--border-radius-ventas-lg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.75rem;
+    color: white;
+    background: var(--gradient-ventas-primary);
+    animation: pulse 2s infinite;
+}
+
+.metric-card-ventas.success .metric-icon { background: var(--gradient-ventas-success); }
+.metric-card-ventas.warning .metric-icon { background: var(--gradient-ventas-warning); }
+.metric-card-ventas.danger .metric-icon { background: var(--gradient-ventas-danger); }
+
+.metric-card-ventas .metric-content {
+    padding: 1.5rem;
+}
+
+.metric-card-ventas .metric-value {
+    font-size: 2.75rem;
+    font-weight: 800;
+    color: var(--color-ventas-primary);
+    line-height: 1;
+    margin-bottom: 0.5rem;
+}
+
+.metric-card-ventas.success .metric-value { color: var(--color-ventas-success); }
+.metric-card-ventas.warning .metric-value { color: #856404; }
+.metric-card-ventas.danger .metric-value { color: var(--color-ventas-danger); }
+
+.metric-card-ventas .metric-label {
+    font-size: 1rem;
+    color: var(--color-ventas-secondary);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 1rem;
+}
+
+.metric-card-ventas .metric-change {
+    display: flex;
+    align-items: center;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.metric-card-ventas .metric-change.positive {
+    color: var(--color-ventas-success);
+}
+
+.metric-card-ventas .metric-change.negative {
+    color: var(--color-ventas-danger);
+}
+
+.metric-card-ventas .metric-change.neutral {
+    color: var(--color-ventas-secondary);
+}
+
+.metric-card-ventas .metric-change-icon {
+    margin-right: 0.5rem;
+}
+
+/* Panel de controles del dashboard */
+.ventas-dashboard-controls {
+    background: white;
+    border-radius: var(--border-radius-ventas-xl);
+    box-shadow: var(--shadow-ventas);
+    padding: 2rem;
+    margin-bottom: 2rem;
+    border: 1px solid #e9ecef;
+}
+
+.ventas-dashboard-controls .control-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    align-items: end;
+}
+
+.ventas-dashboard-controls .control-item {
+    flex: 1;
+    min-width: 200px;
+}
+
+.ventas-dashboard-controls .control-label {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--color-ventas-dark);
+    margin-bottom: 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.ventas-dashboard-controls .form-control,
+.ventas-dashboard-controls .form-select {
+    border-radius: var(--border-radius-ventas);
+    border: 1px solid #ced4da;
+    padding: 0.75rem 1rem;
+    transition: all 0.3s ease;
+}
+
+.ventas-dashboard-controls .form-control:focus,
+.ventas-dashboard-controls .form-select:focus {
+    border-color: var(--color-ventas-primary);
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+/* Secciones del dashboard */
+.dashboard-section-ventas {
+    margin-bottom: 2rem;
+}
+
+.dashboard-section-header {
+    background: white;
+    border-radius: var(--border-radius-ventas-xl);
+    padding: 1.5rem 2rem;
+    margin-bottom: 1.5rem;
+    box-shadow: var(--shadow-ventas);
+    border: 1px solid #e9ecef;
+    display: flex;
+    justify-content: between;
+    align-items: center;
+}
+
+.dashboard-section-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--color-ventas-dark);
+    margin: 0;
+    display: flex;
+    align-items: center;
+}
+
+.dashboard-section-title .title-icon {
+    margin-right: 0.75rem;
+    color: var(--color-ventas-primary);
+}
+
+.dashboard-section-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+/* Gráficos del dashboard */
+.chart-container-ventas {
+    background: white;
+    border-radius: var(--border-radius-ventas-xl);
+    box-shadow: var(--shadow-ventas);
+    border: 1px solid #e9ecef;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.chart-container-ventas:hover {
+    box-shadow: var(--shadow-ventas-lg);
+}
+
+.chart-container-ventas .chart-header {
+    background: var(--color-ventas-light);
+    padding: 1.5rem 2rem;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.chart-container-ventas .chart-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--color-ventas-dark);
+    margin: 0;
+    display: flex;
+    align-items: center;
+}
+
+.chart-container-ventas .chart-title .chart-icon {
+    margin-right: 0.75rem;
+    color: var(--color-ventas-primary);
+}
+
+.chart-container-ventas .chart-body {
+    padding: 2rem;
+    height: 400px;
+    position: relative;
+}
+
+.chart-container-ventas .chart-empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: var(--color-ventas-secondary);
+    font-style: italic;
+}
+
+/* Tablas del dashboard */
+.tabla-ventas {
+    background: white;
+    border-radius: var(--border-radius-ventas-xl);
+    box-shadow: var(--shadow-ventas);
+    border: 1px solid #e9ecef;
+    overflow: hidden;
+}
+
+.tabla-ventas .table {
+    margin-bottom: 0;
+}
+
+.tabla-ventas .table thead th {
+    background: var(--color-ventas-light);
+    border-bottom: 2px solid var(--color-ventas-primary);
+    color: var(--color-ventas-dark);
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size: 0.875rem;
+    letter-spacing: 0.5px;
+    padding: 1.25rem 0.75rem;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.tabla-ventas .table tbody td {
+    padding: 1rem 0.75rem;
+    vertical-align: middle;
+    border-top: 1px solid #f1f3f4;
+    transition: all 0.3s ease;
+}
+
+.tabla-ventas .table tbody tr {
+    transition: all 0.3s ease;
+}
+
+.tabla-ventas .table tbody tr:hover {
+    background: rgba(0, 123, 255, 0.03);
+    transform: scale(1.01);
+}
+
+.tabla-ventas .table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+/* Badges específicos de ventas */
+.ventas-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.5rem 1rem;
+    border-radius: var(--border-radius-ventas-lg);
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border: 1px solid transparent;
+}
+
+.ventas-badge.success {
+    background: rgba(40, 167, 69, 0.1);
+    color: var(--color-ventas-success);
+    border-color: rgba(40, 167, 69, 0.3);
+}
+
+.ventas-badge.warning {
+    background: rgba(255, 193, 7, 0.1);
+    color: #856404;
+    border-color: rgba(255, 193, 7, 0.3);
+}
+
+.ventas-badge.danger {
+    background: rgba(220, 53, 69, 0.1);
+    color: var(--color-ventas-danger);
+    border-color: rgba(220, 53, 69, 0.3);
+}
+
+.ventas-badge.info {
+    background: rgba(23, 162, 184, 0.1);
+    color: var(--color-ventas-info);
+    border-color: rgba(23, 162, 184, 0.3);
+}
+
+.ventas-badge.primary {
+    background: rgba(0, 123, 255, 0.1);
+    color: var(--color-ventas-primary);
+    border-color: rgba(0, 123, 255, 0.3);
+}
+
+/* Indicadores de rendimiento */
+.performance-indicator {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.375rem 0.75rem;
+    border-radius: var(--border-radius-ventas);
+    font-size: 0.75rem;
+    font-weight: 600;
+    margin: 0.25rem;
+}
+
+.performance-indicator.excellent {
+    background: rgba(40, 167, 69, 0.1);
+    color: var(--color-ventas-success);
+    border: 1px solid rgba(40, 167, 69, 0.3);
+}
+
+.performance-indicator.good {
+    background: rgba(32, 201, 151, 0.1);
+    color: var(--color-ventas-teal);
+    border: 1px solid rgba(32, 201, 151, 0.3);
+}
+
+.performance-indicator.fair {
+    background: rgba(255, 193, 7, 0.1);
+    color: #856404;
+    border: 1px solid rgba(255, 193, 7, 0.3);
+}
+
+.performance-indicator.poor {
+    background: rgba(220, 53, 69, 0.1);
+    color: var(--color-ventas-danger);
+    border: 1px solid rgba(220, 53, 69, 0.3);
+}
+
+.performance-indicator .indicator-icon {
+    margin-right: 0.5rem;
+}
+
+/* Alertas del dashboard */
+.alert-ventas {
+    border-radius: var(--border-radius-ventas-lg);
+    border: none;
+    padding: 1.5rem 2rem;
+    margin-bottom: 1.5rem;
+    position: relative;
+    overflow: hidden;
+    box-shadow: var(--shadow-ventas);
+}
+
+.alert-ventas::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
+    background: var(--color-ventas-primary);
+}
+
+.alert-ventas.alert-success::before {
+    background: var(--color-ventas-success);
+}
+
+.alert-ventas.alert-warning::before {
+    background: var(--color-ventas-warning);
+}
+
+.alert-ventas.alert-danger::before {
+    background: var(--color-ventas-danger);
+}
+
+.alert-ventas.alert-info::before {
+    background: var(--color-ventas-info);
+}
+
+.alert-ventas .alert-icon {
+    font-size: 1.5rem;
+    margin-right: 1rem;
+    opacity: 0.8;
+}
+
+.alert-ventas.alert-success .alert-icon { color: var(--color-ventas-success); }
+.alert-ventas.alert-warning .alert-icon { color: #856404; }
+.alert-ventas.alert-danger .alert-icon { color: var(--color-ventas-danger); }
+.alert-ventas.alert-info .alert-icon { color: var(--color-ventas-info); }
+
+/* Botones de acción específicos */
+.btn-ventas {
+    border-radius: var(--border-radius-ventas);
+    font-weight: 600;
+    padding: 0.75rem 1.5rem;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-size: 0.875rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-ventas::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s;
+}
+
+.btn-ventas:hover::before {
+    left: 100%;
+}
+
+.btn-ventas:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.btn-ventas.btn-primary {
+    background: var(--gradient-ventas-primary);
+    border: none;
+}
+
+.btn-ventas.btn-success {
+    background: var(--gradient-ventas-success);
+    border: none;
+}
+
+.btn-ventas.btn-warning {
+    background: var(--gradient-ventas-warning);
+    border: none;
+    color: var(--color-ventas-dark);
+}
+
+.btn-ventas.btn-danger {
+    background: var(--gradient-ventas-danger);
+    border: none;
+}
+
+/* Progress bars para ventas */
+.progress-ventas {
+    height: 0.75rem;
+    border-radius: var(--border-radius-ventas-lg);
+    background: #e9ecef;
+    overflow: hidden;
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.progress-ventas .progress-bar {
+    border-radius: var(--border-radius-ventas-lg);
+    transition: width 0.6s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.progress-ventas .progress-bar::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    background: linear-gradient(45deg, rgba(255, 255, 255, 0.2) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.2) 50%, rgba(255, 255, 255, 0.2) 75%, transparent 75%);
+    background-size: 1rem 1rem;
+    animation: progress-stripes 1s linear infinite;
+}
+
+@keyframes progress-stripes {
+    0% { background-position: 0 0; }
+    100% { background-position: 1rem 0; }
+}
+
+.progress-ventas .progress-bar.bg-success {
+    background: var(--gradient-ventas-success);
+}
+
+.progress-ventas .progress-bar.bg-warning {
+    background: var(--gradient-ventas-warning);
+}
+
+.progress-ventas .progress-bar.bg-danger {
+    background: var(--gradient-ventas-danger);
+}
+
+.progress-ventas .progress-bar.bg-primary {
+    background: var(--gradient-ventas-primary);
+}
+
+/* Responsive design para dashboard */
+@media (max-width: 1200px) {
+    .metric-card-ventas .metric-value {
+        font-size: 2.25rem;
+    }
+    
+    .ventas-dashboard-header h1 {
+        font-size: 2.5rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .ventas-dashboard-header {
+        padding: 2rem 0;
+        text-align: center;
+    }
+    
+    .ventas-dashboard-header h1 {
+        font-size: 2rem;
+    }
+    
+    .ventas-dashboard-controls {
+        padding: 1.5rem;
+    }
+    
+    .ventas-dashboard-controls .control-group {
+        flex-direction: column;
+    }
+    
+    .ventas-dashboard-controls .control-item {
+        width: 100%;
+    }
+    
+    .metric-card-ventas {
+        margin-bottom: 1.5rem;
+    }
+    
+    .chart-container-ventas .chart-body {
+        height: 300px;
+        padding: 1rem;
+    }
+    
+    .tabla-ventas .table thead th,
+    .tabla-ventas .table tbody td {
+        padding: 0.75rem 0.5rem;
+        font-size: 0.875rem;
+    }
+    
+    .dashboard-section-header {
+        flex-direction: column;
+        text-align: center;
+        gap: 1rem;
+    }
+    
+    .dashboard-section-actions {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+@media (max-width: 576px) {
+    .ventas-dashboard-header {
+        padding: 1.5rem 0;
+    }
+    
+    .ventas-dashboard-header h1 {
+        font-size: 1.75rem;
+    }
+    
+    .metric-card-ventas .metric-value {
+        font-size: 2rem;
+    }
+    
+    .ventas-dashboard-controls {
+        padding: 1rem;
+    }
+    
+    .chart-container-ventas .chart-body {
+        height: 250px;
+    }
+    
+    .btn-ventas {
+        padding: 0.5rem 1rem;
+        font-size: 0.8rem;
+    }
+    
+    .ventas-badge {
+        padding: 0.375rem 0.75rem;
+        font-size: 0.7rem;
+    }
+    
+    .performance-indicator {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.7rem;
+    }
+}
+
+/* Dark mode para dashboard (opcional) */
+@media (prefers-color-scheme: dark) {
+    .dark-mode .ventas-dashboard-header {
+        background: linear-gradient(135deg, #1a365d 0%, #2c5282 100%);
+    }
+    
+    .dark-mode .metric-card-ventas,
+    .dark-mode .chart-container-ventas,
+    .dark-mode .tabla-ventas,
+    .dark-mode .ventas-dashboard-controls {
+        background: #2d3748;
+        border-color: #4a5568;
+        color: #e2e8f0;
+    }
+    
+    .dark-mode .tabla-ventas .table thead th {
+        background: #4a5568;
+        color: #e2e8f0;
+    }
+    
+    .dark-mode .form-control,
+    .dark-mode .form-select {
+        background: #4a5568;
+        border-color: #718096;
+        color: #e2e8f0;
+    }
+    
+    .dark-mode .form-control:focus,
+    .dark-mode .form-select:focus {
+        border-color: var(--color-ventas-primary);
+        box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+    }
+}
+
+/* Utilidades específicas para ventas */
+.text-ventas-primary { color: var(--color-ventas-primary) !important; }
+.text-ventas-success { color: var(--color-ventas-success) !important; }
+.text-ventas-warning { color: #856404 !important; }
+.text-ventas-danger { color: var(--color-ventas-danger) !important; }
+.text-ventas-info { color: var(--color-ventas-info) !important; }
+
+.bg-ventas-primary { background-color: var(--color-ventas-primary) !important; }
+.bg-ventas-success { background-color: var(--color-ventas-success) !important; }
+.bg-ventas-warning { background-color: var(--color-ventas-warning) !important; }
+.bg-ventas-danger { background-color: var(--color-ventas-danger) !important; }
+.bg-ventas-info { background-color: var(--color-ventas-info) !important; }
+
+/* Print styles para dashboard */
+@media print {
+    .ventas-dashboard-header {
+        background: var(--color-ventas-primary) !important;
+        -webkit-print-color-adjust: exact;
+        color-adjust: exact;
+    }
+    
+    .metric-card-ventas,
+    .chart-container-ventas,
+    .tabla-ventas,
+    .ventas-dashboard-controls {
+        box-shadow: none;
+        border: 1px solid #000;
+        break-inside: avoid;
+        margin-bottom: 1rem;
+    }
+    
+    .btn-ventas {
+        display: none;
+    }
+    
+    .chart-container-ventas .chart-body {
+        height: auto;
+        page-break-inside: avoid;
+    }
+    
+    .tabla-ventas .table {
+        font-size: 0.8rem;
+    }
+    
+    .tabla-ventas .table thead th,
+    .tabla-ventas .table tbody td {
+        padding: 0.5rem;
+    }
+}
+
+/* Animaciones adicionales para interactividad */
+.card-hover-effect {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.card-hover-effect:hover {
+    transform: translateY(-4px) scale(1.02);
+}
+
+.skeleton-loader {
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: loading 1.5s infinite;
+}
+
+@keyframes loading {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+.tooltip-ventas {
+    position: relative;
+    display: inline-block;
+}
+
+.tooltip-ventas .tooltip-text {
+    visibility: hidden;
+    width: 120px;
+    background-color: var(--color-ventas-dark);
+    color: white;
+    text-align: center;
+    border-radius: var(--border-radius-ventas);
+    padding: 5px;
+    position: absolute;
+    z-index: 1;
+    bottom: 125%;
+    left: 50%;
+    margin-left: -60px;
+    opacity: 0;
+    transition: opacity 0.3s;
+    font-size: 0.75rem;
+}
+
+.tooltip-ventas:hover .tooltip-text {
+    visibility: visible;
+    opacity: 1;
+}

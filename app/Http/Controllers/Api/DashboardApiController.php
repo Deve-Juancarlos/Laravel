@@ -458,7 +458,7 @@ class DashboardApiController extends Controller
                     'tipo_exportacion' => $request->tipo_exportacion,
                     'formato' => $formato,
                     'fecha_generacion' => Carbon::now(),
-                    'generado_por' => auth()->user()->name ?? 'Sistema',
+                    'generado_por' => optional(auth('sanctum')->user())->name ?? 'Sistema',
                     'periodo' => ['desde' => $fechaDesde, 'hasta' => $fechaHasta]
                 ],
                 'datos' => $datosExportar
