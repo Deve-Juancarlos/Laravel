@@ -224,8 +224,10 @@ class MedicamentosControlado extends Model
 
     public function generarNumeroDispensacion()
     {
-        if (!$this->NumeroDispensacion) {
-            $año = $this->FechaDispensacion->year;
+        if (!$this->NumeroDispensacion) {      
+
+            $año = Carbon::parse($this->FechaDispensacion)->year;
+
             $numeroConsecutivo = static::whereYear('FechaDispensacion', $año)->count() + 1;
             $prefijo = $this->getPrefijoNumero();
             
@@ -403,8 +405,9 @@ class MedicamentosControlado extends Model
     public function programarSeguimiento()
     {
         if ($this->isDispensado()) {
-            $fechaSeguimiento = $this->calcularFechaSeguimiento();
-            $this->FechaSeguimiento = $fechaSeguimiento;
+            
+            $fechaSeguimiento = $this->calcularFechaSeguimiento();           
+            $this->FechaSeguimiento = $fechaSeguimiento ? $fechaSeguimiento->toDateString() : null;
             $this->SeguimientoRequerido = true;
             $this->save();
             
@@ -584,8 +587,13 @@ class MedicamentosControlado extends Model
         }
 
         // Agrupar por mes
-        foreach ($dispensaciones->get()->groupBy(function($dispensacion) {
-            return $dispensacion->FechaDispensacion->format('Y-m');
+        foreach ($dispensaciones->get()->groupBy(function($dispensacion) {       
+            
+            $fecha = is_string($dispensacion->FechaDispensacion) 
+                ? Carbon::parse($dispensacion->FechaDispensacion)
+                : $dispensacion->FechaDispensacion;
+            return $fecha->format('Y-m');
+
         }) as $mes => $items) {
             $estadisticas['por_mes'][$mes] = [
                 'cantidad' => $items->sum('CantidadDispensada'),
@@ -670,7 +678,11 @@ class MedicamentosControlado extends Model
                     return [
                         'cliente' => $dispensacion->cliente->RazonSocial ?? 'N/A',
                         'producto' => $dispensacion->producto->Descripcion ?? 'N/A',
-                        'fecha_seguimiento' => $dispensacion->FechaSeguimiento->format('Y-m-d')
+                        'fecha_seguimiento' => $dispensacion->FechaSeguimiento 
+                            ? (is_string($dispensacion->FechaSeguimiento) 
+                                ? Carbon::parse($dispensacion->FechaSeguimiento)->format('Y-m-d')
+                                : $dispensacion->FechaSeguimiento->format('Y-m-d'))
+                            : null
                     ];
                 })
             ];
@@ -720,7 +732,7 @@ class MedicamentosControlado extends Model
             
             // Generar número de dispensación
             if (!$dispensacion->NumeroDispensacion) {
-                $dispensacion->NumeroDispensacion = self::generarNumeroDispensacion($dispensacion->TipoControl, $dispensacion->FechaDispensacion);
+                $dispensacion->NumeroDispensacion = $dispensacion->generarNumeroDispensacion();
             }
             
             // Determinar nivel de control por defecto
@@ -815,17 +827,5 @@ class MedicamentosControlado extends Model
         });
     }
 
-    private function determinarNivelControl()
-    {
-        switch ($this->TipoControl) {
-            case 'Estupefaciente':
-                return 4; // Máximo control
-            case 'Psicotropico':
-                return 3; // Control alto
-            case 'SustanciaControlada':
-                return 2; // Control intermedio
-            default:
-                return 1; // Control básico
-        }
-    }
+    
 }

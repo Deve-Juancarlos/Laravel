@@ -138,7 +138,9 @@
         </div>
         <div class="text-end">
             <div class="d-inline-flex align-items-center gap-2">
-                <span style="width: 12px; height: 12px; border-radius: 50%; background: {{ $estadoSunatColor === 'green' ? '#10b981' : '#f59e0b' }}; display: inline-block;"></span>
+         
+            <span style="width: 12px; height: 12px; border-radius: 50%; background: {{ $estadoSunatColor === 'green' ? '#10b981' : '#f59e0b' }}; display: inline-block;"></span>
+
                 <strong style="font-size: 1.1rem;">{{ $estadoSunat ?? 'Pendiente' }}</strong>
             </div>
         </div>
@@ -187,7 +189,7 @@
                 </div>
             </a>
 
-            <a href="{{ route('contabilidad.registros.ventas') }}" class="action-btn">
+            <a href="{{ route('contador.registros.ventas') }}" class="action-btn">
                 <div style="background: rgba(245, 158, 11, 0.1);">
                     <i class="fas fa-file-invoice" style="color: #f59e0b;"></i>
                 </div>
@@ -270,7 +272,7 @@
                             </td>
                             <td>{{ $movimiento->$documento ?? 'N/A' }}</td>
                             <td>{{ $movimiento->$concepto ?? 'Sin concepto' }}</td>
-                            <td class="text-end fw-bold {{ $movimiento->$tipo === 'ingreso' ? 'text-success' : 'text-warning' }}">
+                            <td class="text-end fw-bold {{ $movimiento->$tipo === 'ingreso' ? 'text-success' : 'text-warning' }}"></td>
                                 {{ $movimiento->$tipo === 'ingreso' ? '+' : '-' }}S/ {{ number_format($movimiento->$monto ?? 0, 2) }}
                             </td>
                             <td>
@@ -378,54 +380,53 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Gráfico de Distribución de Gastos (Dona)
     const expenseCtx = document.getElementById('expenseDistributionChart');
-    if (expenseCtx) {
-        new Chart(expenseCtx, {
-            type: 'doughnut',
-            data: {
-                labels: {!! json_encode($categoriasGastos ?? ['Operativos', 'Personal', 'Marketing', 'Otros']) !!},
-                datasets: [{
-                    data: {!! json_encode($montosCategoriasGastos ?? [5000, 3000, 2000, 1000]) !!},
-                    backgroundColor: [
-                        '#3b82f6',
-                        '#10b981',
-                        '#f59e0b',
-                        '#ef4444',
-                        '#8b5cf6',
-                        '#06b6d4'
-                    ],
-                    borderWidth: 3,
-                    borderColor: '#ffffff',
-                    hoverOffset: 8
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        position: 'bottom',
-                        labels: {
-                            padding: 15,
-                            usePointStyle: true
-                        }
-                    },
-                    tooltip: {
-                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                        padding: 12,
-                        callbacks: {
-                            label: function(context) {
-                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                                const percentage = ((context.parsed / total) * 100).toFixed(1);
-                                return context.label + ': S/ ' + context.parsed.toFixed(2) + ' (' + percentage + '%)';
+        if (expenseCtx) {
+            new Chart(expenseCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: {!! json_encode($categoriasGastos ?? ['Operativos', 'Personal', 'Marketing', 'Otros']) !!},
+                    datasets: [{
+                        data: {!! json_encode($montosCategoriasGastos ?? [5000, 3000, 2000, 1000]) !!},
+                        backgroundColor: [
+                            '#3b82f6',
+                            '#10b981',
+                            '#f59e0b',
+                            '#ef4444',
+                            '#8b5cf6',
+                            '#06b6d4'
+                        ];
+                        borderWidth: 3,
+                        borderColor: '#ffffff',
+                        hoverOffset: 8,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                padding: 15,
+                                usePointStyle: true
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            padding: 12,
+                            callbacks: {
+                                label: function(context) {
+                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    const percentage = ((context.parsed / total) * 100).toFixed(1);
+                                    return context.label + ': S/ ' + context.parsed.toFixed(2) + ' (' + percentage + '%)';
+                                }
                             }
                         }
                     }
                 }
-            }
-        });
-    }
+            });
+        };
 
     // Gráfico Comparativo Mensual (Barras)
     const comparisonCtx = document.getElementById('monthlyComparisonChart');
@@ -473,8 +474,8 @@ document.addEventListener('DOMContentLoaded', function() {
                                 return context.dataset.label + ': S/ ' + context.parsed.y.toLocaleString();
                             }
                         }
-                    };
-                };
+                    }
+                },
                 scales: {
                     y: {
                         beginAtZero: true,
