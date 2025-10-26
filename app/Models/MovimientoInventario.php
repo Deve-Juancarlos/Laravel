@@ -11,8 +11,7 @@ class MovimientoInventario extends Model
 {
     use HasFactory;
 
-    // Este modelo representa los movimientos de inventario
-    // basándose en las tablas Saldos y ConteosFisicos de SIFANO
+   
 
     protected $fillable = [
         'codpro',
@@ -236,7 +235,7 @@ class MovimientoInventario extends Model
         }
         
         if ($this->cantidad_diferencia != 0) {
-            $descripcion .= " - Cantidad: " . number_format($this->cantidad_diferencia, 2);
+            $descripcion .= " - Cantidad: " . number_format(floatval($this->cantidad_diferencia ?? 0), 2);
         }
         
         return $descripcion;
