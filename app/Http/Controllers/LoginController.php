@@ -123,7 +123,7 @@ class LoginController extends Controller
         return match ($tipo) {
             'administrador' => redirect()->route('dashboard.admin'),
             'vendedor'      => redirect()->route('dashboard.vendedor'),
-            'contador'      => redirect()->route('contabilidad.dashboard'),
+            'contador'      => redirect()->route('dashboard.contador'),
             default         => redirect()->route('login')->with('error', 'Tipo de usuario inválido'),
         };
     }
