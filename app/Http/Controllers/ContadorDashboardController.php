@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
 
-class DashboardController extends Controller
+class ContadorDashboardController extends Controller
 {
     public function __construct()
     {

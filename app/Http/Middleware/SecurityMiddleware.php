@@ -11,7 +11,7 @@ class SecurityMiddleware
 {
     public function handle(Request $request, Closure $next)
     {
-        // 1️⃣ Registrar todos los accesos
+        // Registrar todos los accesos
         Log::channel('security')->info('Acceso detectado', [
             'user' => Auth::user()?->usuario ?? 'Guest',
             'ip' => $request->ip(),
@@ -20,7 +20,7 @@ class SecurityMiddleware
             'user_agent' => $request->userAgent()
         ]);
 
-        // 2️⃣ Detectar patrones sospechosos (SQL Injection / XSS)
+        // Detectar patrones sospechosos (SQL Injection / XSS)
         $suspicious_patterns = [
             '/(\bUNION\b|\bSELECT\b|\bINSERT\b|\bDELETE\b|\bUPDATE\b|\bDROP\b)/i',
             '/(OR|AND)\s+\d+\s*=\s*\d+/i',
@@ -48,7 +48,7 @@ class SecurityMiddleware
             }
         }
 
-        // 3️⃣ Rate limiting por IP
+        //  Rate limiting por IP
         $key = 'rate_limit:' . $request->ip();
         $attempts = cache()->get($key, 0);
 

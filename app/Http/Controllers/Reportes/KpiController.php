@@ -13,7 +13,7 @@ class KpiController extends Controller
 
     public function __construct()
     {
-        $this->middleware(['auth', 'rol:administrador|vendedor|contador|gerente']);
+        $this->middleware(['auth', 'rol:contador|administrador']);
     }
 
     
@@ -65,7 +65,7 @@ class KpiController extends Controller
             ->whereBetween('Fecha', [$fecha_desde, $fecha_hasta])
             ->whereNotIn('Estado', ['ANULADO'])
             ->distinct()
-            ->count('Codcli');
+            ->count('CodClie');
 
         $ticket_promedio = $numero_transacciones > 0 ? $ventas_totales / $numero_transacciones : 0;
 
@@ -78,7 +78,7 @@ class KpiController extends Controller
         $frecuencia_compra = $numero_transacciones > 0 && $clientes_unicos > 0 ? $numero_transacciones / $clientes_unicos : 0;
 
         // KPIs de vendedores
-        $kpis_vendedores = $this->calcularKPIsVendedores($fecha_desde, $fecha_hasta);
+// función relacionada con vendedores removida
 
         // KPIs de productos
         $kpis_productos = $this->calcularKPIsProductos($fecha_desde, $fecha_hasta);
@@ -452,13 +452,13 @@ class KpiController extends Controller
             ->whereBetween('Fecha', [$periodo_actual, now()])
             ->whereNotIn('Estado', ['ANULADO'])
             ->distinct()
-            ->count('Codcli');
+            ->count('CodClie');
 
         $clientes_anteriores = DB::table('Doccab')
             ->whereBetween('Fecha', [$periodo_anterior['inicio'], $periodo_anterior['fin']])
             ->whereNotIn('Estado', ['ANULADO'])
             ->distinct()
-            ->count('Codcli');
+            ->count('CodClie');
 
         return [
             'ventas' => [
@@ -602,13 +602,13 @@ class KpiController extends Controller
             ->whereBetween('Fecha', [$periodo_actual, now()])
             ->whereNotIn('Estado', ['ANULADO'])
             ->distinct()
-            ->count('Codcli');
+            ->count('CodClie');
 
         $clientes_anteriores = DB::table('Doccab')
             ->whereBetween('Fecha', [$periodo_anterior['inicio'], $periodo_anterior['fin']])
             ->whereNotIn('Estado', ['ANULADO'])
             ->distinct()
-            ->count('Codcli');
+            ->count('CodClie');
 
         return $clientes_anteriores > 0 ? (($clientes_actuales - $clientes_anteriores) / $clientes_anteriores) * 100 : 0;
     }
