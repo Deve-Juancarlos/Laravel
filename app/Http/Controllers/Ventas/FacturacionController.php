@@ -626,47 +626,44 @@ class FacturacionController extends Controller
     /**
      * Calcular estadísticas rápidas
      */
-    private function calcularEstadisticas($request)
+        private function calcularEstadisticas($request)
     {
-        // Subconsulta: sumar los pagos por número de factura
-        $pagosSubquery = DB::table('PlanD_cobranza')
+        // Subconsulta: total pagado por cada factura (Numero)
+        $pagos = DB::table('PlanD_cobranza')
             ->select(
                 'Numero',
                 DB::raw('SUM(ISNULL(Valor,0) + ISNULL(Efectivo,0) + ISNULL(Cheque,0)) AS total_pagado')
             )
             ->groupBy('Numero');
 
+        // Consulta principal
         $query = DB::table('Doccab')
-            ->leftJoinSub($pagosSubquery, 'pagos', function ($join) {
+            ->leftJoinSub($pagos, 'pagos', function ($join) {
                 $join->on('Doccab.Numero', '=', 'pagos.Numero');
             })
             ->where('Doccab.Tipo', '!=', 1);
 
-        // Aplicar filtros de fecha si existen
+        // Filtros opcionales
         if ($request->filled('fecha_desde')) {
             $query->where('Doccab.Fecha', '>=', $request->fecha_desde);
         }
+
         if ($request->filled('fecha_hasta')) {
             $query->where('Doccab.Fecha', '<=', $request->fecha_hasta);
         }
 
-        // Calcular los totales sin usar subconsultas dentro de SUM
-        return $query->select([
-            DB::raw('COUNT(*) AS total_facturas'),
-            DB::raw('SUM(Doccab.Total) AS total_monto'),
-            DB::raw("
-                SUM(CASE 
-                    WHEN ISNULL(pagos.total_pagado, 0) < Doccab.Total THEN Doccab.Total 
-                    ELSE 0 
-                END) AS total_pendientes
-            "),
-            DB::raw("
-                SUM(CASE 
-                    WHEN ISNULL(pagos.total_pagado, 0) >= Doccab.Total THEN Doccab.Total 
-                    ELSE 0 
-                END) AS total_pagadas
-            ")
-        ])->first();
+        // SQL Server requiere agrupar explícitamente al usar agregaciones
+        $stats = DB::table(DB::raw("({$query->toSql()}) AS datos"))
+            ->mergeBindings($query)
+            ->selectRaw('
+                COUNT(*) AS total_facturas,
+                SUM(datos.Total) AS total_monto,
+                SUM(CASE WHEN ISNULL(datos.total_pagado, 0) < datos.Total THEN datos.Total ELSE 0 END) AS total_pendientes,
+                SUM(CASE WHEN ISNULL(datos.total_pagado, 0) >= datos.Total THEN datos.Total ELSE 0 END) AS total_pagadas
+            ')
+            ->first();
+
+        return $stats;
     }
 
 
