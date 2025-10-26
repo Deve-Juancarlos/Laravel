@@ -169,9 +169,7 @@ class InventarioController extends Controller
                 'UsuarioCreacion' => Auth::id()
             ]);
 
-            // Registrar en trazabilidad
-            $this->registrar// tabla no existe - TrazabilidadInventario($request->codpro, 'CREACION_PRODUCTO', 
-                "Producto creado en inventario: {$request->nombre}", 0);
+           
 
             DB::commit();
 
@@ -329,9 +327,7 @@ class InventarioController extends Controller
                     'UsuarioModificacion' => Auth::id()
                 ]);
 
-            // Registrar en trazabilidad
-            $this->registrar// tabla no existe - TrazabilidadInventario($codpro, 'MODIFICACION_PRODUCTO', 
-                "Producto modificado: {$request->nombre}", 0);
+          
 
             DB::commit();
 
@@ -402,9 +398,7 @@ class InventarioController extends Controller
                     ->delete();
             }
 
-            // Registrar en trazabilidad
-            $this->registrar// tabla no existe - TrazabilidadInventario($codpro, 'ELIMINACION_PRODUCTO', 
-                $tieneMovimientos ? 'Producto desactivado' : 'Producto eliminado', 0);
+            
 
             DB::commit();
 
@@ -881,10 +875,7 @@ class InventarioController extends Controller
             'Usuario' => Auth::id()
         ]);
 
-        // Registrar en trazabilidad
-        $this->registrar// tabla no existe - TrazabilidadInventario($codpro, 'AJUSTE_STOCK', 
-            "Ajuste de stock: {$tipoAjuste} - {$cantidadAnterior} -> {$nuevaCantidad}", 
-            $nuevaCantidad - $cantidadAnterior);
+       
     }
 
     /**
@@ -973,15 +964,5 @@ class InventarioController extends Controller
     /**
      * Registrar trazabilidad de inventario
      */
-    private function registrar// tabla no existe - TrazabilidadInventario($codpro, $accion, $descripcion, $cantidad)
-    {
-        DB::table('// tabla no existe - TrazabilidadInventario')->insert([
-            'CodPro' => $codpro,
-            'Accion' => $accion,
-            'Descripcion' => $descripcion,
-            'Cantidad' => $cantidad,
-            'Fecha' => Carbon::now(),
-            'Usuario' => Auth::id()
-        ]);
-    }
+    
 }
