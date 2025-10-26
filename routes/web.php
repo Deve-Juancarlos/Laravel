@@ -1,19 +1,20 @@
 <?php
 
-
+//RUTAS MEJORADAS PARA CONTABILIDAD FARMACÉUTICA
+//Pensando como un contador farmacéutico profesional
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\LoginController;
 use App\Http\Controllers\RegisterController;
-use App\Http\Controllers\Clientes\ClientesController;
-
+use App\Http\Controllers\ContadorDashboardController;
 use App\Http\Controllers\Admin\PlanillaController;
 use App\Http\Controllers\Admin\BancoController;
 use App\Http\Controllers\Admin\UsuarioController;
 use App\Http\Controllers\Admin\CuentaController;
 use App\Http\Controllers\Admin\ReporteController;
 use App\Http\Controllers\Admin\AuditoriaController;
-use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\Ventas\PlanillasController;
+
 
 //RUTAS PÚBLICAS
 Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
@@ -24,9 +25,9 @@ Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
 //RUTAS GENERALES AUTENTICADAS
 Route::middleware('auth')->group(function () {
-    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
-    Route::get('/dashboard/stats', [DashboardController::class, 'getStats'])->name('dashboard.stats');
-    Route::get('/dashboard/alerts', [DashboardController::class, 'getAlerts'])->name('dashboard.alerts');
+    Route::get('/dashboard', [ContadorDashboardController::class, 'index'])->name('dashboard');
+    Route::get('/dashboard/stats', [ContadorDashboardController::class, 'getStats'])->name('dashboard.stats');
+    Route::get('/dashboard/alerts', [ContadorDashboardController::class, 'getAlerts'])->name('dashboard.alerts');
     
     // Sistema de sesiones y seguridad
     Route::post('/session/ping', function () {
@@ -70,7 +71,7 @@ Route::middleware(['auth', 'check.admin'])->group(function () {
         Route::get('facturas', [ReporteController::class, 'facturas'])->name('facturas');
         Route::get('movimientos', [ReporteController::class, 'movimientos'])->name('movimientos');    
         Route::get('ventas-diarias', [ReporteController::class, 'ventasDiarias'])->name('ventas-diarias');
-        Route::get('comisiones-vendedores', [ReporteController::class, 'comisionesVendedores'])->name('comisiones-vendedores');
+        Route::get('comisiones', [ReporteController::class, 'comisiones'])->name('comisiones');
         
         // Exportaciones
         Route::get('/facturas/export', [ReporteController::class, 'exportFacturas'])->name('facturas.export');
@@ -108,80 +109,20 @@ Route::middleware(['auth', 'check.admin'])->group(function () {
     });
 });
 
-//RUTAS VENDEDOR
-Route::middleware(['auth', 'check.vendedor'])->group(function () {
-    Route::get('/dashboard/vendedor', [DashboardController::class, 'vendedorDashboard'])->name('dashboard.vendedor');
-    Route::prefix('vendedor')->name('vendedor.')->group(function () {
-        Route::get('mis-cobranzas', [DashboardController::class, 'misCobranzas'])->name('mis-cobranzas');
-        Route::get('metas', [DashboardController::class, 'verMetas'])->name('metas');
-        Route::post('actualizar-meta', [DashboardController::class, 'actualizarMeta'])->name('actualizar-meta');
-    });
-});
-
+//RUTAS CONTADOR
 Route::middleware(['auth', 'check.contador'])->group(function () {
-    
-    Route::get('/contabilidad/dashboard', [DashboardController::class, 'contadorDashboard'])
-    ->name('contabilidad.dashboard');
-
-    Route::get('/reportes/financiero', [ReporteController::class, 'index'])
-        ->name('reportes.financiero');
-
-    Route::get('/contabilidad/libros-electronicos', [ReporteController::class, 'librosElectronicos'])
-        ->name('libros-electronicos');
-
-    Route::get('/contabilidad/facturas', [ReporteController::class, 'facturas'])
-        ->name('facturas.index');
-
-    Route::get('/contabilidad/reportes/exportar', [ReporteController::class, 'exportVentas'])
-        ->name('reportes.exportar');
-
-    // Clientes
-     Route::get('/clientes', [ClientesController::class, 'vistaIndex'])->name('clientes.index');
-    Route::get('/clientes/crear', [ClientesController::class, 'vistaCrear'])->name('clientes.crear');
-    Route::get('/clientes/buscar', [ClientesController::class, 'vistaBuscar'])->name('clientes.buscar');
-    Route::get('/clientes/{cliente}', [ClientesController::class, 'vistaShow'])->name('clientes.show');
-    Route::get('/clientes/{cliente}/editar', [ClientesController::class, 'vistaEditar'])->name('clientes.editar');
-    Route::get('/clientes/{cliente}/estado-cuenta', [ClientesController::class, 'vistaEstadoCuenta'])->name('clientes.estado-cuenta');
-
-
-
-    
-
-    // Productos
-    Route::get('/productos', function () {
-        return "Módulo de Productos en desarrollo";
-    })->name('productos.index');
-
-    Route::get('/productos/inventario', function () {
-        return "Módulo de Inventario en desarrollo";
-    })->name('productos.inventario');
-
-    // ✅ Nuevo: Control de Vencimientos
-    Route::get('/productos/vencimientos', function () {
-        return "Módulo de Control de Vencimientos en desarrollo";
-    })->name('productos.vencimientos');
-    
-      // ✅ Configuración
-    Route::prefix('configuracion')->group(function () {
-        Route::get('/usuarios', function () {
-            return "Módulo de Configuración → Usuarios en desarrollo";
-        })->name('configuracion.usuarios');
-
-        Route::get('/parametros', function () {
-            return "Módulo de Configuración → Parámetros en desarrollo";
-        })->name('configuracion.parametros');
+    Route::get('/dashboard/contador', [ContadorDashboardController::class, 'contadorDashboard'])->name('dashboard.contador');
+    Route::prefix('contador')->name('contador.')->group(function () {
+        Route::get('ventas', [App\Http\Controllers\Ventas\DashboardVentasController::class, 'index'])->name('ventas');
+        Route::get('facturacion', [App\Http\Controllers\Ventas\FacturacionController::class, 'index'])->name('facturacion');
+        Route::get('cuentas-cobrar', [App\Http\Controllers\Ventas\CuentasCobrarController::class, 'index'])->name('cuentas-cobrar');
+        Route::get('inventario', [App\Http\Controllers\Farmacia\InventarioController::class, 'index'])->name('inventario');
+        Route::get('clientes', [App\Http\Controllers\Clientes\ClientesController::class, 'index'])->name('clientes');
+        Route::get('estado-cuenta', [App\Http\Controllers\Clientes\EstadoCuentaController::class, 'index'])->name('estado-cuenta');
+        Route::get('planillas', [PlanillasController::class, 'index'])->name('planillas');
+        Route::get('analytics', [App\Http\Controllers\Reportes\AnalyticsController::class, 'index'])->name('analytics');
+        Route::get('kpis', [App\Http\Controllers\Reportes\KpiController::class, 'index'])->name('kpis');
     });
-    // ✅ Perfil del usuario
-    Route::get('/perfil', function () {
-        return "Página de perfil del usuario (en desarrollo)";
-    })->name('perfil');
-    
-    Route::get('/configuracion/cambiar-password', function () {
-    return 'configuracion.cambiar-password';
-    })->name('configuracion.cambiar-password');
-
-    Route::get('/facturas/export', [ReporteController::class, 'exportFacturas'])->name('facturas.export');
-
 });
 
 
