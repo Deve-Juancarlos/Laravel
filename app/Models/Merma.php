@@ -373,14 +373,7 @@ class Merma extends Model
     {
         return $query->whereNotNull('ImagenEvidencia');
     }
-
-    // Métodos estáticos
-    public static function generarNumeroReporte($año = null)
-    {
-        $año = $año ?? date('Y');
-        $numero = 'MER-' . $año . '-' . str_pad(static::whereYear('FechaReporte', $año)->count() + 1, 6, '0', STR_PAD_LEFT);
-        return $numero;
-    }
+    
 
     public static function obtenerEstadisticas($fechaInicio, $fechaFin)
     {

@@ -744,15 +744,8 @@ class MedicamentosControlado extends Model
             $producto = Producto::find($dispensacion->ProductoId);
             if (!$producto || !$producto->EsControlado) {
                 throw new \Exception('El producto especificado no es un medicamento controlado');
-            }
-            
-            // Validar que existe el médico
-            if ($dispensacion->MedicoId) {
-                $medico = MedicoAutorizado::find($dispensacion->MedicoId);
-                if (!$medico || !$medico->habilitado) {
-                    throw new \Exception('El médico especificado no está autorizado o está deshabilitado');
-                }
-            }
+            }        
+                     
             
             // Validar período de espera
             if ($dispensacion->PeriodoEspera && $dispensacion->PeriodoEspera > 0) {

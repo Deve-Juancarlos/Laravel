@@ -167,7 +167,7 @@
                 Acciones Rápidas
             </h5>
             
-            <a href="{{ route('contabilidad.estados-financieros.balance') }}" class="action-btn">
+            <a href="{{ route('contador.estados-financieros.balance') }}" class="action-btn">
                 <div style="background: rgba(59, 130, 246, 0.1);">
                     <i class="fas fa-chart-bar" style="color: #3b82f6;"></i>
                 </div>
@@ -262,20 +262,20 @@
                     <tbody>
                         @forelse(($movimientosRecientes ?? []) as $movimiento)
                         <tr>
-                            <td>{{ date('d/m/Y H:i', strtotime($movimiento->fecha ?? now())) }}</td>
+                            <td>{{ date('d/m/Y H:i', strtotime($movimiento->$fecha ?? now())) }}</td>
                             <td>
-                                <span class="badge bg-{{ $movimiento->tipo === 'ingreso' ? 'success' : 'warning' }}">
-                                    {{ ucfirst($movimiento->tipo ?? 'N/A') }}
+                                <span class="badge bg-{{ $movimiento->$tipo === 'ingreso' ? 'success' : 'warning' }}">
+                                    {{ ucfirst($movimiento->$tipo ?? 'N/A') }}
                                 </span>
                             </td>
-                            <td>{{ $movimiento->documento ?? 'N/A' }}</td>
-                            <td>{{ $movimiento->concepto ?? 'Sin concepto' }}</td>
-                            <td class="text-end fw-bold {{ $movimiento->tipo === 'ingreso' ? 'text-success' : 'text-warning' }}">
-                                {{ $movimiento->tipo === 'ingreso' ? '+' : '-' }}S/ {{ number_format($movimiento->monto ?? 0, 2) }}
+                            <td>{{ $movimiento->$documento ?? 'N/A' }}</td>
+                            <td>{{ $movimiento->$concepto ?? 'Sin concepto' }}</td>
+                            <td class="text-end fw-bold {{ $movimiento->$tipo === 'ingreso' ? 'text-success' : 'text-warning' }}">
+                                {{ $movimiento->$tipo === 'ingreso' ? '+' : '-' }}S/ {{ number_format($movimiento->$monto ?? 0, 2) }}
                             </td>
                             <td>
-                                <span class="badge bg-{{ $movimiento->estado === 'confirmado' ? 'success' : 'secondary' }}">
-                                    {{ ucfirst($movimiento->estado ?? 'Pendiente') }}
+                                <span class="badge bg-{{ $movimiento->$estado === 'confirmado' ? 'success' : 'secondary' }}">
+                                    {{ ucfirst($movimiento->$estado ?? 'Pendiente') }}
                                 </span>
                             </td>
                         </tr>
@@ -473,8 +473,8 @@ document.addEventListener('DOMContentLoaded', function() {
                                 return context.dataset.label + ': S/ ' + context.parsed.y.toLocaleString();
                             }
                         }
-                    }
-                },
+                    };
+                };
                 scales: {
                     y: {
                         beginAtZero: true,
