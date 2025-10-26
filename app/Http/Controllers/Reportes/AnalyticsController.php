@@ -635,14 +635,16 @@ class AnalyticsController extends Controller
 
     private function calcularFechaDesde($periodo)
     {
-        return match($periodo) {
+        return (
+            match($periodo) {
             '1m' => now()->subMonth(),
             '3m' => now()->subMonths(3),
             '6m' => now()->subMonths(6),
             '12m' => now()->subYear(),
             '24m' => now()->subYears(2),
             default => now()->subYear()
-        }->format('Y-m-d');
+        })->format('Y-m-d');
+
     }
 
     private function calcularQuintiles($datos)

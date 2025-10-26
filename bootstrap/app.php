@@ -17,7 +17,7 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
 
-        // ✅ Alias para middlewares de rol
+        // Alias para middlewares de rol
         $middleware->alias([
             'check.admin' => CheckAdmin::class,
             'check.vendedor' => CheckVendedor::class,
