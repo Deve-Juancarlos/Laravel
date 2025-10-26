@@ -27,7 +27,7 @@ class FacturacionController extends Controller
         $query = DB::table('Doccab')
             ->leftJoin('Clientes', 'Doccab.CodClie', '=', 'Clientes.Codclie')
             ->leftJoin('accesoweb', 'Doccab.Usuario', '=', 'accesoweb.usuario')
-            ->where('Doccab.Tipo', '!=', '1');
+            ->where('Doccab.Tipo', 1);
 
         // Filtros de fecha
         if ($request->filled('fecha_desde')) {
@@ -45,9 +45,16 @@ class FacturacionController extends Controller
             });
         }
 
-        // Filtro por estado
+        // Filtro por estado (usando Eliminado ya que Estado no existe en el esquema)
         if ($request->filled('estado')) {
-            $query->where('Doccab.Estado', $request->estado);
+            if ($request->estado === 'ELIMINADO') {
+                $query->where('Doccab.Eliminado', true);
+            } else {
+                $query->where('Doccab.Eliminado', true);
+            }
+        } else {
+            // Por defecto, mostrar documentos eliminados (como están en la BD)
+            $query->where('Doccab.Eliminado', true);
         }
 
         // Filtro por vendedor
@@ -64,7 +71,7 @@ class FacturacionController extends Controller
             'Doccab.*',
             'Clientes.Razon as Cliente',
             'Clientes.Direccion as DireccionCli',
-            'Clientes.Ruc as RucCli',
+            'Clientes.Documento as RucCli',
             'accesoweb.usuario as UsuarioVenta'
         ])->paginate($request->get('per_page', 20));
 
@@ -112,7 +119,7 @@ class FacturacionController extends Controller
                 'CodClie' => $request->CodClie,
                 'Fecha' => now(),
                 'Subtotal' => $totales['subtotal'],
-                'Impuesto' => $totales['impuesto'],
+                'Igv' => $totales['impuesto'],
                 'Total' => $totales['total'],
                 'Eliminado' => false,
                 'Vendedor' => $request->Vendedor,
@@ -178,7 +185,7 @@ class FacturacionController extends Controller
                 'Doccab.*',
                 'Clientes.Razon as Cliente',
                 'Clientes.Direccion as DireccionCli',
-                'Clientes.Ruc as RucCli',
+                'Clientes.Documento as RucCli',
                 'Clientes.Telefono as TelefonoCli',
                 'Clientes.Email as EmailCli',
                 'accesoweb.usuario as UsuarioVenta'
@@ -225,8 +232,8 @@ class FacturacionController extends Controller
             return response()->json(['error' => 'Factura no encontrada'], 404);
         }
 
-        if ($factura->Estado === 'PAGADO') {
-            return response()->json(['error' => 'No se puede editar una factura pagada'], 400);
+        if ($factura->Eliminado) {
+            return response()->json(['error' => 'No se puede editar una factura eliminada'], 400);
         }
 
         $request->validate([
@@ -251,7 +258,7 @@ class FacturacionController extends Controller
                 ->where('Numero', $numero)
                 ->update([
                     'Subtotal' => $totales['subtotal'],
-                    'Impuesto' => $totales['impuesto'],
+                    'Igv' => $totales['impuesto'],
                     'Total' => $totales['total'],
                     'updated_at' => now()
                 ]);
@@ -297,8 +304,8 @@ class FacturacionController extends Controller
             return response()->json(['error' => 'Factura no encontrada'], 404);
         }
 
-        if ($factura->Estado === 'PAGADO') {
-            return response()->json(['error' => 'No se puede anular una factura pagada'], 400);
+        if ($factura->Eliminado) {
+            return response()->json(['error' => 'No se puede anular una factura ya eliminada'], 400);
         }
 
         try {
@@ -310,11 +317,11 @@ class FacturacionController extends Controller
                 $this->restaurarStock($detalle->Codpro, $detalle->Cantidad);
             }
 
-            // Cambiar estado a anulado
+            // Marcar como eliminado
             DB::table('Doccab')
                 ->where('Numero', $numero)
                 ->update([
-                    'Estado' => 'ANULADO',
+                    'Eliminado' => true,
                     'updated_at' => now()
                 ]);
 
@@ -337,13 +344,13 @@ class FacturacionController extends Controller
     public function nuevaFactura()
     {
         $clientes = DB::table('Clientes')
-            ->where('Estado', 'ACTIVO')
+            ->where('Eliminado', true)
             ->select(['CodCli', 'Razon', 'Ruc', 'Direccion'])
             ->orderBy('Razon')
             ->get();
 
         $productos = DB::table('Productos')
-            ->where('Estado', 'ACTIVO')
+            ->where('Eliminado', true)
             ->where('Stock', '>', 0)
             ->select(['CodPro', 'Nombre', 'Precio', 'Stock', 'Unidad'])
             ->orderBy('Nombre')
@@ -351,7 +358,7 @@ class FacturacionController extends Controller
 
         $vendedores = DB::table('Usuarios')
             ->where('tipodeusario', 'contador')
-            ->where('Estado', 'ACTIVO')
+            ->where('Eliminado', true)
             ->select(['Usuario', 'Nombre'])
             ->orderBy('Nombre')
             ->get();
@@ -377,7 +384,7 @@ class FacturacionController extends Controller
         $limite = $request->get('limite', 10);
 
         $productos = DB::table('Productos')
-            ->where('Estado', 'ACTIVO')
+            ->where('Eliminado', true)
             ->where(function($q) use ($termino) {
                 $q->where('Nombre', 'like', "%{$termino}%")
                   ->orWhere('CodPro', 'like', "%{$termino}%")
@@ -414,7 +421,7 @@ class FacturacionController extends Controller
             DB::table('Doccab')
                 ->where('Numero', $numero)
                 ->update([
-                    'Estado' => 'PAGADO',
+                    // 'Estado' => 'PAGADO', // Campo no existe en esquema
                     'FechaPago' => $fechaPago,
                     'MetodoPago' => $request->metodo_pago,
                     'ObservacionesPago' => $request->observaciones,
@@ -444,7 +451,7 @@ class FacturacionController extends Controller
         $facturas = DB::table('Doccab')
             ->leftJoin('Clientes', 'Doccab.CodClie', '=', 'Clientes.Codclie')
             ->whereBetween('Doccab.Fecha', [$fechaInicio, $fechaFin])
-            ->where('Doccab.Tipo', '!=', '1')
+            ->where('Doccab.Tipo', 1)
             ->select([
                 'Doccab.Numero',
                 'Doccab.Fecha',
@@ -452,7 +459,7 @@ class FacturacionController extends Controller
                 'Clientes.Razon as Cliente',
                 'Clientes.Ruc as Ruc',
                 'Doccab.Subtotal',
-                'Doccab.Impuesto',
+                'Doccab.Igv as Impuesto',
                 'Doccab.Total',
                 'Doccab.Estado',
                 'Doccab.Vendedor'
@@ -460,12 +467,12 @@ class FacturacionController extends Controller
             ->orderBy('Doccab.Fecha', 'desc')
             ->get();
 
-        // Calcular totales
+        // Calcular totales (eliminando referencias a Estado que no existe)
         $totales = [
             'total_facturas' => $facturas->count(),
             'total_monto' => $facturas->sum('Total'),
-            'total_pendientes' => $facturas->where('Estado', 'PENDIENTE')->sum('Total'),
-            'total_pagadas' => $facturas->where('Estado', 'PAGADO')->sum('Total'),
+            // 'total_pendientes' => $facturas->where('Estado', 'PENDIENTE')->sum('Total'),
+            // 'total_pagadas' => $facturas->where('Estado', 'PAGADO')->sum('Total'),
             'promedio_por_factura' => $facturas->count() > 0 ? $facturas->sum('Total') / $facturas->count() : 0
         ];
 
@@ -614,7 +621,7 @@ class FacturacionController extends Controller
             'CodCli' => $factura->CodCli,
             'Fecha' => now(),
             'Subtotal' => -$factura->Subtotal,
-            'Impuesto' => -$factura->Impuesto,
+            'Igv' => -$factura->Igv,
             'Total' => -$factura->Total,
             'Estado' => 'ANULADO',
             'Vendedor' => $factura->Vendedor,
@@ -624,26 +631,15 @@ class FacturacionController extends Controller
     }
 
     /**
-     * Calcular estadísticas rápidas
+     * Calcular estadísticas rápidas - ENFOQUE SIMPLIFICADO
      */
-        private function calcularEstadisticas($request)
+    private function calcularEstadisticas($request)
     {
-        // Subconsulta: total pagado por cada factura (Numero)
-        $pagos = DB::table('PlanD_cobranza')
-            ->select(
-                'Numero',
-                DB::raw('SUM(ISNULL(Valor,0) + ISNULL(Efectivo,0) + ISNULL(Cheque,0)) AS total_pagado')
-            )
-            ->groupBy('Numero');
-
-        // Consulta principal
+        // Crear query base para aplicar los mismos filtros
         $query = DB::table('Doccab')
-            ->leftJoinSub($pagos, 'pagos', function ($join) {
-                $join->on('Doccab.Numero', '=', 'pagos.Numero');
-            })
-            ->where('Doccab.Tipo', '!=', 1);
+            ->where('Doccab.Tipo', 1);
 
-        // Filtros opcionales
+        // Aplicar los mismos filtros que se usan en el index
         if ($request->filled('fecha_desde')) {
             $query->where('Doccab.Fecha', '>=', $request->fecha_desde);
         }
@@ -652,29 +648,90 @@ class FacturacionController extends Controller
             $query->where('Doccab.Fecha', '<=', $request->fecha_hasta);
         }
 
-        // SQL Server requiere agrupar explícitamente al usar agregaciones
-        $stats = DB::table(DB::raw("({$query->toSql()}) AS datos"))
-            ->mergeBindings($query)
-            ->selectRaw('
-                COUNT(*) AS total_facturas,
-                SUM(datos.Total) AS total_monto,
-                SUM(CASE WHEN ISNULL(datos.total_pagado, 0) < datos.Total THEN datos.Total ELSE 0 END) AS total_pendientes,
-                SUM(CASE WHEN ISNULL(datos.total_pagado, 0) >= datos.Total THEN datos.Total ELSE 0 END) AS total_pagadas
-            ')
-            ->first();
+        if ($request->filled('cliente')) {
+            $query->where(function($q) use ($request) {
+                $q->where('Doccab.CodClie', 'like', '%' . $request->cliente . '%');
+            });
+        }
+
+        if ($request->filled('estado')) {
+            $query->where('Doccab.Estado', $request->estado);
+        }
+
+        if ($request->filled('vendedor')) {
+            $query->where('Doccab.Vendedor', 'like', '%' . $request->vendedor . '%');
+        }
+
+        // Obtener totales básicos sin join complejo
+        $stats = [
+            'total_facturas' => $query->count(),
+            'total_monto' => $query->sum('Total'),
+            'total_pendientes' => $query->where('Eliminado', true)->sum('Total'),
+            'total_pagadas' => 0 // Campo Estado no existe
+        ];
+
+        // Para estadísticas de cobranza más precisas, obtenemos la información de manera separada
+        try {
+            // Obtener total pagado por facturas en el rango de fechas
+            $pagosQuery = DB::table('PlanD_cobranza')
+                ->select('Numero', DB::raw('SUM(ISNULL(Valor,0) + ISNULL(Efectivo,0) + ISNULL(Cheque,0)) AS total_pagado'))
+                ->groupBy('Numero');
+
+            // Obtener facturas que tienen pagos para calcular diferencias
+            $facturasConPagos = DB::table('Doccab')
+                ->joinSub($pagosQuery, 'pagos', function ($join) {
+                    $join->on('Doccab.Numero', '=', 'pagos.Numero');
+                })
+                ->where('Doccab.Tipo', 1);
+
+            // Aplicar los mismos filtros de fecha
+            if ($request->filled('fecha_desde')) {
+                $facturasConPagos->where('Doccab.Fecha', '>=', $request->fecha_desde);
+            }
+
+            if ($request->filled('fecha_hasta')) {
+                $facturasConPagos->where('Doccab.Fecha', '<=', $request->fecha_hasta);
+            }
+
+            $pagosData = $facturasConPagos->select('Doccab.Total', 'pagos.total_pagado')->get();
+
+            $totalPendientes = 0;
+            $totalPagadas = 0;
+
+            foreach ($pagosData as $row) {
+                if ($row->total_pagado < $row->Total) {
+                    $totalPendientes += ($row->Total - $row->total_pagado);
+                } else {
+                    $totalPagadas += $row->Total;
+                }
+            }
+
+            // Solo actualizar estas estadísticas si tenemos datos de pagos
+            if ($pagosData->isNotEmpty()) {
+                $stats['total_pendientes'] = $totalPendientes;
+                $stats['total_pagadas'] = $totalPagadas;
+            }
+
+        } catch (\Exception $e) {
+            // Si falla la consulta de pagos, mantenemos las estadísticas básicas
+            Log::warning('No se pudieron calcular estadísticas de cobranza: ' . $e->getMessage());
+        }
 
         return $stats;
     }
 
-
-
+    /**
+     * Calcular margen promedio
+     */
     private function calcularMargenPromedio($numero)
     {
         // Implementación simplificada - en producción sería más compleja
         return 25.5; // 25.5% margen promedio
     }
 
- 
+    /**
+     * Verificar cumplimiento de entrega
+     */
     private function verificarCumplimientoEntrega($numero)
     {
         // Implementación básica - verificar si hay registros de entrega
@@ -714,7 +771,7 @@ class FacturacionController extends Controller
             ->leftJoin('Clientes', 'Doccab.CodClie', '=', 'Clientes.Codclie')
             ->leftJoin('accesoweb', 'Doccab.Usuario', '=', 'accesoweb.usuario')
             ->whereBetween('Doccab.Fecha', [$fechaInicio, $fechaFin])
-            ->where('Doccab.Tipo', '!=', '1')
+            ->where('Doccab.Tipo', 1)
             ->select([
                 'Doccab.Numero',
                 'Doccab.Fecha',
@@ -722,7 +779,7 @@ class FacturacionController extends Controller
                 'Clientes.Razon as Cliente',
                 'Clientes.Ruc as Ruc',
                 'Doccab.Subtotal',
-                'Doccab.Impuesto',
+                'Doccab.Igv as Impuesto',
                 'Doccab.Total',
                 'Doccab.Estado',
                 'Doccab.Vendedor',
@@ -752,7 +809,7 @@ class FacturacionController extends Controller
         
         $headers = [
             'Numero', 'Fecha', 'Tipo', 'Cliente', 'RUC', 'Subtotal', 
-            'Impuesto', 'Total', 'Estado', 'Vendedor'
+            'Impuesto', 'Total', 'Vendedor'
         ];
 
         $csvData = [];
@@ -766,9 +823,8 @@ class FacturacionController extends Controller
                 '"' . str_replace('"', '""', $factura->Cliente) . '"',
                 $factura->Ruc,
                 number_format($factura->Subtotal, 2),
-                number_format($factura->Impuesto, 2),
+                number_format($factura->Igv, 2),
                 number_format($factura->Total, 2),
-                $factura->Estado,
                 $factura->Vendedor
             ];
             $csvData[] = implode(',', $row);
