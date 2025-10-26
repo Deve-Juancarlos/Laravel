@@ -486,34 +486,55 @@ class ClientesController extends Controller
      */
     public function consultarClientes($filtros)
     {
+        $columns = [
+            'Clientes.Codclie',
+            'Clientes.tipoDoc',
+            'Clientes.Documento',
+            'Clientes.Razon',
+            'Clientes.Direccion',
+            'Clientes.Telefono1',
+            'Clientes.Telefono2',
+            'Clientes.Fax',
+            'Clientes.Celular',
+            'Clientes.Nextel',
+            'Clientes.Maymin',
+            'Clientes.Fecha',
+            'Clientes.Zona',
+            'Clientes.TipoNeg',
+            'Clientes.TipoClie',
+            'Clientes.Vendedor',
+            'Clientes.Email',
+            'Clientes.Limite',
+            'Clientes.Activo'
+        ];
+
         $query = DB::table('Clientes')
             ->leftJoin('Doccab', 'Clientes.Codclie', '=', 'Doccab.CodClie')
             ->where('Clientes.Activo', 1)
-            ->select('Clientes.*', DB::raw('SUM(Doccab.Total) as total_ventas'));
+            ->select(array_merge($columns, [DB::raw('SUM(Doccab.Total) as total_ventas')]))
+            ->groupBy($columns);
 
-        if ($filtros['tipo_clie']) {
+        // Aplicar filtros
+        if (!empty($filtros['tipo_clie'])) {
             $query->where('Clientes.TipoClie', $filtros['tipo_clie']);
         }
 
-        if ($filtros['busqueda']) {
+        if (!empty($filtros['busqueda'])) {
             $query->where(function($q) use ($filtros) {
                 $q->where('Clientes.Razon', 'like', '%' . $filtros['busqueda'] . '%')
-                  ->orWhere('Clientes.Documento', 'like', '%' . $filtros['busqueda'] . '%');
+                ->orWhere('Clientes.Documento', 'like', '%' . $filtros['busqueda'] . '%');
             });
         }
 
-        if ($filtros['ventas_min']) {
+        if (!empty($filtros['ventas_min'])) {
             $query->having('total_ventas', '>=', $filtros['ventas_min']);
         }
 
-        if ($filtros['ventas_max']) {
+        if (!empty($filtros['ventas_max'])) {
             $query->having('total_ventas', '<=', $filtros['ventas_max']);
         }
 
-        $query->groupBy('Clientes.Codclie')
-               ->orderBy('Clientes.Razon');
-
-        return $query->paginate(25);
+        return $query->orderBy('Clientes.Razon')->paginate(25);
     }
 
     /**
