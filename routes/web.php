@@ -129,15 +129,12 @@ Route::middleware(['auth', 'check.contador'])->group(function () {
         Route::get('libros-electronicos', [ReportesSunatController::class, 'librosElectronicos'])->name('libros-electronicos');
         Route::get('reportes/declaracion', [ReportesSunatController::class, 'declaracionJurada'])->name('reportes.declaracion');
         Route::get('facturas', [App\Http\Controllers\Ventas\FacturacionController::class, 'index'])->name('facturas.index');
-        Route::get('reportes/exportar', [ReportesSunatController::class, 'index'])->name('reportes.exportar');   
+        Route::get('reportes/exportar', [ReportesSunatController::class, 'index'])->name('reportes.exportar');
+        
+        
     });
 });
 
-Route::get('reportes/financiero', [ReportesSunatController::class, 'index'])->name('reportes.financiero');
-        Route::get('reportes/ventas', [ReportesSunatController::class, 'registroVentas'])->name('reportes.ventas');
-        Route::get('reportes/compras', [ReportesSunatController::class, 'registroCompras'])->name('reportes.compras');
-        Route::get('libros-electronicos', [ReportesSunatController::class, 'librosElectronicos'])->name('libros-electronicos');
-        Route::get('reportes/declaracion', [ReportesSunatController::class, 'declaracionJurada'])->name('reportes.declaracion');
 
 Route::get('/acceso-denegado', function () {
     return view('errors.403');

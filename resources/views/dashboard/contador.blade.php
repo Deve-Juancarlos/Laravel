@@ -260,7 +260,7 @@
                 Acciones Rápidas
             </h5>
             
-            <a href="{{ route('reportes.financiero') }}" class="action-btn">
+            <a href="{{ route('contador.reportes.financiero') }}" class="action-btn">
                 <i class="fas fa-chart-bar text-primary"></i>
                 <div>
                     <strong>Ver Reportes Financieros</strong>
@@ -268,7 +268,7 @@
                 </div>
             </a>
 
-            <a href="{{ route('libros-electronicos') }}" class="action-btn">
+            <a href="{{ route('contador.libros-electronicos') }}" class="action-btn">
                 <i class="fas fa-book text-success"></i>
                 <div>
                     <strong>Libros Electrónicos</strong>
@@ -276,7 +276,7 @@
                 </div>
             </a>
 
-            <a href="{{ route('facturas.index') }}" class="action-btn">
+            <a href="{{ route('contador.facturas.index') }}" class="action-btn">
                 <i class="fas fa-file-invoice text-info"></i>
                 <div>
                     <strong>Gestionar Facturas</strong>
@@ -284,7 +284,7 @@
                 </div>
             </a>
 
-            <a href="{{ route('reportes.exportar') }}" class="action-btn">
+            <a href="{{ route('contador.reportes.exportar') }}" class="action-btn">
                 <i class="fas fa-download text-warning"></i>
                 <div>
                     <strong>Exportar Datos</strong>
