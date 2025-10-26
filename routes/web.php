@@ -13,8 +13,8 @@ use App\Http\Controllers\Admin\UsuarioController;
 use App\Http\Controllers\Admin\CuentaController;
 use App\Http\Controllers\Admin\ReporteController;
 use App\Http\Controllers\Admin\AuditoriaController;
-use App\Http\Controllers\Contabilidad\ReportesSunatController;
 use App\Http\Controllers\Ventas\PlanillasController;
+use App\Http\Controllers\Contabilidad\ReportesSunatController;
 
 
 //RUTAS PÚBLICAS
@@ -122,16 +122,41 @@ Route::middleware(['auth', 'check.contador'])->group(function () {
         Route::get('estado-cuenta', [App\Http\Controllers\Clientes\EstadoCuentaController::class, 'index'])->name('estado-cuenta');
         Route::get('planillas', [App\Http\Controllers\Ventas\PlanillasController::class, 'index'])->name('planillas');
         Route::get('analytics', [App\Http\Controllers\Reportes\AnalyticsController::class, 'index'])->name('analytics');
-        Route::get('kpis', [App\Http\Controllers\Reportes\KpiController::class, 'index'])->name('kpis');    
+        Route::get('kpis', [App\Http\Controllers\Reportes\KpiController::class, 'index'])->name('kpis');
+        
+        // Reportes Financieros y Libros Electrónicos
         Route::get('reportes/financiero', [ReportesSunatController::class, 'index'])->name('reportes.financiero');
         Route::get('reportes/ventas', [ReportesSunatController::class, 'registroVentas'])->name('reportes.ventas');
         Route::get('reportes/compras', [ReportesSunatController::class, 'registroCompras'])->name('reportes.compras');
         Route::get('libros-electronicos', [ReportesSunatController::class, 'librosElectronicos'])->name('libros-electronicos');
         Route::get('reportes/declaracion', [ReportesSunatController::class, 'declaracionJurada'])->name('reportes.declaracion');
+        
+        // Rutas de Facturas
         Route::get('facturas', [App\Http\Controllers\Ventas\FacturacionController::class, 'index'])->name('facturas.index');
+        Route::get('facturas/create', [App\Http\Controllers\Ventas\FacturacionController::class, 'index'])->name('facturas.create');
+        Route::post('facturas', [App\Http\Controllers\Ventas\FacturacionController::class, 'store'])->name('facturas.store');
+        Route::get('facturas/export', [App\Http\Controllers\Ventas\FacturacionController::class, 'exportar'])->name('facturas.export');
+        
+        // Productos e Inventario
+        Route::get('productos', [App\Http\Controllers\Farmacia\InventarioController::class, 'index'])->name('productos.index');
+        Route::get('productos/inventario', [App\Http\Controllers\Farmacia\InventarioController::class, 'index'])->name('productos.inventario');
+        Route::get('productos/vencimientos', [App\Http\Controllers\Farmacia\InventarioController::class, 'index'])->name('productos.vencimientos');
+        
+        // Reportes adicionales
+        Route::get('reportes/inventario', [ReportesSunatController::class, 'index'])->name('reportes.inventario');
+        Route::get('reportes/medicamentos-controlados', [ReportesSunatController::class, 'index'])->name('reportes.medicamentos-controlados');
         Route::get('reportes/exportar', [ReportesSunatController::class, 'index'])->name('reportes.exportar');
         
+        // Trazabilidad
+        Route::get('trazabilidad', [App\Http\Controllers\Farmacia\TrazabilidadController::class, 'index'])->name('trazabilidad.index');
         
+        // Configuración
+        Route::get('configuracion/usuarios', [App\Http\Controllers\Admin\UsuarioController::class, 'index'])->name('configuracion.usuarios');
+        Route::get('configuracion/parametros', [App\Http\Controllers\Admin\UsuarioController::class, 'index'])->name('configuracion.parametros');
+        Route::get('configuracion/cambiar-password', [ContadorDashboardController::class, 'index'])->name('configuracion.cambiar-password');
+        
+        // Perfil
+        Route::get('perfil', [ContadorDashboardController::class, 'index'])->name('perfil');
     });
 });
 
