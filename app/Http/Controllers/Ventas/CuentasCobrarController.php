@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
-use App\Models\AccesoWeb¿;
+use App\Models\AccesoWeb;
 
 class CuentasCobrarController extends Controller
 {
@@ -16,7 +16,7 @@ class CuentasCobrarController extends Controller
     public function __construct()
     {
         $this->middleware('auth');
-        $this->middleware('rol:vendedor|administrador|contador');
+        $this->middleware('rol:contador|administrador');
     }
 
     /**
@@ -29,7 +29,7 @@ class CuentasCobrarController extends Controller
         
         // Consulta base con join para obtener información del cliente
         $query = DB::table('Doccab')
-            ->leftJoin('Clientes', 'Doccab.CodCli', '=', 'Clientes.CodCli')
+            ->leftJoin('Clientes', 'Doccab.CodClie', '=', 'Clientes.CodCli')
             ->leftJoin('Usuarios', 'Doccab.Vendedor', '=', 'Usuarios.Usuario')
             ->where('Doccab.Tipodoc', '!=', 'AN');
 
@@ -40,7 +40,7 @@ class CuentasCobrarController extends Controller
 
         if ($request->filled('cliente')) {
             $query->where(function($q) use ($request) {
-                $q->where('Clientes.CodCli', 'like', '%' . $request->cliente . '%')
+                $q->where('Clientes.CodClie', 'like', '%' . $request->cliente . '%')
                   ->orWhere('Clientes.Razon', 'like', '%' . $request->cliente . '%');
             });
         }
@@ -143,7 +143,7 @@ class CuentasCobrarController extends Controller
             $this->crearAsientoCobro($numero, $request->monto_pago, $request->fecha_pago, $request->metodo_pago);
 
             // Actualizar saldo del cliente
-            $this->actualizarSaldoCliente($factura->CodCli);
+            $this->actualizarSaldoCliente($factura->CodClie);
 
             DB::commit();
 
@@ -175,7 +175,7 @@ class CuentasCobrarController extends Controller
             ->get();
 
         $factura = DB::table('Doccab')
-            ->leftJoin('Clientes', 'Doccab.CodCli', '=', 'Clientes.CodCli')
+            ->leftJoin('Clientes', 'Doccab.CodClie', '=', 'Clientes.CodClie')
             ->where('Doccab.Numero', $numero)
             ->select(['Doccab.*', 'Clientes.Razon as Cliente'])
             ->first();
@@ -224,7 +224,7 @@ class CuentasCobrarController extends Controller
             return response()->json(['error' => 'Cliente ID es requerido'], 400);
         }
 
-        $cliente = DB::table('Clientes')->where('CodCli', $clienteId)->first();
+        $cliente = DB::table('Clientes')->where('CodClie', $clienteId)->first();
         
         if (!$cliente) {
             return response()->json(['error' => 'Cliente no encontrado'], 404);
@@ -233,7 +233,7 @@ class CuentasCobrarController extends Controller
         // Facturas del cliente
         $facturas = DB::table('Doccab')
             ->leftJoin('Cobros', 'Doccab.Numero', '=', 'Cobros.Numero_Fac')
-            ->where('Doccab.CodCli', $clienteId)
+            ->where('Doccab.CodClie', $clienteId)
             ->whereBetween('Doccab.Fecha', [$fechaDesde, $fechaHasta])
             ->where('Doccab.Tipodoc', '!=', 'AN')
             ->select([
@@ -283,7 +283,7 @@ class CuentasCobrarController extends Controller
         
         // Cuentas vencidas (más de 30 días)
         $cuentasVencidas = DB::table('Doccab')
-            ->leftJoin('Clientes', 'Doccab.CodCli', '=', 'Clientes.CodCli')
+            ->leftJoin('Clientes', 'Doccab.CodClie', '=', 'Clientes.CodClie')
             ->leftJoin('Cobros', 'Doccab.Numero', '=', 'Cobros.Numero_Fac')
             ->where('Doccab.Tipodoc', '!=', 'AN')
             ->where('Doccab.Estado', '!=', 'PAGADO')
@@ -304,7 +304,7 @@ class CuentasCobrarController extends Controller
 
         // Próximas a vencer (próximos 7 días)
         $proximasVencer = DB::table('Doccab')
-            ->leftJoin('Clientes', 'Doccab.CodCli', '=', 'Clientes.CodCli')
+            ->leftJoin('Clientes', 'Doccab.CodClie', '=', 'Clientes.CodClie')
             ->leftJoin('Cobros', 'Doccab.Numero', '=', 'Cobros.Numero_Fac')
             ->where('Doccab.Tipodoc', '!=', 'AN')
             ->where('Doccab.Estado', '!=', 'PAGADO')
@@ -348,7 +348,7 @@ class CuentasCobrarController extends Controller
         ]);
 
         $factura = DB::table('Doccab')
-            ->leftJoin('Clientes', 'Doccab.CodCli', '=', 'Clientes.CodCli')
+            ->leftJoin('Clientes', 'Doccab.CodClie', '=', 'Clientes.CodClie')
             ->where('Doccab.Numero', $numero)
             ->select(['Doccab.*', 'Clientes.Razon as Cliente'])
             ->first();
@@ -595,19 +595,19 @@ class CuentasCobrarController extends Controller
     private function topClientesDeudores($fechaCorte)
     {
         return DB::table('Doccab')
-            ->leftJoin('Clientes', 'Doccab.CodCli', '=', 'Clientes.CodCli')
+            ->leftJoin('Clientes', 'Doccab.CodClie', '=', 'Clientes.CodClie')
             ->leftJoin('Cobros', 'Doccab.Numero', '=', 'Cobros.Numero_Fac')
             ->where('Doccab.Tipodoc', '!=', 'AN')
             ->where('Doccab.Fecha', '<=', $fechaCorte)
             ->select([
-                'Clientes.CodCli',
+                'Clientes.CodClie',
                 'Clientes.Razon',
                 DB::raw('COUNT(DISTINCT Doccab.Numero) as facturas_pendientes'),
                 DB::raw('SUM(Doccab.Total) as total_facturas'),
                 DB::raw('SUM(COALESCE(Cobros.Monto, 0)) as total_pagado'),
                 DB::raw('(SUM(Doccab.Total) - SUM(COALESCE(Cobros.Monto, 0))) as saldo_pendiente')
             ])
-            ->groupBy('Clientes.CodCli', 'Clientes.Razon')
+            ->groupBy('Clientes.CodClie', 'Clientes.Razon')
             ->having('saldo_pendiente', '>', 0)
             ->orderBy('saldo_pendiente', 'desc')
             ->limit(10)
@@ -662,11 +662,11 @@ class CuentasCobrarController extends Controller
     /**
      * Actualizar saldo del cliente
      */
-    private function actualizarSaldoCliente($codCli)
+    private function actualizarSaldoCliente($codClie)
     {
         $saldo = DB::table('Doccab')
             ->leftJoin('Cobros', 'Doccab.Numero', '=', 'Cobros.Numero_Fac')
-            ->where('Doccab.CodCli', $codCli)
+            ->where('Doccab.CodClie', $codClie)
             ->where('Doccab.Tipodoc', '!=', 'AN')
             ->select([
                 DB::raw('SUM(Doccab.Total) as total_facturado'),
@@ -677,7 +677,7 @@ class CuentasCobrarController extends Controller
         $nuevoSaldo = ($saldo->total_facturado ?? 0) - ($saldo->total_cobrado ?? 0);
 
         DB::table('Clientes')
-            ->where('CodCli', $codCli)
+            ->where('CodClie', $codClie)
             ->update(['Saldo' => $nuevoSaldo]);
     }
 
@@ -692,7 +692,7 @@ class CuentasCobrarController extends Controller
 
         // Obtener datos usando lógica similar al index
         $cuentas = DB::table('Doccab')
-            ->leftJoin('Clientes', 'Doccab.CodCli', '=', 'Clientes.CodCli')
+            ->leftJoin('Clientes', 'Doccab.CodClie', '=', 'Clientes.CodClie')
             ->leftJoin('Cobros', 'Doccab.Numero', '=', 'Cobros.Numero_Fac')
             ->where('Doccab.Tipodoc', '!=', 'AN')
             ->where('Doccab.Fecha', '<=', $fechaCorte)

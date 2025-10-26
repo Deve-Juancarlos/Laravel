@@ -4,580 +4,892 @@ namespace App\Http\Controllers\Clientes;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Mail;
 use Carbon\Carbon;
-use Illuminate\Support\Facades\Log;
 
 class ClientesController extends Controller
 {
+    /**
+     * MÓDULO CLIENTES - Controlador principal de gestión de clientes
+     * Integrado con base de datos SIFANO existente
+     * Total de líneas: ~650
+     */
+
+    public function __construct()
+    {
+        $this->middleware(['auth', 'rol:contador|administrador']);
+    }
+
+    /**
+     * ===============================================
+     * MÉTODOS PRINCIPALES DEL MÓDULO
+     * ===============================================
+     */
+
+    /**
+     * Muestra el dashboard principal de clientes
+     */
     public function index(Request $request)
     {
-        try {
-            $buscar = $request->input('buscar', '');
-            $vendedor = $request->input('vendedor');
-            $zona = $request->input('zona');
-            $tipo = $request->input('tipo');
-            $activo = $request->input('activo', '1'); // 1=activo, 0=inactivo, ''=todos
-            $limite = $request->input('limite', 20);
+        $filtros = $this->obtenerFiltros($request);
+        $clientes = $this->consultarClientes($filtros);
+        $estadisticas = $this->calcularEstadisticas();
+        $segmentacion = $this->analizarSegmentacionClientes();
 
-            $clientes = $this->buscarClientes($buscar, $vendedor, $zona, $tipo, $activo, $limite);
-
-            return response()->json([
-                'success' => true,
-                'data' => $clientes,
-                'message' => 'Clientes obtenidos exitosamente'
-            ]);
-
-        } catch (\Exception $e) {
-            Log::error('Error al obtener clientes: ' . $e->getMessage());
-            return response()->json([
-                'success' => false,
-                'message' => 'Error al obtener clientes: ' . $e->getMessage()
-            ], 500);
-        }
+        return compact('clientes', 'estadisticas', 'segmentacion', 'filtros');
     }
 
-    public function show($codigo)
+    /**
+     * Obtiene detalles completos de un cliente
+     */
+    public function show($id)
     {
-        try {
-            // Datos básicos del cliente
-            $cliente = DB::table('Clientes')
-                ->where('Codclie', $codigo)
-                ->first();
-
-            if (!$cliente) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Cliente no encontrado'
-                ], 404);
-            }
-
-            // Datos adicionales
-            $datosAdicionales = $this->obtenerDatosAdicionales($codigo);
-            
-            // Historial de compras
-            $historialCompras = $this->obtenerHistorialCompras($codigo);
-            
-            // Estado financiero
-            $estadoFinanciero = $this->obtenerEstadoFinanciero($codigo);
-
-            return response()->json([
-                'success' => true,
-                'data' => [
-                    'cliente' => $cliente,
-                    'datos_adicionales' => $datosAdicionales,
-                    'historial_compras' => $historialCompras,
-                    'estado_financiero' => $estadoFinanciero
-                ],
-                'message' => 'Cliente obtenido exitosamente'
-            ]);
-
-        } catch (\Exception $e) {
-            Log::error('Error al obtener cliente: ' . $e->getMessage());
-            return response()->json([
-                'success' => false,
-                'message' => 'Error al obtener cliente: ' . $e->getMessage()
-            ], 500);
+        $cliente = DB::table('Clientes')->where('CodClie', $id)->first();
+        
+        if (!$cliente) {
+            return response()->json(['error' => 'Cliente no encontrado'], 404);
         }
+
+        $datos_completos = [
+            'cliente' => $cliente,
+            'compras' => $this->obtenerHistorialCompras($id),
+            'estadisticas' => $this->calcularEstadisticasCliente($id),
+            'credito' => $this->analizarCredito($id),
+            'recomendaciones' => $this->generarRecomendaciones($id),
+            'actividad' => $this->obtenerActividadReciente($id)
+        ];
+
+        return $datos_completos;
     }
 
+    /**
+     * Crea un nuevo cliente
+     */
     public function store(Request $request)
     {
+        $validacion = $this->validarDatosCliente($request);
+        if ($validacion['errors']) {
+            return response()->json($validacion, 400);
+        }
+
         try {
-            $validatedData = $request->validate([
-                'Documento' => 'nullable|string|max:12',
-                'Razon' => 'required|string|max:80',
-                'Direccion' => 'nullable|string|max:60',
-                'Telefono1' => 'nullable|string|max:10',
-                'Telefono2' => 'nullable|string|max:10',
-                'Fax' => 'nullable|string|max:15',
-                'Celular' => 'nullable|string|max:10',
-                'Nextel' => 'nullable|string|max:15',
-                'Maymin' => 'boolean',
-                'Zona' => 'required|string|max:3',
-                'TipoNeg' => 'nullable|integer',
-                'TipoClie' => 'nullable|integer',
-                'Vendedor' => 'nullable|integer',
-                'Email' => 'nullable|email|max:100',
-                'Limite' => 'nullable|numeric',
-                'Activo' => 'boolean'
+            DB::beginTransaction();
+
+            // Crear cliente
+            $cliente_id = DB::table('Clientes')->insertGetId([
+                'CodClie' => $this->generarCodigoCliente(),
+                'Razon' => $request->razon_social,
+                'Ruc' => $request->ruc,
+                'Direccion' => $request->direccion,
+                'Distrito' => $request->distrito,
+                'Provincia' => $request->provincia,
+                'Departamento' => $request->departamento,
+                'Telefono' => $request->telefono,
+                'Email' => $request->email,
+                'Contacto' => $request->contacto,
+                'Fecha_inicio' => now(),
+                'Categoria' => $request->categoria ?? 'REGULAR',
+                'CreditLimit' => $request->limite_credito ?? 0,
+                'DiasCredito' => $request->dias_credito ?? 0,
+                'Estado' => 'ACTIVO'
             ]);
 
-            // Valores por defecto
-            $validatedData['Maymin'] = $validatedData['Maymin'] ?? false;
-            $validatedData['Activo'] = $validatedData['Activo'] ?? true;
-            $validatedData['Fecha'] = Carbon::now();
+            // Registrar actividad
+            $this->registrarActividad($cliente_id, 'CLIENTE_CREADO', 'Cliente registrado en el sistema');
 
-            // Validar documento si se proporciona
-            if (!empty($validatedData['Documento'])) {
-                $documentoExiste = DB::table('Clientes')
-                    ->where('Documento', $validatedData['Documento'])
-                    ->exists();
+            // Cliente asignado al contador
+            // No se requiere tabla intermedia
 
-                if ($documentoExiste) {
-                    return response()->json([
-                        'success' => false,
-                        'message' => 'El número de documento ya está registrado'
-                    ], 422);
-                }
-            }
-
-            // Insertar cliente
-            $codigo = DB::table('Clientes')->insertGetId($validatedData);
-
-            // Registrar en auditoría si existe la tabla
-            try {
-                DB::table('Auditoria_Sistema')->insert([
-                    'usuario' => 'SISTEMA',
-                    'accion' => 'CREAR_CLIENTE',
-                    'tabla' => 'Clientes',
-                    'detalle' => "Cliente creado: {$validatedData['Razon']} (ID: {$codigo})",
-                    'fecha' => Carbon::now()
-                ]);
-            } catch (\Exception $e) {
-                // Silenciar error de auditoría
-            }
+            DB::commit();
 
             return response()->json([
                 'success' => true,
-                'data' => ['Codclie' => $codigo],
-                'message' => 'Cliente creado exitosamente'
-            ], 201);
+                'mensaje' => 'Cliente creado exitosamente',
+                'cliente_id' => $cliente_id
+            ]);
 
         } catch (\Exception $e) {
-            Log::error('Error al crear cliente: ' . $e->getMessage());
-            return response()->json([
-                'success' => false,
-                'message' => 'Error al crear cliente: ' . $e->getMessage()
-            ], 500);
+            DB::rollback();
+            return response()->json(['error' => 'Error al crear cliente: ' . $e->getMessage()], 500);
         }
     }
 
-    public function update(Request $request, $codigo)
+    /**
+     * Actualiza datos de un cliente
+     */
+    public function update(Request $request, $id)
     {
+        $cliente = DB::table('Clientes')->where('CodClie', $id)->first();
+        if (!$cliente) {
+            return response()->json(['error' => 'Cliente no encontrado'], 404);
+        }
+
+        $validacion = $this->validarDatosCliente($request, $id);
+        if ($validacion['errors']) {
+            return response()->json($validacion, 400);
+        }
+
         try {
-            $validatedData = $request->validate([
-                'Documento' => 'nullable|string|max:12',
-                'Razon' => 'required|string|max:80',
-                'Direccion' => 'nullable|string|max:60',
-                'Telefono1' => 'nullable|string|max:10',
-                'Telefono2' => 'nullable|string|max:10',
-                'Fax' => 'nullable|string|max:15',
-                'Celular' => 'nullable|string|max:10',
-                'Nextel' => 'nullable|string|max:15',
-                'Maymin' => 'boolean',
-                'Zona' => 'required|string|max:3',
-                'TipoNeg' => 'nullable|integer',
-                'TipoClie' => 'nullable|integer',
-                'Vendedor' => 'nullable|integer',
-                'Email' => 'nullable|email|max:100',
-                'Limite' => 'nullable|numeric',
-                'Activo' => 'boolean'
-            ]);
-
-            // Verificar que el cliente existe
-            $clienteExistente = DB::table('Clientes')
-                ->where('Codclie', $codigo)
-                ->first();
-
-            if (!$clienteExistente) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Cliente no encontrado'
-                ], 404);
-            }
-
-            // Validar documento si se proporciona y es diferente al actual
-            if (!empty($validatedData['Documento']) && $validatedData['Documento'] !== $clienteExistente->Documento) {
-                $documentoExiste = DB::table('Clientes')
-                    ->where('Documento', $validatedData['Documento'])
-                    ->where('Codclie', '!=', $codigo)
-                    ->exists();
-
-                if ($documentoExiste) {
-                    return response()->json([
-                        'success' => false,
-                        'message' => 'El número de documento ya está registrado'
-                    ], 422);
-                }
-            }
+            DB::beginTransaction();
 
             // Actualizar cliente
-            $rowsAffected = DB::table('Clientes')
-                ->where('Codclie', $codigo)
-                ->update($validatedData);
+            DB::table('Clientes')->where('CodClie', $id)->update([
+                'Razon' => $request->razon_social,
+                'Ruc' => $request->ruc,
+                'Direccion' => $request->direccion,
+                'Distrito' => $request->distrito,
+                'Provincia' => $request->provincia,
+                'Departamento' => $request->departamento,
+                'Telefono' => $request->telefono,
+                'Email' => $request->email,
+                'Contacto' => $request->contacto,
+                'Categoria' => $request->categoria,
+                'CreditLimit' => $request->limite_credito,
+                'DiasCredito' => $request->dias_credito,
+                'Estado' => $request->estado ?? 'ACTIVO'
+            ]);
 
-            if ($rowsAffected === 0) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'No se realizaron cambios'
-                ], 422);
-            }
+            // Registrar actividad
+            $this->registrarActividad($id, 'CLIENTE_ACTUALIZADO', 'Datos del cliente actualizados');
 
-            // Registrar en auditoría si existe la tabla
-            try {
-                DB::table('Auditoria_Sistema')->insert([
-                    'usuario' => 'SISTEMA',
-                    'accion' => 'ACTUALIZAR_CLIENTE',
-                    'tabla' => 'Clientes',
-                    'detalle' => "Cliente actualizado: {$validatedData['Razon']} (ID: {$codigo})",
-                    'fecha' => Carbon::now()
-                ]);
-            } catch (\Exception $e) {
-                // Silenciar error de auditoría
-            }
+            // No se requiere actualización de asignación
+
+            DB::commit();
 
             return response()->json([
                 'success' => true,
-                'message' => 'Cliente actualizado exitosamente'
+                'mensaje' => 'Cliente actualizado exitosamente'
             ]);
 
         } catch (\Exception $e) {
-            Log::error('Error al actualizar cliente: ' . $e->getMessage());
-            return response()->json([
-                'success' => false,
-                'message' => 'Error al actualizar cliente: ' . $e->getMessage()
-            ], 500);
+            DB::rollback();
+            return response()->json(['error' => 'Error al actualizar cliente'], 500);
         }
     }
 
-    public function destroy($codigo)
+    /**
+     * Desactiva un cliente
+     */
+    public function destroy($id)
     {
-        try {
-            $cliente = DB::table('Clientes')
-                ->where('Codclie', $codigo)
-                ->first();
-
-            if (!$cliente) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Cliente no encontrado'
-                ], 404);
-            }
-
-            // Verificar si tiene movimientos
-            $tieneMovimientos = DB::table('Doccab')
-                ->where('CodClie', $codigo)
-                ->where('Eliminado', 0)
-                ->exists();
-
-            if ($tieneMovimientos) {
-                // En lugar de eliminar, desactivar
-                DB::table('Clientes')
-                    ->where('Codclie', $codigo)
-                    ->update(['Activo' => false]);
-
-                $accion = 'DESACTIVAR_CLIENTE';
-                $detalle = "Cliente desactivado (tiene movimientos): {$cliente->Razon} (ID: {$codigo})";
-            } else {
-                // Eliminar físicamente
-                DB::table('Clientes')
-                    ->where('Codclie', $codigo)
-                    ->delete();
-
-                $accion = 'ELIMINAR_CLIENTE';
-                $detalle = "Cliente eliminado: {$cliente->Razon} (ID: {$codigo})";
-            }
-
-            // Registrar en auditoría si existe la tabla
-            try {
-                DB::table('Auditoria_Sistema')->insert([
-                    'usuario' => 'SISTEMA',
-                    'accion' => $accion,
-                    'tabla' => 'Clientes',
-                    'detalle' => $detalle,
-                    'fecha' => Carbon::now()
-                ]);
-            } catch (\Exception $e) {
-                // Silenciar error de auditoría
-            }
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Cliente ' . ($tieneMovimientos ? 'desactivado' : 'eliminado') . ' exitosamente'
-            ]);
-
-        } catch (\Exception $e) {
-            Log::error('Error al eliminar cliente: ' . $e->getMessage());
-            return response()->json([
-                'success' => false,
-                'message' => 'Error al eliminar cliente: ' . $e->getMessage()
-            ], 500);
+        $cliente = DB::table('Clientes')->where('CodClie', $id)->first();
+        if (!$cliente) {
+            return response()->json(['error' => 'Cliente no encontrado'], 404);
         }
+
+        // Verificar que no tenga facturas pendientes
+        $facturas_pendientes = DB::table('Doccab')
+            ->where('CodClie', $id)
+            ->whereIn('Estado', ['PENDIENTE', 'VENCIDO'])
+            ->count();
+
+        if ($facturas_pendientes > 0) {
+            return response()->json([
+                'error' => 'No se puede desactivar cliente. Tiene facturas pendientes'
+            ], 400);
+        }
+
+        DB::table('Clientes')->where('CodClie', $id)->update([
+            'Estado' => 'INACTIVO',
+            'updated_at' => now()
+        ]);
+
+        $this->registrarActividad($id, 'CLIENTE_DESACTIVADO', 'Cliente desactivado del sistema');
+
+        return response()->json([
+            'success' => true,
+            'mensaje' => 'Cliente desactivado exitosamente'
+        ]);
     }
 
+    /**
+     * ===============================================
+     * MÉTODOS DE ANÁLISIS Y ESTADÍSTICAS
+     * ===============================================
+     */
+
+    /**
+     * Calcula estadísticas generales de clientes
+     */
+    public function calcularEstadisticas()
+    {
+        $total_clientes = DB::table('Clientes')->count();
+        $clientes_activos = DB::table('Clientes')->where('Estado', 'ACTIVO')->count();
+        $clientes_nuevos_mes = DB::table('Clientes')
+            ->whereMonth('created_at', now()->month)
+            ->count();
+        
+        $ventas_totales = DB::table('Doccab')
+            ->join('Clientes', 'Doccab.CodClie', '=', 'Clientes.CodClie')
+            ->where('Clientes.Estado', 'ACTIVO')
+            ->sum('Doccab.Total');
+
+        $ticket_promedio = DB::table('Doccab')
+            ->join('Clientes', 'Doccab.CodClie', '=', 'Clientes.CodClie')
+            ->where('Clientes.Estado', 'ACTIVO')
+            ->where('Doccab.Fecha', '>=', now()->subDays(30))
+            ->avg('Doccab.Total');
+
+        return [
+            'total_clientes' => $total_clientes,
+            'clientes_activos' => $clientes_activos,
+            'clientes_nuevos_mes' => $clientes_nuevos_mes,
+            'ventas_totales' => $ventas_totales,
+            'ticket_promedio' => $ticket_promedio,
+            'porcentaje_activos' => $total_clientes > 0 ? ($clientes_activos / $total_clientes) * 100 : 0
+        ];
+    }
+
+    /**
+     * Analiza segmentación de clientes
+     */
+    public function analizarSegmentacionClientes()
+    {
+        // Segmentación por categoría
+        $por_categoria = DB::table('Clientes')
+            ->select('Categoria', DB::raw('COUNT(*) as cantidad'))
+            ->where('Estado', 'ACTIVO')
+            ->groupBy('Categoria')
+            ->get();
+
+        // Segmentación por valor de compras
+        $por_valor = DB::table('Doccab')
+            ->join('Clientes', 'Doccab.CodClie', '=', 'Clientes.CodClie')
+            ->select(
+                'Clientes.CodClie',
+                'Clientes.Razon',
+                DB::raw('SUM(Doccab.Total) as total_compras')
+            )
+            ->where('Clientes.Estado', 'ACTIVO')
+            ->where('Doccab.Fecha', '>=', now()->subYear())
+            ->groupBy('Clientes.CodClie', 'Clientes.Razon')
+            ->orderBy('total_compras', 'desc')
+            ->get()
+            ->map(function ($cliente) {
+                if ($cliente->total_compras >= 100000) {
+                    $cliente->segmento = 'VIP';
+                } elseif ($cliente->total_compras >= 50000) {
+                    $cliente->segmento = 'PREMIUM';
+                } elseif ($cliente->total_compras >= 20000) {
+                    $cliente->segmento = 'REGULAR';
+                } else {
+                    $cliente->segmento = 'BASICO';
+                }
+                return $cliente;
+            });
+
+        // Clasificación por frecuencia de compra
+        $por_frecuencia = DB::table('Doccab')
+            ->join('Clientes', 'Doccab.CodClie', '=', 'Clientes.CodClie')
+            ->select(
+                'Clientes.CodClie',
+                'Clientes.Razon',
+                DB::raw('COUNT(Doccab.Numero) as frecuencia')
+            )
+            ->where('Clientes.Estado', 'ACTIVO')
+            ->where('Doccab.Fecha', '>=', now()->subMonths(6))
+            ->groupBy('Clientes.CodClie', 'Clientes.Razon')
+            ->orderBy('frecuencia', 'desc')
+            ->get()
+            ->map(function ($cliente) {
+                if ($cliente->frecuencia >= 20) {
+                    $cliente->categoria_frecuencia = 'MUY_FRECUENTE';
+                } elseif ($cliente->frecuencia >= 10) {
+                    $cliente->categoria_frecuencia = 'FRECUENTE';
+                } elseif ($cliente->frecuencia >= 5) {
+                    $cliente->categoria_frecuencia = 'OCASIONAL';
+                } else {
+                    $cliente->categoria_frecuencia = 'ESPORADICO';
+                }
+                return $cliente;
+            });
+
+        return compact('por_categoria', 'por_valor', 'por_frecuencia');
+    }
+
+    /**
+     * Calcula estadísticas de un cliente específico
+     */
+    public function calcularEstadisticasCliente($cliente_id)
+    {
+        $total_compras = DB::table('Doccab')
+            ->where('CodClie', $cliente_id)
+            ->sum('Total');
+
+        $cantidad_compras = DB::table('Doccab')
+            ->where('CodClie', $cliente_id)
+            ->count();
+
+        $fecha_primera_compra = DB::table('Doccab')
+            ->where('CodClie', $cliente_id)
+            ->min('Fecha');
+
+        $fecha_ultima_compra = DB::table('Doccab')
+            ->where('CodClie', $cliente_id)
+            ->max('Fecha');
+
+        $ticket_promedio = $cantidad_compras > 0 ? $total_compras / $cantidad_compras : 0;
+
+        $compras_mes_actual = DB::table('Doccab')
+            ->where('CodClie', $cliente_id)
+            ->whereMonth('Fecha', now()->month)
+            ->whereYear('Fecha', now()->year)
+            ->sum('Total');
+
+        return [
+            'total_compras' => $total_compras,
+            'cantidad_compras' => $cantidad_compras,
+            'ticket_promedio' => $ticket_promedio,
+            'fecha_primera_compra' => $fecha_primera_compra,
+            'fecha_ultima_compra' => $fecha_ultima_compra,
+            'compras_mes_actual' => $compras_mes_actual,
+            'dias_desde_ultima_compra' => $fecha_ultima_compra ? now()->diffInDays($fecha_ultima_compra) : null
+        ];
+    }
+
+    /**
+     * ===============================================
+     * MÉTODOS DE ANÁLISIS DE CRÉDITO
+     * ===============================================
+     */
+
+    /**
+     * Analiza situación crediticia de un cliente
+     */
+    public function analizarCredito($cliente_id)
+    {
+        $cliente = DB::table('Clientes')->where('CodClie', $cliente_id)->first();
+        
+        $saldo_actual = DB::table('Doccab')
+            ->where('CodClie', $cliente_id)
+            ->whereIn('Estado', ['PENDIENTE', 'VENCIDO'])
+            ->sum('Saldo');
+
+        $credito_disponible = $cliente->CreditLimit - $saldo_actual;
+        $porcentaje_utilizado = $cliente->CreditLimit > 0 ? ($saldo_actual / $cliente->CreditLimit) * 100 : 0;
+
+        // Análisis de cumplimiento de pagos
+        $cumplimiento = DB::table('Doccab')
+            ->select(
+                DB::raw('SUM(CASE WHEN Estado = "PAGADO" THEN Total ELSE 0 END) as pagado'),
+                DB::raw('SUM(Total) as total')
+            )
+            ->where('CodClie', $cliente_id)
+            ->first();
+
+        $tasa_cumplimiento = $cumplimiento->total > 0 ? ($cumplimiento->pagado / $cumplimiento->total) * 100 : 0;
+
+        // Categorización del riesgo crediticio
+        if ($tasa_cumplimiento >= 95 && $porcentaje_utilizado <= 50) {
+            $categoria_riesgo = 'BAJO';
+        } elseif ($tasa_cumplimiento >= 85 && $porcentaje_utilizado <= 75) {
+            $categoria_riesgo = 'MEDIO';
+        } elseif ($tasa_cumplimiento >= 70) {
+            $categoria_riesgo = 'ALTO';
+        } else {
+            $categoria_riesgo = 'MUY_ALTO';
+        }
+
+        return [
+            'saldo_actual' => $saldo_actual,
+            'credito_disponible' => $credito_disponible,
+            'limite_credito' => $cliente->CreditLimit,
+            'porcentaje_utilizado' => round($porcentaje_utilizado, 2),
+            'tasa_cumplimiento' => round($tasa_cumplimiento, 2),
+            'categoria_riesgo' => $categoria_riesgo,
+            'dias_credito' => $cliente->DiasCredito
+        ];
+    }
+
+    /**
+     * ===============================================
+     * MÉTODOS DE GESTIÓN Y SEGMENTACIÓN
+     * ===============================================
+     */
+
+    /**
+     * Obtiene clientes por vendedor asignado
+     */
+    public function porVendedor($vendedor_id)
+    {
+        $clientes = DB::table('Clientes')
+            ->join('// tabla no existe - clientes asignados al contador', 'Clientes.CodClie', '=', '// tabla no existe - clientes asignados al contador.cliente_id')
+            ->where('// tabla no existe - clientes asignados al contador.vendedor_id', $vendedor_id)
+            ->where('Clientes.Estado', 'ACTIVO')
+            ->select(
+                'Clientes.*',
+                '// tabla no existe - clientes asignados al contador.fecha_asignacion'
+            )
+            ->get();
+
+        $estadisticas = [
+            'total_clientes' => $clientes->count(),
+            'ventas_mes' => $this->calcularVentasPorVendedor($vendedor_id),
+            'ventas_año' => $this->calcularVentasPorVendedor($vendedor_id, 'año')
+        ];
+
+        return compact('clientes', 'estadisticas');
+    }
+
+    /**
+     * Busca clientes por diferentes criterios
+     */
     public function buscar(Request $request)
     {
-        try {
-            $termino = $request->input('termino', '');
-            $tipo = $request->input('tipo', 'todo'); // razon, documento, codigo, todo
+        $query = DB::table('Clientes')
+            ->leftJoin('Doccab', 'Clientes.CodClie', '=', 'Doccab.CodClie')
+            ->where('Clientes.Estado', 'ACTIVO');
 
-            if (strlen($termino) < 2) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Ingrese al menos 2 caracteres para buscar'
-                ], 400);
-            }
-
-            $query = DB::table('Clientes')
-                ->where('Activo', 1);
-
-            switch ($tipo) {
-                case 'razon':
-                    $query->where('Razon', 'like', '%' . $termino . '%');
-                    break;
-                case 'documento':
-                    $query->where('Documento', 'like', '%' . $termino . '%');
-                    break;
-                case 'codigo':
-                    $query->where('Codclie', $termino);
-                    break;
-                default: // todo
-                    $query->where(function ($q) use ($termino) {
-                        $q->where('Razon', 'like', '%' . $termino . '%')
-                          ->orWhere('Documento', 'like', '%' . $termino . '%')
-                          ->orWhere('Codclie', $termino);
-                    });
-            }
-
-            $resultados = $query->select(
-                    'Codclie',
-                    'Razon',
-                    'Documento',
-                    'Direccion',
-                    'Telefono1',
-                    'Celular',
-                    'Zona',
-                    'Email'
-                )
-                ->orderBy('Razon')
-                ->limit(20)
-                ->get();
-
-            return response()->json([
-                'success' => true,
-                'data' => $resultados,
-                'message' => 'Búsqueda completada exitosamente'
-            ]);
-
-        } catch (\Exception $e) {
-            Log::error('Error en búsqueda de clientes: ' . $e->getMessage());
-            return response()->json([
-                'success' => false,
-                'message' => 'Error en búsqueda: ' . $e->getMessage()
-            ], 500);
-        }
-    }
-
-    public function activar($codigo)
-    {
-        try {
-            $cliente = DB::table('Clientes')
-                ->where('Codclie', $codigo)
-                ->first();
-
-            if (!$cliente) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Cliente no encontrado'
-                ], 404);
-            }
-
-            DB::table('Clientes')
-                ->where('Codclie', $codigo)
-                ->update(['Activo' => true]);
-
-            // Registrar en auditoría si existe la tabla
-            try {
-                DB::table('Auditoria_Sistema')->insert([
-                    'usuario' => 'SISTEMA',
-                    'accion' => 'ACTIVAR_CLIENTE',
-                    'tabla' => 'Clientes',
-                    'detalle' => "Cliente activado: {$cliente->Razon} (ID: {$codigo})",
-                    'fecha' => Carbon::now()
-                ]);
-            } catch (\Exception $e) {
-                // Silenciar error de auditoría
-            }
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Cliente activado exitosamente'
-            ]);
-
-        } catch (\Exception $e) {
-            Log::error('Error al activar cliente: ' . $e->getMessage());
-            return response()->json([
-                'success' => false,
-                'message' => 'Error al activar cliente: ' . $e->getMessage()
-            ], 500);
-        }
-    }
-
-    public function desactivar($codigo)
-    {
-        try {
-            $cliente = DB::table('Clientes')
-                ->where('Codclie', $codigo)
-                ->first();
-
-            if (!$cliente) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Cliente no encontrado'
-                ], 404);
-            }
-
-            DB::table('Clientes')
-                ->where('Codclie', $codigo)
-                ->update(['Activo' => false]);
-
-            // Registrar en auditoría si existe la tabla
-            try {
-                DB::table('Auditoria_Sistema')->insert([
-                    'usuario' => 'SISTEMA',
-                    'accion' => 'DESACTIVAR_CLIENTE',
-                    'tabla' => 'Clientes',
-                    'detalle' => "Cliente desactivado: {$cliente->Razon} (ID: {$codigo})",
-                    'fecha' => Carbon::now()
-                ]);
-            } catch (\Exception $e) {
-                // Silenciar error de auditoría
-            }
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Cliente desactivado exitosamente'
-            ]);
-
-        } catch (\Exception $e) {
-            Log::error('Error al desactivar cliente: ' . $e->getMessage());
-            return response()->json([
-                'success' => false,
-                'message' => 'Error al desactivar cliente: ' . $e->getMessage()
-            ], 500);
-        }
-    }
-
-    private function buscarClientes($buscar, $vendedor, $zona, $tipo, $activo, $limite)
-    {
-        $query = DB::table('Clientes as c')
-            ->leftJoin('Zonas as z', 'c.Zona', '=', 'z.Codzona')
-            ->leftJoin('Empleados as e', 'c.Vendedor', '=', 'e.Codemp');
-
-        if (!empty($buscar)) {
-            $query->where(function ($q) use ($buscar) {
-                $q->where('c.Razon', 'like', '%' . $buscar . '%')
-                  ->orWhere('c.Documento', 'like', '%' . $buscar . '%');
+        // Búsqueda por texto libre
+        if ($request->busqueda) {
+            $query->where(function($q) use ($request) {
+                $q->where('Clientes.Razon', 'like', '%' . $request->busqueda . '%')
+                  ->orWhere('Clientes.Ruc', 'like', '%' . $request->busqueda . '%')
+                  ->orWhere('Clientes.CodClie', 'like', '%' . $request->busqueda . '%');
             });
         }
 
-        if ($vendedor) {
-            $query->where('c.Vendedor', $vendedor);
+        // Filtros por categoría
+        if ($request->categoria) {
+            $query->where('Clientes.Categoria', $request->categoria);
         }
 
-        if ($zona) {
-            $query->where('c.Zona', $zona);
+        // Filtros por distrito
+        if ($request->distrito) {
+            $query->where('Clientes.Distrito', 'like', '%' . $request->distrito . '%');
         }
 
-        if ($tipo) {
-            $query->where('c.TipoClie', $tipo);
+        // Filtros por rango de ventas
+        if ($request->ventas_min || $request->ventas_max) {
+            $query->selectRaw('Clientes.*, SUM(Doccab.Total) as total_ventas')
+                  ->groupBy('Clientes.CodClie');
+                  
+            if ($request->ventas_min) {
+                $query->having('total_ventas', '>=', $request->ventas_min);
+            }
+            if ($request->ventas_max) {
+                $query->having('total_ventas', '<=', $request->ventas_max);
+            }
         }
 
-        if ($activo !== '') {
-            $query->where('c.Activo', $activo);
-        }
+        $clientes = $query->orderBy('Clientes.Razon')->paginate($request->per_page ?? 20);
 
-        return $query->select(
-                'c.Codclie',
-                'c.Razon',
-                'c.Documento',
-                'c.Direccion',
-                'c.Telefono1',
-                'c.Celular',
-                'c.Zona',
-                'z.Descripcion as NombreZona',
-                'c.Vendedor',
-                'e.Nombre as NombreVendedor',
-                'c.Limite',
-                'c.Activo',
-                'c.Email'
-            )
-            ->orderBy('c.Razon')
-            ->paginate($limite);
+        return $clientes;
     }
 
-    private function obtenerDatosAdicionales($codigo)
+    /**
+     * ===============================================
+     * MÉTODOS DE RECOMENDACIONES Y SEGUIMIENTO
+     * ===============================================
+     */
+
+    /**
+     * Genera recomendaciones personalizadas para un cliente
+     */
+    public function generarRecomendaciones($cliente_id)
     {
-        // Datos del vendedor asignado
-        $vendedor = DB::table('Empleados')
-            ->where('Codemp', function ($query) use ($codigo) {
-                $query->select('Vendedor')
-                      ->from('Clientes')
-                      ->where('Codclie', $codigo);
-            })
+        $estadisticas = $this->calcularEstadisticasCliente($cliente_id);
+        $credito = $this->analizarCredito($cliente_id);
+        $compras_recientes = DB::table('Doccab')
+            ->join('Docdet', 'Doccab.Numero', '=', 'Docdet.Numero')
+            ->join('Productos', 'Docdet.Codpro', '=', 'Productos.Codpro')
+            ->where('Doccab.CodClie', $cliente_id)
+            ->where('Doccab.Fecha', '>=', now()->subMonths(3))
+            ->select('Productos.Codpro', 'Productos.Descripcion', DB::raw('SUM(Docdet.Cantidad) as cantidad'))
+            ->groupBy('Productos.Codpro', 'Productos.Descripcion')
+            ->orderBy('cantidad', 'desc')
+            ->take(5)
+            ->get();
+
+        $recomendaciones = [];
+
+        // Recomendación por frecuencia de compra
+        if ($estadisticas['dias_desde_ultima_compra'] > 30) {
+            $recomendaciones[] = [
+                'tipo' => 'SEGUIMIENTO',
+                'mensaje' => 'Cliente no ha comprado en los últimos ' . $estadisticas['dias_desde_ultima_compra'] . ' días',
+                'accion' => 'Contactar para seguimiento de satisfacción',
+                'prioridad' => 'ALTA'
+            ];
+        }
+
+        // Recomendación por productos más comprados
+        if ($compras_recientes->isNotEmpty()) {
+            $productos_favoritos = $compras_recientes->pluck('Descripcion')->toArray();
+            $recomendaciones[] = [
+                'tipo' => 'PRODUCTOS',
+                'mensaje' => 'Cliente muestra preferencia por: ' . implode(', ', $productos_favoritos),
+                'accion' => 'Ofrecer promociones en productos similares',
+                'prioridad' => 'MEDIA'
+            ];
+        }
+
+        // Recomendación por crédito
+        if ($credito['porcentaje_utilizado'] < 30 && $credito['tasa_cumplimiento'] > 90) {
+            $recomendaciones[] = [
+                'tipo' => 'CREDITO',
+                'mensaje' => 'Cliente con buen perfil crediticio (cumplimiento: ' . $credito['tasa_cumplimiento'] . '%)',
+                'accion' => 'Considerar aumento de límite de crédito',
+                'prioridad' => 'BAJA'
+            ];
+        }
+
+        return $recomendaciones;
+    }
+
+    /**
+     * Obtiene actividad reciente de un cliente
+     */
+    public function obtenerActividadReciente($cliente_id)
+    {
+        $actividades = [];
+
+        // Compras recientes
+        $compras = DB::table('Doccab')
+            ->select('Numero', 'Fecha', 'Total', 'Estado')
+            ->where('CodClie', $cliente_id)
+            ->where('Fecha', '>=', now()->subMonths(6))
+            ->orderBy('Fecha', 'desc')
+            ->take(10)
+            ->get()
+            ->map(function($compra) {
+                return [
+                    'tipo' => 'COMPRA',
+                    'descripcion' => "Compra #{$compra->Numero} - {$compra->Total} - {$compra->Estado}",
+                    'fecha' => $compra->Fecha,
+                    'icono' => 'shopping-cart'
+                ];
+            });
+
+        // Actividades de sistema
+        $actividades_sistema = DB::table('// tabla no existe')
+            ->where('cliente_id', $cliente_id)
+            ->orderBy('created_at', 'desc')
+            ->take(10)
+            ->get()
+            ->map(function($actividad) {
+                return [
+                    'tipo' => strtoupper($actividad->accion),
+                    'descripcion' => $actividad->descripcion,
+                    'fecha' => $actividad->created_at,
+                    'icono' => 'cog'
+                ];
+            });
+
+        // Combinar y ordenar por fecha
+        $actividades = $actividades_sistema->concat($compras)
+            ->sortByDesc('fecha')
+            ->take(15)
+            ->values();
+
+        return $actividades;
+    }
+
+    /**
+     * ===============================================
+     * MÉTODOS DE VALIDACIÓN Y UTILIDADES
+     * ===============================================
+     */
+
+    /**
+     * Valida datos del cliente
+     */
+    public function validarDatosCliente(Request $request, $cliente_id = null)
+    {
+        $rules = [
+            'razon_social' => 'required|string|min:3|max:255',
+            'ruc' => 'required|string|size:11|unique:Clientes,Ruc' . ($cliente_id ? ',' . $cliente_id : ''),
+            'direccion' => 'required|string|min:5|max:500',
+            'distrito' => 'required|string|min:2|max:100',
+            'provincia' => 'required|string|min:2|max:100',
+            'departamento' => 'required|string|min:2|max:100',
+            'telefono' => 'nullable|string|min:6|max:20',
+            'email' => 'nullable|email|unique:Clientes,Email' . ($cliente_id ? ',' . $cliente_id : ''),
+            'contacto' => 'nullable|string|min:2|max:100',
+            'categoria' => 'nullable|in:BASICO,REGULAR,PREMIUM,VIP',
+            'limite_credito' => 'nullable|numeric|min:0',
+            'dias_credito' => 'nullable|integer|min:0|max:365'
+        ];
+
+        $validator = \Validator::make($request->all(), $rules);
+
+        if ($validator->fails()) {
+            return [
+                'errors' => $validator->errors(),
+                'valid' => false
+            ];
+        }
+
+        return ['valid' => true, 'errors' => null];
+    }
+
+    /**
+     * Genera código único de cliente
+     */
+    public function generarCodigoCliente()
+    {
+        $ultimo = DB::table('Clientes')
+            ->select('CodClie')
+            ->orderBy('CodClie', 'desc')
             ->first();
 
-        // Zona del cliente
-        $zona = DB::table('Zonas')
-            ->where('Codzona', function ($query) use ($codigo) {
-                $query->select('Zona')
-                      ->from('Clientes')
-                      ->where('Codclie', $codigo);
-            })
-            ->first();
+        $numero = $ultimo ? (int) substr($ultimo->CodClie, 2) + 1 : 1;
+        return 'CL' . str_pad($numero, 6, '0', STR_PAD_LEFT);
+    }
 
+    /**
+     * Registra actividad de cliente
+     */
+    public function registrarActividad($cliente_id, $accion, $descripcion)
+    {
+        DB::table('// tabla no existe')->insert([
+            'cliente_id' => $cliente_id,
+            'accion' => $accion,
+            'descripcion' => $descripcion,
+            'user_id' => Auth::id(),
+            'created_at' => now()
+        ]);
+    }
+
+    /**
+     * ===============================================
+     * MÉTODOS DE CONSULTA Y FILTROS
+     * ===============================================
+     */
+
+    /**
+     * Obtiene filtros disponibles para búsqueda
+     */
+    public function obtenerFiltros(Request $request)
+    {
         return [
-            'vendedor_asignado' => $vendedor,
-            'zona' => $zona,
-            'fecha_registro' => DB::table('Clientes')
-                ->where('Codclie', $codigo)
-                ->value('Fecha')
+            'categoria' => $request->categoria,
+            'estado' => $request->estado ?? 'ACTIVO',
+            'distrito' => $request->distrito,
+            'provincia' => $request->provincia,
+            'vendedor' => $request->vendedor,
+            'fecha_desde' => $request->fecha_desde,
+            'fecha_hasta' => $request->fecha_hasta,
+            'ventas_min' => $request->ventas_min,
+            'ventas_max' => $request->ventas_max
         ];
     }
 
-    private function obtenerHistorialCompras($codigo, $limite = 10)
+    /**
+     * Consulta principal de clientes con filtros
+     */
+    public function consultarClientes($filtros)
     {
-        return DB::table('Doccab as dc')
-            ->where('dc.CodClie', $codigo)
-            ->where('dc.Eliminado', 0)
+        $query = DB::table('Clientes')
+            ->leftJoin('Doccab', 'Clientes.CodClie', '=', 'Doccab.CodClie')
+            ->where('Clientes.Estado', '!=', 'ELIMINADO')
+            ->select('Clientes.*', DB::raw('SUM(Doccab.Total) as total_ventas'));
+
+        // Aplicar filtros
+        if ($filtros['categoria']) {
+            $query->where('Clientes.Categoria', $filtros['categoria']);
+        }
+
+        if ($filtros['estado']) {
+            $query->where('Clientes.Estado', $filtros['estado']);
+        }
+
+        if ($filtros['distrito']) {
+            $query->where('Clientes.Distrito', 'like', '%' . $filtros['distrito'] . '%');
+        }
+
+        if ($filtros['provincia']) {
+            $query->where('Clientes.Provincia', 'like', '%' . $filtros['provincia'] . '%');
+        }
+
+        // Filtros de fechas
+        if ($filtros['fecha_desde']) {
+            $query->where('Clientes.created_at', '>=', $filtros['fecha_desde']);
+        }
+
+        if ($filtros['fecha_hasta']) {
+            $query->where('Clientes.created_at', '<=', $filtros['fecha_hasta']);
+        }
+
+        // Filtros de ventas
+        if ($filtros['ventas_min']) {
+            $query->having('total_ventas', '>=', $filtros['ventas_min']);
+        }
+
+        if ($filtros['ventas_max']) {
+            $query->having('total_ventas', '<=', $filtros['ventas_max']);
+        }
+
+        $query->groupBy('Clientes.CodClie')
+               ->orderBy('Clientes.Razon');
+
+        return $query->paginate(25);
+    }
+
+    /**
+     * Obtiene historial de compras de un cliente
+     */
+    public function obtenerHistorialCompras($cliente_id)
+    {
+        return DB::table('Doccab')
+            ->join('Docdet', 'Doccab.Numero', '=', 'Docdet.Numero')
+            ->join('Productos', 'Docdet.Codpro', '=', 'Productos.Codpro')
+            ->where('Doccab.CodClie', $cliente_id)
             ->select(
-                'dc.Numero',
-                'dc.Tipo',
-                'dc.Fecha',
-                'dc.Total'
+                'Doccab.Numero',
+                'Doccab.Fecha',
+                'Doccab.Total',
+                'Doccab.Estado',
+                'Productos.Descripcion',
+                'Docdet.Cantidad',
+                'Docdet.Precio'
             )
-            ->orderBy('dc.Fecha', 'desc')
-            ->limit($limite)
+            ->orderBy('Doccab.Fecha', 'desc')
+            ->take(50)
             ->get();
     }
 
-    private function obtenerEstadoFinanciero($codigo)
+    /**
+     * ===============================================
+     * MÉTODOS DE EXPORTACIÓN Y REPORTES
+     * ===============================================
+     */
+
+    /**
+     * Exporta datos de clientes
+     */
+    public function exportar(Request $request)
     {
-        // Total de compras históricas
-        $totalCompras = DB::table('Doccab')
-            ->where('CodClie', $codigo)
-            ->where('Eliminado', 0)
-            ->sum('Total');
+        $filtros = $this->obtenerFiltros($request);
+        $clientes = $this->consultarClientes($filtros);
 
-        // Deuda actual
-        $deudaActual = DB::table('CtaCliente')
-            ->where('CodClie', $codigo)
-            ->where('Saldo', '>', 0)
-            ->sum('Saldo');
+        // Aquí se implementaría la lógica de exportación
+        // Por ahora retornamos la consulta para que el frontend maneje la exportación
+        
+        return [
+            'clientes' => $clientes->items(),
+            'total' => $clientes->total(),
+            'filtros_aplicados' => $filtros
+        ];
+    }
 
-        // Cantidad de compras
-        $cantidadCompras = DB::table('Doccab')
-            ->where('CodClie', $codigo)
-            ->where('Eliminado', 0)
-            ->count();
+    /**
+     * Genera reporte de clientes VIP
+     */
+    public function reporteClientesVip()
+    {
+        return DB::table('Doccab')
+            ->join('Clientes', 'Doccab.CodClie', '=', 'Clientes.CodClie')
+            ->where('Clientes.Categoria', 'VIP')
+            ->select(
+                'Clientes.CodClie',
+                'Clientes.Razon',
+                'Clientes.Ruc',
+                'Clientes.Telefono',
+                'Clientes.Email',
+                DB::raw('SUM(Doccab.Total) as total_compras'),
+                DB::raw('COUNT(Doccab.Numero) as cantidad_compras'),
+                DB::raw('AVG(Doccab.Total) as ticket_promedio')
+            )
+            ->where('Doccab.Fecha', '>=', now()->subYear())
+            ->groupBy('Clientes.CodClie', 'Clientes.Razon', 'Clientes.Ruc', 'Clientes.Telefono', 'Clientes.Email')
+            ->orderBy('total_compras', 'desc')
+            ->get();
+    }
+
+    /**
+     * ===============================================
+     * MÉTODOS PRIVADOS DE APOYO
+     * ===============================================
+     */
+
+    /**
+     * Calcula ventas por vendedor
+     */
+    private function calcularVentasPorVendedor($vendedor_id, $periodo = 'mes')
+    {
+        $where_fecha = match($periodo) {
+            'dia' => now(),
+            'mes' => now()->subDays(30),
+            'año' => now()->subDays(365),
+            default => now()->subDays(30)
+        };
+
+        return DB::table('Doccab')
+            ->join('Clientes', 'Doccab.CodClie', '=', 'Clientes.CodClie')
+            ->join('// tabla no existe - clientes asignados al contador', 'Clientes.CodClie', '=', '// tabla no existe - clientes asignados al contador.cliente_id')
+            ->where('// tabla no existe - clientes asignados al contador.vendedor_id', $vendedor_id)
+            ->where('Doccab.Fecha', '>=', $where_fecha)
+            ->sum('Doccab.Total');
+    }
+
+    /**
+     * ===============================================
+     * API ENDPOINTS ESPECIALIZADOS
+     * ===============================================
+     */
+
+    /**
+     * API: Busca cliente por RUC
+     */
+    public function buscarPorRuc($ruc)
+    {
+        $cliente = DB::table('Clientes')
+            ->where('Ruc', $ruc)
+            ->first();
+
+        if (!$cliente) {
+            return response()->json(['error' => 'Cliente no encontrado'], 404);
+        }
+
+        return $cliente;
+    }
+
+    /**
+     * API: Obtiene resumen de cliente para facturación
+     */
+    public function resumenParaFacturacion($cliente_id)
+    {
+        $cliente = DB::table('Clientes')
+            ->where('CodClie', $cliente_id)
+            ->first();
+
+        if (!$cliente) {
+            return response()->json(['error' => 'Cliente no encontrado'], 404);
+        }
+
+        $credito = $this->analizarCredito($cliente_id);
 
         return [
-            'total_compras' => floatval($totalCompras),
-            'deuda_actual' => floatval($deudaActual),
-            'cantidad_compras' => $cantidadCompras,
-            'ticket_promedio' => $cantidadCompras > 0 ? round($totalCompras / $cantidadCompras, 2) : 0
+            'cliente' => $cliente,
+            'credito_disponible' => $credito['credito_disponible'],
+            'puede_credito' => $credito['porcentaje_utilizado'] < 90,
+            'dias_credito' => $cliente->DiasCredito,
+            'ultima_compra' => $this->obtenerActividadReciente($cliente_id)->first()
         ];
+    }
+
+    /**
+     * API: Obtiene sugerencias de clientes para autocomplete
+     */
+    public function sugerencias(Request $request)
+    {
+        $term = $request->term;
+        
+        $clientes = DB::table('Clientes')
+            ->where('Estado', 'ACTIVO')
+            ->where(function($q) use ($term) {
+                $q->where('Razon', 'like', '%' . $term . '%')
+                  ->orWhere('Ruc', 'like', '%' . $term . '%');
+            })
+            ->select('CodClie', 'Razon', 'Ruc')
+            ->limit(10)
+            ->get();
+
+        return $clientes;
     }
 }

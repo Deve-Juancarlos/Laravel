@@ -7,7 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 
-class PlanillasController extends Controller
+class // tabla no existe - PlanillasController extends Controller
 {
     /**
      * Constructor con middleware de autenticación y autorización
@@ -15,7 +15,7 @@ class PlanillasController extends Controller
     public function __construct()
     {
         $this->middleware('auth');
-        $this->middleware('rol:administrador|recursos_humanos');
+        $this->middleware('rol:contador|administrador');
     }
 
     /**
@@ -26,17 +26,17 @@ class PlanillasController extends Controller
         $año = $request->get('año', now()->year);
         $mes = $request->get('mes', now()->month);
         
-        $planillas = DB::table('Planillas')
-            ->leftJoin('Usuarios', 'Planillas.CodEmp', '=', 'Usuarios.Usuario')
+        $planillas = DB::table('// tabla no existe - Planillas')
+            ->leftJoin('accesoweb', '// tabla no existe - Planillas.CodEmp', '=', 'accesoweb.Usuario')
             ->whereYear('Periodo', $año)
             ->whereMonth('Periodo', $mes)
             ->select([
-                'Planillas.*',
-                'Usuarios.Nombre as Empleado',
-                'Usuarios.Dni',
-                'Usuarios.Cargo'
+                '// tabla no existe - Planillas.*',
+                'accesoweb.Nombre as Empleado',
+                'accesoweb.Dni',
+                'accesoweb.Cargo'
             ])
-            ->orderBy('Usuarios.Nombre')
+            ->orderBy('accesoweb.Nombre')
             ->paginate(20);
 
         // Resumen del período
@@ -79,7 +79,7 @@ class PlanillasController extends Controller
             $periodo = Carbon::create($request->año, $request->mes)->endOfMonth();
             
             // Verificar si ya existe planilla para el período
-            $existePlanilla = DB::table('Planillas')
+            $existePlanilla = DB::table('// tabla no existe - Planillas')
                 ->whereYear('Periodo', $request->año)
                 ->whereMonth('Periodo', $request->mes)
                 ->exists();
@@ -91,7 +91,7 @@ class PlanillasController extends Controller
             }
 
             // Obtener empleados activos
-            $empleados = DB::table('Usuarios')
+            $empleados = DB::table('accesoweb')
                 ->where('Estado', 'ACTIVO')
                 ->where('Rol', '!=', 'ADMIN')
                 ->get();
@@ -104,7 +104,7 @@ class PlanillasController extends Controller
                 $planillaEmpleado = $this->calcularPlanillaEmpleado($empleado, $periodo, $request->fecha_corte);
                 
                 if ($planillaEmpleado['total_ingresos'] > 0) {
-                    DB::table('Planillas')->insert([
+                    DB::table('// tabla no existe - Planillas')->insert([
                         'CodEmp' => $empleado->Usuario,
                         'Periodo' => $periodo,
                         'Sueldo_Basico' => $planillaEmpleado['sueldo_basico'],
@@ -122,7 +122,7 @@ class PlanillasController extends Controller
                         'Fecha_Corte' => $request->fecha_corte,
                         'Observaciones' => $request->observaciones,
                         'Estado' => 'CALCULADO',
-                        'Usuario' => auth()->user()->Usuario ?? 'admin','contador',
+                        'Usuario' => auth()->user()->usuario ?? 'admin',
                         'created_at' => now()
                     ]);
 
@@ -132,7 +132,7 @@ class PlanillasController extends Controller
             }
 
             // Crear resumen de planilla
-            $resumenId = DB::table('Planillas_Resumen')->insertGetId([
+            $resumenId = DB::table('// tabla no existe - // tabla no existe - Planillas_Resumen')->insertGetId([
                 'Periodo' => $periodo,
                 'Año' => $request->año,
                 'Mes' => $request->mes,
@@ -168,18 +168,18 @@ class PlanillasController extends Controller
         $año = $request->get('año', now()->year);
         $mes = $request->get('mes', now()->month);
 
-        $planilla = DB::table('Planillas')
-            ->leftJoin('Usuarios', 'Planillas.CodEmp', '=', 'Usuarios.Usuario')
-            ->where('Planillas.CodEmp', $codEmp)
-            ->whereYear('Planillas.Periodo', $año)
-            ->whereMonth('Planillas.Periodo', $mes)
+        $planilla = DB::table('// tabla no existe - Planillas')
+            ->leftJoin('accesoweb', '// tabla no existe - Planillas.CodEmp', '=', 'accesoweb.Usuario')
+            ->where('// tabla no existe - Planillas.CodEmp', $codEmp)
+            ->whereYear('// tabla no existe - Planillas.Periodo', $año)
+            ->whereMonth('// tabla no existe - Planillas.Periodo', $mes)
             ->select([
-                'Planillas.*',
-                'Usuarios.Nombre',
-                'Usuarios.Dni',
-                'Usuarios.Cargo',
-                'Usuarios.Email',
-                'Usuarios.Telefono'
+                '// tabla no existe - Planillas.*',
+                'accesoweb.Nombre',
+                'accesoweb.Dni',
+                'accesoweb.Cargo',
+                'accesoweb.Email',
+                'accesoweb.Telefono'
             ])
             ->first();
 
@@ -188,7 +188,7 @@ class PlanillasController extends Controller
         }
 
         // Historial de planillas del empleado
-        $historial = DB::table('Planillas')
+        $historial = DB::table('// tabla no existe - Planillas')
             ->where('CodEmp', $codEmp)
             ->select([
                 'Periodo',
@@ -202,7 +202,7 @@ class PlanillasController extends Controller
             ->get();
 
         // Detalles adicionales del empleado
-        $empleado = DB::table('Usuarios')->where('Usuario', $codEmp)->first();
+        $empleado = DB::table('accesoweb')->where('Usuario', $codEmp)->first();
         $afiliacion = $this->obtenerAfiliaciones($codEmp);
 
         return response()->json([
@@ -233,7 +233,7 @@ class PlanillasController extends Controller
 
             $periodo = Carbon::create($request->año, $request->mes)->endOfMonth();
             
-            $planilla = DB::table('Planillas')
+            $planilla = DB::table('// tabla no existe - Planillas')
                 ->where('CodEmp', $codEmp)
                 ->where('Periodo', $periodo)
                 ->first();
@@ -246,7 +246,7 @@ class PlanillasController extends Controller
             $nuevosTotales = $this->recalcularTotales($request, $planilla);
 
             // Actualizar planilla
-            DB::table('Planillas')
+            DB::table('// tabla no existe - Planillas')
                 ->where('CodEmp', $codEmp)
                 ->where('Periodo', $periodo)
                 ->update($nuevosTotales + [
@@ -283,17 +283,17 @@ class PlanillasController extends Controller
             $periodo = Carbon::create($request->año, $request->mes)->endOfMonth();
 
             // Cambiar estado de planillas individuales
-            DB::table('Planillas')
+            DB::table('// tabla no existe - Planillas')
                 ->whereYear('Periodo', $request->año)
                 ->whereMonth('Periodo', $request->mes)
                 ->update([
                     'Estado' => 'APROBADO',
                     'Fecha_Aprobacion' => now(),
-                    'Usuario_Aprobacion' => auth()->user()->Usuario ?? 'admin','contador',
+                    'Usuario_Aprobacion' => auth()->user()->usuario ?? 'admin',
                 ]);
 
             // Cambiar estado del resumen
-            DB::table('Planillas_Resumen')
+            DB::table('// tabla no existe - // tabla no existe - Planillas_Resumen')
                 ->where('Año', $request->año)
                 ->where('Mes', $request->mes)
                 ->update([
@@ -320,19 +320,19 @@ class PlanillasController extends Controller
     public function generarBoleta($codEmp, Request $request)
     {
         $año = $request->get('año', now()->year);
-        $mes = $request->get('año', now()->year);
+        $mes = $request->get('mes', now()->month);
 
-        $planilla = DB::table('Planillas')
-            ->leftJoin('Usuarios', 'Planillas.CodEmp', '=', 'Usuarios.Usuario')
-            ->where('Planillas.CodEmp', $codEmp)
-            ->whereYear('Planillas.Periodo', $año)
-            ->whereMonth('Planillas.Periodo', $mes)
+        $planilla = DB::table('// tabla no existe - Planillas')
+            ->leftJoin('accesoweb', '// tabla no existe - Planillas.CodEmp', '=', 'accesoweb.Usuario')
+            ->where('// tabla no existe - Planillas.CodEmp', $codEmp)
+            ->whereYear('// tabla no existe - Planillas.Periodo', $año)
+            ->whereMonth('// tabla no existe - Planillas.Periodo', $mes)
             ->select([
-                'Planillas.*',
-                'Usuarios.Nombre as Empleado',
-                'Usuarios.Dni',
-                'Usuarios.Cargo',
-                'Usuarios.Direccion'
+                '// tabla no existe - Planillas.*',
+                'accesoweb.Nombre as Empleado',
+                'accesoweb.Dni',
+                'accesoweb.Cargo',
+                'accesoweb.Direccion'
             ])
             ->first();
 
@@ -345,8 +345,8 @@ class PlanillasController extends Controller
             'periodo' => $planilla->Periodo,
             'dias_trabajados' => $this->calcularDiasTrabajados($codEmp, $año, $mes),
             'horas_trabajadas' => $this->calcularHorasTrabajadas($codEmp, $año, $mes),
-            'vacaciones' => $this->obtenerVacaciones($codEmp, $año, $mes),
-            'licencias' => $this->obtenerLicencias($codEmp, $año, $mes)
+            'vacaciones' => $this->obtener// tabla no existe - Vacaciones($codEmp, $año, $mes),
+            'licencias' => $this->obtener// tabla no existe - Licencias($codEmp, $año, $mes)
         ];
 
         return response()->json([
@@ -364,18 +364,18 @@ class PlanillasController extends Controller
         $año = $request->get('año', now()->year);
         $mes = $request->get('mes', now()->month);
 
-        $planillas = DB::table('Planillas')
-            ->leftJoin('Usuarios', 'Planillas.CodEmp', '=', 'Usuarios.Usuario')
-            ->whereYear('Planillas.Periodo', $año)
-            ->whereMonth('Planilla.Periodo', $mes)
+        $planillas = DB::table('// tabla no existe - Planillas')
+            ->leftJoin('accesoweb', '// tabla no existe - Planillas.CodEmp', '=', 'accesoweb.Usuario')
+            ->whereYear('// tabla no existe - Planillas.Periodo', $año)
+            ->whereMonth('// tabla no existe - Planillas.Periodo', $mes)
             ->select([
-                'Planillas.*',
-                'Usuarios.Nombre',
-                'Usuarios.Dni',
-                'Usuarios.Cargo',
-                'Usuarios.Centro_Costo'
+                '// tabla no existe - Planillas.*',
+                'accesoweb.Nombre',
+                'accesoweb.Dni',
+                'accesoweb.Cargo',
+                'accesoweb.Centro_Costo'
             ])
-            ->orderBy('Usuarios.Nombre')
+            ->orderBy('accesoweb.Nombre')
             ->get();
 
         // Calcular totales
@@ -416,21 +416,21 @@ class PlanillasController extends Controller
         };
 
         // Costos por centro de costo
-        $costosCentro = DB::table('Planillas')
-            ->leftJoin('Usuarios', 'Planillas.CodEmp', '=', 'Usuarios.Usuario')
-            ->where('Planillas.Periodo', '>=', $fechaInicio)
+        $costosCentro = DB::table('// tabla no existe - Planillas')
+            ->leftJoin('accesoweb', '// tabla no existe - Planillas.CodEmp', '=', 'accesoweb.Usuario')
+            ->where('// tabla no existe - Planillas.Periodo', '>=', $fechaInicio)
             ->select([
-                'Usuarios.Centro_Costo',
-                DB::raw('COUNT(DISTINCT Planillas.CodEmp) as total_empleados'),
-                DB::raw('SUM(Planillas.Total_Ingresos) as total_ingresos'),
-                DB::raw('SUM(Planillas.Total_Descuentos) as total_descuentos'),
-                DB::raw('SUM(Planillas.Neto_Pagar) as total_neto')
+                'accesoweb.Centro_Costo',
+                DB::raw('COUNT(DISTINCT // tabla no existe - Planillas.CodEmp) as total_empleados'),
+                DB::raw('SUM(// tabla no existe - Planillas.Total_Ingresos) as total_ingresos'),
+                DB::raw('SUM(// tabla no existe - Planillas.Total_Descuentos) as total_descuentos'),
+                DB::raw('SUM(// tabla no existe - Planillas.Neto_Pagar) as total_neto')
             ])
-            ->groupBy('Usuarios.Centro_Costo')
+            ->groupBy('accesoweb.Centro_Costo')
             ->get();
 
         // Evolución mensual de costos
-        $evolucionMensual = DB::table('Planillas')
+        $evolucionMensual = DB::table('// tabla no existe - Planillas')
             ->whereYear('Periodo', $año)
             ->select([
                 DB::raw('MONTH(Periodo) as mes'),
@@ -444,16 +444,16 @@ class PlanillasController extends Controller
             ->get();
 
         // Top empleados por costo
-        $topEmpleados = DB::table('Planillas')
-            ->leftJoin('Usuarios', 'Planillas.CodEmp', '=', 'Usuarios.Usuario')
-            ->whereYear('Planillas.Periodo', $año)
+        $topEmpleados = DB::table('// tabla no existe - Planillas')
+            ->leftJoin('accesoweb', '// tabla no existe - Planillas.CodEmp', '=', 'accesoweb.Usuario')
+            ->whereYear('// tabla no existe - Planillas.Periodo', $año)
             ->select([
-                'Usuarios.Nombre',
-                'Usuarios.Cargo',
-                'Usuarios.Centro_Costo',
-                DB::raw('SUM(Planillas.Neto_Pagar) as costo_total_año')
+                'accesoweb.Nombre',
+                'accesoweb.Cargo',
+                'accesoweb.Centro_Costo',
+                DB::raw('SUM(// tabla no existe - Planillas.Neto_Pagar) as costo_total_año')
             ])
-            ->groupBy('Usuarios.Usuario', 'Usuarios.Nombre', 'Usuarios.Cargo', 'Usuarios.Centro_Costo')
+            ->groupBy('accesoweb.Usuario', 'accesoweb.Nombre', 'accesoweb.Cargo', 'accesoweb.Centro_Costo')
             ->orderBy('costo_total_año', 'desc')
             ->limit(10)
             ->get();
@@ -472,22 +472,22 @@ class PlanillasController extends Controller
     }
 
     /**
-     * Vacaciones y licencias
+     * // tabla no existe - Vacaciones y licencias
      */
-    public function vacacionesLicencias(Request $request)
+    public function vacaciones// tabla no existe - Licencias(Request $request)
     {
         $codEmp = $request->get('empleado');
         $año = $request->get('año', now()->year);
 
         if ($codEmp) {
-            // Vacaciones y licencias de un empleado
-            $vacaciones = DB::table('Vacaciones')
+            // // tabla no existe - Vacaciones y licencias de un empleado
+            $vacaciones = DB::table('// tabla no existe - Vacaciones')
                 ->where('CodEmp', $codEmp)
                 ->whereYear('Periodo', $año)
                 ->orderBy('Periodo', 'desc')
                 ->get();
 
-            $licencias = DB::table('Licencias')
+            $licencias = DB::table('// tabla no existe - Licencias')
                 ->where('CodEmp', $codEmp)
                 ->whereYear('Periodo', $año)
                 ->orderBy('Periodo', 'desc')
@@ -500,29 +500,29 @@ class PlanillasController extends Controller
         }
 
         // Resumen general de vacaciones y licencias
-        $resumenVacaciones = DB::table('Vacaciones')
-            ->leftJoin('Usuarios', 'Vacaciones.CodEmp', '=', 'Usuarios.Usuario')
-            ->whereYear('Vacaciones.Periodo', $año)
+        $resumen// tabla no existe - Vacaciones = DB::table('// tabla no existe - Vacaciones')
+            ->leftJoin('accesoweb', '// tabla no existe - Vacaciones.CodEmp', '=', 'accesoweb.Usuario')
+            ->whereYear('// tabla no existe - Vacaciones.Periodo', $año)
             ->select([
-                'Usuarios.Nombre',
-                'Vacaciones.*',
+                'accesoweb.Nombre',
+                '// tabla no existe - Vacaciones.*',
                 DB::raw('DATEDIFF(Fin, Inicio) + 1 as dias_solicitados')
             ])
             ->get();
 
-        $resumenLicencias = DB::table('Licencias')
-            ->leftJoin('Usuarios', 'Licencias.CodEmp', '=', 'Usuarios.Usuario')
-            ->whereYear('Licencias.Periodo', $año)
+        $resumen// tabla no existe - Licencias = DB::table('// tabla no existe - Licencias')
+            ->leftJoin('accesoweb', '// tabla no existe - Licencias.CodEmp', '=', 'accesoweb.Usuario')
+            ->whereYear('// tabla no existe - Licencias.Periodo', $año)
             ->select([
-                'Usuarios.Nombre',
-                'Licencias.*',
+                'accesoweb.Nombre',
+                '// tabla no existe - Licencias.*',
                 DB::raw('DATEDIFF(Fin, Inicio) + 1 as dias_solicitados')
             ])
             ->get();
 
         return response()->json([
-            'vacaciones' => $resumenVacaciones,
-            'licencias' => $resumenLicencias,
+            'vacaciones' => $resumen// tabla no existe - Vacaciones,
+            'licencias' => $resumen// tabla no existe - Licencias,
             'año' => $año
         ]);
     }
@@ -679,7 +679,7 @@ class PlanillasController extends Controller
     {
         $periodo = Carbon::create($año, $mes)->endOfMonth();
         
-        $planillas = DB::table('Planillas')
+        $planillas = DB::table('// tabla no existe - Planillas')
             ->whereYear('Periodo', $año)
             ->whereMonth('Periodo', $mes)
             ->select([
@@ -709,7 +709,7 @@ class PlanillasController extends Controller
      */
     private function calcularEstadisticasAnuales($año)
     {
-        $mensual = DB::table('Planillas')
+        $mensual = DB::table('// tabla no existe - Planillas')
             ->whereYear('Periodo', $año)
             ->select([
                 DB::raw('MONTH(Periodo) as mes'),
@@ -728,7 +728,7 @@ class PlanillasController extends Controller
      */
     private function obtenerEmpleadosActivos()
     {
-        return DB::table('Usuarios')
+        return DB::table('accesoweb')
             ->where('Estado', 'ACTIVO')
             ->where('Rol', '!=', 'ADMIN')
             ->select(['Usuario', 'Nombre', 'Cargo', 'Sueldo'])
@@ -754,7 +754,7 @@ class PlanillasController extends Controller
     {
         $totales = $this->calcularResumenPeriodo($año, $mes);
         
-        DB::table('Planillas_Resumen')
+        DB::table('// tabla no existe - // tabla no existe - Planillas_Resumen')
             ->where('Año', $año)
             ->where('Mes', $mes)
             ->update([
@@ -820,9 +820,9 @@ class PlanillasController extends Controller
     /**
      * Obtener vacaciones
      */
-    private function obtenerVacaciones($codEmp, $año, $mes)
+    private function obtener// tabla no existe - Vacaciones($codEmp, $año, $mes)
     {
-        return DB::table('Vacaciones')
+        return DB::table('// tabla no existe - Vacaciones')
             ->where('CodEmp', $codEmp)
             ->whereYear('Periodo', $año)
             ->whereMonth('Periodo', $mes)
@@ -832,9 +832,9 @@ class PlanillasController extends Controller
     /**
      * Obtener licencias
      */
-    private function obtenerLicencias($codEmp, $año, $mes)
+    private function obtener// tabla no existe - Licencias($codEmp, $año, $mes)
     {
-        return DB::table('Licencias')
+        return DB::table('// tabla no existe - Licencias')
             ->where('CodEmp', $codEmp)
             ->whereYear('Periodo', $año)
             ->whereMonth('Periodo', $mes)
@@ -859,22 +859,22 @@ class PlanillasController extends Controller
         $mes = $request->get('mes', now()->month);
         $tipo = $request->get('tipo', 'excel');
 
-        $planillas = DB::table('Planillas')
-            ->leftJoin('Usuarios', 'Planillas.CodEmp', '=', 'Usuarios.Usuario')
-            ->whereYear('Planillas.Periodo', $año)
-            ->whereMonth('Planillas.Periodo', $mes)
+        $planillas = DB::table('// tabla no existe - Planillas')
+            ->leftJoin('accesoweb', '// tabla no existe - Planillas.CodEmp', '=', 'accesoweb.Usuario')
+            ->whereYear('// tabla no existe - Planillas.Periodo', $año)
+            ->whereMonth('// tabla no existe - Planillas.Periodo', $mes)
             ->select([
-                'Usuarios.Nombre',
-                'Usuarios.Dni',
-                'Usuarios.Cargo',
-                'Planillas.Sueldo_Basico',
-                'Planillas.Horas_Extra',
-                'Planillas.Bonificaciones',
-                'Planillas.Total_Ingresos',
-                'Planillas.Total_Descuentos',
-                'Planillas.Neto_Pagar'
+                'accesoweb.Nombre',
+                'accesoweb.Dni',
+                'accesoweb.Cargo',
+                '// tabla no existe - Planillas.Sueldo_Basico',
+                '// tabla no existe - Planillas.Horas_Extra',
+                '// tabla no existe - Planillas.Bonificaciones',
+                '// tabla no existe - Planillas.Total_Ingresos',
+                '// tabla no existe - Planillas.Total_Descuentos',
+                '// tabla no existe - Planillas.Neto_Pagar'
             ])
-            ->orderBy('Usuarios.Nombre')
+            ->orderBy('accesoweb.Nombre')
             ->get();
 
         if ($tipo === 'csv') {

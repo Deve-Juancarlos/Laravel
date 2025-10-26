@@ -15,7 +15,7 @@ class AnalisisRentabilidadController extends Controller
     public function __construct()
     {
         $this->middleware('auth');
-        $this->middleware('rol:administrador|vendedor');
+        $this->middleware('rol:contador|administrador');
     }
 
     /**
@@ -47,10 +47,10 @@ class AnalisisRentabilidadController extends Controller
         // Consulta base de ventas con márgenes
         $ventas = DB::table('Doccab')
             ->join('Docdet', 'Doccab.Numero', '=', 'Docdet.Numero')
-            ->join('Productos', 'Docdet.Codpro', '=', 'Productos.CodPro')
-            ->leftJoin('Clientes', 'Doccab.CodCli', '=', 'Clientes.CodCli')
+            ->join('Productos', 'Docdet.CodPro', '=', 'Productos.CodPro')
+            ->leftJoin('Clientes', 'Doccab.CodClie', '=', 'Clientes.Codclie')
             ->whereBetween('Doccab.Fecha', [$fechaDesde, $fechaHasta])
-            ->where('Doccab.Tipodoc', '!=', 'AN')
+            ->where('Doccab.Tipo', '!=', 'AN')
             ->select([
                 'Doccab.Numero',
                 'Doccab.Fecha',
@@ -119,9 +119,9 @@ class AnalisisRentabilidadController extends Controller
     {
         $productos = DB::table('Docdet')
             ->join('Doccab', 'Docdet.Numero', '=', 'Doccab.Numero')
-            ->join('Productos', 'Docdet.Codpro', '=', 'Productos.CodPro')
+            ->join('Productos', 'Docdet.CodPro', '=', 'Productos.CodPro')
             ->whereBetween('Doccab.Fecha', [$fechaDesde, $fechaHasta])
-            ->where('Doccab.Tipodoc', '!=', 'AN')
+            ->where('Doccab.Tipo', '!=', 'AN')
             ->select([
                 'Productos.CodPro',
                 'Productos.Nombre as Producto',
@@ -188,13 +188,13 @@ class AnalisisRentabilidadController extends Controller
     public function analisisRentabilidadClientes($fechaDesde, $fechaHasta)
     {
         $clientes = DB::table('Doccab')
-            ->leftJoin('Clientes', 'Doccab.CodCli', '=', 'Clientes.CodCli')
+            ->leftJoin('Clientes', 'Doccab.CodClie', '=', 'Clientes.Codclie')
             ->leftJoin('Docdet', 'Doccab.Numero', '=', 'Docdet.Numero')
             ->leftJoin('Productos', 'Docdet.Codpro', '=', 'Productos.CodPro')
             ->whereBetween('Doccab.Fecha', [$fechaDesde, $fechaHasta])
-            ->where('Doccab.Tipodoc', '!=', 'AN')
+            ->where('Doccab.Tipo', '!=', 'AN')
             ->select([
-                'Clientes.CodCli',
+                'Clientes.Codclie',
                 'Clientes.Razon as Cliente',
                 'Clientes.Categoria as CategoriaCli',
                 DB::raw('COUNT(DISTINCT Doccab.Numero) as numero_compras'),
@@ -203,7 +203,7 @@ class AnalisisRentabilidadController extends Controller
                 DB::raw('AVG(Doccab.Total) as ticket_promedio'),
                 DB::raw('SUM(Docdet.Cantidad * COALESCE(Productos.Costo, 0)) as costo_estimado')
             ])
-            ->groupBy('Clientes.CodCli', 'Clientes.Razon', 'Clientes.Categoria')
+            ->groupBy('Clientes.Codclie', 'Clientes.Razon', 'Clientes.Categoria')
             ->get();
 
         // Calcular rentabilidad por cliente
@@ -256,12 +256,12 @@ class AnalisisRentabilidadController extends Controller
         $vendedores = DB::table('Doccab')
             ->leftJoin('Docdet', 'Doccab.Numero', '=', 'Docdet.Numero')
             ->leftJoin('Productos', 'Docdet.Codpro', '=', 'Productos.CodPro')
-            ->leftJoin('Usuarios', 'Doccab.Vendedor', '=', 'Usuarios.Usuario')
+            ->leftJoin('accesoweb', 'Doccab.Vendedor', '=', 'accesoweb.usuario')
             ->whereBetween('Doccab.Fecha', [$fechaDesde, $fechaHasta])
-            ->where('Doccab.Tipodoc', '!=', 'AN')
+            ->where('Doccab.Tipo', '!=', 'AN')
             ->select([
                 'Doccab.Vendedor',
-                'Usuarios.Nombre as VendedorNombre',
+                'accesoweb.usuario as VendedorNombre',
                 'Usuarios.Cargo',
                 DB::raw('COUNT(DISTINCT Doccab.Numero) as ventas_realizadas'),
                 DB::raw('SUM(Doccab.Total) as ventas_totales'),
@@ -269,7 +269,7 @@ class AnalisisRentabilidadController extends Controller
                 DB::raw('SUM(Docdet.Cantidad * COALESCE(Productos.Costo, 0)) as costo_total_vendido'),
                 DB::raw('SUM(Docdet.Subtotal) as ingresos_totales')
             ])
-            ->groupBy('Doccab.Vendedor', 'Usuarios.Nombre', 'Usuarios.Cargo')
+            ->groupBy('Doccab.Vendedor', 'accesoweb.usuario', 'Usuarios.Cargo')
             ->get();
 
         // Calcular rentabilidad por vendedor
@@ -395,7 +395,7 @@ class AnalisisRentabilidadController extends Controller
             ->join('Docdet', 'Doccab.Numero', '=', 'Docdet.Numero')
             ->leftJoin('Productos', 'Docdet.Codpro', '=', 'Productos.CodPro')
             ->where('Doccab.Fecha', '>=', $fechaInicio)
-            ->where('Doccab.Tipodoc', '!=', 'AN')
+            ->where('Doccab.Tipo', '!=', 'AN')
             ->select([
                 $this->getPeriodoSelect($periodo, 'Doccab.Fecha') . ' as periodo',
                 DB::raw('SUM(Docdet.Subtotal) as ingresos'),
@@ -564,7 +564,7 @@ class AnalisisRentabilidadController extends Controller
             ->join('Docdet', 'Doccab.Numero', '=', 'Docdet.Numero')
             ->leftJoin('Productos', 'Docdet.Codpro', '=', 'Productos.CodPro')
             ->whereBetween('Doccab.Fecha', [$fechaDesde, $fechaHasta])
-            ->where('Doccab.Tipodoc', '!=', 'AN')
+            ->where('Doccab.Tipo', '!=', 'AN')
             ->select([
                 DB::raw('WEEK(Doccab.Fecha) as semana'),
                 DB::raw('SUM(Docdet.Subtotal) as ingresos'),
@@ -736,9 +736,9 @@ class AnalisisRentabilidadController extends Controller
     {
         return DB::table('Docdet')
             ->join('Doccab', 'Docdet.Numero', '=', 'Doccab.Numero')
-            ->join('Productos', 'Docdet.Codpro', '=', 'Productos.CodPro')
+            ->join('Productos', 'Docdet.CodPro', '=', 'Productos.CodPro')
             ->whereBetween('Doccab.Fecha', [$fechaDesde, $fechaHasta])
-            ->where('Doccab.Tipodoc', '!=', 'AN')
+            ->where('Doccab.Tipo', '!=', 'AN')
             ->select([
                 'Productos.CodPro',
                 'Productos.Nombre as Producto',
@@ -757,17 +757,17 @@ class AnalisisRentabilidadController extends Controller
     private function identificarClientesBajoValor($fechaDesde, $fechaHasta)
     {
         return DB::table('Doccab')
-            ->leftJoin('Clientes', 'Doccab.CodCli', '=', 'Clientes.CodCli')
+            ->leftJoin('Clientes', 'Doccab.CodClie', '=', 'Clientes.Codclie')
             ->leftJoin('Docdet', 'Doccab.Numero', '=', 'Docdet.Numero')
             ->leftJoin('Productos', 'Docdet.Codpro', '=', 'Productos.CodPro')
             ->whereBetween('Doccab.Fecha', [$fechaDesde, $fechaHasta])
-            ->where('Doccab.Tipodoc', '!=', 'AN')
+            ->where('Doccab.Tipo', '!=', 'AN')
             ->select([
                 'Clientes.Razon as Cliente',
                 DB::raw('SUM(Doccab.Total) as total_facturado'),
                 DB::raw('AVG((Docdet.Subtotal - Docdet.Cantidad * COALESCE(Productos.Costo, 0)) / Docdet.Subtotal * 100) as margen_promedio')
             ])
-            ->groupBy('Clientes.CodCli', 'Clientes.Razon')
+            ->groupBy('Clientes.Codclie', 'Clientes.Razon')
             ->having('total_facturado', '<', 5000)
             ->having('margen_promedio', '<', 10)
             ->orderBy('total_facturado')
@@ -784,24 +784,24 @@ class AnalisisRentabilidadController extends Controller
             ->leftJoin('Docdet', 'Doccab.Numero', '=', 'Docdet.Numero')
             ->leftJoin('Productos', 'Docdet.Codpro', '=', 'Productos.CodPro')
             ->whereBetween('Doccab.Fecha', [$fechaDesde, $fechaHasta])
-            ->where('Doccab.Tipodoc', '!=', 'AN')
+            ->where('Doccab.Tipo', '!=', 'AN')
             ->select([
                 DB::raw('AVG((Docdet.Subtotal - Docdet.Cantidad * COALESCE(Productos.Costo, 0)) / Docdet.Subtotal * 100) as margen_promedio_general')
             ])->first()->margen_promedio_general ?? 15;
 
         return DB::table('Doccab')
-            ->leftJoin('Usuarios', 'Doccab.Vendedor', '=', 'Usuarios.Usuario')
+            ->leftJoin('accesoweb', 'Doccab.Vendedor', '=', 'accesoweb.usuario')
             ->leftJoin('Docdet', 'Doccab.Numero', '=', 'Docdet.Numero')
             ->leftJoin('Productos', 'Docdet.Codpro', '=', 'Productos.CodPro')
             ->whereBetween('Doccab.Fecha', [$fechaDesde, $fechaHasta])
-            ->where('Doccab.Tipodoc', '!=', 'AN')
+            ->where('Doccab.Tipo', '!=', 'AN')
             ->select([
                 'Doccab.Vendedor',
-                'Usuarios.Nombre as VendedorNombre',
+                'accesoweb.usuario as VendedorNombre',
                 DB::raw('SUM(Doccab.Total) as ventas_totales'),
                 DB::raw('AVG((Docdet.Subtotal - Docdet.Cantidad * COALESCE(Productos.Costo, 0)) / Docdet.Subtotal * 100) as margen_promedio')
             ])
-            ->groupBy('Doccab.Vendedor', 'Usuarios.Nombre')
+            ->groupBy('Doccab.Vendedor', 'accesoweb.usuario')
             ->having('margen_promedio', '<', $promedioGeneral * 0.8)
             ->orderBy('ventas_totales', 'desc')
             ->limit(10)
@@ -818,9 +818,9 @@ class AnalisisRentabilidadController extends Controller
         // Categorías con potencial
         $categoriasPotencial = DB::table('Docdet')
             ->join('Doccab', 'Docdet.Numero', '=', 'Doccab.Numero')
-            ->join('Productos', 'Docdet.Codpro', '=', 'Productos.CodPro')
+            ->join('Productos', 'Docdet.CodPro', '=', 'Productos.CodPro')
             ->whereBetween('Doccab.Fecha', [$fechaDesde, $fechaHasta])
-            ->where('Doccab.Tipodoc', '!=', 'AN')
+            ->where('Doccab.Tipo', '!=', 'AN')
             ->select([
                 'Productos.Categoria',
                 DB::raw('COUNT(DISTINCT Productos.CodPro) as productos_activos'),

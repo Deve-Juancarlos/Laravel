@@ -12,7 +12,7 @@ class AnalyticsController extends Controller
     
     public function __construct()
     {
-        $this->middleware(['auth', 'rol:administrador|vendedor|contador|gerente']);
+        $this->middleware(['auth', 'rol:contador|administrador']);
     }
 
     
@@ -54,7 +54,7 @@ class AnalyticsController extends Controller
 
         // Análisis por zonas geográficas
         $ventas_por_zona = DB::table('Doccab')
-            ->join('Clientes', 'Doccab.Codcli', '=', 'Clientes.Codcli')
+            ->join('Clientes', 'Doccab.CodClie', '=', 'Clientes.CodClie')
             ->selectRaw('
                 Clientes.Provincia,
                 COUNT(Doccab.Numero) as cantidad_ventas,
@@ -106,7 +106,7 @@ class AnalyticsController extends Controller
                 ->where('Fecha', '>=', $fecha_cohorte->format('Y-m-d'))
                 ->where('Fecha', '<', $fecha_cohorte->addMonth()->format('Y-m-d'))
                 ->distinct()
-                ->pluck('Codcli');
+                ->pluck('CodClie');
 
             $retencion_meses = [];
             for ($i = 1; $i <= min(12, $meses_analisis - $fecha_cohorte->diffInMonths(now())); $i++) {
@@ -114,10 +114,10 @@ class AnalyticsController extends Controller
                 $mes_siguiente = $mes_actual->copy()->addMonth();
                 
                 $clientes_activos = DB::table('Doccab')
-                    ->whereIn('Codcli', $clientes_cohorte)
+                    ->whereIn('CodClie', $clientes_cohorte)
                     ->whereBetween('Fecha', [$mes_actual->format('Y-m-d'), $mes_siguiente->format('Y-m-d')])
                     ->distinct()
-                    ->pluck('Codcli');
+                    ->pluck('CodClie');
 
                 $tasa_retencion = count($clientes_cohorte) > 0 ? (count($clientes_activos) / count($clientes_cohorte)) * 100 : 0;
                 $retencion_meses[] = [
@@ -144,17 +144,17 @@ class AnalyticsController extends Controller
     {
         $fecha_referencia = now();
         $clientes = DB::table('Clientes')
-            ->leftJoin('Doccab', 'Clientes.Codcli', '=', 'Doccab.Codcli')
+            ->leftJoin('Doccab', 'Clientes.CodClie', '=', 'Doccab.CodClie')
             ->where('Clientes.Estado', 'ACTIVO')
             ->select(
-                'Clientes.Codcli',
+                'Clientes.CodClie',
                 'Clientes.Razonsocial',
                 DB::raw('DATEDIFF(day, MAX(Doccab.Fecha), ?) as dias_desde_ultima_compra'),
                 DB::raw('COUNT(Doccab.Numero) as frecuencia_compras'),
                 DB::raw('SUM(Doccab.Total) as valor_monetario')
             )
             ->setBindings([$fecha_referencia])
-            ->groupBy('Clientes.Codcli', 'Clientes.Razonsocial')
+            ->groupBy('Clientes.CodClie', 'Clientes.Razonsocial')
             ->get();
 
         // Calcular quintiles para cada dimensión
@@ -508,7 +508,7 @@ class AnalyticsController extends Controller
             ->whereBetween('Fecha', [$fecha_desde, $fecha_hasta])
             ->whereNotIn('Estado', ['ANULADO'])
             ->distinct()
-            ->count('Codcli');
+            ->count('CodClie');
 
         $ticket_promedio = DB::table('Doccab')
             ->whereBetween('Fecha', [$fecha_desde, $fecha_hasta])
@@ -542,7 +542,7 @@ class AnalyticsController extends Controller
 
         // Tendencia de clientes
         $clientes_mensuales = DB::table('Doccab')
-            ->selectRaw('YEAR(Fecha) as año, MONTH(Fecha) as mes, COUNT(DISTINCT Codcli) as clientes')
+            ->selectRaw('YEAR(Fecha) as año, MONTH(Fecha) as mes, COUNT(DISTINCT CodClie) as clientes')
             ->whereBetween('Fecha', [$fecha_desde, $fecha_hasta])
             ->whereNotIn('Estado', ['ANULADO'])
             ->groupByRaw('YEAR(Fecha), MONTH(Fecha)')
@@ -802,24 +802,7 @@ class AnalyticsController extends Controller
         return max(30, $confianza_base - $descuento_tiempo);
     }
 
-    private function analizarEstacionalidad($fecha_desde, $fecha_hasta)
-    {
-        $ventas_mensuales = DB::table('Doccab')
-            ->selectRaw('MONTH(Fecha) as mes, AVG(Total) as promedio_mensual')
-            ->whereBetween('Fecha', [$fecha_desde, $fecha_hasta])
-            ->whereNotIn('Estado', ['ANULADO'])
-            ->groupByRaw('MONTH(Fecha)')
-            ->orderBy('mes')
-            ->get();
-
-        $promedio_general = $ventas_mensuales->avg('promedio_mensual');
-        
-        return $ventas_mensuales->map(function($mes) use ($promedio_general) {
-            $mes->indice_estacional = $promedio_general > 0 ? 
-                round(($mes->promedio_mensual / $promedio_general) * 100, 2) : 100;
-            return $mes;
-        });
-    }
+    
 
     private function generarInsightsVentas($patrones_semanales, $ventas_por_zona, $estacionalidad)
     {
@@ -870,7 +853,7 @@ class AnalyticsController extends Controller
             ->whereBetween('Fecha', [$fecha_desde, $fecha_hasta])
             ->whereNotIn('Estado', ['ANULADO'])
             ->distinct()
-            ->count('Codcli');
+            ->count('CodClie');
 
         return $clientes_unicos > 0 ? round($ventas_totales / $clientes_unicos, 2) : 0;
     }
@@ -893,20 +876,20 @@ class AnalyticsController extends Controller
             ->where('Fecha', '<', $fecha_desde)
             ->whereNotIn('Estado', ['ANULADO'])
             ->distinct()
-            ->count('Codcli');
+            ->count('CodClie');
 
         $clientes_retenidos = DB::table('Doccab')
             ->whereBetween('Fecha', [$fecha_desde, $fecha_hasta])
             ->whereNotIn('Estado', ['ANULADO'])
-            ->whereIn('Codcli', function($query) use ($fecha_desde) {
-                $query->select('Codcli')
+            ->whereIn('CodClie', function($query) use ($fecha_desde) {
+                $query->select('CodClie')
                       ->from('Doccab')
                       ->where('Fecha', '<', $fecha_desde)
                       ->whereNotIn('Estado', ['ANULADO'])
                       ->distinct();
             })
             ->distinct()
-            ->count('Codcli');
+            ->count('CodClie');
 
         return $clientes_periodo_anterior > 0 ? round(($clientes_retenidos / $clientes_periodo_anterior) * 100, 2) : 0;
     }

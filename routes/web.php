@@ -1,18 +1,19 @@
 <?php
 
-//RUTAS MEJORADAS PARA CONTABILIDAD FARMACÉUTICA
-//Pensando como un contador farmacéutico profesional
+
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\LoginController;
 use App\Http\Controllers\RegisterController;
-use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\Clientes\ClientesController;
+
 use App\Http\Controllers\Admin\PlanillaController;
 use App\Http\Controllers\Admin\BancoController;
 use App\Http\Controllers\Admin\UsuarioController;
 use App\Http\Controllers\Admin\CuentaController;
 use App\Http\Controllers\Admin\ReporteController;
 use App\Http\Controllers\Admin\AuditoriaController;
+use App\Http\Controllers\DashboardController;
 
 //RUTAS PÚBLICAS
 Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
@@ -115,6 +116,72 @@ Route::middleware(['auth', 'check.vendedor'])->group(function () {
         Route::get('metas', [DashboardController::class, 'verMetas'])->name('metas');
         Route::post('actualizar-meta', [DashboardController::class, 'actualizarMeta'])->name('actualizar-meta');
     });
+});
+
+Route::middleware(['auth', 'check.contador'])->group(function () {
+    
+    Route::get('/contabilidad/dashboard', [DashboardController::class, 'contadorDashboard'])
+    ->name('contabilidad.dashboard');
+
+    Route::get('/reportes/financiero', [ReporteController::class, 'index'])
+        ->name('reportes.financiero');
+
+    Route::get('/contabilidad/libros-electronicos', [ReporteController::class, 'librosElectronicos'])
+        ->name('libros-electronicos');
+
+    Route::get('/contabilidad/facturas', [ReporteController::class, 'facturas'])
+        ->name('facturas.index');
+
+    Route::get('/contabilidad/reportes/exportar', [ReporteController::class, 'exportVentas'])
+        ->name('reportes.exportar');
+
+    // Clientes
+     Route::get('/clientes', [ClientesController::class, 'vistaIndex'])->name('clientes.index');
+    Route::get('/clientes/crear', [ClientesController::class, 'vistaCrear'])->name('clientes.crear');
+    Route::get('/clientes/buscar', [ClientesController::class, 'vistaBuscar'])->name('clientes.buscar');
+    Route::get('/clientes/{cliente}', [ClientesController::class, 'vistaShow'])->name('clientes.show');
+    Route::get('/clientes/{cliente}/editar', [ClientesController::class, 'vistaEditar'])->name('clientes.editar');
+    Route::get('/clientes/{cliente}/estado-cuenta', [ClientesController::class, 'vistaEstadoCuenta'])->name('clientes.estado-cuenta');
+
+
+
+    
+
+    // Productos
+    Route::get('/productos', function () {
+        return "Módulo de Productos en desarrollo";
+    })->name('productos.index');
+
+    Route::get('/productos/inventario', function () {
+        return "Módulo de Inventario en desarrollo";
+    })->name('productos.inventario');
+
+    // ✅ Nuevo: Control de Vencimientos
+    Route::get('/productos/vencimientos', function () {
+        return "Módulo de Control de Vencimientos en desarrollo";
+    })->name('productos.vencimientos');
+    
+      // ✅ Configuración
+    Route::prefix('configuracion')->group(function () {
+        Route::get('/usuarios', function () {
+            return "Módulo de Configuración → Usuarios en desarrollo";
+        })->name('configuracion.usuarios');
+
+        Route::get('/parametros', function () {
+            return "Módulo de Configuración → Parámetros en desarrollo";
+        })->name('configuracion.parametros');
+    });
+    // ✅ Perfil del usuario
+    Route::get('/perfil', function () {
+        return "Página de perfil del usuario (en desarrollo)";
+    })->name('perfil');
+    
+    Route::get('/configuracion/cambiar-password', function () {
+    return 'configuracion.cambiar-password';
+    })->name('configuracion.cambiar-password');
+
+    Route::get('/facturas/export', [ReporteController::class, 'exportFacturas'])->name('facturas.export');
+
 });
 
 

@@ -15,7 +15,7 @@ class DashboardVentasController extends Controller
     public function __construct()
     {
         $this->middleware('auth');
-        $this->middleware('rol:vendedor|administrador');
+        $this->middleware('rol:contador|administrador');
     }
 
     /**
@@ -52,7 +52,7 @@ class DashboardVentasController extends Controller
     {
         $ventas = DB::table('Doccab')
             ->whereBetween('Fecha', [$fechaInicio, $fechaFin])
-            ->where('Tipodoc', '!=', 'AN')
+            ->where('Tipo', '!=', 'AN')
             ->select([
                 DB::raw('COUNT(*) as total_ventas'),
                 DB::raw('SUM(Total) as ventas_totales'),
@@ -62,17 +62,15 @@ class DashboardVentasController extends Controller
             ])
             ->first();
 
-        $metaVentas = DB::table('Metas')
-            ->where('Tipo', 'VENTAS')
-            ->whereBetween('Fecha', [$fechaInicio, $fechaFin])
-            ->sum('Monto');
+        // TODO: Implementar metas usando tabla Tablas si existe
+        $metaVentas = 0; // Temporal: 0 hasta implementar correctamente
 
         $cumplimiento = $metaVentas > 0 ? ($ventas->ventas_totales / $metaVentas) * 100 : 0;
 
         // Ventas del mes anterior para comparación
         $ventasAnterior = DB::table('Doccab')
             ->whereBetween('Fecha', [$fechaInicio->copy()->subMonth(), $fechaFin->copy()->subMonth()])
-            ->where('Tipodoc', '!=', 'AN')
+            ->where('Tipo', '!=', 'AN')
             ->sum('Total');
 
         $crecimiento = $ventasAnterior > 0 ? 
@@ -99,7 +97,7 @@ class DashboardVentasController extends Controller
     {
         $ventasDiarias = DB::table('Doccab')
             ->whereBetween('Fecha', [$fechaInicio, $fechaFin])
-            ->where('Tipodoc', '!=', 'AN')
+            ->where('Tipo', '!=', 'AN')
             ->select([
                 DB::raw('CAST(Fecha as DATE) as fecha'),
                 DB::raw('COUNT(*) as numero_ventas'),
@@ -137,7 +135,7 @@ class DashboardVentasController extends Controller
     {
         return DB::table('Docdet')
             ->join('Doccab', 'Docdet.Numero', '=', 'Doccab.Numero')
-            ->join('Productos', 'Docdet.Codpro', '=', 'Productos.CodPro')
+            ->join('Productos', 'Docdet.CodPro', '=', 'Productos.CodPro')
             ->whereBetween('Doccab.Fecha', [$fechaInicio, $fechaFin])
             ->where('Doccab.Tipodoc', '!=', 'AN')
             ->select([
@@ -159,18 +157,18 @@ class DashboardVentasController extends Controller
     public function topClientes($fechaInicio, $fechaFin)
     {
         return DB::table('Doccab')
-            ->join('Clientes', 'Doccab.CodCli', '=', 'Clientes.CodCli')
+            ->join('Clientes', 'Doccab.CodClie', '=', 'Clientes.Codclie')
             ->whereBetween('Doccab.Fecha', [$fechaInicio, $fechaFin])
             ->where('Doccab.Tipodoc', '!=', 'AN')
             ->select([
-                'Clientes.CodCli',
+                'Clientes.Codclie',
                 'Clientes.Razon',
                 'Clientes.Direccion',
                 DB::raw('COUNT(*) as numero_compras'),
                 DB::raw('SUM(Doccab.Total) as total_compras'),
                 DB::raw('AVG(Doccab.Total) as ticket_promedio')
             ])
-            ->groupBy('Clientes.CodCli', 'Clientes.Razon', 'Clientes.Direccion')
+            ->groupBy('Clientes.Codclie', 'Clientes.Razon', 'Clientes.Direccion')
             ->orderBy('total_compras', 'desc')
             ->limit(10)
             ->get();
@@ -183,7 +181,7 @@ class DashboardVentasController extends Controller
     {
         $vendedores = DB::table('Doccab')
             ->whereBetween('Fecha', [$fechaInicio, $fechaFin])
-            ->where('Tipodoc', '!=', 'AN')
+            ->where('Tipo', '!=', 'AN')
             ->whereNotNull('Vendedor')
             ->select([
                 'Vendedor',
@@ -235,7 +233,7 @@ class DashboardVentasController extends Controller
         // Ventas del día
         $ventasHoy = DB::table('Doccab')
             ->where('Fecha', $hoy)
-            ->where('Tipodoc', '!=', 'AN')
+            ->where('Tipo', '!=', 'AN')
             ->select([
                 DB::raw('COUNT(*) as ventas_hoy'),
                 DB::raw('SUM(Total) as total_hoy')
@@ -245,14 +243,14 @@ class DashboardVentasController extends Controller
         // Última venta
         $ultimaVenta = DB::table('Doccab')
             ->where('Fecha', $hoy)
-            ->where('Tipodoc', '!=', 'AN')
+            ->where('Tipo', '!=', 'AN')
             ->orderBy('Fecha', 'desc')
             ->first();
 
         // Productos más vendidos hoy
         $productosHoy = DB::table('Docdet')
             ->join('Doccab', 'Docdet.Numero', '=', 'Doccab.Numero')
-            ->join('Productos', 'Docdet.Codpro', '=', 'Productos.CodPro')
+            ->join('Productos', 'Docdet.CodPro', '=', 'Productos.CodPro')
             ->where('Doccab.Fecha', $hoy)
             ->where('Doccab.Tipodoc', '!=', 'AN')
             ->select([
@@ -271,7 +269,7 @@ class DashboardVentasController extends Controller
             'total_hoy' => number_format($ventasHoy->total_hoy, 2),
             'ultima_venta' => $ultimaVenta ? [
                 'numero' => $ultimaVenta->Numero,
-                'cliente' => $this->obtenerNombreCliente($ultimaVenta->CodCli),
+                'cliente' => $this->obtenerNombreCliente($ultimaVenta->CodClie),
                 'total' => $ultimaVenta->Total,
                 'hora' => $ultimaVenta->Fecha
             ] : null,
@@ -289,7 +287,7 @@ class DashboardVentasController extends Controller
 
         $ventasMensuales = DB::table('Doccab')
             ->whereBetween('Fecha', [$fechaInicio, $fechaFin])
-            ->where('Tipodoc', '!=', 'AN')
+            ->where('Tipo', '!=', 'AN')
             ->select([
                 DB::raw('WEEK(Fecha) as semana'),
                 DB::raw('COUNT(*) as total_ventas'),
@@ -327,7 +325,7 @@ class DashboardVentasController extends Controller
 
         $ventas = DB::table('Doccab')
             ->where('Fecha', '>=', $fechaInicio)
-            ->where('Tipodoc', '!=', 'AN')
+            ->where('Tipo', '!=', 'AN')
             ->select([
                 DB::raw('CAST(Fecha as DATE) as fecha'),
                 DB::raw('SUM(Total) as total_ventas'),
@@ -394,9 +392,9 @@ class DashboardVentasController extends Controller
     /**
      * Utilidad para obtener nombre del cliente
      */
-    private function obtenerNombreCliente($codCli)
+    private function obtenerNombreCliente($codClie)
     {
-        $cliente = DB::table('Clientes')->where('CodCli', $codCli)->first();
+        $cliente = DB::table('Clientes')->where('Codclie', $codClie)->first();
         return $cliente ? $cliente->Razon : 'Cliente no encontrado';
     }
 
@@ -473,14 +471,12 @@ class DashboardVentasController extends Controller
         $fechaInicio = now()->startOfMonth();
         $fechaFin = now()->endOfMonth();
         
-        $metaMensual = DB::table('Metas')
-            ->where('Tipo', 'VENTAS')
-            ->whereBetween('Fecha', [$fechaInicio, $fechaFin])
-            ->sum('Monto');
+        // TODO: Implementar metas usando tabla Tablas si existe
+        $metaMensual = 0; // Temporal: 0 hasta implementar correctamente
 
         $ventasActuales = DB::table('Doccab')
             ->whereBetween('Fecha', [$fechaInicio, $fechaFin])
-            ->where('Tipodoc', '!=', 'AN')
+            ->where('Tipo', '!=', 'AN')
             ->sum('Total');
 
         $cumplimiento = $metaMensual > 0 ? ($ventasActuales / $metaMensual) * 100 : 0;

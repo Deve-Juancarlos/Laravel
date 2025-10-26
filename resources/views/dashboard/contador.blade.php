@@ -226,18 +226,18 @@
 </div>
 
 <!-- Alertas Financieras -->
-@if(($alertasFinancieras ?? [])->$count() > 0)
-@foreach(($alertasFinancieras ?? []) as $alerta)
-<div class="financial-alert {{ $alerta->$nivel === 'critico' ? 'critical' : '' }}">
-    <div class="d-flex align-items-center">
-        <i class="fas fa-{{ $alerta->$icono }} me-2"></i>
-        <div>
-            <strong>{{ $alerta->$titulo }}</strong>
-            <p class="mb-0">{{ $alerta->$mensaje }}</p>
+@if(count($alertasFinancieras ?? []) > 0)
+    @foreach($alertasFinancieras as $alerta)
+        <div class="financial-alert {{ $alerta['nivel'] === 'critico' ? 'critical' : '' }}">
+            <div class="d-flex align-items-center">
+                <i class="fas fa-{{ $alerta['icono'] }} me-2"></i>
+                <div>
+                    <strong>{{ $alerta['titulo'] }}</strong>
+                    <p class="mb-0">{{ $alerta['mensaje'] }}</p>
+                </div>
+            </div>
         </div>
-    </div>
-</div>
-@endforeach
+    @endforeach
 @endif
 
 <div class="row g-4">

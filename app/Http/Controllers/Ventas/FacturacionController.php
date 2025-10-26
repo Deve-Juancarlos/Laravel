@@ -16,7 +16,7 @@ class FacturacionController extends Controller
     public function __construct()
     {
         $this->middleware('auth');
-        $this->middleware('rol:vendedor|administrador');
+        $this->middleware('rol:contador|administrador');
     }
 
     /**
@@ -25,9 +25,9 @@ class FacturacionController extends Controller
     public function index(Request $request)
     {
         $query = DB::table('Doccab')
-            ->leftJoin('Clientes', 'Doccab.CodCli', '=', 'Clientes.CodCli')
-            ->leftJoin('Usuarios', 'Doccab.Usuario', '=', 'Usuarios.Usuario')
-            ->where('Doccab.Tipodoc', '!=', 'AN');
+            ->leftJoin('Clientes', 'Doccab.CodClie', '=', 'Clientes.Codclie')
+            ->leftJoin('accesoweb', 'Doccab.Usuario', '=', 'accesoweb.usuario')
+            ->where('Doccab.Tipo', '!=', 'AN');
 
         // Filtros de fecha
         if ($request->filled('fecha_desde')) {
@@ -40,7 +40,7 @@ class FacturacionController extends Controller
         // Filtro por cliente
         if ($request->filled('cliente')) {
             $query->where(function($q) use ($request) {
-                $q->where('Clientes.CodCli', 'like', '%' . $request->cliente . '%')
+                $q->where('Clientes.Codclie', 'like', '%' . $request->cliente . '%')
                   ->orWhere('Clientes.Razon', 'like', '%' . $request->cliente . '%');
             });
         }
@@ -65,7 +65,7 @@ class FacturacionController extends Controller
             'Clientes.Razon as Cliente',
             'Clientes.Direccion as DireccionCli',
             'Clientes.Ruc as RucCli',
-            'Usuarios.Nombre as UsuarioVenta'
+            'accesoweb.usuario as UsuarioVenta'
         ])->paginate($request->get('per_page', 20));
 
         // Estadísticas rápidas
@@ -86,9 +86,9 @@ class FacturacionController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'CodCli' => 'required|exists:Clientes,CodCli',
+            'CodClie' => 'required|exists:Clientes,Codclie',
             'items' => 'required|array|min:1',
-            'items.*.Codpro' => 'required|exists:Productos,CodPro',
+            'items.*.CodPro' => 'required|exists:Productos,CodPro',
             'items.*.Cantidad' => 'required|numeric|min:0.01',
             'items.*.Precio' => 'required|numeric|min:0',
             'items.*.Descuento' => 'nullable|numeric|min:0|max:100',
@@ -100,7 +100,7 @@ class FacturacionController extends Controller
             DB::beginTransaction();
 
             // Generar número de documento
-            $numero = $this->generarNumeroDocumento($request->Tipodoc ?? 'FACT');
+            $numero = $this->generarNumeroDocumento($request->Tipo ?? 1);
 
             // Calcular totales
             $totales = $this->calcularTotales($request->items);
@@ -108,15 +108,15 @@ class FacturacionController extends Controller
             // Crear cabecera
             $cabeceraId = DB::table('Doccab')->insertGetId([
                 'Numero' => $numero,
-                'Tipodoc' => $request->Tipodoc ?? 'FACT',
-                'CodCli' => $request->CodCli,
+                'Tipo' => $request->Tipo ?? 1,
+                'CodClie' => $request->CodClie,
                 'Fecha' => now(),
                 'Subtotal' => $totales['subtotal'],
                 'Impuesto' => $totales['impuesto'],
                 'Total' => $totales['total'],
-                'Estado' => 'PENDIENTE',
+                'Eliminado' => false,
                 'Vendedor' => $request->Vendedor,
-                'Usuario' => auth()->user()->Usuario ?? 'admin', 'contador',
+                'Usuario' => auth()->user()->usuario ?? 'admin',
                 'Observacion' => $request->Observacion,
                 'created_at' => now()
             ]);
@@ -129,7 +129,7 @@ class FacturacionController extends Controller
 
                 DB::table('Docdet')->insert([
                     'Numero' => $numero,
-                    'Codpro' => $item['Codpro'],
+                    'CodPro' => $item['CodPro'],
                     'Cantidad' => $item['Cantidad'],
                     'Precio' => $item['Precio'],
                     'Descuento' => $item['Descuento'] ?? 0,
@@ -138,7 +138,7 @@ class FacturacionController extends Controller
                 ]);
 
                 // Actualizar stock
-                $this->actualizarStock($item['Codpro'], $item['Cantidad']);
+                $this->actualizarStock($item['CodPro'], $item['Cantidad']);
             }
 
             // Crear movimiento contable si está habilitado
@@ -171,8 +171,8 @@ class FacturacionController extends Controller
     public function show($numero)
     {
         $factura = DB::table('Doccab')
-            ->leftJoin('Clientes', 'Doccab.CodCli', '=', 'Clientes.CodCli')
-            ->leftJoin('Usuarios', 'Doccab.Usuario', '=', 'Usuarios.Usuario')
+            ->leftJoin('Clientes', 'Doccab.CodClie', '=', 'Clientes.Codclie')
+            ->leftJoin('accesoweb', 'Doccab.Usuario', '=', 'accesoweb.usuario')
             ->where('Doccab.Numero', $numero)
             ->select([
                 'Doccab.*',
@@ -181,7 +181,7 @@ class FacturacionController extends Controller
                 'Clientes.Ruc as RucCli',
                 'Clientes.Telefono as TelefonoCli',
                 'Clientes.Email as EmailCli',
-                'Usuarios.Nombre as UsuarioVenta'
+                'accesoweb.usuario as UsuarioVenta'
             ])
             ->first();
 
@@ -231,7 +231,7 @@ class FacturacionController extends Controller
 
         $request->validate([
             'items' => 'required|array|min:1',
-            'items.*.Codpro' => 'required|exists:Productos,CodPro',
+            'items.*.CodPro' => 'required|exists:Productos,CodPro',
             'items.*.Cantidad' => 'required|numeric|min:0.01',
             'items.*.Precio' => 'required|numeric|min:0',
             'items.*.Descuento' => 'nullable|numeric|min:0|max:100'
@@ -264,7 +264,7 @@ class FacturacionController extends Controller
 
                 DB::table('Docdet')->insert([
                     'Numero' => $numero,
-                    'Codpro' => $item['Codpro'],
+                    'CodPro' => $item['CodPro'],
                     'Cantidad' => $item['Cantidad'],
                     'Precio' => $item['Precio'],
                     'Descuento' => $item['Descuento'] ?? 0,
@@ -442,9 +442,9 @@ class FacturacionController extends Controller
         $fechaFin = $request->get('fecha_fin', now()->endOfMonth()->toDateString());
 
         $facturas = DB::table('Doccab')
-            ->leftJoin('Clientes', 'Doccab.CodCli', '=', 'Clientes.CodCli')
+            ->leftJoin('Clientes', 'Doccab.CodClie', '=', 'Clientes.Codclie')
             ->whereBetween('Doccab.Fecha', [$fechaInicio, $fechaFin])
-            ->where('Doccab.Tipodoc', '!=', 'AN')
+            ->where('Doccab.Tipo', '!=', 'AN')
             ->select([
                 'Doccab.Numero',
                 'Doccab.Fecha',
@@ -705,10 +705,10 @@ class FacturacionController extends Controller
 
         // Obtener datos usando el mismo query del index
         $facturas = DB::table('Doccab')
-            ->leftJoin('Clientes', 'Doccab.CodCli', '=', 'Clientes.CodCli')
-            ->leftJoin('Usuarios', 'Doccab.Usuario', '=', 'Usuarios.Usuario')
+            ->leftJoin('Clientes', 'Doccab.CodClie', '=', 'Clientes.Codclie')
+            ->leftJoin('accesoweb', 'Doccab.Usuario', '=', 'accesoweb.usuario')
             ->whereBetween('Doccab.Fecha', [$fechaInicio, $fechaFin])
-            ->where('Doccab.Tipodoc', '!=', 'AN')
+            ->where('Doccab.Tipo', '!=', 'AN')
             ->select([
                 'Doccab.Numero',
                 'Doccab.Fecha',

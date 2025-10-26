@@ -491,4 +491,8 @@ class DashboardController extends Controller
 
        return view('layouts.contador');
     }
+    public function contadorDashboard()
+    {
+        return view('dashboard.contador');
+    }
 }

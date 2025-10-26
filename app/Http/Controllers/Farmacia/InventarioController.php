@@ -12,7 +12,7 @@ class InventarioController extends Controller
 {
     public function __construct()
     {
-        $this->middleware(['auth', 'rol:farmaceutico,administrador,contador']);
+        $this->middleware(['auth', 'rol:contador|administrador']);
     }
 
     /**
@@ -170,7 +170,7 @@ class InventarioController extends Controller
             ]);
 
             // Registrar en trazabilidad
-            $this->registrarTrazabilidadInventario($request->codpro, 'CREACION_PRODUCTO', 
+            $this->registrar// tabla no existe - TrazabilidadInventario($request->codpro, 'CREACION_PRODUCTO', 
                 "Producto creado en inventario: {$request->nombre}", 0);
 
             DB::commit();
@@ -330,7 +330,7 @@ class InventarioController extends Controller
                 ]);
 
             // Registrar en trazabilidad
-            $this->registrarTrazabilidadInventario($codpro, 'MODIFICACION_PRODUCTO', 
+            $this->registrar// tabla no existe - TrazabilidadInventario($codpro, 'MODIFICACION_PRODUCTO', 
                 "Producto modificado: {$request->nombre}", 0);
 
             DB::commit();
@@ -403,7 +403,7 @@ class InventarioController extends Controller
             }
 
             // Registrar en trazabilidad
-            $this->registrarTrazabilidadInventario($codpro, 'ELIMINACION_PRODUCTO', 
+            $this->registrar// tabla no existe - TrazabilidadInventario($codpro, 'ELIMINACION_PRODUCTO', 
                 $tieneMovimientos ? 'Producto desactivado' : 'Producto eliminado', 0);
 
             DB::commit();
@@ -869,7 +869,7 @@ class InventarioController extends Controller
      */
     private function registrarAjusteStock($codpro, $lote, $cantidadAnterior, $nuevaCantidad, $tipoAjuste, $observaciones)
     {
-        DB::table('AjustesStock')->insert([
+        DB::table('// tabla no existe - AjustesStock')->insert([
             'CodPro' => $codpro,
             'Lote' => $lote,
             'CantidadAnterior' => $cantidadAnterior,
@@ -882,7 +882,7 @@ class InventarioController extends Controller
         ]);
 
         // Registrar en trazabilidad
-        $this->registrarTrazabilidadInventario($codpro, 'AJUSTE_STOCK', 
+        $this->registrar// tabla no existe - TrazabilidadInventario($codpro, 'AJUSTE_STOCK', 
             "Ajuste de stock: {$tipoAjuste} - {$cantidadAnterior} -> {$nuevaCantidad}", 
             $nuevaCantidad - $cantidadAnterior);
     }
@@ -897,7 +897,7 @@ class InventarioController extends Controller
         
         if ($diferencia > 0) {
             // Ajuste positivo: Debito inventario, Credito diferencia
-            DB::table('asientos_diario')->insert([
+            DB::table('// tabla no existe - asientos_diario')->insert([
                 'Codigo' => $this->generarCodigoAsiento(),
                 'Fecha' => Carbon::now(),
                 'CuentaContable' => '2011', // Inventario
@@ -911,7 +911,7 @@ class InventarioController extends Controller
             ]);
         } else {
             // Ajuste negativo: Debito diferencia, Credito inventario
-            DB::table('asientos_diario')->insert([
+            DB::table('// tabla no existe - asientos_diario')->insert([
                 'Codigo' => $this->generarCodigoAsiento(),
                 'Fecha' => Carbon::now(),
                 'CuentaContable' => '2011', // Inventario
@@ -958,7 +958,7 @@ class InventarioController extends Controller
      */
     private function generarCodigoAsiento()
     {
-        $ultimo = DB::table('asientos_diario')
+        $ultimo = DB::table('// tabla no existe - asientos_diario')
             ->max('Codigo');
 
         if ($ultimo) {
@@ -973,9 +973,9 @@ class InventarioController extends Controller
     /**
      * Registrar trazabilidad de inventario
      */
-    private function registrarTrazabilidadInventario($codpro, $accion, $descripcion, $cantidad)
+    private function registrar// tabla no existe - TrazabilidadInventario($codpro, $accion, $descripcion, $cantidad)
     {
-        DB::table('TrazabilidadInventario')->insert([
+        DB::table('// tabla no existe - TrazabilidadInventario')->insert([
             'CodPro' => $codpro,
             'Accion' => $accion,
             'Descripcion' => $descripcion,

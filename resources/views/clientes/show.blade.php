@@ -10,12 +10,12 @@
             <nav aria-label="breadcrumb">
                 <ol class="breadcrumb bg-transparent mb-0">
                     <li class="breadcrumb-item">
-                        <a href="{{ route('contabilidad.clientes.index') }}" class="text-decoration-none">
+                        <a href="{{ route('clientes.index') }}" class="text-decoration-none">
                             <i class="fas fa-arrow-left"></i> Clientes
                         </a>
                     </li>
                     <li class="breadcrumb-item active" aria-current="page">
-                        {{ $cliente->nombre_completo }}
+                        {{ $clientes->CodClie}}
                     </li>
                 </ol>
             </nav>
@@ -33,7 +33,7 @@
                             Información Personal
                         </h5>
                         <div class="btn-group">
-                            <a href="{{ route('contabilidad.clientes.edit', $cliente->id) }}" 
+                            <a href="{{ route('clientes.edit', $cliente->id) }}" 
                                class="btn btn-outline-primary btn-sm">
                                 <i class="fas fa-edit"></i> Editar
                             </a>
