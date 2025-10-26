@@ -46,11 +46,11 @@ class Cliente extends Model
     ];
 
     /**
-     * Relación con CentroCosto (Zona)
+     * Relación con Zona
      */
     public function zona(): BelongsTo
     {
-        return $this->belongsTo(CentroCosto::class, 'Zona', 'Codzona');
+        return $this->belongsTo(Zona::class, 'Zona', 'Codzona');
     }
 
     /**
@@ -81,21 +81,22 @@ class Cliente extends Model
     /**
      * Relación con ProductoDetalle (a través de ventas)
      */
-    public function productosPreferidos(): HasManyThrough
+    public function productosPreferidos()
     {
         return $this->hasManyThrough(
             ProductoDetalle::class,
             Venta::class,
-            'CodClie',  // Clave foránea en "ventas" que referencia al cliente
-            'Numero',   // Clave foránea en "producto_detalle" que referencia a la venta
-            'Codclie',  // Clave local en el modelo actual (cliente)
-            'Numero'    // Clave local en el modelo "ventas"
+            'CodClie',
+            'Numero',
+            'Codclie',
+            'Numero'
         )
         ->selectRaw('Codpro, COUNT(*) as frecuencia')
         ->groupBy('Codpro')
         ->orderBy('frecuencia', 'desc')
         ->limit(10);
     }
+
 
     public function scopeActivos($query)
     {

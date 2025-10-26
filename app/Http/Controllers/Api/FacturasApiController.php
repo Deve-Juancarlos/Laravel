@@ -80,7 +80,7 @@ class FacturasApiController extends Controller
                     'Clientes.Ruc as ClienteRuc',
                     'Clientes.Codigo as ClienteCodigo'
                 ])
-                ->leftJoin('Clientes', 'Doccab.Codcli', '=', 'Clientes.Codigo');
+                ->leftJoin('Clientes', 'Doccab.CodClie', '=', 'Clientes.Codclie');
 
             // Aplicar filtros
             $this->applyFilters($query, $request);
@@ -154,7 +154,7 @@ class FacturasApiController extends Controller
                     'Clientes.Telefono as ClienteTelefono',
                     'Clientes.Email as ClienteEmail'
                 ])
-                ->leftJoin('Clientes', 'Doccab.Codcli', '=', 'Clientes.Codigo')
+               ->leftJoin('Clientes', 'Doccab.CodClie', '=', 'Clientes.Codclie')
                 ->where('Doccab.Id', $id)
                 ->first();
 
@@ -541,7 +541,7 @@ class FacturasApiController extends Controller
                     'Clientes.Nombre as ClienteNombre',
                     'Clientes.Ruc as ClienteRuc'
                 ])
-                ->leftJoin('Clientes', 'Doccab.Codcli', '=', 'Clientes.Codigo')
+                ->leftJoin('Clientes', 'Doccab.CodClie', '=', 'Clientes.Codclie')
                 ->where(function($q) use ($query) {
                     $q->where('Doccab.Numero', 'LIKE', "%{$query}%")
                       ->orWhere('Clientes.Nombre', 'LIKE', "%{$query}%")
@@ -722,7 +722,7 @@ class FacturasApiController extends Controller
                     'Clientes.Codigo as ClienteCodigo',
                     'Clientes.Ruc as ClienteRuc'
                 ])
-                ->leftJoin('Clientes', 'Doccab.Codcli', '=', 'Clientes.Codigo')
+                ->leftJoin('Clientes', 'Doccab.CodClie', '=', 'Clientes.Codclie')
                 ->where('Doccab.Saldo', '>', 0);
 
             // Aplicar filtros
@@ -1096,7 +1096,7 @@ class FacturasApiController extends Controller
     private function obtenerTopClientes($fechaDesde, $fechaHasta)
     {
         return DB::table('Doccab')
-            ->join('Clientes', 'Doccab.Codcli', '=', 'Clientes.Codigo')
+            ->leftJoin('Clientes', 'Doccab.CodClie', '=', 'Clientes.Codclie')
             ->select('Clientes.Codigo', 'Clientes.Nombre', DB::raw('COUNT(*) as documentos'), DB::raw('SUM(Doccab.Total) as monto_total'))
             ->whereBetween('Doccab.Fecha', [$fechaDesde, $fechaHasta])
             ->groupBy('Clientes.Codigo', 'Clientes.Nombre')

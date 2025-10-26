@@ -861,7 +861,7 @@ class DashboardApiController extends Controller
     private function generarGraficoClientes($periodo, $fechaDesde, $fechaHasta)
     {
         return DB::table('Doccab')
-            ->join('Clientes', 'Doccab.Codcli', '=', 'Clientes.Codigo')
+            ->join('Clientes', 'Doccab.CodClie', '=', 'Clientes.Codclie')
             ->select([
                 'Clientes.TipoCliente',
                 DB::raw('COUNT(DISTINCT Doccab.Codcli) as clientes_unicos'),
@@ -1031,7 +1031,7 @@ class DashboardApiController extends Controller
     private function generarRankingClientes($fechaDesde, $fechaHasta, $limite)
     {
         return DB::table('Doccab')
-            ->join('Clientes', 'Doccab.Codcli', '=', 'Clientes.Codigo')
+            ->join('Clientes', 'Doccab.CodClie', '=', 'Clientes.Codclie')
             ->select([
                 'Clientes.Codigo',
                 'Clientes.Nombre',
