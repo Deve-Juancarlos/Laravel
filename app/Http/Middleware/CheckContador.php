@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Log;
 
 class CheckContador
 {
-    public function handle(Request $request, Closure $next)
+    public function handle(Request $request, Closure $next): Response
     {
         if (!Auth::check()) {
             return redirect()->route('login')
@@ -26,7 +26,7 @@ class CheckContador
 
             Log::warning('Intento de acceso no autorizado al sistema contable', [
                 'usuario' => $user->usuario ?? 'desconocido',
-                'tipo' => $rol,
+                'tipousuario' => $rol,
                 'ip' => $request->ip(),
                 'url' => $request->url(),
             ]);

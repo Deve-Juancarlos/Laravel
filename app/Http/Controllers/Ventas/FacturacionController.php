@@ -350,7 +350,7 @@ class FacturacionController extends Controller
             ->get();
 
         $vendedores = DB::table('Usuarios')
-            ->where('Rol', 'VENDEDOR')
+            ->where('tipodeusario', 'contador')
             ->where('Estado', 'ACTIVO')
             ->select(['Usuario', 'Nombre'])
             ->orderBy('Nombre')
