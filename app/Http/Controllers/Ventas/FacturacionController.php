@@ -628,52 +628,47 @@ class FacturacionController extends Controller
      */
     private function calcularEstadisticas($request)
     {
-        $query = DB::table('Doccab')
-            ->where('Tipo', '!=', 1);
+        // Subconsulta: sumar los pagos por número de factura
+        $pagosSubquery = DB::table('PlanD_cobranza')
+            ->select(
+                'Numero',
+                DB::raw('SUM(ISNULL(Valor,0) + ISNULL(Efectivo,0) + ISNULL(Cheque,0)) AS total_pagado')
+            )
+            ->groupBy('Numero');
 
-        // Filtros adicionales opcionales
+        $query = DB::table('Doccab')
+            ->leftJoinSub($pagosSubquery, 'pagos', function ($join) {
+                $join->on('Doccab.Numero', '=', 'pagos.Numero');
+            })
+            ->where('Doccab.Tipo', '!=', 1);
+
+        // Aplicar filtros de fecha si existen
         if ($request->filled('fecha_desde')) {
-            $query->where('Fecha', '>=', $request->fecha_desde);
+            $query->where('Doccab.Fecha', '>=', $request->fecha_desde);
         }
         if ($request->filled('fecha_hasta')) {
-            $query->where('Fecha', '<=', $request->fecha_hasta);
+            $query->where('Doccab.Fecha', '<=', $request->fecha_hasta);
         }
 
+        // Calcular los totales sin usar subconsultas dentro de SUM
         return $query->select([
-            DB::raw('COUNT(*) as total_facturas'),
-            DB::raw('SUM(Total) as total_monto'),
-
-            // Facturas pendientes (pagadas < total)
+            DB::raw('COUNT(*) AS total_facturas'),
+            DB::raw('SUM(Doccab.Total) AS total_monto'),
             DB::raw("
-                SUM(
-                    CASE 
-                        WHEN ISNULL((
-                            SELECT SUM(ISNULL(Valor, 0) + ISNULL(Efectivo, 0) + ISNULL(Cheque, 0))
-                            FROM PlanD_cobranza pd
-                            WHERE pd.Numero = Doccab.Numero
-                        ), 0) < Doccab.Total
-                        THEN Doccab.Total
-                        ELSE 0
-                    END
-                ) as total_pendientes
+                SUM(CASE 
+                    WHEN ISNULL(pagos.total_pagado, 0) < Doccab.Total THEN Doccab.Total 
+                    ELSE 0 
+                END) AS total_pendientes
             "),
-
-            // Facturas pagadas (pagadas >= total)
             DB::raw("
-                SUM(
-                    CASE 
-                        WHEN ISNULL((
-                            SELECT SUM(ISNULL(Valor, 0) + ISNULL(Efectivo, 0) + ISNULL(Cheque, 0))
-                            FROM PlanD_cobranza pd
-                            WHERE pd.Numero = Doccab.Numero
-                        ), 0) >= Doccab.Total
-                        THEN Doccab.Total
-                        ELSE 0
-                    END
-                ) as total_pagadas
+                SUM(CASE 
+                    WHEN ISNULL(pagos.total_pagado, 0) >= Doccab.Total THEN Doccab.Total 
+                    ELSE 0 
+                END) AS total_pagadas
             ")
         ])->first();
     }
+
 
 
     private function calcularMargenPromedio($numero)
