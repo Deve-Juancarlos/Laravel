@@ -44,7 +44,7 @@ class ContadorDashboardController extends Controller
         } catch (\Exception $e) {
             \Log::error('Error en dashboard contador: ' . $e->getMessage());
             
-            return view('contador.dashboard', [
+            return view('dashboard.contador', [
                 'ventasMes' => 0,
                 'cuentasPorCobrar' => 0,
                 'clientesActivos' => 0,
