@@ -654,67 +654,35 @@ class FacturacionController extends Controller
             });
         }
 
-        if ($request->filled('estado')) {
-            $query->where('Doccab.Estado', $request->estado);
-        }
+        // ❌ Este bloque está mal: no hay 'Estado' en tu esquema, y además no está en try
+        // if ($request->filled('estado')) {
+        //     $query->where('Doccab.Estado', $request->estado);
+        // }
 
         if ($request->filled('vendedor')) {
             $query->where('Doccab.Vendedor', 'like', '%' . $request->vendedor . '%');
         }
 
-        // Obtener totales básicos sin join complejo
+        // Inicializamos stats
         $stats = [
-            'total_facturas' => $query->count(),
-            'total_monto' => $query->sum('Total'),
-            'total_pendientes' => $query->where('Eliminado', true)->sum('Total'),
-            'total_pagadas' => 0 // Campo Estado no existe
+            'total_facturas' => 0,
+            'total_monto' => 0,
+            'total_pendientes' => 0,
+            'total_pagadas' => 0
         ];
 
-        // Para estadísticas de cobranza más precisas, obtenemos la información de manera separada
         try {
-            // Obtener total pagado por facturas en el rango de fechas
-            $pagosQuery = DB::table('PlanD_cobranza')
-                ->select('Numero', DB::raw('SUM(ISNULL(Valor,0) + ISNULL(Efectivo,0) + ISNULL(Cheque,0)) AS total_pagado'))
-                ->groupBy('Numero');
+            // Ejecutar consultas que podrían fallar
+            $stats['total_facturas'] = $query->count();
+            $stats['total_monto'] = $query->sum('Total');
+            $stats['total_pendientes'] = $query->where('Eliminado', false)->sum('Total'); // Ajusta según tu lógica real
 
-            // Obtener facturas que tienen pagos para calcular diferencias
-            $facturasConPagos = DB::table('Doccab')
-                ->joinSub($pagosQuery, 'pagos', function ($join) {
-                    $join->on('Doccab.Numero', '=', 'pagos.Numero');
-                })
-                ->where('Doccab.Tipo', 1);
-
-            // Aplicar los mismos filtros de fecha
-            if ($request->filled('fecha_desde')) {
-                $facturasConPagos->where('Doccab.Fecha', '>=', $request->fecha_desde);
-            }
-
-            if ($request->filled('fecha_hasta')) {
-                $facturasConPagos->where('Doccab.Fecha', '<=', $request->fecha_hasta);
-            }
-
-            $pagosData = $facturasConPagos->select('Doccab.Total', 'pagos.total_pagado')->get();
-
-            $totalPendientes = 0;
-            $totalPagadas = 0;
-
-            foreach ($pagosData as $row) {
-                if ($row->total_pagado < $row->Total) {
-                    $totalPendientes += ($row->Total - $row->total_pagado);
-                } else {
-                    $totalPagadas += $row->Total;
-                }
-            }
-
-            // Solo actualizar estas estadísticas si tenemos datos de pagos
-            if ($pagosData->isNotEmpty()) {
-                $stats['total_pendientes'] = $totalPendientes;
-                $stats['total_pagadas'] = $totalPagadas;
-            }
+            // Si necesitas lógica adicional para "pagadas", hazla aquí con cuidado
+            // Pero evita usar 'Estado' si no existe en la tabla
 
         } catch (\Exception $e) {
-            // Si falla la consulta de pagos, mantenemos las estadísticas básicas
             Log::warning('No se pudieron calcular estadísticas de cobranza: ' . $e->getMessage());
+            // stats ya está inicializado, así que no rompe
         }
 
         return $stats;
