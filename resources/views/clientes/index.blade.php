@@ -8,10 +8,10 @@
             <i class="fas fa-users text-primary"></i> Gestión de Clientes
         </h1>
         <div>
-            <a href="{{ route('clientes.buscar') }}" class="btn btn-outline-info">
+            <a href="{{ route('contador.clientes.buscar') }}" class="btn btn-outline-info">
                 <i class="fas fa-search"></i> Búsqueda Avanzada
             </a>
-            <a href="{{ route('clientes.crear') }}" class="btn btn-primary">
+            <a href="{{ route('contador.clientes.crear') }}" class="btn btn-primary">
                 <i class="fas fa-plus"></i> Nuevo Cliente
             </a>
         </div>

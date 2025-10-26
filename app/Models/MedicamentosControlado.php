@@ -67,22 +67,7 @@ class MedicamentosControlado extends Model
     public function cliente()
     {
         return $this->belongsTo(Cliente::class, 'ClienteId', 'Codigo');
-    }
-
-    public function medico()
-    {
-        return $this->belongsTo(MedicoAutorizado::class, 'MedicoId', 'Id');
-    }
-
-    public function farmaceutico()
-    {
-        return $this->belongsTo(Usuario::class, 'FarmaceuticoId', 'Id');
-    }
-
-    public function recetaMedica()
-    {
-        return $this->belongsTo(RecetaMedica::class, 'RecetaMedicaId', 'Id');
-    }
+    }   
 
     // Métodos de negocio
     public function getTipoControlLabel()
@@ -549,18 +534,7 @@ class MedicamentosControlado extends Model
     {
         return $query->whereMonth('FechaDispensacion', now()->month)
                     ->whereYear('FechaDispensacion', now()->year);
-    }
-
-    // Métodos estáticos
-    public static function generarNumeroDispensacion($tipoControl, $fecha = null)
-    {
-        $fecha = $fecha ? Carbon::parse($fecha) : now();
-        $año = $fecha->year;
-        $prefijo = self::getPrefijoPorTipo($tipoControl);
-        $numeroConsecutivo = static::whereYear('FechaDispensacion', $año)->count() + 1;
-        
-        return $prefijo . '-' . $año . '-' . str_pad($numeroConsecutivo, 6, '0', STR_PAD_LEFT);
-    }
+    }     
 
     private static function getPrefijoPorTipo($tipoControl)
     {

@@ -25,7 +25,7 @@ class ClientesController extends Controller
         $estadisticas = $this->calcularEstadisticas();
         $segmentacion = $this->analizarSegmentacionClientes();
 
-        return response()->json(compact('clientes', 'estadisticas', 'segmentacion', 'filtros'));
+        return view('clientes.index', compact('clientes', 'estadisticas', 'segmentacion', 'filtros'));
     }
 
     /**
@@ -34,21 +34,32 @@ class ClientesController extends Controller
     public function show($id)
     {
         $cliente = DB::table('Clientes')->where('Codclie', $id)->first();
-        
         if (!$cliente) {
             return response()->json(['error' => 'Cliente no encontrado'], 404);
         }
 
-        $datos_completos = [
+        // Si la solicitud es AJAX o tiene header Accept: application/json, devuelve JSON
+        if (request()->expectsJson()) {
+            $datos_completos = [
+                'cliente' => $cliente,
+                'compras' => $this->obtenerHistorialCompras($id),
+                'estadisticas' => $this->calcularEstadisticasCliente($id),
+                'credito' => $this->analizarCredito($id),
+                'recomendaciones' => $this->generarRecomendaciones($id),
+                'actividad' => $this->obtenerActividadReciente($id)
+            ];
+            return response()->json($datos_completos);
+        }
+
+        // De lo contrario, muestra la vista
+        return view('clientes.show', [
             'cliente' => $cliente,
             'compras' => $this->obtenerHistorialCompras($id),
             'estadisticas' => $this->calcularEstadisticasCliente($id),
             'credito' => $this->analizarCredito($id),
             'recomendaciones' => $this->generarRecomendaciones($id),
             'actividad' => $this->obtenerActividadReciente($id)
-        ];
-
-        return response()->json($datos_completos);
+        ]);
     }
 
     /**
@@ -656,5 +667,32 @@ class ClientesController extends Controller
             ->get();
 
         return response()->json($clientes);
+    }
+    /**
+ * Muestra la vista para crear un nuevo cliente
+ */
+    public function crearVista()
+    {
+        return view('clientes.crear');
+    }
+
+    /**
+     * Muestra la vista de búsqueda avanzada
+     */
+    public function vistaBusqueda()
+    {
+        return view('clientes.buscar');
+    }
+
+    /**
+     * Muestra la vista para editar un cliente
+     */
+    public function editarVista($id)
+    {
+        $cliente = DB::table('Clientes')->where('Codclie', $id)->first();
+        if (!$cliente) {
+            abort(404);
+        }
+        return view('clientes.editar', compact('cliente'));
     }
 }

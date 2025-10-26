@@ -1,705 +1,398 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    <title>@yield('title', 'SIFANO - Sistema Farmacéutico')</title>
 
-    <title>{{ config('app.name', 'SIFANO') }} - @yield('title', 'Sistema de Gestión Farmacéutica')</title>
-
-    <!-- Fonts -->
-    <link rel="preconnect" href="https://fonts.bunny.net">
-    <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
-
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
     <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-
-    <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <!-- DataTables CSS -->
-    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css">
-    
-    <!-- Select2 CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-    <link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet" />
-
-    <!-- Chart.js -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
     <!-- SweetAlert2 -->
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.10.1/dist/sweetalert2.all.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 
-    <!-- Custom CSS -->
     <style>
-        :root {
-            --primary-color: #2563eb;
-            --secondary-color: #64748b;
-            --success-color: #10b981;
-            --warning-color: #f59e0b;
-            --danger-color: #ef4444;
-            --info-color: #06b6d4;
-            --dark-color: #1e293b;
-            --light-color: #f8fafc;
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
 
         body {
-            font-family: 'Figtree', sans-serif;
-            background-color: var(--light-color);
-        }
-
-        .sidebar {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
             min-height: 100vh;
-            background: linear-gradient(135deg, var(--primary-color) 0%, #1e40af 100%);
-            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
-            transition: all 0.3s ease;
         }
 
-        .sidebar.collapsed {
-            margin-left: -250px;
+        /* Sidebar */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100vh;
+            width: 260px;
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+            overflow-y: auto;
+            z-index: 1000;
+            transition: all 0.3s ease;
         }
 
         .sidebar-brand {
             padding: 1.5rem;
-            background: rgba(255,255,255,0.1);
-            backdrop-filter: blur(10px);
-            border-bottom: 1px solid rgba(255,255,255,0.2);
+            background: rgba(0,0,0,0.2);
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            text-align: center;
         }
 
-        .sidebar-brand img {
-            height: 40px;
+        .sidebar-brand h4 {
+            margin: 0;
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .sidebar-brand small {
+            font-size: 0.75rem;
+            opacity: 0.8;
         }
 
         .sidebar-nav {
             padding: 1rem 0;
         }
 
-        .nav-item {
-            margin: 0.25rem 0;
+        .nav-section {
+            padding: 0.75rem 1.5rem;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: rgba(255,255,255,0.5);
+            font-weight: 600;
+            margin-top: 1rem;
         }
 
         .nav-link {
-            color: rgba(255,255,255,0.9);
+            display: flex;
+            align-items: center;
             padding: 0.75rem 1.5rem;
-            border-radius: 0;
-            transition: all 0.3s ease;
+            color: rgba(255,255,255,0.8);
+            text-decoration: none;
+            transition: all 0.2s ease;
             border-left: 3px solid transparent;
         }
 
-        .nav-link:hover,
-        .nav-link.active {
+        .nav-link:hover {
             background: rgba(255,255,255,0.1);
             color: white;
-            border-left-color: white;
-            transform: translateX(5px);
+            border-left-color: #3498db;
+        }
+
+        .nav-link.active {
+            background: rgba(255,255,255,0.15);
+            color: white;
+            border-left-color: #3498db;
+            font-weight: 600;
         }
 
         .nav-link i {
             width: 20px;
-            text-align: center;
             margin-right: 0.75rem;
+            font-size: 1rem;
         }
 
-        .submenu {
-            background: rgba(0,0,0,0.2);
-            padding-left: 1rem;
-        }
-
+        /* Main Content */
         .main-content {
-            margin-left: 250px;
+            margin-left: 260px;
+            min-height: 100vh;
             transition: all 0.3s ease;
         }
 
-        .main-content.expanded {
-            margin-left: 0;
-        }
-
+        /* Topbar */
         .topbar {
             background: white;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            padding: 1rem 2rem;
-            border-bottom: 1px solid #e2e8f0;
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 999;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
         }
 
-        .content-wrapper {
-            padding: 2rem;
-            min-height: calc(100vh - 120px);
+        .topbar-search {
+            flex: 1;
+            max-width: 500px;
+            margin: 0 2rem;
         }
 
-        .card {
-            border: none;
-            border-radius: 0.75rem;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-            transition: transform 0.2s ease;
+        .topbar-right {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
         }
 
-        .card:hover {
-            transform: translateY(-2px);
-        }
-
-        .card-header {
-            background: linear-gradient(135deg, var(--primary-color) 0%, #1e40af 100%);
-            color: white;
-            border-radius: 0.75rem 0.75rem 0 0 !important;
-            font-weight: 600;
-        }
-
-        .btn {
-            border-radius: 0.5rem;
-            font-weight: 500;
-            transition: all 0.2s ease;
-        }
-
-        .btn:hover {
-            transform: translateY(-1px);
-        }
-
-        .stat-card {
-            background: linear-gradient(135deg, var(--primary-color) 0%, #1e40af 100%);
-            color: white;
-            border-radius: 1rem;
-            padding: 1.5rem;
-            margin-bottom: 1rem;
-        }
-
-        .stat-icon {
-            font-size: 2.5rem;
-            opacity: 0.8;
-        }
-
-        .alert {
-            border-radius: 0.75rem;
-            border: none;
-        }
-
-        .table {
-            border-radius: 0.75rem;
-            overflow: hidden;
-        }
-
-        .table thead th {
-            background: var(--dark-color);
-            color: white;
-            border: none;
-            font-weight: 600;
-        }
-
-        .form-control {
-            border-radius: 0.5rem;
-            border: 1px solid #d1d5db;
-            padding: 0.75rem 1rem;
-        }
-
-        .form-control:focus {
-            border-color: var(--primary-color);
-            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        .notification-bell {
+            position: relative;
+            cursor: pointer;
+            font-size: 1.25rem;
+            color: #666;
         }
 
         .notification-badge {
             position: absolute;
             top: -5px;
             right: -5px;
-            background: var(--danger-color);
+            background: #dc3545;
             color: white;
             border-radius: 50%;
-            width: 20px;
-            height: 20px;
-            font-size: 12px;
+            width: 18px;
+            height: 18px;
+            font-size: 0.65rem;
             display: flex;
             align-items: center;
             justify-content: center;
         }
 
-        .user-dropdown {
-            position: relative;
+        .user-menu {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            transition: background 0.2s;
         }
 
-        .user-dropdown-menu {
-            position: absolute;
-            top: 100%;
-            right: 0;
-            background: white;
-            border-radius: 0.75rem;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
-            min-width: 200px;
-            z-index: 1000;
-            opacity: 0;
-            visibility: hidden;
-            transform: translateY(-10px);
-            transition: all 0.3s ease;
+        .user-menu:hover {
+            background: #f8f9fa;
         }
 
-        .user-dropdown:hover .user-dropdown-menu {
-            opacity: 1;
-            visibility: visible;
-            transform: translateY(0);
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
         }
 
-        .sidebar-toggle {
-            background: none;
+        /* Content Area */
+        .content-area {
+            padding: 2rem;
+        }
+
+        /* Cards */
+        .card {
             border: none;
-            color: var(--dark-color);
-            font-size: 1.25rem;
-            padding: 0.5rem;
-            border-radius: 0.5rem;
-            transition: all 0.2s ease;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            margin-bottom: 1.5rem;
         }
 
-        .sidebar-toggle:hover {
-            background: var(--light-color);
+        .card-header {
+            background: white;
+            border-bottom: 1px solid #f0f0f0;
+            padding: 1.25rem 1.5rem;
+            font-weight: 600;
+            color: #333;
         }
 
-        @media (max-width: 768px) {
-            .sidebar {
-                margin-left: -250px;
-                position: fixed;
-                z-index: 1000;
-                width: 250px;
-            }
-
-            .sidebar.show {
-                margin-left: 0;
-            }
-
-            .main-content {
-                margin-left: 0;
-            }
+        /* Breadcrumb */
+        .breadcrumb {
+            background: transparent;
+            padding: 0;
+            margin: 0.5rem 0 0 0;
+            font-size: 0.875rem;
         }
 
+        /* Loading Overlay */
         .loading-overlay {
+            display: none;
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(255, 255, 255, 0.9);
-            display: flex;
+            background: rgba(0,0,0,0.7);
+            z-index: 9999;
             justify-content: center;
             align-items: center;
-            z-index: 9999;
         }
 
-        .spinner-border {
-            color: var(--primary-color);
+        .loading-overlay.active {
+            display: flex;
         }
 
-        /* Notificaciones */
-        .notification-item {
-            border-left: 4px solid var(--primary-color);
-            transition: all 0.2s ease;
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid rgba(255,255,255,0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
         }
 
-        .notification-item:hover {
-            background: var(--light-color);
-            border-left-color: var(--success-color);
+        @keyframes spin {
+            to { transform: rotate(360deg); }
         }
 
-        .notification-item.critical {
-            border-left-color: var(--danger-color);
-        }
+        /* Responsive */
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
 
-        .notification-item.warning {
-            border-left-color: var(--warning-color);
-        }
+            .sidebar.active {
+                transform: translateX(0);
+            }
 
-        .notification-item.info {
-            border-left-color: var(--info-color);
+            .main-content {
+                margin-left: 0;
+            }
+
+            .topbar-search {
+                display: none;
+            }
         }
     </style>
 
     @stack('styles')
 </head>
-
 <body>
     <!-- Loading Overlay -->
-    <div id="loadingOverlay" class="loading-overlay" style="display: none;">
-        <div class="spinner-border" role="status">
-            <span class="visually-hidden">Cargando...</span>
-        </div>
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="spinner"></div>
     </div>
 
-    <div class="container-fluid">
-        <div class="row">
-            <!-- Sidebar -->
-            <nav class="sidebar col-md-3 col-lg-2 d-md-block" id="sidebar">
-                <div class="position-sticky sidebar-brand">
-                    <div class="d-flex align-items-center">
-                        <i class="fas fa-pills text-white me-2" style="font-size: 1.5rem;"></i>
-                        <div>
-                            <h5 class="text-white mb-0 fw-bold">SIFANO</h5>
-                            <small class="text-white-50">Sistema Farmacéutico</small>
-                        </div>
-                    </div>
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-brand">
+            <h4><i class="fas fa-prescription-bottle-alt me-2"></i>SIFANO</h4>
+            <small>Sistema Farmacéutico Integrado</small>
+        </div>
+
+        <nav class="sidebar-nav">
+            @yield('sidebar-menu')
+        </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Topbar -->
+        <header class="topbar">
+            <button class="btn btn-link d-md-none" id="sidebarToggle">
+                <i class="fas fa-bars"></i>
+            </button>
+
+            <div class="topbar-search d-none d-md-block">
+                <div class="input-group">
+                    <span class="input-group-text bg-white border-end-0">
+                        <i class="fas fa-search text-muted"></i>
+                    </span>
+                    <input type="text" class="form-control border-start-0" placeholder="Buscar productos, clientes...">
+                </div>
+            </div>
+
+            <div class="topbar-right">
+                <div class="notification-bell">
+                    <i class="fas fa-bell"></i>
+                    <span class="notification-badge">3</span>
                 </div>
 
-                <ul class="sidebar-nav nav flex-column">
-                    <li class="nav-item">
-                        <a class="nav-link {{ request()->routeIs('dashboard*') ? 'active' : '' }}" href="{{ request()->routeIs('dashboard.contador') ? route('dashboard.contador') : route('dashboard') }}">
-                            <i class="fas fa-tachometer-alt"></i>
-                            Dashboard
-                        </a>
-                    </li>
-
-                    <!-- Facturación -->
-                    <li class="nav-item">
-                        <a class="nav-link {{ request()->routeIs('contador.facturas*') || request()->routeIs('facturas*') ? 'active' : '' }}" href="#" data-bs-toggle="collapse" data-bs-target="#facturacionMenu">
-                            <i class="fas fa-receipt"></i>
-                            Facturación
-                            <i class="fas fa-chevron-down ms-auto"></i>
-                        </a>
-                        <div class="collapse {{ request()->routeIs('contador.facturas*') || request()->routeIs('facturas*') ? 'show' : '' }}" id="facturacionMenu">
-                            <ul class="nav flex-column submenu">
-                                <li class="nav-item">
-                                    <a class="nav-link {{ request()->routeIs('contador.facturas.index') || request()->routeIs('facturas.index') ? 'active' : '' }}" href="{{ request()->routeIs('dashboard.contador') ? route('contador.facturas.index') : route('facturas.index') }}">
-                                        <i class="fas fa-list"></i>
-                                        Lista de Facturas
-                                    </a>
-                                </li>
-                                @can('create', App\Models\Factura::class)
-                                <li class="nav-item">
-                                    <a class="nav-link {{ request()->routeIs('contador.facturas.create') || request()->routeIs('facturas.create') ? 'active' : '' }}" href="{{ request()->routeIs('dashboard.contador') ? route('contador.facturas.create') : route('facturas.create') }}">
-                                        <i class="fas fa-plus"></i>
-                                        Nueva Factura
-                                    </a>
-                                </li>
-                                @endcan
-                            </ul>
+                <div class="user-menu dropdown">
+                    <div data-bs-toggle="dropdown">
+                        <div class="user-avatar">
+                            {{ strtoupper(substr(Auth::user()->usuario ?? Auth::user()->name ?? 'U', 0, 1)) }}
                         </div>
-                    </li>
-
-                    <!-- Clientes -->
-                    <li class="nav-item">
-                        <a class="nav-link {{ request()->routeIs('contador.clientes*') ? 'active' : '' }}" 
-                        href="{{ route('contador.clientes') }}">
-                            <i class="fas fa-users"></i>
-                            Clientes
-                        </a>
-                    </li>
-
-                    <!-- Productos -->
-                    <li class="nav-item">
-                        <a class="nav-link {{ request()->routeIs('contador.productos*') || request()->routeIs('productos*') ? 'active' : '' }}" href="#" data-bs-toggle="collapse" data-bs-target="#productosMenu">
-                            <i class="fas fa-box"></i>
-                            Productos
-                            <i class="fas fa-chevron-down ms-auto"></i>
-                        </a>
-                        <div class="collapse {{ request()->routeIs('contador.productos*') || request()->routeIs('productos*') ? 'show' : '' }}" id="productosMenu">
-                            <ul class="nav flex-column submenu">
-                                <li class="nav-item">
-                                    <a class="nav-link {{ request()->routeIs('contador.productos.index') || request()->routeIs('productos.index') ? 'active' : '' }}" href="{{ request()->routeIs('dashboard.contador') ? route('contador.productos.index') : route('productos.index') }}">
-                                        <i class="fas fa-list"></i>
-                                        Lista de Productos
-                                    </a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link {{ request()->routeIs('contador.productos.inventario') || request()->routeIs('productos.inventario') ? 'active' : '' }}" href="{{ request()->routeIs('dashboard.contador') ? route('contador.productos.inventario') : route('productos.inventario') }}">
-                                        <i class="fas fa-boxes"></i>
-                                        Inventario
-                                    </a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link {{ request()->routeIs('contador.productos.vencimientos') || request()->routeIs('productos.vencimientos') ? 'active' : '' }}" href="{{ request()->routeIs('dashboard.contador') ? route('contador.productos.vencimientos') : route('productos.vencimientos') }}">
-                                        <i class="fas fa-clock"></i>
-                                        Control de Vencimientos
-                                    </a>
-                                </li>
-                            </ul>
-                        </div>
-                    </li>
-
-                    <!-- Reportes -->
-                    <li class="nav-item">
-                        <a class="nav-link {{ request()->routeIs('contador.reportes*') || request()->routeIs('reportes*') ? 'active' : '' }}" href="#" data-bs-toggle="collapse" data-bs-target="#reportesMenu">
-                            <i class="fas fa-chart-bar"></i>
-                            Reportes
-                            <i class="fas fa-chevron-down ms-auto"></i>
-                        </a>
-                        <div class="collapse {{ request()->routeIs('contador.reportes*') || request()->routeIs('reportes*') ? 'show' : '' }}" id="reportesMenu">
-                            <ul class="nav flex-column submenu">
-                                @can('verReporteFinanciero', App\Models\Reporte::class)
-                                <li class="nav-item">
-                                    <a class="nav-link {{ request()->routeIs('contador.reportes.financiero') || request()->routeIs('reportes.financiero') ? 'active' : '' }}" href="{{ request()->routeIs('dashboard.contador') ? route('contador.reportes.financiero') : route('reportes.financiero') }}">
-                                        <i class="fas fa-dollar-sign"></i>
-                                        Reporte Financiero
-                                    </a>
-                                </li>
-                                @endcan
-                                @can('verReporteInventario', App\Models\Reporte::class)
-                                <li class="nav-item">
-                                    <a class="nav-link {{ request()->routeIs('contador.reportes.inventario') || request()->routeIs('reportes.inventario') ? 'active' : '' }}" href="{{ request()->routeIs('dashboard.contador') ? route('contador.reportes.inventario') : route('reportes.inventario') }}">
-                                        <i class="fas fa-boxes"></i>
-                                        Reporte de Inventario
-                                    </a>
-                                </li>
-                                @endcan
-                                @can('verReporteMedicamentosControlados', App\Models\Reporte::class)
-                                <li class="nav-item">
-                                    <a class="nav-link {{ request()->routeIs('contador.reportes.medicamentos-controlados') || request()->routeIs('reportes.medicamentos-controlados') ? 'active' : '' }}" href="{{ request()->routeIs('dashboard.contador') ? route('contador.reportes.medicamentos-controlados') : route('reportes.medicamentos-controlados') }}">
-                                        <i class="fas fa-shield-alt"></i>
-                                        Medicamentos Controlados
-                                    </a>
-                                </li>
-                                @endcan
-                            </ul>
-                        </div>
-                    </li>
-
-                    <!-- Auditoría -->
-                    @can('viewAny', App\Models\Trazabilidad::class)
-                    <li class="nav-item">
-                        <a class="nav-link {{ request()->routeIs('contador.trazabilidad*') || request()->routeIs('trazabilidad*') ? 'active' : '' }}" href="{{ request()->routeIs('dashboard.contador') ? route('contador.trazabilidad.index') : route('trazabilidad.index') }}">
-                            <i class="fas fa-history"></i>
-                            Auditoría
-                        </a>
-                    </li>
-                    @endcan
-
-                    <!-- Configuración -->
-                    <li class="nav-item">
-                        <a class="nav-link {{ request()->routeIs('contador.configuracion*') || request()->routeIs('configuracion*') ? 'active' : '' }}" href="#" data-bs-toggle="collapse" data-bs-target="#configuracionMenu">
-                            <i class="fas fa-cog"></i>
-                            Configuración
-                            <i class="fas fa-chevron-down ms-auto"></i>
-                        </a>
-                        <div class="collapse {{ request()->routeIs('contador.configuracion*') || request()->routeIs('configuracion*') ? 'show' : '' }}" id="configuracionMenu">
-                            <ul class="nav flex-column submenu">
-                                <li class="nav-item">
-                                    <a class="nav-link {{ request()->routeIs('contador.configuracion.usuarios') || request()->routeIs('configuracion.usuarios') ? 'active' : '' }}" href="{{ request()->routeIs('dashboard.contador') ? route('contador.configuracion.usuarios') : route('configuracion.usuarios') }}">
-                                        <i class="fas fa-users"></i>
-                                        Usuarios
-                                    </a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link {{ request()->routeIs('contador.configuracion.parametros') || request()->routeIs('configuracion.parametros') ? 'active' : '' }}" href="{{ request()->routeIs('dashboard.contador') ? route('contador.configuracion.parametros') : route('configuracion.parametros') }}">
-                                        <i class="fas fa-sliders-h"></i>
-                                        Parámetros
-                                    </a>
-                                </li>
-                            </ul>
-                        </div>
-                    </li>
-                </ul>
-            </nav>
-
-            <!-- Main Content -->
-            <main class="main-content col-md-9 ms-sm-auto col-lg-10 px-md-4">
-                <!-- Top Bar -->
-                <div class="topbar d-flex justify-content-between align-items-center">
-                    <div class="d-flex align-items-center">
-                        <button class="sidebar-toggle me-3" id="sidebarToggle">
-                            <i class="fas fa-bars"></i>
-                        </button>
-                        <nav aria-label="breadcrumb">
-                            <ol class="breadcrumb mb-0">
-                                @yield('breadcrumb')
-                            </ol>
-                        </nav>
-                    </div>
-
-                    <div class="d-flex align-items-center">
-                        <!-- Notificaciones -->
-                        <div class="me-3">
-                            <button class="btn position-relative" id="notificationBtn">
-                                <i class="fas fa-bell text-muted"></i>
-                                <span class="notification-badge" id="notificationCount" style="display: none;">0</span>
-                            </button>
-                        </div>
-
-                        <!-- Usuario -->
-                        <div class="user-dropdown">
-                            <button class="btn d-flex align-items-center" type="button">
-                                <div class="text-end me-2">
-                                    <div class="fw-bold">{{ auth()->user()->nombre ?? 'Usuario' }}</div>
-                                    <small class="text-muted">{{ auth()->user()->rol ?? 'Rol' }}</small>
-                                </div>
-                                <div class="avatar bg-primary rounded-circle d-flex align-items-center justify-content-center text-white fw-bold" style="width: 40px; height: 40px;">
-                                    {{ strtoupper(substr(auth()->user()->nombre ?? 'U', 0, 1)) }}
-                                </div>
-                            </button>
-                            <div class="user-dropdown-menu">
-                                <a class="dropdown-item d-flex align-items-center" href="{{ request()->routeIs('dashboard.contador') ? route('contador.perfil') : route('perfil') }}">
-                                    <i class="fas fa-user me-2"></i>
-                                    Mi Perfil
-                                </a>
-                                <a class="dropdown-item d-flex align-items-center" href="{{ request()->routeIs('dashboard.contador') ? route('contador.configuracion.cambiar-password') : route('configuracion.cambiar-password') }}">
-                                    <i class="fas fa-key me-2"></i>
-                                    Cambiar Contraseña
-                                </a>
-                                <div class="dropdown-divider"></div>
-                                <form method="POST" action="{{ route('logout') }}" class="d-inline">
-                                    @csrf
-                                    <button type="submit" class="dropdown-item d-flex align-items-center w-100 text-start">
-                                        <i class="fas fa-sign-out-alt me-2"></i>
-                                        Cerrar Sesión
-                                    </button>
-                                </form>
+                        <div class="d-none d-md-block ms-2">
+                            <div style="font-size: 0.875rem; font-weight: 600;">
+                                {{ Auth::user()->usuario ?? Auth::user()->name ?? 'Usuario' }}
+                            </div>
+                            <div style="font-size: 0.75rem; color: #666;">
+                                {{ Auth::user()->tipousuario ?? 'Usuario' }}
                             </div>
                         </div>
                     </div>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item" href="#"><i class="fas fa-user me-2"></i>Mi Perfil</a></li>
+                        <li><a class="dropdown-item" href="#"><i class="fas fa-cog me-2"></i>Configuración</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <form method="POST" action="{{ route('logout') }}">
+                                @csrf
+                                <button type="submit" class="dropdown-item text-danger">
+                                    <i class="fas fa-sign-out-alt me-2"></i>Cerrar Sesión
+                                </button>
+                            </form>
+                        </li>
+                    </ul>
                 </div>
+            </div>
+        </header>
 
-                <!-- Content -->
-                <div class="content-wrapper">
-                    <!-- Alertas -->
-                    @if (session('success'))
-                        <div class="alert alert-success alert-dismissible fade show" role="alert">
-                            <i class="fas fa-check-circle me-2"></i>
-                            {{ session('success') }}
-                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                        </div>
-                    @endif
+        <!-- Page Content -->
+        <div class="content-area">
+            @if(session('success'))
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                <i class="fas fa-check-circle me-2"></i>{{ session('success') }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            @endif
 
-                    @if (session('error'))
-                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                            <i class="fas fa-exclamation-circle me-2"></i>
-                            {{ session('error') }}
-                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                        </div>
-                    @endif
+            @if(session('error'))
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="fas fa-exclamation-circle me-2"></i>{{ session('error') }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            @endif
 
-                    @if (session('warning'))
-                        <div class="alert alert-warning alert-dismissible fade show" role="alert">
-                            <i class="fas fa-exclamation-triangle me-2"></i>
-                            {{ session('warning') }}
-                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                        </div>
-                    @endif
-
-                    @if (session('info'))
-                        <div class="alert alert-info alert-dismissible fade show" role="alert">
-                            <i class="fas fa-info-circle me-2"></i>
-                            {{ session('info') }}
-                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                        </div>
-                    @endif
-
-                    <!-- Errores de validación -->
-                    @if ($errors->any())
-                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                            <i class="fas fa-exclamation-circle me-2"></i>
-                            <strong>Error:</strong> Por favor corrige los siguientes errores:
-                            <ul class="mt-2 mb-0">
-                                @foreach ($errors->all() as $error)
-                                    <li>{{ $error }}</li>
-                                @endforeach
-                            </ul>
-                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                        </div>
-                    @endif
-
-                    <!-- Contenido principal -->
-                    @yield('content')
-                </div>
-            </main>
+            @yield('content')
         </div>
-    </div>
+    </main>
 
-    <!-- Scripts -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-    <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
-    <script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    
+    <!-- Bootstrap 5 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <script>
-        // Configuración CSRF para AJAX
-        $.ajaxSetup({
-            headers: {
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-            }
+        // Toggle Sidebar Mobile
+        document.getElementById('sidebarToggle')?.addEventListener('click', function() {
+            document.getElementById('sidebar').classList.toggle('active');
         });
 
-        // Toggle Sidebar
-        $('#sidebarToggle').on('click', function() {
-            $('#sidebar').toggleClass('show');
-            $('.main-content').toggleClass('expanded');
-        });
-
-        // Loading overlay
+        // Loading Functions
         function showLoading() {
-            $('#loadingOverlay').show();
+            document.getElementById('loadingOverlay').classList.add('active');
         }
 
         function hideLoading() {
-            $('#loadingOverlay').hide();
+            document.getElementById('loadingOverlay').classList.remove('active');
         }
 
         // Auto-hide alerts
         setTimeout(function() {
-            $('.alert').fadeOut('slow');
+            const alerts = document.querySelectorAll('.alert');
+            alerts.forEach(alert => {
+                const bsAlert = new bootstrap.Alert(alert);
+                bsAlert.close();
+            });
         }, 5000);
-
-        // Inicializar componentes
-        $(document).ready(function() {
-            // Initialize DataTables
-            if ($('.data-table').length) {
-                $('.data-table').DataTable({
-                    language: {
-                        url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/es-ES.json'
-                    },
-                    responsive: true,
-                    pageLength: 25,
-                    order: [[0, 'desc']]
-                });
-            }
-
-            // Initialize Select2
-            $('.select2').select2({
-                theme: 'bootstrap-5',
-                placeholder: 'Selecciona una opción...'
-            });
-
-            // Form validation
-            $('form').on('submit', function() {
-                showLoading();
-            });
-
-            // Auto-refresh notifications
-            loadNotifications();
-            setInterval(loadNotifications, 30000); // Refresh every 30 seconds
-        });
-
-        // Load notifications
-        function loadNotifications() {
-            $.get('/notificaciones/recientes')
-                .done(function(data) {
-                    updateNotificationBadge(data.count);
-                    updateNotificationDropdown(data.notifications);
-                })
-                .fail(function() {
-                    console.log('Error loading notifications');
-                });
-        }
-
-        function updateNotificationBadge(count) {
-            const badge = $('#notificationCount');
-            if (count > 0) {
-                badge.text(count).show();
-            } else {
-                badge.hide();
-            }
-        }
-
-        function updateNotificationDropdown(notifications) {
-            // Implement notification dropdown update logic
-            console.log('Updating notifications:', notifications);
-        }
-
-        // Confirm delete
-        function confirmDelete(message = '¿Estás seguro de que deseas eliminar este elemento?') {
-            return Swal.fire({
-                title: 'Confirmar eliminación',
-                text: message,
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#ef4444',
-                cancelButtonColor: '#64748b',
-                confirmButtonText: 'Sí, eliminar',
-                cancelButtonText: 'Cancelar'
-            }).then((result) => {
-                return result.isConfirmed;
-            });
-        }
     </script>
 
     @stack('scripts')

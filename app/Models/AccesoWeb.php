@@ -26,4 +26,5 @@ class AccesoWeb extends Authenticatable
         'password',
         'remember_token',
     ];
+    
 }

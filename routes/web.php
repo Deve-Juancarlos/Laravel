@@ -115,7 +115,7 @@ Route::middleware(['auth', 'check.contador'])->group(function () {
     Route::get('/dashboard/contador', [ContadorDashboardController::class, 'contadorDashboard'])->name('dashboard.contador');
     Route::prefix('contador')->name('contador.')->group(function () {
         Route::get('ventas', [App\Http\Controllers\Ventas\DashboardVentasController::class, 'index'])->name('ventas');
-        Route::get('facturacion', [App\Http\Controllers\Ventas\FacturacionController::class, 'index'])->name('facturacion');
+        Route::get('facturacion', [App\Http\Controllers\Ventas\FacturacionController::class, 'index'])->name('facturas.index');
         Route::get('cuentas-cobrar', [App\Http\Controllers\Ventas\CuentasCobrarController::class, 'index'])->name('cuentas-cobrar');
         Route::get('inventario', [App\Http\Controllers\Farmacia\InventarioController::class, 'index'])->name('inventario');
         Route::get('clientes', [App\Http\Controllers\Clientes\ClientesController::class, 'index'])->name('clientes');
@@ -158,6 +158,22 @@ Route::middleware(['auth', 'check.contador'])->group(function () {
         
         // Perfil
         Route::get('perfil', [ContadorDashboardController::class, 'index'])->name('perfil');
+
+            // Ruta para crear cliente
+        Route::get('clientes/crear', [App\Http\Controllers\Clientes\ClientesController::class, 'crearVista'])
+            ->name('clientes.crear');
+
+        // Ruta para buscar cliente (búsqueda avanzada)
+        Route::get('clientes/buscar', [App\Http\Controllers\Clientes\ClientesController::class, 'vistaBusqueda'])
+            ->name('clientes.buscar');
+
+        // Ruta para editar cliente
+        Route::get('clientes/{id}/editar', [App\Http\Controllers\Clientes\ClientesController::class, 'editarVista'])
+            ->name('clientes.editar');
+
+        // Ruta para ver detalle de cliente
+        Route::get('clientes/{id}', [App\Http\Controllers\Clientes\ClientesController::class, 'show'])
+            ->name('clientes.show');
     });
 });
 
