@@ -164,4 +164,3 @@ Route::middleware(['auth', 'check.contador'])->group(function () {
 Route::get('/acceso-denegado', function () {
     return view('errors.403');
 })->name('access.denied');
-

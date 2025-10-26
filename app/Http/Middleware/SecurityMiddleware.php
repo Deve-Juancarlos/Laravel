@@ -11,7 +11,7 @@ class SecurityMiddleware
 {
     public function handle(Request $request, Closure $next)
     {
-        // Registrar todos los accesos
+        // 1️⃣ Registrar todos los accesos
         Log::channel('security')->info('Acceso detectado', [
             'user' => Auth::user()?->usuario ?? 'Guest',
             'ip' => $request->ip(),
@@ -20,7 +20,7 @@ class SecurityMiddleware
             'user_agent' => $request->userAgent()
         ]);
 
-        // Detectar patrones sospechosos (SQL Injection / XSS)
+        // 2️⃣ Detectar patrones sospechosos (SQL Injection / XSS)
         $suspicious_patterns = [
             '/(\bUNION\b|\bSELECT\b|\bINSERT\b|\bDELETE\b|\bUPDATE\b|\bDROP\b)/i',
             '/(OR|AND)\s+\d+\s*=\s*\d+/i',

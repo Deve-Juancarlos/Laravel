@@ -334,7 +334,7 @@
 
                 <ul class="sidebar-nav nav flex-column">
                     <li class="nav-item">
-                        <a class="nav-link {{ request()->routeIs('dashboard*') ? 'active' : '' }}" href="{{ route('dashboard') }}">
+                        <a class="nav-link {{ request()->routeIs('dashboard*') ? 'active' : '' }}" href="{{ request()->routeIs('dashboard.contador') ? route('dashboard.contador') : route('dashboard') }}">
                             <i class="fas fa-tachometer-alt"></i>
                             Dashboard
                         </a>
@@ -342,22 +342,22 @@
 
                     <!-- Facturación -->
                     <li class="nav-item">
-                        <a class="nav-link {{ request()->routeIs('facturas*') ? 'active' : '' }}" href="#" data-bs-toggle="collapse" data-bs-target="#facturacionMenu">
+                        <a class="nav-link {{ request()->routeIs('contador.facturas*') || request()->routeIs('facturas*') ? 'active' : '' }}" href="#" data-bs-toggle="collapse" data-bs-target="#facturacionMenu">
                             <i class="fas fa-receipt"></i>
                             Facturación
                             <i class="fas fa-chevron-down ms-auto"></i>
                         </a>
-                        <div class="collapse {{ request()->routeIs('facturas*') ? 'show' : '' }}" id="facturacionMenu">
+                        <div class="collapse {{ request()->routeIs('contador.facturas*') || request()->routeIs('facturas*') ? 'show' : '' }}" id="facturacionMenu">
                             <ul class="nav flex-column submenu">
                                 <li class="nav-item">
-                                    <a class="nav-link {{ request()->routeIs('facturas.index') ? 'active' : '' }}" href="{{ route('facturas.index') }}">
+                                    <a class="nav-link {{ request()->routeIs('contador.facturas.index') || request()->routeIs('facturas.index') ? 'active' : '' }}" href="{{ request()->routeIs('dashboard.contador') ? route('contador.facturas.index') : route('facturas.index') }}">
                                         <i class="fas fa-list"></i>
                                         Lista de Facturas
                                     </a>
                                 </li>
                                 @can('create', App\Models\Factura::class)
                                 <li class="nav-item">
-                                    <a class="nav-link {{ request()->routeIs('facturas.create') ? 'active' : '' }}" href="{{ route('facturas.create') }}">
+                                    <a class="nav-link {{ request()->routeIs('contador.facturas.create') || request()->routeIs('facturas.create') ? 'active' : '' }}" href="{{ request()->routeIs('dashboard.contador') ? route('contador.facturas.create') : route('facturas.create') }}">
                                         <i class="fas fa-plus"></i>
                                         Nueva Factura
                                     </a>
@@ -369,7 +369,8 @@
 
                     <!-- Clientes -->
                     <li class="nav-item">
-                        <a class="nav-link {{ request()->routeIs('clientes*') ? 'active' : '' }}" href="{{ route('clientes.index') }}">
+                        <a class="nav-link {{ request()->routeIs('contador.clientes*') ? 'active' : '' }}" 
+                        href="{{ route('contador.clientes') }}">
                             <i class="fas fa-users"></i>
                             Clientes
                         </a>
@@ -377,27 +378,27 @@
 
                     <!-- Productos -->
                     <li class="nav-item">
-                        <a class="nav-link {{ request()->routeIs('productos*') ? 'active' : '' }}" href="#" data-bs-toggle="collapse" data-bs-target="#productosMenu">
+                        <a class="nav-link {{ request()->routeIs('contador.productos*') || request()->routeIs('productos*') ? 'active' : '' }}" href="#" data-bs-toggle="collapse" data-bs-target="#productosMenu">
                             <i class="fas fa-box"></i>
                             Productos
                             <i class="fas fa-chevron-down ms-auto"></i>
                         </a>
-                        <div class="collapse {{ request()->routeIs('productos*') ? 'show' : '' }}" id="productosMenu">
+                        <div class="collapse {{ request()->routeIs('contador.productos*') || request()->routeIs('productos*') ? 'show' : '' }}" id="productosMenu">
                             <ul class="nav flex-column submenu">
                                 <li class="nav-item">
-                                    <a class="nav-link {{ request()->routeIs('productos.index') ? 'active' : '' }}" href="{{ route('productos.index') }}">
+                                    <a class="nav-link {{ request()->routeIs('contador.productos.index') || request()->routeIs('productos.index') ? 'active' : '' }}" href="{{ request()->routeIs('dashboard.contador') ? route('contador.productos.index') : route('productos.index') }}">
                                         <i class="fas fa-list"></i>
                                         Lista de Productos
                                     </a>
                                 </li>
                                 <li class="nav-item">
-                                    <a class="nav-link {{ request()->routeIs('productos.inventario') ? 'active' : '' }}" href="{{ route('productos.inventario') }}">
+                                    <a class="nav-link {{ request()->routeIs('contador.productos.inventario') || request()->routeIs('productos.inventario') ? 'active' : '' }}" href="{{ request()->routeIs('dashboard.contador') ? route('contador.productos.inventario') : route('productos.inventario') }}">
                                         <i class="fas fa-boxes"></i>
                                         Inventario
                                     </a>
                                 </li>
                                 <li class="nav-item">
-                                    <a class="nav-link {{ request()->routeIs('productos.vencimientos') ? 'active' : '' }}" href="{{ route('productos.vencimientos') }}">
+                                    <a class="nav-link {{ request()->routeIs('contador.productos.vencimientos') || request()->routeIs('productos.vencimientos') ? 'active' : '' }}" href="{{ request()->routeIs('dashboard.contador') ? route('contador.productos.vencimientos') : route('productos.vencimientos') }}">
                                         <i class="fas fa-clock"></i>
                                         Control de Vencimientos
                                     </a>
@@ -408,16 +409,16 @@
 
                     <!-- Reportes -->
                     <li class="nav-item">
-                        <a class="nav-link {{ request()->routeIs('reportes*') ? 'active' : '' }}" href="#" data-bs-toggle="collapse" data-bs-target="#reportesMenu">
+                        <a class="nav-link {{ request()->routeIs('contador.reportes*') || request()->routeIs('reportes*') ? 'active' : '' }}" href="#" data-bs-toggle="collapse" data-bs-target="#reportesMenu">
                             <i class="fas fa-chart-bar"></i>
                             Reportes
                             <i class="fas fa-chevron-down ms-auto"></i>
                         </a>
-                        <div class="collapse {{ request()->routeIs('reportes*') ? 'show' : '' }}" id="reportesMenu">
+                        <div class="collapse {{ request()->routeIs('contador.reportes*') || request()->routeIs('reportes*') ? 'show' : '' }}" id="reportesMenu">
                             <ul class="nav flex-column submenu">
                                 @can('verReporteFinanciero', App\Models\Reporte::class)
                                 <li class="nav-item">
-                                    <a class="nav-link {{ request()->routeIs('reportes.financiero') ? 'active' : '' }}" href="{{ route('reportes.financiero') }}">
+                                    <a class="nav-link {{ request()->routeIs('contador.reportes.financiero') || request()->routeIs('reportes.financiero') ? 'active' : '' }}" href="{{ request()->routeIs('dashboard.contador') ? route('contador.reportes.financiero') : route('reportes.financiero') }}">
                                         <i class="fas fa-dollar-sign"></i>
                                         Reporte Financiero
                                     </a>
@@ -425,7 +426,7 @@
                                 @endcan
                                 @can('verReporteInventario', App\Models\Reporte::class)
                                 <li class="nav-item">
-                                    <a class="nav-link {{ request()->routeIs('reportes.inventario') ? 'active' : '' }}" href="{{ route('reportes.inventario') }}">
+                                    <a class="nav-link {{ request()->routeIs('contador.reportes.inventario') || request()->routeIs('reportes.inventario') ? 'active' : '' }}" href="{{ request()->routeIs('dashboard.contador') ? route('contador.reportes.inventario') : route('reportes.inventario') }}">
                                         <i class="fas fa-boxes"></i>
                                         Reporte de Inventario
                                     </a>
@@ -433,7 +434,7 @@
                                 @endcan
                                 @can('verReporteMedicamentosControlados', App\Models\Reporte::class)
                                 <li class="nav-item">
-                                    <a class="nav-link {{ request()->routeIs('reportes.medicamentos-controlados') ? 'active' : '' }}" href="{{ route('reportes.medicamentos-controlados') }}">
+                                    <a class="nav-link {{ request()->routeIs('contador.reportes.medicamentos-controlados') || request()->routeIs('reportes.medicamentos-controlados') ? 'active' : '' }}" href="{{ request()->routeIs('dashboard.contador') ? route('contador.reportes.medicamentos-controlados') : route('reportes.medicamentos-controlados') }}">
                                         <i class="fas fa-shield-alt"></i>
                                         Medicamentos Controlados
                                     </a>
@@ -446,7 +447,7 @@
                     <!-- Auditoría -->
                     @can('viewAny', App\Models\Trazabilidad::class)
                     <li class="nav-item">
-                        <a class="nav-link {{ request()->routeIs('trazabilidad*') ? 'active' : '' }}" href="{{ route('trazabilidad.index') }}">
+                        <a class="nav-link {{ request()->routeIs('contador.trazabilidad*') || request()->routeIs('trazabilidad*') ? 'active' : '' }}" href="{{ request()->routeIs('dashboard.contador') ? route('contador.trazabilidad.index') : route('trazabilidad.index') }}">
                             <i class="fas fa-history"></i>
                             Auditoría
                         </a>
@@ -455,21 +456,21 @@
 
                     <!-- Configuración -->
                     <li class="nav-item">
-                        <a class="nav-link {{ request()->routeIs('configuracion*') ? 'active' : '' }}" href="#" data-bs-toggle="collapse" data-bs-target="#configuracionMenu">
+                        <a class="nav-link {{ request()->routeIs('contador.configuracion*') || request()->routeIs('configuracion*') ? 'active' : '' }}" href="#" data-bs-toggle="collapse" data-bs-target="#configuracionMenu">
                             <i class="fas fa-cog"></i>
                             Configuración
                             <i class="fas fa-chevron-down ms-auto"></i>
                         </a>
-                        <div class="collapse {{ request()->routeIs('configuracion*') ? 'show' : '' }}" id="configuracionMenu">
+                        <div class="collapse {{ request()->routeIs('contador.configuracion*') || request()->routeIs('configuracion*') ? 'show' : '' }}" id="configuracionMenu">
                             <ul class="nav flex-column submenu">
                                 <li class="nav-item">
-                                    <a class="nav-link {{ request()->routeIs('configuracion.usuarios') ? 'active' : '' }}" href="{{ route('configuracion.usuarios') }}">
+                                    <a class="nav-link {{ request()->routeIs('contador.configuracion.usuarios') || request()->routeIs('configuracion.usuarios') ? 'active' : '' }}" href="{{ request()->routeIs('dashboard.contador') ? route('contador.configuracion.usuarios') : route('configuracion.usuarios') }}">
                                         <i class="fas fa-users"></i>
                                         Usuarios
                                     </a>
                                 </li>
                                 <li class="nav-item">
-                                    <a class="nav-link {{ request()->routeIs('configuracion.parametros') ? 'active' : '' }}" href="{{ route('configuracion.parametros') }}">
+                                    <a class="nav-link {{ request()->routeIs('contador.configuracion.parametros') || request()->routeIs('configuracion.parametros') ? 'active' : '' }}" href="{{ request()->routeIs('dashboard.contador') ? route('contador.configuracion.parametros') : route('configuracion.parametros') }}">
                                         <i class="fas fa-sliders-h"></i>
                                         Parámetros
                                     </a>
@@ -516,11 +517,11 @@
                                 </div>
                             </button>
                             <div class="user-dropdown-menu">
-                                <a class="dropdown-item d-flex align-items-center" href="{{ route('perfil') }}">
+                                <a class="dropdown-item d-flex align-items-center" href="{{ request()->routeIs('dashboard.contador') ? route('contador.perfil') : route('perfil') }}">
                                     <i class="fas fa-user me-2"></i>
                                     Mi Perfil
                                 </a>
-                                <a class="dropdown-item d-flex align-items-center" href="{{ route('configuracion.cambiar-password') }}">
+                                <a class="dropdown-item d-flex align-items-center" href="{{ request()->routeIs('dashboard.contador') ? route('contador.configuracion.cambiar-password') : route('configuracion.cambiar-password') }}">
                                     <i class="fas fa-key me-2"></i>
                                     Cambiar Contraseña
                                 </a>

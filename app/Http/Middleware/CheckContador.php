@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Log;
 
 class CheckContador
 {
-    public function handle(Request $request, Closure $next): Response
+    public function handle(Request $request, Closure $next)
     {
         if (!Auth::check()) {
             return redirect()->route('login')
