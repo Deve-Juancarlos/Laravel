@@ -16,7 +16,7 @@ class FacturacionController extends Controller
     public function __construct()
     {
         $this->middleware('auth');
-        $this->middleware('rol:contador|administrador');
+        
     }
 
     /**
@@ -27,7 +27,7 @@ class FacturacionController extends Controller
         $query = DB::table('Doccab')
             ->leftJoin('Clientes', 'Doccab.CodClie', '=', 'Clientes.Codclie')
             ->leftJoin('accesoweb', 'Doccab.Usuario', '=', 'accesoweb.usuario')
-            ->where('Doccab.Tipo', '!=', 'AN');
+            ->where('Doccab.Tipo', '!=', '1');
 
         // Filtros de fecha
         if ($request->filled('fecha_desde')) {
@@ -116,7 +116,7 @@ class FacturacionController extends Controller
                 'Total' => $totales['total'],
                 'Eliminado' => false,
                 'Vendedor' => $request->Vendedor,
-                'Usuario' => auth()->user()->usuario ?? 'admin',
+                'Usuario' => auth()->user()->usuario,
                 'Observacion' => $request->Observacion,
                 'created_at' => now()
             ]);
@@ -444,11 +444,11 @@ class FacturacionController extends Controller
         $facturas = DB::table('Doccab')
             ->leftJoin('Clientes', 'Doccab.CodClie', '=', 'Clientes.Codclie')
             ->whereBetween('Doccab.Fecha', [$fechaInicio, $fechaFin])
-            ->where('Doccab.Tipo', '!=', 'AN')
+            ->where('Doccab.Tipo', '!=', '1')
             ->select([
                 'Doccab.Numero',
                 'Doccab.Fecha',
-                'Doccab.Tipodoc',
+                'Doccab.Tipo',
                 'Clientes.Razon as Cliente',
                 'Clientes.Ruc as Ruc',
                 'Doccab.Subtotal',
@@ -498,12 +498,12 @@ class FacturacionController extends Controller
         
         if ($soloSiguiente) {
             $ultimoNumero = DB::table('Doccab')
-                ->where('Tipodoc', $tipo)
+                ->where('Tipo', $tipo)
                 ->whereYear('Fecha', $año)
                 ->max('Numero');
         } else {
             $ultimoNumero = DB::table('Doccab')
-                ->where('Tipodoc', $tipo)
+                ->where('Tipo', $tipo)
                 ->whereYear('Fecha', $año)
                 ->max('Numero');
         }
@@ -610,7 +610,7 @@ class FacturacionController extends Controller
         
         DB::table('Doccab')->insert([
             'Numero' => $numeroNC,
-            'Tipodoc' => 'NCRE',
+            'Tipo' => 'NCRE',
             'CodCli' => $factura->CodCli,
             'Fecha' => now(),
             'Subtotal' => -$factura->Subtotal,
@@ -628,47 +628,61 @@ class FacturacionController extends Controller
      */
     private function calcularEstadisticas($request)
     {
-        $query = DB::table('Doccab')->where('Tipodoc', '!=', 'AN');
+        $query = DB::table('Doccab')
+            ->where('Tipo', '!=', 1);
 
-        // Aplicar mismos filtros que la consulta principal
+        // Filtros adicionales opcionales
         if ($request->filled('fecha_desde')) {
             $query->where('Fecha', '>=', $request->fecha_desde);
         }
         if ($request->filled('fecha_hasta')) {
             $query->where('Fecha', '<=', $request->fecha_hasta);
         }
-        if ($request->filled('cliente')) {
-            $query->whereHas('cliente', function($q) use ($request) {
-                $q->where('Razon', 'like', '%' . $request->cliente . '%');
-            });
-        }
-        if ($request->filled('estado')) {
-            $query->where('Estado', $request->estado);
-        }
-        if ($request->filled('vendedor')) {
-            $query->where('Vendedor', 'like', '%' . $request->vendedor . '%');
-        }
 
         return $query->select([
             DB::raw('COUNT(*) as total_facturas'),
             DB::raw('SUM(Total) as total_monto'),
-            DB::raw('SUM(CASE WHEN Estado = "PENDIENTE" THEN Total ELSE 0 END) as total_pendientes'),
-            DB::raw('SUM(CASE WHEN Estado = "PAGADO" THEN Total ELSE 0 END) as total_pagadas')
+
+            // Facturas pendientes (pagadas < total)
+            DB::raw("
+                SUM(
+                    CASE 
+                        WHEN ISNULL((
+                            SELECT SUM(ISNULL(Valor, 0) + ISNULL(Efectivo, 0) + ISNULL(Cheque, 0))
+                            FROM PlanD_cobranza pd
+                            WHERE pd.Numero = Doccab.Numero
+                        ), 0) < Doccab.Total
+                        THEN Doccab.Total
+                        ELSE 0
+                    END
+                ) as total_pendientes
+            "),
+
+            // Facturas pagadas (pagadas >= total)
+            DB::raw("
+                SUM(
+                    CASE 
+                        WHEN ISNULL((
+                            SELECT SUM(ISNULL(Valor, 0) + ISNULL(Efectivo, 0) + ISNULL(Cheque, 0))
+                            FROM PlanD_cobranza pd
+                            WHERE pd.Numero = Doccab.Numero
+                        ), 0) >= Doccab.Total
+                        THEN Doccab.Total
+                        ELSE 0
+                    END
+                ) as total_pagadas
+            ")
         ])->first();
     }
 
-    /**
-     * Calcular margen promedio
-     */
+
     private function calcularMargenPromedio($numero)
     {
         // Implementación simplificada - en producción sería más compleja
         return 25.5; // 25.5% margen promedio
     }
 
-    /**
-     * Verificar cumplimiento de entrega
-     */
+ 
     private function verificarCumplimientoEntrega($numero)
     {
         // Implementación básica - verificar si hay registros de entrega
@@ -708,11 +722,11 @@ class FacturacionController extends Controller
             ->leftJoin('Clientes', 'Doccab.CodClie', '=', 'Clientes.Codclie')
             ->leftJoin('accesoweb', 'Doccab.Usuario', '=', 'accesoweb.usuario')
             ->whereBetween('Doccab.Fecha', [$fechaInicio, $fechaFin])
-            ->where('Doccab.Tipo', '!=', 'AN')
+            ->where('Doccab.Tipo', '!=', '1')
             ->select([
                 'Doccab.Numero',
                 'Doccab.Fecha',
-                'Doccab.Tipodoc',
+                'Doccab.Tipo',
                 'Clientes.Razon as Cliente',
                 'Clientes.Ruc as Ruc',
                 'Doccab.Subtotal',
@@ -756,7 +770,7 @@ class FacturacionController extends Controller
             $row = [
                 $factura->Numero,
                 $factura->Fecha,
-                $factura->Tipodoc,
+                $factura->Tipo,
                 '"' . str_replace('"', '""', $factura->Cliente) . '"',
                 $factura->Ruc,
                 number_format($factura->Subtotal, 2),
