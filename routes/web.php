@@ -122,7 +122,14 @@ Route::middleware(['auth', 'check.contador'])->group(function () {
         Route::get('estado-cuenta', [App\Http\Controllers\Clientes\EstadoCuentaController::class, 'index'])->name('estado-cuenta');
         Route::get('planillas', [App\Http\Controllers\Ventas\PlanillasController::class, 'index'])->name('planillas');
         Route::get('analytics', [App\Http\Controllers\Reportes\AnalyticsController::class, 'index'])->name('analytics');
-        Route::get('kpis', [App\Http\Controllers\Reportes\KpiController::class, 'index'])->name('kpis');        
+        Route::get('kpis', [App\Http\Controllers\Reportes\KpiController::class, 'index'])->name('kpis');    
+        Route::get('reportes/financiero', [ReportesSunatController::class, 'index'])->name('reportes.financiero');
+        Route::get('reportes/ventas', [ReportesSunatController::class, 'registroVentas'])->name('reportes.ventas');
+        Route::get('reportes/compras', [ReportesSunatController::class, 'registroCompras'])->name('reportes.compras');
+        Route::get('libros-electronicos', [ReportesSunatController::class, 'librosElectronicos'])->name('libros-electronicos');
+        Route::get('reportes/declaracion', [ReportesSunatController::class, 'declaracionJurada'])->name('reportes.declaracion');
+        Route::get('facturas', [App\Http\Controllers\Ventas\FacturacionController::class, 'index'])->name('facturas.index');
+        Route::get('reportes/exportar', [ReportesSunatController::class, 'index'])->name('reportes.exportar');   
     });
 });
 
