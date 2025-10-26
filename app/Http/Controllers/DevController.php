@@ -90,7 +90,7 @@ class DevController extends Controller
                 ],
                 'Doccab' => [
                     'descripcion' => 'Cabecera de documentos',
-                    'campos_clave' => ['Numero', 'Tipo', 'Codcli', 'Fecha', 'Total'],
+                    'campos_clave' => ['Numero', 'Tipo', 'CodClie', 'Fecha', 'Total'],
                     'registros' => DB::table('Doccab')->count()
                 ],
                 'Docdet' => [
@@ -556,13 +556,10 @@ class DevController extends Controller
     {
         for ($i = 1; $i <= $cantidad; $i++) {
             DB::table('Clientes')->insert([
-                'Codclie' => 'CLI' . str_pad($i, 6, '0', STR_PAD_LEFT),
                 'Razon' => 'Cliente de Prueba ' . $i,
                 'Documento' => '20' . str_pad(rand(10000000000, 99999999999), 11, '0', STR_PAD_LEFT),
                 'Direccion' => 'Dirección de Prueba ' . $i,
-                'Distrito' => 'Lima',
-                'Provincia' => 'Lima',
-                'Departamento' => 'Lima',
+                'Zona' => 'L01',
                 'Limite' => rand(1000, 50000),
                 'Activo' => 1
             ]);
@@ -583,11 +580,13 @@ class DevController extends Controller
             // Cabecera
             DB::table('Doccab')->insert([
                 'Numero' => $numero,
-                'Tipo' => 'FACTURA',
-                'Codcli' => $cliente->Codclie,
+                'Tipo' => 1, // 1 = FACTURA según el schema SQL
+                'CodClie' => $cliente->Codclie,
                 'Fecha' => now()->subDays(rand(0, 30)),
+                'Subtotal' => rand(100, 10000),
                 'Total' => rand(100, 10000),
-                'Vendedor' => 'ADM001'
+                'Moneda' => 1,
+                'Vendedor' => 1
             ]);
             
             // Detalle

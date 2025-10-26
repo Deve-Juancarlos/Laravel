@@ -133,9 +133,10 @@ Route::middleware(['auth', 'check.contador'])->group(function () {
         
         // Rutas de Facturas
         Route::get('facturas', [App\Http\Controllers\Ventas\FacturacionController::class, 'index'])->name('facturas.index');
-        Route::get('facturas/create', [App\Http\Controllers\Ventas\FacturacionController::class, 'index'])->name('facturas.create');
+        Route::get('facturas/create', [App\Http\Controllers\Ventas\FacturacionController::class, 'create'])->name('facturas.create');
         Route::post('facturas', [App\Http\Controllers\Ventas\FacturacionController::class, 'store'])->name('facturas.store');
         Route::get('facturas/export', [App\Http\Controllers\Ventas\FacturacionController::class, 'exportar'])->name('facturas.export');
+
         
         // Productos e Inventario
         Route::get('productos', [App\Http\Controllers\Farmacia\InventarioController::class, 'index'])->name('productos.index');

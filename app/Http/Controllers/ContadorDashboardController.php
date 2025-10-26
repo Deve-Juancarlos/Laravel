@@ -199,10 +199,11 @@ class ContadorDashboardController extends Controller
 
         // Clientes sin actividad
         $clientesSinActividad = DB::table('Clientes as c')
-            ->leftJoin('Doccab as d', 'c.Codclie', '=', 'd.CodClie')
-            ->where('c.Activo', 1)
-            ->whereRaw('(d.Fecha IS NULL OR d.Fecha < DATE_SUB(NOW(), INTERVAL 3 MONTH))')
-            ->count();
+        ->leftJoin('Doccab as d', 'c.Codclie', '=', 'd.CodClie')
+        ->where('c.Activo', 1)
+        ->whereRaw('(d.Fecha IS NULL OR d.Fecha < DATEADD(MONTH, -3, GETDATE()))')
+        ->count();
+
 
         if ($clientesSinActividad > 5) {
             $alertas[] = [
