@@ -13,9 +13,9 @@ use App\Http\Controllers\Admin\UsuarioController;
 use App\Http\Controllers\Admin\CuentaController;
 use App\Http\Controllers\Admin\ReporteController;
 use App\Http\Controllers\Admin\AuditoriaController;
-use App\Http\Controllers\Ventas\PlanillasController;
 use App\Http\Controllers\Contabilidad\ReportesSunatController;
 use App\Http\Controllers\Contabilidad\LibroDiarioController;
+use App\Http\Controllers\Contabilidad\EstadoResultadosController;
 
 
 //RUTAS PÚBLICAS
@@ -241,6 +241,29 @@ Route::middleware(['auth', 'check.contador'])->group(function () {
             
             // 6. Exportar balance en diferentes formatos
             Route::get('/exportar', [App\Http\Controllers\Contabilidad\BalanceComprobacionController::class, 'exportar'])->name('exportar');
+        });
+
+        Route::prefix('estado-resultados')->name('estado-resultados.')->group(function () {
+            // 1. Estado de Resultados principal
+            Route::get('/', [EstadoResultadosController::class, 'index'])->name('index');
+            
+            // 2. Análisis por períodos (mensual/anual)
+            Route::get('/periodos', [EstadoResultadosController::class, 'porPeriodos'])->name('periodos');
+            
+            // 3. Detalle de cuenta específica
+            Route::get('/detalle/{cuenta}', [EstadoResultadosController::class, 'detalleCuenta'])->name('detalle');
+            
+            // 4. Comparativo entre períodos
+            Route::get('/comparativo', [EstadoResultadosController::class, 'comparativo'])->name('comparativo');
+            
+            // 5. Análisis farmacéutico específico
+            Route::get('/farmaceutico', [EstadoResultadosController::class, 'analisisFarmaceutico'])->name('farmaceutico');
+            
+            // 6. Exportar estado de resultados
+            Route::get('/exportar', function() {
+                // TODO: Implementar exportación Estado de Resultados
+                return view('contabilidad.libros.estados-financieros.exportar');
+            })->name('exportar');
         });
         
         

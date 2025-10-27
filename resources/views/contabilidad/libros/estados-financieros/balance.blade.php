@@ -1,11 +1,11 @@
-@extends('layouts.contador')
+@extends('layouts.app')
 
 @section('title', 'Balance General - SIFANO')
 
 @section('breadcrumb')
-    <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Dashboard</a></li>
-    <li class="breadcrumb-item"><a href="{{ route('contabilidad') }}">Contabilidad</a></li>
-    <li class="breadcrumb-item"><a href="{{ route('estados-financieros') }}">Estados Financieros</a></li>
+    <li class="breadcrumb-item"><a href="{{ route('dashboard.contador') }}">Dashboard</a></li>
+    <li class="breadcrumb-item"><a href="{{ route('contador.libro-mayor.index') }}">Contabilidad</a></li>
+    <li class="breadcrumb-item"><a href="{{ route('contador.estado-resultados.index') }}">Estados Financieros</a></li>
     <li class="breadcrumb-item active">Balance General</li>
 @endsection
 
@@ -155,20 +155,20 @@
                     </tr>
                     
                     @forelse($activosCorrientes ?? [] as $cuenta)
-                    <tr class="{{ $cuenta->nivel == 3 ? '' : 'fw-bold' }}">
-                        <td style="width: 10%">{{ $cuenta->codigo }}</td>
-                        <td style="width: 40%">{{ $cuenta->nombre }}</td>
+                    <tr class="{{ $cuenta->$nivel == 3 ? '' : 'fw-bold' }}">
+                        <td style="width: 10%">{{ $cuenta->$codigo }}</td>
+                        <td style="width: 40%">{{ $cuenta->$nombre }}</td>
                         <td class="text-end" style="width: 15%">
-                            {{ $monedaSimbolo }}{{ number_format($cuenta->saldo_actual, 2) }}
+                            {{ $monedaSimbolo }}{{ number_format($cuenta->$saldo_actual, 2) }}
                         </td>
                         @if($periodoAnterior ?? false)
                         <td class="text-end text-muted" style="width: 15%">
-                            {{ $monedaSimbolo }}{{ number_format($cuenta->saldo_anterior, 2) }}
+                            {{ $monedaSimbolo }}{{ number_format($cuenta->$saldo_anterior, 2) }}
                         </td>
                         <td class="text-end" style="width: 10%">
                             @php
-                                $variacion = $cuenta->saldo_anterior > 0 ? 
-                                    (($cuenta->saldo_actual - $cuenta->saldo_anterior) / $cuenta->saldo_anterior) * 100 : 0;
+                                $variacion = $cuenta->$saldo_anterior > 0 ? 
+                                    (($cuenta->$saldo_actual - $cuenta->$saldo_anterior) / $cuenta->$saldo_anterior) * 100 : 0;
                             @endphp
                             <span class="{{ $variacion >= 0 ? 'text-success' : 'text-danger' }}">
                                 {{ $variacion >= 0 ? '+' : '' }}{{ number_format($variacion, 1) }}%
@@ -178,7 +178,7 @@
                         <td colspan="2"></td>
                         @endif
                         <td class="text-end" style="width: 10%">
-                            <button class="btn btn-sm btn-outline-info" onclick="verDetalleCuenta({{ $cuenta->id }})">
+                            <button class="btn btn-sm btn-outline-info" onclick="verDetalleCuenta({{ $cuenta->$id }})">
                                 <i class="fas fa-eye"></i>
                             </button>
                         </td>
@@ -210,16 +210,16 @@
                     </tr>
                     
                     @forelse($activosNoCorrientes ?? [] as $cuenta)
-                    <tr class="{{ $cuenta->nivel == 3 ? '' : 'fw-bold' }}">
-                        <td>{{ $cuenta->codigo }}</td>
-                        <td>{{ $cuenta->nombre }}</td>
-                        <td class="text-end">{{ $monedaSimbolo }}{{ number_format($cuenta->saldo_actual, 2) }}</td>
+                    <tr class="{{ $cuenta->$nivel == 3 ? '' : 'fw-bold' }}">
+                        <td>{{ $cuenta->$codigo }}</td>
+                        <td>{{ $cuenta->$nombre }}</td>
+                        <td class="text-end">{{ $monedaSimbolo }}{{ number_format($cuenta->$saldo_actual, 2) }}</td>
                         @if($periodoAnterior ?? false)
-                        <td class="text-end text-muted">{{ $monedaSimbolo }}{{ number_format($cuenta->saldo_anterior, 2) }}</td>
+                        <td class="text-end text-muted">{{ $monedaSimbolo }}{{ number_format($cuenta->$saldo_anterior, 2) }}</td>
                         <td class="text-end">
                             @php
-                                $variacion = $cuenta->saldo_anterior > 0 ? 
-                                    (($cuenta->saldo_actual - $cuenta->saldo_anterior) / $cuenta->saldo_anterior) * 100 : 0;
+                                $variacion = $cuenta->$saldo_anterior > 0 ? 
+                                    (($cuenta->$saldo_actual - $cuenta->$saldo_anterior) / $cuenta->$saldo_anterior) * 100 : 0;
                             @endphp
                             <span class="{{ $variacion >= 0 ? 'text-success' : 'text-danger' }}">
                                 {{ $variacion >= 0 ? '+' : '' }}{{ number_format($variacion, 1) }}%
@@ -229,7 +229,7 @@
                         <td colspan="2"></td>
                         @endif
                         <td class="text-end">
-                            <button class="btn btn-sm btn-outline-info" onclick="verDetalleCuenta({{ $cuenta->id }})">
+                            <button class="btn btn-sm btn-outline-info" onclick="verDetalleCuenta({{ $cuenta->$id }})">
                                 <i class="fas fa-eye"></i>
                             </button>
                         </td>
@@ -285,16 +285,16 @@
                     </tr>
                     
                     @forelse($pasivosCorrientes ?? [] as $cuenta)
-                    <tr class="{{ $cuenta->nivel == 3 ? '' : 'fw-bold' }}">
-                        <td>{{ $cuenta->codigo }}</td>
-                        <td>{{ $cuenta->nombre }}</td>
-                        <td class="text-end">{{ $monedaSimbolo }}{{ number_format($cuenta->saldo_actual, 2) }}</td>
+                    <tr class="{{ $cuenta->$nivel == 3 ? '' : 'fw-bold' }}">
+                        <td>{{ $cuenta->$codigo }}</td>
+                        <td>{{ $cuenta->$nombre }}</td>
+                        <td class="text-end">{{ $monedaSimbolo }}{{ number_format($cuenta->$saldo_actual, 2) }}</td>
                         @if($periodoAnterior ?? false)
-                        <td class="text-end text-muted">{{ $monedaSimbolo }}{{ number_format($cuenta->saldo_anterior, 2) }}</td>
+                        <td class="text-end text-muted">{{ $monedaSimbolo }}{{ number_format($cuenta->$saldo_anterior, 2) }}</td>
                         <td class="text-end">
                             @php
-                                $variacion = $cuenta->saldo_anterior > 0 ? 
-                                    (($cuenta->saldo_actual - $cuenta->saldo_anterior) / $cuenta->saldo_anterior) * 100 : 0;
+                                $variacion = $cuenta->$saldo_anterior > 0 ? 
+                                    (($cuenta->$saldo_actual - $cuenta->$_COOKIE_saldo_anterior) / $cuenta->$saldo_anterior) * 100 : 0;
                             @endphp
                             <span class="{{ $variacion <= 0 ? 'text-success' : 'text-danger' }}">
                                 {{ $variacion >= 0 ? '+' : '' }}{{ number_format($variacion, 1) }}%
@@ -304,7 +304,7 @@
                         <td colspan="2"></td>
                         @endif
                         <td class="text-end">
-                            <button class="btn btn-sm btn-outline-info" onclick="verDetalleCuenta({{ $cuenta->id }})">
+                            <button class="btn btn-sm btn-outline-info" onclick="verDetalleCuenta({{ $cuenta->$id }})">
                                 <i class="fas fa-eye"></i>
                             </button>
                         </td>
@@ -336,16 +336,16 @@
                     </tr>
                     
                     @forelse($pasivosNoCorrientes ?? [] as $cuenta)
-                    <tr class="{{ $cuenta->nivel == 3 ? '' : 'fw-bold' }}">
-                        <td>{{ $cuenta->codigo }}</td>
-                        <td>{{ $cuenta->nombre }}</td>
-                        <td class="text-end">{{ $monedaSimbolo }}{{ number_format($cuenta->saldo_actual, 2) }}</td>
+                    <tr class="{{ $cuenta->$nivel == 3 ? '' : 'fw-bold' }}">
+                        <td>{{ $cuenta->$codigo }}</td>
+                        <td>{{ $cuenta->$nombre }}</td>
+                        <td class="text-end">{{ $monedaSimbolo }}{{ number_format($cuenta->$saldo_actual, 2) }}</td>
                         @if($periodoAnterior ?? false)
-                        <td class="text-end text-muted">{{ $monedaSimbolo }}{{ number_format($cuenta->saldo_anterior, 2) }}</td>
+                        <td class="text-end text-muted">{{ $monedaSimbolo }}{{ number_format($cuenta->$saldo_anterior, 2) }}</td>
                         <td class="text-end">
                             @php
-                                $variacion = $cuenta->saldo_anterior > 0 ? 
-                                    (($cuenta->saldo_actual - $cuenta->saldo_anterior) / $cuenta->saldo_anterior) * 100 : 0;
+                                $variacion = $cuenta->$saldo_anterior > 0 ? 
+                                    (($cuenta->$saldo_actual - $cuenta->$saldo_anterior) / $cuenta->$saldo_anterior) * 100 : 0;
                             @endphp
                             <span class="{{ $variacion <= 0 ? 'text-success' : 'text-danger' }}">
                                 {{ $variacion >= 0 ? '+' : '' }}{{ number_format($variacion, 1) }}%
@@ -355,7 +355,7 @@
                         <td colspan="2"></td>
                         @endif
                         <td class="text-end">
-                            <button class="btn btn-sm btn-outline-info" onclick="verDetalleCuenta({{ $cuenta->id }})">
+                            <button class="btn btn-sm btn-outline-info" onclick="verDetalleCuenta({{ $cuenta->$id }})">
                                 <i class="fas fa-eye"></i>
                             </button>
                         </td>
@@ -400,16 +400,16 @@
                     </tr>
                     
                     @forelse($patrimonio ?? [] as $cuenta)
-                    <tr class="{{ $cuenta->nivel == 3 ? '' : 'fw-bold' }}">
-                        <td>{{ $cuenta->codigo }}</td>
-                        <td>{{ $cuenta->nombre }}</td>
-                        <td class="text-end">{{ $monedaSimbolo }}{{ number_format($cuenta->saldo_actual, 2) }}</td>
+                    <tr class="{{ $cuenta->$nivel == 3 ? '' : 'fw-bold' }}">
+                        <td>{{ $cuenta->$codigo }}</td>
+                        <td>{{ $cuenta->$nombre }}</td>
+                        <td class="text-end">{{ $monedaSimbolo }}{{ number_format($cuenta->$saldo_actual, 2) }}</td>
                         @if($periodoAnterior ?? false)
-                        <td class="text-end text-muted">{{ $monedaSimbolo }}{{ number_format($cuenta->saldo_anterior, 2) }}</td>
+                        <td class="text-end text-muted">{{ $monedaSimbolo }}{{ number_format($cuenta->$saldo_anterior, 2) }}</td>
                         <td class="text-end">
                             @php
-                                $variacion = $cuenta->saldo_anterior > 0 ? 
-                                    (($cuenta->saldo_actual - $cuenta->saldo_anterior) / $cuenta->saldo_anterior) * 100 : 0;
+                                $variacion = $cuenta->$saldo_anterior > 0 ? 
+                                    (($cuenta->$saldo_actual - $cuenta->$saldo_anterior) / $cuenta->$saldo_anterior) * 100 : 0;
                             @endphp
                             <span class="{{ $variacion >= 0 ? 'text-success' : 'text-danger' }}">
                                 {{ $variacion >= 0 ? '+' : '' }}{{ number_format($variacion, 1) }}%
@@ -419,7 +419,7 @@
                         <td colspan="2"></td>
                         @endif
                         <td class="text-end">
-                            <button class="btn btn-sm btn-outline-info" onclick="verDetalleCuenta({{ $cuenta->id }})">
+                            <button class="btn btn-sm btn-outline-info" onclick="verDetalleCuenta({{ $cuenta->$id }})">
                                 <i class="fas fa-eye"></i>
                             </button>
                         </td>

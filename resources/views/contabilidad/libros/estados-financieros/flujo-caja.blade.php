@@ -1,4 +1,4 @@
-@extends('layouts.contador')
+@extends('layouts.app')
 
 @section('title', 'Estado de Flujo de Efectivo')
 
