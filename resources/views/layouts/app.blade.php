@@ -1,674 +1,353 @@
-<!DOCTYPE html>
-<html lang="es">
+<!doctype html>
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>@yield('title', 'SIFANO - Sistema Farmacéutico')</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>@yield('title', 'SIFANO') - Distribuidora</title>
 
-    <!-- Bootstrap 5 CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <!-- SweetAlert2 -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
-    
-    <!-- Chart.js -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+
+    <!-- CSS -->
+    <link href="{{ asset('css/app.css') }}" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+
+    @stack('head')
 
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f8f9fa;
-            min-height: 100vh;
-        }
-
-        /* Sidebar */
-        .sidebar {
-            position: fixed;
-            top: 0;
-            left: 0;
-            height: 100vh;
-            width: 260px;
-            background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
-            color: white;
-            overflow-y: auto;
-            overflow-x: hidden;
-            z-index: 1000;
-            transition: all 0.3s ease;
-            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
-        }
-
-        .sidebar::-webkit-scrollbar {
-            width: 6px;
-        }
-
-        .sidebar::-webkit-scrollbar-track {
-            background: rgba(255,255,255,0.1);
-        }
-
-        .sidebar::-webkit-scrollbar-thumb {
-            background: rgba(255,255,255,0.3);
-            border-radius: 10px;
-        }
-
-        .sidebar-brand {
-            padding: 1.5rem;
-            background: rgba(0,0,0,0.2);
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-            text-align: center;
-            position: sticky;
-            top: 0;
-            z-index: 10;
-        }
-
-        .sidebar-brand h4 {
-            margin: 0;
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: white;
-        }
-
-        .sidebar-brand small {
-            font-size: 0.75rem;
-            opacity: 0.8;
-            display: block;
-            margin-top: 0.25rem;
-        }
-
-        .sidebar-nav {
-            padding: 0.5rem 0;
-        }
-
-        .nav-section {
-            padding: 0.75rem 1.25rem;
-            font-size: 0.7rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            color: rgba(255,255,255,0.6);
-            font-weight: 700;
-            margin-top: 1rem;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-        }
-
-        .nav-section:first-child {
-            margin-top: 0.5rem;
-        }
-
-        .sidebar-nav ul {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-        }
-
-        .nav-link {
-            display: flex;
-            align-items: center;
-            padding: 0.75rem 1.25rem;
-            color: rgba(255,255,255,0.85);
-            text-decoration: none;
-            transition: all 0.2s ease;
-            border-left: 3px solid transparent;
-            font-size: 0.9rem;
-            position: relative;
-        }
-
-        .nav-link:hover {
-            background: rgba(255,255,255,0.1);
-            color: white;
-            border-left-color: #60a5fa;
-            padding-left: 1.5rem;
-        }
-
-        .nav-link.active {
-            background: rgba(255,255,255,0.15);
-            color: white;
-            border-left-color: #60a5fa;
-            font-weight: 600;
-        }
-
-        .nav-link i {
-            width: 24px;
-            margin-right: 0.75rem;
-            font-size: 1rem;
-            text-align: center;
-        }
-
-        /* Submenu */
-        .nav-submenu {
-            max-height: 0;
-            overflow: hidden;
-            transition: max-height 0.3s ease;
-            background: rgba(0,0,0,0.2);
-        }
-
-        .nav-submenu.active {
-            max-height: 500px;
-        }
-
-        .nav-submenu .nav-link {
-            padding-left: 3.5rem;
-            font-size: 0.85rem;
-        }
-
-        .nav-link.has-submenu::after {
-            content: '\f107';
-            font-family: 'Font Awesome 6 Free';
-            font-weight: 900;
-            position: absolute;
-            right: 1.25rem;
-            transition: transform 0.3s ease;
-        }
-
-        .nav-link.has-submenu.active::after {
-            transform: rotate(180deg);
-        }
-
-        /* Main Content */
-        .main-content {
-            margin-left: 260px;
-            min-height: 100vh;
-            transition: all 0.3s ease;
-        }
-
-        /* Topbar */
-        .topbar {
-            background: white;
-            padding: 0.75rem 1.5rem;
-            border-bottom: 1px solid #e5e7eb;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            position: sticky;
-            top: 0;
-            z-index: 999;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-        }
-
-        .topbar-search {
-            flex: 1;
-            max-width: 500px;
-            margin: 0 2rem;
-        }
-
-        .topbar-search .form-control {
-            border-radius: 20px;
-            border: 1px solid #e5e7eb;
-            padding: 0.5rem 1rem 0.5rem 2.5rem;
-        }
-
-        .topbar-search .input-group-text {
-            position: absolute;
-            left: 0.75rem;
-            top: 50%;
-            transform: translateY(-50%);
-            border: none;
-            background: transparent;
-            z-index: 5;
-        }
-
-        .topbar-right {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
-
-        .notification-bell {
-            position: relative;
-            cursor: pointer;
-            font-size: 1.25rem;
-            color: #6b7280;
-            transition: color 0.2s;
-        }
-
-        .notification-bell:hover {
-            color: #1e40af;
-        }
-
-        .notification-badge {
-            position: absolute;
-            top: -5px;
-            right: -5px;
-            background: #ef4444;
-            color: white;
-            border-radius: 50%;
-            width: 18px;
-            height: 18px;
-            font-size: 0.65rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 700;
-            border: 2px solid white;
-        }
-
-        .user-menu {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            cursor: pointer;
-            padding: 0.5rem 1rem;
-            border-radius: 10px;
-            transition: background 0.2s;
-        }
-
-        .user-menu:hover {
-            background: #f3f4f6;
-        }
-
-        .user-avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: 700;
-            font-size: 0.9rem;
-            box-shadow: 0 2px 8px rgba(30, 64, 175, 0.3);
-        }
-
-        .user-info {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .user-name {
-            font-size: 0.875rem;
-            font-weight: 600;
-            color: #1f2937;
-            line-height: 1.2;
-        }
-
-        .user-role {
-            font-size: 0.75rem;
-            color: #6b7280;
-            line-height: 1.2;
-        }
-
-        /* Content Area */
-        .content-area {
-            padding: 1.5rem 2rem;
-        }
-
-        /* Breadcrumb */
-        .breadcrumb {
-            background: transparent;
-            padding: 0;
-            margin: 0 0 1rem 0;
-            font-size: 0.875rem;
-        }
-
-        .breadcrumb-item a {
-            color: #6b7280;
-            text-decoration: none;
-        }
-
-        .breadcrumb-item a:hover {
-            color: #1e40af;
-        }
-
-        .breadcrumb-item.active {
-            color: #1f2937;
-            font-weight: 500;
-        }
-
-        /* Cards */
-        .card {
-            border: none;
-            border-radius: 12px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-            margin-bottom: 1.5rem;
-        }
-
-        .card-header {
-            background: white;
-            border-bottom: 1px solid #f3f4f6;
-            padding: 1rem 1.5rem;
-            font-weight: 600;
-            color: #1f2937;
-            border-radius: 12px 12px 0 0 !important;
-        }
-
-        /* Loading Overlay */
-        .loading-overlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.7);
-            z-index: 9999;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .loading-overlay.active {
-            display: flex;
-        }
-
-        .spinner {
-            width: 50px;
-            height: 50px;
-            border: 5px solid rgba(255,255,255,0.3);
-            border-top-color: white;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
-        /* Alerts */
-        .alert {
-            border: none;
-            border-radius: 10px;
-            padding: 1rem 1.25rem;
-            margin-bottom: 1.5rem;
-        }
-
-        .alert-success {
-            background: #ecfdf5;
-            color: #065f46;
-            border-left: 4px solid #10b981;
-        }
-
-        .alert-danger {
-            background: #fef2f2;
-            color: #991b1b;
-            border-left: 4px solid #ef4444;
-        }
-
-        .alert-warning {
-            background: #fffbeb;
-            color: #92400e;
-            border-left: 4px solid #f59e0b;
-        }
-
-        .alert-info {
-            background: #eff6ff;
-            color: #1e40af;
-            border-left: 4px solid #3b82f6;
-        }
-
-        /* Dropdown Menu */
-        .dropdown-menu {
-            border: none;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            border-radius: 10px;
-            padding: 0.5rem;
-            margin-top: 0.5rem;
-        }
-
-        .dropdown-item {
-            border-radius: 6px;
-            padding: 0.6rem 1rem;
-            font-size: 0.875rem;
-            transition: all 0.2s;
-        }
-
-        .dropdown-item:hover {
-            background: #f3f4f6;
-            color: #1e40af;
-        }
-
-        .dropdown-item i {
-            width: 20px;
-        }
-
-        .dropdown-divider {
-            margin: 0.5rem 0;
-            opacity: 0.1;
-        }
-
-        /* Responsive */
-        @media (max-width: 768px) {
-            .sidebar {
-                transform: translateX(-100%);
-            }
-
-            .sidebar.active {
-                transform: translateX(0);
-            }
-
-            .main-content {
-                margin-left: 0;
-            }
-
-            .topbar-search {
-                display: none;
-            }
-
-            .content-area {
-                padding: 1rem;
-            }
-
-            .user-info {
-                display: none;
-            }
-        }
+      /* Estilos básicos del layout para integrarse con frontend_sidebar_menu */
+      body { font-family: 'Segoe UI', Roboto, Arial, sans-serif; background: #f8fafc; margin:0; }
+      .main-content { margin-left: 260px; transition: all .2s ease; min-height:100vh; }
+      .topbar { background: #fff; border-bottom: 1px solid #e6edf3; position: sticky; top: 0; z-index: 999; }
+      .container-fluid { max-width: 1200px; margin: 0 auto; padding: .6rem 1rem; }
+      @media (max-width: 768px) { .main-content { margin-left: 0; } }
     </style>
-
-    @stack('styles')
 </head>
 <body>
-    <!-- Loading Overlay -->
-    <div class="loading-overlay" id="loadingOverlay">
-        <div class="spinner"></div>
-    </div>
+    {{-- Sidebar (archivo parcial) --}}
+    @includeWhen(View::exists('frontend_sidebar_menu'), 'frontend_sidebar_menu')
 
-    <!-- Sidebar -->
-    <aside class="sidebar" id="sidebar">
-        <div class="sidebar-brand">
-            <h4><i class="fas fa-prescription-bottle-alt me-2"></i>SIFANO</h4>
-            <small>Distribuidora de Fármacos</small>
-        </div>
-
-        <nav class="sidebar-nav">
-            @yield('sidebar-menu')
-        </nav>
-    </aside>
-
-    <!-- Main Content -->
+    {{-- Main --}}
     <main class="main-content">
-        <!-- Topbar -->
+        {{-- Topbar --}}
         <header class="topbar">
-            <button class="btn btn-link d-md-none" id="sidebarToggle">
-                <i class="fas fa-bars"></i>
-            </button>
+            <div class="container-fluid d-flex align-items-center justify-content-between">
+                <div class="d-flex align-items-center gap-2">
+                    <button class="btn btn-link d-md-none" id="sidebarToggle" aria-label="Toggle sidebar">
+                        <i class="fas fa-bars"></i>
+                    </button>
 
-            <div class="topbar-search d-none d-md-block position-relative">
-                <span class="input-group-text">
-                    <i class="fas fa-search text-muted"></i>
-                </span>
-                <input type="text" class="form-control" placeholder="Buscar productos, clientes, facturas...">
-            </div>
-
-            <div class="topbar-right">
-                <!-- Notificaciones -->
-                <div class="notification-bell" data-bs-toggle="dropdown">
-                    <i class="fas fa-bell"></i>
-                    <span class="notification-badge">3</span>
+                    <a href="{{ route('dashboard.contador') }}" class="text-decoration-none">
+                        <strong style="font-size:1.05rem; color:#1f2937;">SIFANO</strong>
+                        <small class="text-muted d-block">Distribuidora de Fármacos</small>
+                    </a>
                 </div>
-                <ul class="dropdown-menu dropdown-menu-end" style="width: 320px;">
-                    <li class="dropdown-header d-flex justify-content-between align-items-center">
-                        <strong>Notificaciones</strong>
-                        <span class="badge bg-primary">3 nuevas</span>
-                    </li>
-                    <li><hr class="dropdown-divider"></li>
-                    <li>
-                        <a class="dropdown-item py-2" href="#">
-                            <i class="fas fa-exclamation-triangle text-warning me-2"></i>
-                            <small>5 facturas vencidas</small>
-                        </a>
-                    </li>
-                    <li>
-                        <a class="dropdown-item py-2" href="#">
-                            <i class="fas fa-box text-danger me-2"></i>
-                            <small>8 productos con stock bajo</small>
-                        </a>
-                    </li>
-                    <li>
-                        <a class="dropdown-item py-2" href="#">
-                            <i class="fas fa-calendar text-info me-2"></i>
-                            <small>12 productos por vencer</small>
-                        </a>
-                    </li>
-                    <li><hr class="dropdown-divider"></li>
-                    <li class="text-center py-2">
-                        <a href="#" class="text-primary text-decoration-none" style="font-size: 0.875rem;">Ver todas</a>
-                    </li>
-                </ul>
 
-                <!-- Usuario -->
-                <div class="user-menu" data-bs-toggle="dropdown">
-                    <div class="user-avatar">
-                        {{ strtoupper(substr(session('usuario_logged') ?? 'U', 0, 1)) }}
+                {{-- Search (dinámico con AJAX) --}}
+                <div class="topbar-search d-none d-md-block position-relative" style="flex:1; max-width:520px;">
+                    <div class="input-group position-relative">
+                        <span class="input-group-text position-absolute" style="left:8px; top:50%; transform:translateY(-50%); border:none; background:transparent;">
+                            <i class="fas fa-search text-muted"></i>
+                        </span>
+                        <input id="globalSearch" type="text" class="form-control" placeholder="Buscar productos, clientes, facturas..." aria-label="Buscar"
+                               style="padding-left:34px;">
                     </div>
-                    <div class="user-info d-none d-md-block">
-                        <div class="user-name">{{ Auth::user()->usuario ?? 'Usuario' }}</div>
-                        <div class="user-role">{{ Auth::user()->tipousuario ?? 'Sistema' }}</div>
-                    </div>
-                    <i class="fas fa-chevron-down" style="font-size: 0.75rem; color: #6b7280;"></i>
+
+                    <div id="searchResults" class="list-group position-absolute" style="z-index:1200; width:100%; display:none; max-height:320px; overflow:auto;" role="listbox" aria-live="polite"></div>
                 </div>
-                <ul class="dropdown-menu dropdown-menu-end">
-                    <li><a class="dropdown-item" href="#"><i class="fas fa-user me-2"></i>Mi Perfil</a></li>
-                    <li><a class="dropdown-item" href="#"><i class="fas fa-cog me-2"></i>Configuración</a></li>
-                    <li><a class="dropdown-item" href="#"><i class="fas fa-question-circle me-2"></i>Ayuda</a></li>
-                    <li><hr class="dropdown-divider"></li>
-                    <li>
-                        <form method="POST" action="{{ route('logout') }}" id="logout-form">
-                            @csrf
-                            <button type="submit" class="dropdown-item text-danger">
-                                <i class="fas fa-sign-out-alt me-2"></i>Cerrar Sesión
-                            </button>
-                        </form>
-                    </li>
-                </ul>
+
+                {{-- Right area: notificaciones y usuario --}}
+                <div class="topbar-right d-flex align-items-center gap-2">
+                    {{-- Notificaciones dinámicas --}}
+                    <div class="dropdown">
+                        <button class="btn btn-link position-relative" id="notificationsBtn" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Notificaciones">
+                            <i class="fas fa-bell fa-lg text-muted"></i>
+                            <span id="notif-badge" class="badge bg-danger rounded-circle" style="position:absolute; top:0; right:0; font-size:.65rem; display:none;">0</span>
+                        </button>
+
+                        <div class="dropdown-menu dropdown-menu-end p-0" style="width:360px; max-height:420px; overflow:auto;" aria-labelledby="notificationsBtn">
+                            <div id="notif-container">
+                                <div class="p-3 border-bottom d-flex justify-content-between align-items-center">
+                                    <strong>Notificaciones</strong>
+                                    <a id="markAllRead" href="#" class="small">Marcar leídas</a>
+                                </div>
+                                <div id="notif-list" class="list-group list-group-flush">
+                                    <div class="list-group-item text-center py-4" id="notif-loading">
+                                        <div class="spinner-border spinner-border-sm text-secondary" role="status"></div>
+                                        <small class="text-muted ms-2">Cargando...</small>
+                                    </div>
+                                </div>
+                                <div class="p-2 border-top text-center">
+                                    <a href="#" class="text-primary text-decoration-none">Ver todas</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Usuario --}}
+                    <div class="dropdown">
+                        <a class="d-flex align-items-center text-decoration-none" id="userMenuBtn" data-bs-toggle="dropdown" href="#" aria-expanded="false">
+                            <div class="user-avatar rounded-circle d-flex align-items-center justify-content-center" style="width:40px;height:40px;background:linear-gradient(135deg,#1e40af,#3b82f6);color:#fff;font-weight:700;">
+                                {{ strtoupper(substr(auth()->user()->name ?? (session('usuario_logged') ?? 'U'), 0, 1)) }}
+                            </div>
+                            <div class="ms-2 d-none d-md-block text-start">
+                                <div style="font-weight:700; font-size:.95rem; color:#1f2937;">{{ auth()->user()->name ?? 'Usuario' }}</div>
+                                <div style="font-size:.75rem; color:#6b7280;">{{ auth()->user()->tipousuario ?? auth()->user()->role ?? 'Sistema' }}</div>
+                            </div>
+                            <i class="fas fa-chevron-down ms-2 text-muted"></i>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userMenuBtn">
+                            <li><a class="dropdown-item" href="{{ route('profile.show') ?? '#' }}"><i class="fas fa-user me-2"></i>Mi Perfil</a></li>
+                            <li><a class="dropdown-item" href="{{ route('settings') ?? '#' }}"><i class="fas fa-cog me-2"></i>Configuración</a></li>
+                            <li><a class="dropdown-item" href="{{ route('help') ?? '#' }}"><i class="fas fa-question-circle me-2"></i>Ayuda</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <form method="POST" action="{{ route('logout') }}" id="logout-form">
+                                    @csrf
+                                    <button type="submit" class="dropdown-item text-danger">
+                                        <i class="fas fa-sign-out-alt me-2"></i>Cerrar Sesión
+                                    </button>
+                                </form>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
             </div>
         </header>
 
-        <!-- Page Content -->
-        <div class="content-area">
-            @if(session('success'))
-            <div class="alert alert-success alert-dismissible fade show" role="alert">
-                <i class="fas fa-check-circle me-2"></i>{{ session('success') }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-            @endif
-
-            @if(session('error'))
-            <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                <i class="fas fa-exclamation-circle me-2"></i>{{ session('error') }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-            @endif
-
-            @if(session('warning'))
-            <div class="alert alert-warning alert-dismissible fade show" role="alert">
-                <i class="fas fa-exclamation-triangle me-2"></i>{{ session('warning') }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-            @endif
-
-            @if(session('info'))
-            <div class="alert alert-info alert-dismissible fade show" role="alert">
-                <i class="fas fa-info-circle me-2"></i>{{ session('info') }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-            @endif
-
+        {{-- Content area --}}
+        <div class="container-fluid py-3">
+            {{-- Alert flashes --}}
+            @if(session('status')) <div class="alert alert-info">{{ session('status') }}</div> @endif
             @yield('content')
         </div>
     </main>
 
-    <!-- jQuery -->
-    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
-    
-    <!-- Bootstrap 5 JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    
-    <!-- SweetAlert2 -->
+    <!-- Scripts -->
+    <script src="{{ asset('js/app.js') }}"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <script>
-        // Toggle Sidebar Mobile
-        document.getElementById('sidebarToggle')?.addEventListener('click', function() {
-            document.getElementById('sidebar').classList.toggle('active');
+    (function(){
+        const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+        // --------- Notifications: cargar y pintar ----------
+        const notifBadge = document.getElementById('notif-badge');
+        const notifList  = document.getElementById('notif-list');
+        const notifLoading = document.getElementById('notif-loading');
+        const notificationsBtn = document.getElementById('notificationsBtn');
+
+        async function loadNotifications() {
+            try {
+                const res = await fetch("#", {
+                    headers: { 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json' },
+                    credentials: 'same-origin'
+                });
+                if (!res.ok) throw new Error('Error fetching notifications');
+                const json = await res.json();
+
+                // json expected: { count: number, items: [{id, title, text, url, type, read_at}] }
+                renderNotifications(json);
+            } catch (err) {
+                console.error(err);
+                if (notifLoading) notifLoading.innerHTML = '<div class="text-danger small py-2">No se pudieron cargar notificaciones</div>';
+            }
+        }
+
+        function renderNotifications(data) {
+            if (!notifList) return;
+            notifList.innerHTML = '';
+
+            const count = (data && data.count) ? data.count : 0;
+            if (count > 0) {
+                notifBadge.style.display = 'inline-block';
+                notifBadge.textContent = count;
+            } else {
+                notifBadge.style.display = 'none';
+            }
+
+            const items = (data && data.items && data.items.length) ? data.items : [];
+            if (items.length === 0) {
+                notifList.innerHTML = '<div class="list-group-item text-center py-4 text-muted">Sin notificaciones</div>';
+                return;
+            }
+
+            items.forEach(n => {
+                const a = document.createElement('a');
+                a.href = n.url || '#';
+                a.className = 'list-group-item list-group-item-action d-flex align-items-start';
+                a.innerHTML = `
+                    <div class="me-3">
+                        <i class="fas fa-${n.icon || 'info-circle'} fa-lg text-${n.type === 'danger' ? 'danger' : (n.type === 'warning' ? 'warning' : 'primary')}"></i>
+                    </div>
+                    <div class="flex-grow-1">
+                        <div style="font-weight:700;">${escapeHtml(n.title)}</div>
+                        <small class="text-muted">${escapeHtml(n.message)}</small>
+                        <div class="text-muted small mt-1">${n.time || ''}</div>
+                    </div>
+                `;
+                notifList.appendChild(a);
+            });
+        }
+
+        // Mark all as read (calls API)
+        document.getElementById('markAllRead')?.addEventListener('click', async function(e) {
+            e.preventDefault();
+            try {
+                const res = await fetch("#", {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json' },
+                    credentials: 'same-origin',
+                    body: JSON.stringify({})
+                });
+                if (res.ok) {
+                    notifBadge.style.display = 'none';
+                    loadNotifications();
+                } else {
+                    Swal.fire('Error', 'No se pudo marcar como leídas', 'error');
+                }
+            } catch (err) { console.error(err); Swal.fire('Error','Error de conexión','error'); }
         });
 
-        // Cerrar sidebar al hacer click fuera (móvil)
-        document.addEventListener('click', function(event) {
-            const sidebar = document.getElementById('sidebar');
-            const toggle = document.getElementById('sidebarToggle');
-            
-            if (window.innerWidth <= 768 && sidebar.classList.contains('active')) {
-                if (!sidebar.contains(event.target) && !toggle.contains(event.target)) {
-                    sidebar.classList.remove('active');
-                }
+        // Lazy load notifications when dropdown shown
+        notificationsBtn?.addEventListener('click', function(){
+            // only load once per session or when reopened
+            loadNotifications();
+        });
+
+        // Escape helper
+        function escapeHtml(unsafe) {
+            if (!unsafe) return '';
+            return unsafe.replace(/[&<>"'`=\/]/g, function (s) {
+                return ({
+                    '&': '&amp;',
+                    '<': '&lt;',
+                    '>': '&gt;',
+                    '"': '&quot;',
+                    "'": '&#39;',
+                    '/': '&#x2F;',
+                    '`': '&#x60;',
+                    '=': '&#x3D;'
+                })[s];
+            });
+        }
+
+        // --------- Global Search with debounce & AJAX ----------
+        const searchInput = document.getElementById('globalSearch');
+        const searchResults = document.getElementById('searchResults');
+        let debounceTimer;
+
+        async function performSearch(q) {
+            if (!q || q.length < 2) { searchResults.style.display = 'none'; searchResults.innerHTML = ''; return; }
+            searchResults.style.display = 'block';
+            searchResults.innerHTML = '<div class="list-group-item text-center py-2"><small class="text-muted">Buscando...</small></div>';
+            try {
+                const res = await fetch("#" + encodeURIComponent(q), {
+                    headers: { 'Accept': 'application/json' },
+                    credentials: 'same-origin'
+                });
+                if (!res.ok) throw new Error('search error');
+                const json = await res.json();
+                renderSearchResults(json);
+            } catch (err) {
+                searchResults.innerHTML = '<div class="list-group-item text-danger">Error al buscar</div>';
+                console.error(err);
+            }
+        }
+
+        function renderSearchResults(json) {
+            searchResults.innerHTML = '';
+            if (!json || (!json.products && !json.clients && !json.docs)) {
+                searchResults.innerHTML = '<div class="list-group-item text-muted">No hay resultados</div>';
+                return;
+            }
+            const fragment = document.createDocumentFragment();
+
+            if (json.products && json.products.length) {
+                const header = document.createElement('div');
+                header.className = 'px-3 pt-2 small text-uppercase text-muted';
+                header.textContent = 'Productos';
+                fragment.appendChild(header);
+                json.products.slice(0,6).forEach(p => {
+                    const a = document.createElement('a');
+                    a.href = p.url || '#';
+                    a.className = 'list-group-item list-group-item-action';
+                    a.innerHTML = `<strong>${escapeHtml(p.code || p.name)}</strong><div class="small text-muted">${escapeHtml(p.name || '')}</div>`;
+                    fragment.appendChild(a);
+                });
+            }
+
+            if (json.clients && json.clients.length) {
+                const header = document.createElement('div');
+                header.className = 'px-3 pt-2 small text-uppercase text-muted';
+                header.textContent = 'Clientes';
+                fragment.appendChild(header);
+                json.clients.slice(0,6).forEach(c => {
+                    const a = document.createElement('a');
+                    a.href = c.url || '#';
+                    a.className = 'list-group-item list-group-item-action';
+                    a.innerHTML = `<strong>${escapeHtml(c.name)}</strong><div class="small text-muted">${escapeHtml(c.document || '')}</div>`;
+                    fragment.appendChild(a);
+                });
+            }
+
+            if (json.docs && json.docs.length) {
+                const header = document.createElement('div');
+                header.className = 'px-3 pt-2 small text-uppercase text-muted';
+                header.textContent = 'Documentos';
+                fragment.appendChild(header);
+                json.docs.slice(0,6).forEach(d => {
+                    const a = document.createElement('a');
+                    a.href = d.url || '#';
+                    a.className = 'list-group-item list-group-item-action';
+                    a.innerHTML = `<strong>${escapeHtml(d.number)}</strong><div class="small text-muted">${escapeHtml(d.type || '')} - S/ ${Number(d.total||0).toLocaleString('es-PE',{minimumFractionDigits:2})}</div>`;
+                    fragment.appendChild(a);
+                });
+            }
+
+            searchResults.appendChild(fragment);
+        }
+
+        searchInput?.addEventListener('input', function(e){
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(() => performSearch(e.target.value.trim()), 250);
+        });
+
+        // Close search dropdown clicking outside
+        document.addEventListener('click', function(ev){
+            if (!document.getElementById('topbar')?.contains(ev.target)) {
+                // do nothing; keep it simple
+            }
+            if (searchResults && !searchResults.contains(ev.target) && eNotChild(ev.target, searchInput)) {
+                // hide results if clicked outside input or results
+                if (ev.target !== searchInput) searchResults.style.display = 'none';
             }
         });
 
-        // Submenu toggle
-        document.querySelectorAll('.nav-link.has-submenu').forEach(function(item) {
-            item.addEventListener('click', function(e) {
-                e.preventDefault();
-                this.classList.toggle('active');
-                const submenu = this.nextElementSibling;
-                if (submenu) {
-                    submenu.classList.toggle('active');
-                }
-            });
-        });
-
-        // Loading Functions
-        function showLoading() {
-            document.getElementById('loadingOverlay').classList.add('active');
+        function eNotChild(target, parentEl) {
+            if (!parentEl) return true;
+            return !(parentEl === target || parentEl.contains(target));
         }
 
-        function hideLoading() {
-            document.getElementById('loadingOverlay').classList.remove('active');
-        }
-
-        // Auto-hide alerts
-        setTimeout(function() {
-            const alerts = document.querySelectorAll('.alert');
-            alerts.forEach(alert => {
-                const bsAlert = new bootstrap.Alert(alert);
-                bsAlert.close();
-            });
-        }, 5000);
-
-        // Confirmación de logout
-        document.getElementById('logout-form')?.addEventListener('submit', function(e) {
-            e.preventDefault();
-            Swal.fire({
-                title: '¿Cerrar sesión?',
-                text: "¿Está seguro que desea salir del sistema?",
-                icon: 'question',
-                showCancelButton: true,
-                confirmButtonColor: '#1e40af',
-                cancelButtonColor: '#6b7280',
-                confirmButtonText: 'Sí, salir',
-                cancelButtonText: 'Cancelar'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    this.submit();
-                }
-            });
+        // Sidebar toggle for mobile
+        document.getElementById('sidebarToggle')?.addEventListener('click', function(){
+            document.getElementById('sidebar')?.classList.toggle('active');
         });
+
+        // Inicializar carga de notificaciones ligera (no bloquear render)
+        document.addEventListener('DOMContentLoaded', function(){
+            // load only badge count first (fast endpoint)
+            fetch("#", { headers: { 'Accept': 'application/json' }, credentials:'same-origin' })
+                .then(r => r.json())
+                .then(j => {
+                    if (j && j.count && j.count > 0) {
+                        notifBadge.style.display = 'inline-block';
+                        notifBadge.textContent = j.count;
+                    }
+                }).catch(()=>{});
+        });
+
+    })();
     </script>
 
     @stack('scripts')

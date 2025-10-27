@@ -16,7 +16,6 @@ class ContadorDashboardController extends Controller
     public function contadorDashboard(Request $request)
     {
         try {
-            // Cache key basada en fecha/hora para invalidación automática por hora
             $cacheKey = 'dashboard_contador_' . now()->format('Y-m-d-H');
 
             $data = Cache::remember($cacheKey, $this->cache_ttl, function () {
@@ -43,6 +42,8 @@ class ContadorDashboardController extends Controller
                     'analisisFinanciero' => $this->obtenerAnalisisFinanciero(),
                     'vencimientosPorRango' => $this->analizarVencimientosPorRango(),
                     'moraDetalle' => $this->analizarMoraDetalle(),
+                    // 👇 Agrega esto:
+                    'ultimasFacturas' => $this->obtenerUltimasFacturas(10),
                 ];
             });
 
@@ -55,6 +56,18 @@ class ContadorDashboardController extends Controller
             return view('dashboard.contador', $this->getDatosVacios());
         }
     }
+
+    private function obtenerUltimasFacturas($limite = 10)
+    {
+        return DB::table('Doccab')
+            ->select('Documento', 'Importe', 'Saldo', 'Fecha as FechaF', 'Estado')
+            ->where('Eliminado', 0)
+            ->orderByDesc('Fecha')
+            ->limit($limite)
+            ->get();
+    }
+
+
     private function calcularVariacionVentas()
     {
         $actual = $this->calcularVentasMes();

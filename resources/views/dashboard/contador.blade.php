@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Dashboard Contador - SIFANO')
+@section('title', 'Dashboard Contador ')
 
 @section('sidebar-menu')
 {{-- MENÚ PRINCIPAL --}}
@@ -116,6 +116,63 @@
         <strong id="reloj"></strong>
     </div>
 </div>
+
+<div class="row" style="display:flex; gap:1rem; flex-wrap:wrap;">
+    <!-- Tarjetas resumen -->
+    <div class="card" style="flex:1 1 18rem;">
+        <h3>Total cartera</h3>
+        <div class="value">{{ number_format($totales['cartera_total'] ?? 0,2) }}</div>
+        <div class="muted">Saldo total por cobrar</div>
+    </div>
+
+    <div class="card" style="flex:1 1 18rem;">
+        <h3>Vencido</h3>
+        <div class="value danger">{{ number_format($totales['vencido'] ?? 0,2) }}</div>
+        <div class="muted">Facturas vencidas</div>
+    </div>
+
+    <div class="card" style="flex:1 1 18rem;">
+        <h3>Ventas (mes)</h3>
+        <div class="value">{{ number_format($totales['ventas_mes'] ?? 0,2) }}</div>
+        <div class="muted">Total facturado mes actual</div>
+    </div>
+
+    <div class="card" style="flex:1 1 18rem;">
+        <h3>Clientes con mayor saldo</h3>
+        @foreach($topClientes as $c)
+            <div>{{ $c->Razon }} <span style="float:right">{{ number_format($c->saldo,2) }}</span></div>
+        @endforeach
+    </div>
+</div>
+<hr>
+
+<div class="card">
+    <h3>Últimas facturas (muestra)</h3>
+    <table style="width:100%; border-collapse:collapse;">
+        <thead style="background:#f5f5f5;">
+            <tr>
+                <th style="text-align:left;padding:.5rem;">Documento</th>
+                <th style="text-align:right;padding:.5rem;">Importe</th>
+                <th style="text-align:right;padding:.5rem;">Saldo</th>
+                <th style="text-align:center;padding:.5rem;">F. Emisión</th>
+                <th style="text-align:left;padding:.5rem;">Estado</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach($ultimasFacturas as $f)
+            <tr>
+                <td style="padding:.5rem;">{{ $f->Documento }}</td>
+                <td style="padding:.5rem; text-align:right;">{{ number_format($f->Importe,2) }}</td>
+                <td style="padding:.5rem; text-align:right;">{{ number_format($f->Saldo,2) }}</td>
+                <td style="padding:.5rem; text-align:center;">{{ optional($f->FechaF)->format('Y-m-d') ?? '' }}</td>
+                <td style="padding:.5rem;">{{ $f->Estado ?? ($f->Saldo>0?'Pendiente':'Pagada') }}</td>
+            </tr>
+            @endforeach
+        </tbody>
+    </table>
+</div>
+
+
 
 {{-- Métricas Principales --}}
 <div class="row g-3 mb-4">
