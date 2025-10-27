@@ -8,32 +8,30 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
 
+
 class ContadorDashboardController extends Controller
 {
-    private $cache_ttl = 900; // 15 minutos
-    
-    /**
-     * Dashboard principal del contador - DISTRIBUIDORA FÁRMACOS
-     * VERSIÓN OPTIMIZADA CON CACHE Y MEJORAS
-     */
+    private $cache_ttl = 900;     
+  
     public function contadorDashboard(Request $request)
     {
         try {
-            // Cache key basada en fecha/hora para invalidación automática
+            // Cache key basada en fecha/hora para invalidación automática por hora
             $cacheKey = 'dashboard_contador_' . now()->format('Y-m-d-H');
-            
+
             $data = Cache::remember($cacheKey, $this->cache_ttl, function () {
                 return [
-                    'ventasMes' => $this->calcularVentasMes(),
-                    'ventasMesAnterior' => $this->calcularVentasMesAnterior(),
-                    'cuentasPorCobrar' => $this->calcularCuentasPorCobrar(),
-                    'cuentasPorCobrarVencidas' => $this->calcularCuentasPorCobrarVencidas(),
+                    'ventasMes' => (float) $this->calcularVentasMes(),
+                    'ventasMesAnterior' => (float) $this->calcularVentasMesAnterior(),
+                    'variacionVentas' => $this->calcularVariacionVentas(),
+                    'cuentasPorCobrar' => (float) $this->calcularCuentasPorCobrar(),
+                    'cuentasPorCobrarVencidas' => (float) $this->calcularCuentasPorCobrarVencidas(),
                     'clientesActivos' => $this->contarClientesActivos(),
                     'facturasPendientes' => $this->contarFacturasPendientes(),
                     'facturasVencidas' => $this->contarFacturasVencidas(),
-                    'ticketPromedio' => $this->calcularTicketPromedio(),
-                    'diasPromedioCobranza' => $this->calcularDiasPromedioCobranza(),
-                    'margenBrutoMes' => $this->calcularMargenBrutoMes(),
+                    'ticketPromedio' => (float) $this->calcularTicketPromedio(),
+                    'diasPromedioCobranza' => (int) $this->calcularDiasPromedioCobranza(),
+                    'margenBrutoMes' => (float) $this->calcularMargenBrutoMes(),
                     'mesesLabels' => $this->obtenerMesesLabels(6),
                     'ventasData' => $this->obtenerVentasPorMes(6),
                     'cobranzasData' => $this->obtenerCobranzasPorMes(6),
@@ -53,14 +51,20 @@ class ContadorDashboardController extends Controller
         } catch (\Exception $e) {
             Log::error('Error en dashboard contador: ' . $e->getMessage());
             Log::error('Stack trace: ' . $e->getTraceAsString());
-            
+
             return view('dashboard.contador', $this->getDatosVacios());
         }
     }
+    private function calcularVariacionVentas()
+    {
+        $actual = $this->calcularVentasMes();
+        $anterior = $this->calcularVentasMesAnterior();
+        if ($anterior == 0) return $actual > 0 ? round((($actual - $anterior) / max($anterior,1)) * 100, 2) : 0;
+        return round((($actual - $anterior) / $anterior) * 100, 2);
+    }
 
-    /**
-     * ANÁLISIS FINANCIERO AVANZADO
-     */
+    
+
     private function obtenerAnalisisFinanciero()
     {
         $resultado = DB::table('Doccab as dc')
@@ -104,41 +108,54 @@ class ContadorDashboardController extends Controller
      */
     private function analizarVencimientosPorRango()
     {
-        $fechaActual = now();
-        
-        $rangos = DB::table('Saldos as s')
+        // Cargo saldos con vencimiento próximo y luego los "bucketizo" en PHP (evita CASE dialect issues)
+        $hoy = Carbon::today();
+        $rows = DB::table('Saldos as s')
             ->join('Productos as p', 's.codpro', '=', 'p.CodPro')
             ->where('s.saldo', '>', 0)
             ->where('p.Eliminado', 0)
-            ->selectRaw('
-                CASE 
-                    WHEN s.vencimiento <= ? THEN "Vencidos"
-                    WHEN s.vencimiento <= ? THEN "1-30 días"
-                    WHEN s.vencimiento <= ? THEN "31-60 días"
-                    WHEN s.vencimiento <= ? THEN "61-90 días"
-                    ELSE "+90 días"
-                END as rango,
-                COUNT(*) as cantidad_lotes,
-                SUM(s.saldo) as cantidad_total,
-                SUM(s.saldo * p.StockP) as valor_total
-            ', [
-                $fechaActual,
-                $fechaActual->copy()->addDays(30),
-                $fechaActual->copy()->addDays(60),
-                $fechaActual->copy()->addDays(90)
-            ])
-            ->groupBy('rango')
+            ->select('s.codpro', 's.lote', 's.vencimiento', 's.saldo', 'p.StockP')
             ->get();
 
-        return $rangos->map(function($item) {
-            return [
-                'rango' => $item->rango,
-                'cantidad_lotes' => $item->cantidad_lotes,
-                'cantidad_total' => round($item->cantidad_total, 2),
-                'valor_total' => round($item->valor_total, 2),
-                'color_class' => $this->obtenerColorVencimiento($item->rango)
+        $buckets = [
+            'Vencidos' => ['cantidad_lotes' => 0, 'cantidad_total' => 0, 'valor_total' => 0],
+            '1-30 días' => ['cantidad_lotes' => 0, 'cantidad_total' => 0, 'valor_total' => 0],
+            '31-60 días' => ['cantidad_lotes' => 0, 'cantidad_total' => 0, 'valor_total' => 0],
+            '61-90 días' => ['cantidad_lotes' => 0, 'cantidad_total' => 0, 'valor_total' => 0],
+            '+90 días' => ['cantidad_lotes' => 0, 'cantidad_total' => 0, 'valor_total' => 0],
+        ];
+
+        foreach ($rows as $r) {
+            $dias = $r->vencimiento ? $hoy->diffInDays(Carbon::parse($r->vencimiento), false) : 9999;
+            if ($dias < 0) {
+                $key = 'Vencidos';
+            } elseif ($dias <= 30) {
+                $key = '1-30 días';
+            } elseif ($dias <= 60) {
+                $key = '31-60 días';
+            } elseif ($dias <= 90) {
+                $key = '61-90 días';
+            } else {
+                $key = '+90 días';
+            }
+
+            $buckets[$key]['cantidad_lotes'] += 1;
+            $buckets[$key]['cantidad_total'] += (float) $r->saldo;
+            $buckets[$key]['valor_total'] += ((float)$r->saldo * ((float)$r->StockP ?? 0));
+        }
+
+        // Formateo salida
+        $result = [];
+        foreach ($buckets as $range => $vals) {
+            $result[] = [
+                'rango' => $range,
+                'cantidad_lotes' => $vals['cantidad_lotes'],
+                'cantidad_total' => round($vals['cantidad_total'], 2),
+                'valor_total' => round($vals['valor_total'], 2),
+                'color_class' => $this->obtenerColorVencimiento($range)
             ];
-        })->toArray();
+        }
+        return $result;
     }
 
     /**
@@ -570,14 +587,64 @@ class ContadorDashboardController extends Controller
             ->toArray();
     }
 
-    // ==================== MÉTODOS RESTANTES ====================
+ 
     
-    private function contarClientesActivos() { return 0; }
-    private function contarFacturasPendientes() { return 0; }
-    private function contarFacturasVencidas() { return 0; }
-    private function calcularTicketPromedio() { return 0; }
-    private function calcularDiasPromedioCobranza() { return 0; }
-    private function obtenerMesesLabels($cantidad = 6) { return []; }
+    private function contarClientesActivos()
+    {
+        return (int) Cache::remember('clientes_activos', $this->cache_ttl, function () {
+            return DB::table('Clientes')->where('Activo', 1)->count();
+        });
+    }
+     private function contarFacturasPendientes()
+    {
+        return (int) Cache::remember('facturas_pendientes', $this->cache_ttl, function () {
+            // Usamos CtaCliente como registro de saldos pendientes
+            return DB::table('CtaCliente')->where('Saldo', '>', 0)->count();
+        });
+    }
+    private function contarFacturasVencidas()
+    {
+        return (int) Cache::remember('facturas_vencidas', $this->cache_ttl, function () {
+            return DB::table('CtaCliente')
+                ->where('Saldo', '>', 0)
+                ->whereNotNull('FechaV')
+                ->where('FechaV', '<', Carbon::today())
+                ->count();
+        });
+    }
+    private function calcularTicketPromedio()
+    {
+        return Cache::remember('ticket_promedio_' . now()->format('Y-m'), $this->cache_ttl, function () {
+            $avg = DB::table('Doccab')
+                ->whereYear('Fecha', now()->year)
+                ->whereMonth('Fecha', now()->month)
+                ->where('Eliminado', 0)
+                ->avg('Total');
+            return round((float) ($avg ?? 0), 2);
+        });
+    }
+    private function calcularDiasPromedioCobranza()
+    {
+        return Cache::remember('dias_promedio_cobranza', $this->cache_ttl, function () {
+            // Promedio días entre FechaF (emisión/registro de la deuda) y FechaV (vencimiento) para facturas ya cobradas (Saldo = 0)
+            $row = DB::table('CtaCliente')
+                ->selectRaw('AVG(CAST(DATEDIFF(day, FechaF, FechaV) AS FLOAT)) as avg_days')
+                ->where('Saldo', 0)
+                ->first();
+
+            return $row && $row->avg_days ? round($row->avg_days) : 0;
+        });
+    }
+    private function obtenerMesesLabels($cantidad = 6)
+    {
+        $labels = [];
+        for ($i = $cantidad - 1; $i >= 0; $i--) {
+            $dt = Carbon::now()->subMonths($i);
+            // Nombre de mes en español
+            $labels[] = $dt->locale('es')->translatedFormat('M/Y');
+        }
+        return $labels;
+    }
     
     private function obtenerTipoDocumento($tipo)
     {
@@ -611,7 +678,7 @@ class ContadorDashboardController extends Controller
         ];
     }
 
-    // ==================== API ENDPOINTS ====================
+    
     
     public function getStats(Request $request)
     {
@@ -634,20 +701,18 @@ class ContadorDashboardController extends Controller
 
         } catch (\Exception $e) {
             return response()->json([
-                'success' => false, 
+                'success' => false,
                 'message' => 'Error al obtener estadísticas: ' . $e->getMessage()
             ], 500);
         }
     }
 
-    /**
-     * Limpiar cache (para testing o mantenimiento)
-     */
     public function clearCache()
     {
         try {
-            Cache::tags(['dashboard'])->flush();
-            
+            // Si usas tags: Cache::tags(['dashboard'])->flush();
+            // Usamos flush de llaves conocidas
+            Cache::forget('dashboard_contador_' . now()->format('Y-m-d-H'));
             return response()->json([
                 'success' => true,
                 'message' => 'Cache limpiado exitosamente'
