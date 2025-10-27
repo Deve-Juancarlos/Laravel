@@ -544,10 +544,10 @@
                 <div class="flex-grow-1">
                     <strong>{{ $producto->$nombre }}</strong>
                     <br>
-                    <small class="text-muted">{{ $producto->codigo }}</small>
+                    <small class="text-muted">{{ $producto->$codigo }}</small>
                 </div>
                 <div class="text-end">
-                    <div class="fw-bold">{{ $producto->cantidad_vendida }}</div>
+                    <div class="fw-bold">{{ $producto->$cantidad_vendida }}</div>
                     <small class="text-muted">unidades</small>
                 </div>
             </div>
@@ -571,14 +571,14 @@
             @forelse(($ventasRecientes ?? []) as $venta)
             <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
                 <div>
-                    <strong>Factura #{{ $venta->numero }}</strong>
+                    <strong>Factura #{{ $venta->$numero }}</strong>
                     <br>
-                    <small class="text-muted">{{ $venta->cliente_nombre ?? 'Cliente General' }}</small>
+                    <small class="text-muted">{{ $venta->$cliente_nombre ?? 'Cliente General' }}</small>
                 </div>
                 <div class="text-end">
                     <div class="fw-bold text-success">S/ {{ number_format($venta->total, 2) }}</div>
-                    <span class="status-badge status-{{ $venta->estado }}">
-                        {{ ucfirst($venta->estado) }}
+                    <span class="status-badge status-{{ $venta->$estado }}">
+                        {{ ucfirst($venta->$estado) }}
                     </span>
                 </div>
             </div>

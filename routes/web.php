@@ -16,7 +16,8 @@ use App\Http\Controllers\Admin\AuditoriaController;
 use App\Http\Controllers\Contabilidad\ReportesSunatController;
 use App\Http\Controllers\Contabilidad\LibroDiarioController;
 use App\Http\Controllers\Contabilidad\EstadoResultadosController;
-
+use App\Http\Controllers\Contabilidad\CashFlowController;
+use App\Http\Controllers\Contabilidad\BalanceGeneralController;
 
 //RUTAS PÚBLICAS
 Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
@@ -258,6 +259,10 @@ Route::middleware(['auth', 'check.contador'])->group(function () {
             
             // 5. Análisis farmacéutico específico
             Route::get('/farmaceutico', [EstadoResultadosController::class, 'analisisFarmaceutico'])->name('farmaceutico');
+
+            Route::get('/flujo-caja', [CashFlowController::class, 'index'])->name('flujo-efectivo.index');
+
+            Route::get('/balance-general', [BalanceGeneralController::class, 'index'])->name('balance-general.index');
             
             // 6. Exportar estado de resultados
             Route::get('/exportar', function() {
@@ -265,6 +270,8 @@ Route::middleware(['auth', 'check.contador'])->group(function () {
                 return view('contabilidad.libros.estados-financieros.exportar');
             })->name('exportar');
         });
+
+      
         
         
     });
