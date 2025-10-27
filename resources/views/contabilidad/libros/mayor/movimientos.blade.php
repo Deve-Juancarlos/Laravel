@@ -47,7 +47,7 @@
         <div class="col-md-12">
             <nav aria-label="breadcrumb">
                 <ol class="breadcrumb">
-                    <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Dashboard</a></li>
+                    <li class="breadcrumb-item"><a href="{{ route('dashboard.contador') }}">Dashboard</a></li>
                     <li class="breadcrumb-item"><a href="{{ route('contador.libro-mayor.index') }}">Libro Mayor</a></li>
                     <li class="breadcrumb-item active">Movimientos</li>
                 </ol>
@@ -182,25 +182,25 @@
                             <tbody>
                                 @forelse($movimientos ?? [] as $movimiento)
                                 <tr>
-                                    <td>{{ \Carbon\Carbon::parse($movimiento->fecha)->format('d/m/Y') }}</td>
+                                    <td>{{ \Carbon\Carbon::parse($movimiento->$fecha)->format('d/m/Y') }}</td>
                                     <td>
-                                        <span class="badge bg-primary">{{ $movimiento->numero }}</span>
+                                        <span class="badge bg-primary">{{ $movimiento->$numero }}</span>
                                     </td>
                                     <td>
-                                        <strong>{{ $movimiento->cuenta_contable }}</strong>
+                                        <strong>{{ $movimiento->$cuenta_contable }}</strong>
                                         <br>
-                                        <small class="text-muted">{{ $movimiento->nombre_cuenta ?? 'Sin nombre' }}</small>
+                                        <small class="text-muted">{{ $movimiento->$nombre_cuenta ?? 'Sin nombre' }}</small>
                                     </td>
-                                    <td>{{ Str::limit($movimiento->concepto, 50) }}</td>
+                                    <td>{{ Str::limit($movimiento->$concepto, 50) }}</td>
                                     <td class="text-end text-success">
-                                        <strong>{{ number_format($movimiento->debe ?? 0, 2) }}</strong>
+                                        <strong>{{ number_format($movimiento->$debe ?? 0, 2) }}</strong>
                                     </td>
                                     <td class="text-end text-danger">
-                                        <strong>{{ number_format($movimiento->haber ?? 0, 2) }}</strong>
+                                        <strong>{{ number_format($movimiento->$haber ?? 0, 2) }}</strong>
                                     </td>
                                     <td class="text-end">
-                                        <strong class="{{ (($movimiento->debe ?? 0) - ($movimiento->haber ?? 0)) >= 0 ? 'text-success' : 'text-danger' }}">
-                                            {{ number_format(($movimiento->debe ?? 0) - ($movimiento->haber ?? 0), 2) }}
+                                        <strong class="{{ (($movimiento->$debe ?? 0) - ($movimiento->$haber ?? 0)) >= 0 ? 'text-success' : 'text-danger' }}">
+                                            {{ number_format(($movimiento->$debe ?? 0) - ($movimiento->$haber ?? 0), 2) }}
                                         </strong>
                                     </td>
                                 </tr>
@@ -264,16 +264,16 @@
                                 @foreach($resumenMensual ?? [] as $resumen)
                                 <tr>
                                     <td>
-                                        <strong>{{ $resumen->mes_nombre }} {{ $resumen->anio }}</strong>
+                                        <strong>{{ $resumen->$mes_nombre }} {{ $resumen->$anio }}</strong>   
                                     </td>
                                     <td class="text-end text-success">
-                                        S/ {{ number_format($resumen->total_debe ?? 0, 2) }}
+                                        S/ {{ number_format($resumen->$total_debe ?? 0, 2) }}
                                     </td>
                                     <td class="text-end text-danger">
-                                        S/ {{ number_format($resumen->total_haber ?? 0, 2) }}
+                                        S/ {{ number_format($resumen->$total_haber ?? 0, 2) }}
                                     </td>
                                     <td class="text-end">
-                                        S/ {{ number_format(($resumen->total_debe ?? 0) - ($resumen->total_haber ?? 0), 2) }}
+                                        S/ {{ number_format(($resumen->$total_debe ?? 0) - ($resumen->$total_haber ?? 0), 2) }}
                                     </td>
                                 </tr>
                                 @endforeach
