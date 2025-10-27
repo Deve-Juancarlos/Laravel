@@ -1,681 +1,505 @@
-@extends('layouts.contador')
+@extends('layouts.app')
 
-@section('title', 'Estado de Resultados - SIFANO')
+@section('content')
+<div class="container-fluid">
+    <!-- Breadcrumbs -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ route('dashboard') }}"><i class="fas fa-home"></i> Dashboard</a></li>
+            <li class="breadcrumb-item active"><i class="fas fa-chart-line"></i> Estado de Resultados</li>
+        </ol>
+    </nav>
 
-@section('breadcrumb')
-    <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Dashboard</a></li>
-    <li class="breadcrumb-item"><a href="{{ route('contabilidad') }}">Contabilidad</a></li>
-    <li class="breadcrumb-item"><a href="{{ route('estados-financieros') }}">Estados Financieros</a></li>
-    <li class="breadcrumb-item active">Estado de Resultados</li>
-@endsection
-
-@section('contador-content')
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h1 class="h3 mb-0">
-        <i class="fas fa-chart-line text-success me-2"></i>
-        Estado de Resultados
-    </h1>
-    <div class="d-flex gap-2">
-        <button class="btn btn-outline-success" onclick="exportarEstado()">
-            <i class="fas fa-download me-2"></i>
-            Exportar PDF
-        </button>
-        <button class="btn btn-outline-primary" onclick="imprimirEstado()">
-            <i class="fas fa-print me-2"></i>
-            Imprimir
-        </button>
-        <button class="btn btn-outline-info" onclick="verAnálisisVertical()">
-            <i class="fas fa-percentage me-2"></i>
-            Análisis Vertical
-        </button>
-        <a href="{{ route('estados-financieros') }}" class="btn btn-outline-secondary">
-            <i class="fas fa-arrow-left me-2"></i>
-            Volver
-        </a>
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="text-primary">
+                <i class="fas fa-chart-line me-2"></i>
+                Estado de Resultados SUNAT
+            </h2>
+            <p class="text-muted mb-0">Análisis de ingresos, costos y gastos - Distribuidora de Fármacos</p>
+        </div>
+        <div class="text-end">
+            <small class="text-muted">Período: <strong>{{ \Carbon\Carbon::parse($fechaInicio)->format('d/m/Y') }} - {{ \Carbon\Carbon::parse($fechaFin)->format('d/m/Y') }}</strong></small>
+        </div>
     </div>
-</div>
 
-<!-- Filtros del Estado de Resultados -->
-<div class="card mb-4">
-    <div class="card-header">
-        <h6 class="mb-0">
-            <i class="fas fa-filter me-2"></i>
-            Configuración del Estado
-        </h6>
+    <!-- Filtros -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="GET" action="{{ route('contador.estado-resultados.index') }}">
+                <div class="row">
+                    <div class="col-md-4">
+                        <label class="form-label">Fecha Inicio</label>
+                        <input type="date" name="fecha_inicio" class="form-control" value="{{ $fechaInicio }}">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Fecha Fin</label>
+                        <input type="date" name="fecha_fin" class="form-control" value="{{ $fechaFin }}">
+                    </div>
+                    <div class="col-md-4 d-flex align-items-end">
+                        <button type="submit" class="btn btn-primary me-2">
+                            <i class="fas fa-filter"></i> Aplicar Filtros
+                        </button>
+                        <a href="{{ route('contador.estado-resultados.periodos') }}" class="btn btn-outline-secondary">
+                            <i class="fas fa-calendar-alt"></i> Ver Períodos
+                        </a>
+                    </div>
+                </div>
+            </form>
+        </div>
     </div>
-    <div class="card-body">
-        <form method="GET" class="row g-3">
-            <div class="col-md-2">
-                <label class="form-label">Ejercicio</label>
-                <select name="ejercicio" class="form-select">
-                    @for($year = date('Y'); $year >= date('Y') - 3; $year--)
-                        <option value="{{ $year }}" {{ request('ejercicio', date('Y')) == $year ? 'selected' : '' }}>
-                            {{ $year }}
-                        </option>
-                    @endfor
-                </select>
-            </div>
-            <div class="col-md-2">
-                <label class="form-label">Período Desde</label>
-                <input type="date" name="fecha_desde" class="form-control" 
-                       value="{{ request('fecha_desde', date('Y-01-01')) }}">
-            </div>
-            <div class="col-md-2">
-                <label class="form-label">Período Hasta</label>
-                <input type="date" name="fecha_hasta" class="form-control" 
-                       value="{{ request('fecha_hasta', date('Y-m-d')) }}">
-            </div>
-            <div class="col-md-2">
-                <label class="form-label">Comparar con</label>
-                <select name="comparar_con" class="form-select">
-                    <option value="">Sin comparación</option>
-                    <option value="periodo_anterior" {{ request('comparar_con') === 'periodo_anterior' ? 'selected' : '' }}>
-                        Período Anterior
-                    </option>
-                    <option value="ejercicio_anterior" {{ request('comparar_con') === 'ejercicio_anterior' ? 'selected' : '' }}>
-                        Ejercicio Anterior
-                    </option>
-                </select>
-            </div>
-            <div class="col-md-2">
-                <label class="form-label">Mostrar Por</label>
-                <select name="tipo_periodo" class="form-select">
-                    <option value="acumulado" {{ request('tipo_periodo', 'acumulado') === 'acumulado' ? 'selected' : '' }}>
-                        Período Acumulado
-                    </option>
-                    <option value="mensual" {{ request('tipo_periodo') === 'mensual' ? 'selected' : '' }}>
-                        Último Mes
-                    </option>
-                    <option value="trimestral" {{ request('tipo_periodo') === 'trimestral' ? 'selected' : '' }}>
-                        Trimestre Actual
-                    </option>
-                </select>
-            </div>
-            <div class="col-md-2">
-                <label class="form-label">Nivel Detalle</label>
-                <select name="nivel_detalle" class="form-select">
-                    <option value="resumido" {{ request('nivel_detalle', 'resumido') === 'resumido' ? 'selected' : '' }}>
-                        Resumido
-                    </option>
-                    <option value="detallado" {{ request('nivel_detalle') === 'detallado' ? 'selected' : '' }}>
-                        Detallado
-                    </option>
-                </select>
-            </div>
-            <div class="col-12">
-                <button type="submit" class="btn btn-primary">
-                    <i class="fas fa-calculator me-2"></i>
-                    Generar Estado
-                </button>
-            </div>
-        </form>
-    </div>
-</div>
 
-<!-- Información del Estado -->
-<div class="card mb-4">
-    <div class="card-body">
-        <div class="row text-center">
-            <div class="col-md-4">
-                <h5 class="text-muted mb-1">{{ $empresa ?? 'Mi Empresa S.A.C.' }}</h5>
-                <p class="mb-0">ESTADO DE RESULTADOS</p>
-                <small class="text-muted">
-                    Del {{ date('d', strtotime($fechaDesde ?? date('Y-01-01'))) }} 
-                    de {{ date('F', strtotime($fechaDesde ?? date('Y-01-01'))) }} 
-                    al {{ date('d', strtotime($fechaHasta ?? date('Y-m-d'))) }} 
-                    de {{ date('F', strtotime($fechaHasta ?? date('Y-m-d'))) }} 
-                    de {{ date('Y', strtotime($fechaHasta ?? date('Y-m-d'))) }}
-                </small>
+    <!-- Cards Estadísticas Principales -->
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6 mb-3">
+            <div class="card border-0 bg-primary text-white">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-grow-1">
+                            <h5 class="card-title mb-0">Ventas Netas</h5>
+                            <h3 class="text-white">{{ number_format($totalVentas, 2) }}</h3>
+                            <small>S/.</small>
+                        </div>
+                        <div class="ms-3">
+                            <i class="fas fa-shopping-cart fa-2x opacity-75"></i>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div class="col-md-4">
-                <p class="text-muted mb-1">Moneda</p>
-                <p class="fw-bold">{{ request('moneda', 'PEN') === 'PEN' ? 'Soles (PEN)' : 'Dólares (USD)' }}</p>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-3">
+            <div class="card border-0 bg-success text-white">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-grow-1">
+                            <h5 class="card-title mb-0">Costo de Ventas</h5>
+                            <h3 class="text-white">{{ number_format($totalCostoVentas, 2) }}</h3>
+                            <small>S/.</small>
+                        </div>
+                        <div class="ms-3">
+                            <i class="fas fa-truck fa-2x opacity-75"></i>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div class="col-md-4">
-                <p class="text-muted mb-1">Utilidad del Período</p>
-                <h4 class="{{ ($utilidadNeta ?? 0) >= 0 ? 'text-success' : 'text-danger' }} mb-0">
-                    {{ $monedaSimbolo }}{{ number_format($utilidadNeta ?? 0, 2) }}
-                </h4>
-                <small class="{{ ($utilidadNeta ?? 0) >= 0 ? 'text-success' : 'text-danger' }}">
-                    {{ ($utilidadNeta ?? 0) >= 0 ? 'Utilidad' : 'Pérdida' }}
-                </small>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-3">
+            <div class="card border-0 bg-info text-white">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-grow-1">
+                            <h5 class="card-title mb-0">Utilidad Bruta</h5>
+                            <h3 class="text-white">{{ number_format($utilidadBruta, 2) }}</h3>
+                            <small>S/. ({{ number_format($margenBruto, 1) }}%)</small>
+                        </div>
+                        <div class="ms-3">
+                            <i class="fas fa-chart-bar fa-2x opacity-75"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-3">
+            <div class="card border-0 {{ $utilidadNeta >= 0 ? 'bg-warning' : 'bg-danger' }} text-white">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-grow-1">
+                            <h5 class="card-title mb-0">Utilidad Neta</h5>
+                            <h3 class="text-white">{{ number_format($utilidadNeta, 2) }}</h3>
+                            <small>S/. ({{ number_format($margenNeto, 1) }}%)</small>
+                        </div>
+                        <div class="ms-3">
+                            <i class="fas fa-dollar-sign fa-2x opacity-75"></i>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
-</div>
 
-<!-- Estado de Resultados -->
-<div class="card">
-    <div class="card-header bg-success text-white">
-        <h5 class="mb-0 text-center">
-            ESTADO DE RESULTADOS - {{ strtoupper($empresa ?? 'MI EMPRESA S.A.C.') }}
-        </h5>
-    </div>
-    <div class="card-body p-0">
-        <div class="table-responsive">
-            <table class="table table-bordered mb-0 estado-resultados-table">
-                <tbody>
-                    <!-- INGRESOS -->
-                    <tr class="table-success">
-                        <td colspan="6" class="fw-bold fs-5">
-                            <i class="fas fa-arrow-up me-2"></i>
-                            INGRESOS
-                        </td>
-                    </tr>
+    <!-- Resumen por Categorías -->
+    <div class="row mb-4">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-table me-2"></i>
+                        Estado de Resultados Detallado
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>Concepto</th>
+                                    <th class="text-end">Importe (S/.)</th>
+                                    <th class="text-end">% Ventas</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- INGRESOS -->
+                                <tr class="table-success">
+                                    <td colspan="3"><strong>INGRESOS</strong></td>
+                                </tr>
+                                <tr>
+                                    <td>Ventas Netas</td>
+                                    <td class="text-end">{{ number_format($totalVentas, 2) }}</td>
+                                    <td class="text-end">100.0%</td>
+                                </tr>
+                                <tr class="table-info">
+                                    <td><strong>TOTAL INGRESOS</strong></td>
+                                    <td class="text-end"><strong>{{ number_format($totalVentas, 2) }}</strong></td>
+                                    <td class="text-end"><strong>100.0%</strong></td>
+                                </tr>
+                                
+                                <!-- COSTOS -->
+                                <tr class="table-warning">
+                                    <td colspan="3"><strong>COSTOS Y GASTOS</strong></td>
+                                </tr>
+                                <tr>
+                                    <td>Costo de Ventas</td>
+                                    <td class="text-end">{{ number_format($totalCostoVentas, 2) }}</td>
+                                    <td class="text-end">{{ number_format(($totalCostoVentas / $totalVentas) * 100, 1) }}%</td>
+                                </tr>
+                                <tr>
+                                    <td>Gastos Operativos</td>
+                                    <td class="text-end">{{ number_format($totalGastos, 2) }}</td>
+                                    <td class="text-end">{{ number_format(($totalGastos / $totalVentas) * 100, 1) }}%</td>
+                                </tr>
+                                <tr class="table-warning">
+                                    <td><strong>TOTAL COSTOS Y GASTOS</strong></td>
+                                    <td class="text-end"><strong>{{ number_format($totalCostoVentas + $totalGastos, 2) }}</strong></td>
+                                    <td class="text-end"><strong>{{ number_format((($totalCostoVentas + $totalGastos) / $totalVentas) * 100, 1) }}%</strong></td>
+                                </tr>
+                                
+                                <!-- UTILIDAD -->
+                                <tr class="{{ $utilidadNeta >= 0 ? 'table-success' : 'table-danger' }}">
+                                    <td><strong>UTILIDAD NETA</strong></td>
+                                    <td class="text-end"><strong>{{ number_format($utilidadNeta, 2) }}</strong></td>
+                                    <td class="text-end"><strong>{{ number_format($margenNeto, 1) }}%</strong></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Resumen por Categorías -->
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-header bg-secondary text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-pie-chart me-2"></i>
+                        Resumen por Categorías
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between">
+                            <span><i class="fas fa-circle text-success me-2"></i>Ingresos</span>
+                            <strong>{{ number_format($resumen['INGRESOS'], 2) }}</strong>
+                        </div>
+                        <div class="progress mt-1" style="height: 6px;">
+                            <div class="progress-bar bg-success" style="width: 100%"></div>
+                        </div>
+                    </div>
                     
-                    <!-- Ingresos Operacionales -->
-                    <tr class="table-light">
-                        <td colspan="6" class="fw-bold">
-                            <i class="fas fa-chevron-right me-2"></i>
-                            INGRESOS OPERACIONALES
-                        </td>
-                    </tr>
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between">
+                            <span><i class="fas fa-circle text-danger me-2"></i>Costo Ventas</span>
+                            <strong>{{ number_format($resumen['COSTO_VENTAS'], 2) }}</strong>
+                        </div>
+                        <div class="progress mt-1" style="height: 6px;">
+                            <div class="progress-bar bg-danger" style="width: {{ ($resumen['COSTO_VENTAS'] / $resumen['INGRESOS']) * 100 }}%"></div>
+                        </div>
+                    </div>
                     
-                    @forelse($ingresosOperacionales ?? [] as $cuenta)
-                    <tr class="{{ $cuenta->nivel == 3 ? '' : 'fw-bold' }}">
-                        <td style="width: 10%">{{ $cuenta->codigo }}</td>
-                        <td style="width: 40%">{{ $cuenta->nombre }}</td>
-                        <td class="text-end" style="width: 15%">
-                            {{ $monedaSimbolo }}{{ number_format($cuenta->total_periodo, 2) }}
-                        </td>
-                        @if($periodoAnterior ?? false)
-                        <td class="text-end text-muted" style="width: 15%">
-                            {{ $monedaSimbolo }}{{ number_format($cuenta->total_anterior, 2) }}
-                        </td>
-                        <td class="text-end" style="width: 10%">
-                            @php
-                                $variacion = $cuenta->total_anterior > 0 ? 
-                                    (($cuenta->total_periodo - $cuenta->total_anterior) / $cuenta->total_anterior) * 100 : 0;
-                            @endphp
-                            <span class="{{ $variacion >= 0 ? 'text-success' : 'text-danger' }}">
-                                {{ $variacion >= 0 ? '+' : '' }}{{ number_format($variacion, 1) }}%
-                            </span>
-                        </td>
-                        @else
-                        <td colspan="2"></td>
-                        @endif
-                        <td class="text-end" style="width: 10%">
-                            <button class="btn btn-sm btn-outline-info" onclick="verDetalleCuenta({{ $cuenta->id }})">
-                                <i class="fas fa-eye"></i>
-                            </button>
-                        </td>
-                    </tr>
-                    @empty
-                    <tr>
-                        <td colspan="6" class="text-center text-muted">No hay ingresos operacionales</td>
-                    </tr>
-                    @endforelse
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between">
+                            <span><i class="fas fa-circle text-warning me-2"></i>Utilidad Bruta</span>
+                            <strong>{{ number_format($resumen['UTILIDAD_BRUTA'], 2) }}</strong>
+                        </div>
+                        <div class="progress mt-1" style="height: 6px;">
+                            <div class="progress-bar bg-warning" style="width: {{ ($resumen['UTILIDAD_BRUTA'] / $resumen['INGRESOS']) * 100 }}%"></div>
+                        </div>
+                    </div>
                     
-                    <tr class="table-success fw-bold">
-                        <td colspan="2" class="text-end">TOTAL INGRESOS OPERACIONALES</td>
-                        <td class="text-end">{{ $monedaSimbolo }}{{ number_format($totalIngresosOperacionales ?? 0, 2) }}</td>
-                        @if($periodoAnterior ?? false)
-                        <td class="text-end">{{ $monedaSimbolo }}{{ number_format($totalIngresosOperacionalesAnterior ?? 0, 2) }}</td>
-                        <td></td>
-                        @else
-                        <td colspan="2"></td>
-                        @endif
-                        <td></td>
-                    </tr>
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between">
+                            <span><i class="fas fa-circle text-info me-2"></i>Gastos Operativos</span>
+                            <strong>{{ number_format($resumen['GASTOS_OPERATIVOS'], 2) }}</strong>
+                        </div>
+                        <div class="progress mt-1" style="height: 6px;">
+                            <div class="progress-bar bg-info" style="width: {{ ($resumen['GASTOS_OPERATIVOS'] / $resumen['INGRESOS']) * 100 }}%"></div>
+                        </div>
+                    </div>
                     
-                    <!-- Ingresos No Operacionales -->
-                    <tr class="table-light">
-                        <td colspan="6" class="fw-bold">
-                            <i class="fas fa-chevron-right me-2"></i>
-                            INGRESOS NO OPERACIONALES
-                        </td>
-                    </tr>
-                    
-                    @forelse($ingresosNoOperacionales ?? [] as $cuenta)
-                    <tr class="{{ $cuenta->nivel == 3 ? '' : 'fw-bold' }}">
-                        <td>{{ $cuenta->codigo }}</td>
-                        <td>{{ $cuenta->nombre }}</td>
-                        <td class="text-end">{{ $monedaSimbolo }}{{ number_format($cuenta->total_periodo, 2) }}</td>
-                        @if($periodoAnterior ?? false)
-                        <td class="text-end text-muted">{{ $monedaSimbolo }}{{ number_format($cuenta->total_anterior, 2) }}</td>
-                        <td class="text-end">
-                            @php
-                                $variacion = $cuenta->total_anterior > 0 ? 
-                                    (($cuenta->total_periodo - $cuenta->total_anterior) / $cuenta->total_anterior) * 100 : 0;
-                            @endphp
-                            <span class="{{ $variacion >= 0 ? 'text-success' : 'text-danger' }}">
-                                {{ $variacion >= 0 ? '+' : '' }}{{ number_format($variacion, 1) }}%
-                            </span>
-                        </td>
-                        @else
-                        <td colspan="2"></td>
-                        @endif
-                        <td class="text-end">
-                            <button class="btn btn-sm btn-outline-info" onclick="verDetalleCuenta({{ $cuenta->id }})">
-                                <i class="fas fa-eye"></i>
-                            </button>
-                        </td>
-                    </tr>
-                    @empty
-                    <tr>
-                        <td colspan="6" class="text-center text-muted">No hay ingresos no operacionales</td>
-                    </tr>
-                    @endforelse
-                    
-                    <tr class="table-success fw-bold">
-                        <td colspan="2" class="text-end">TOTAL INGRESOS NO OPERACIONALES</td>
-                        <td class="text-end">{{ $monedaSimbolo }}{{ number_format($totalIngresosNoOperacionales ?? 0, 2) }}</td>
-                        @if($periodoAnterior ?? false)
-                        <td class="text-end">{{ $monedaSimbolo }}{{ number_format($totalIngresosNoOperacionalesAnterior ?? 0, 2) }}</td>
-                        <td></td>
-                        @else
-                        <td colspan="2"></td>
-                        @endif
-                        <td></td>
-                    </tr>
-                    
-                    <!-- Total Ingresos -->
-                    <tr class="table-dark fw-bold fs-5">
-                        <td colspan="2" class="text-end">TOTAL INGRESOS</td>
-                        <td class="text-end">{{ $monedaSimbolo }}{{ number_format($totalIngresos ?? 0, 2) }}</td>
-                        @if($periodoAnterior ?? false)
-                        <td class="text-end">{{ $monedaSimbolo }}{{ number_format($totalIngresosAnterior ?? 0, 2) }}</td>
-                        <td></td>
-                        @else
-                        <td colspan="2"></td>
-                        @endif
-                        <td></td>
-                    </tr>
-                    
-                    <!-- Separador -->
-                    <tr><td colspan="6" class="p-3 border-0"></td></tr>
-                    
-                    <!-- GASTOS -->
-                    <tr class="table-danger">
-                        <td colspan="6" class="fw-bold fs-5">
-                            <i class="fas fa-arrow-down me-2"></i>
-                            GASTOS
-                        </td>
-                    </tr>
-                    
-                    <!-- Gastos Operacionales -->
-                    <tr class="table-light">
-                        <td colspan="6" class="fw-bold">
-                            <i class="fas fa-chevron-right me-2"></i>
-                            GASTOS OPERACIONALES
-                        </td>
-                    </tr>
-                    
-                    @forelse($gastosOperacionales ?? [] as $cuenta)
-                    <tr class="{{ $cuenta->nivel == 3 ? '' : 'fw-bold' }}">
-                        <td>{{ $cuenta->codigo }}</td>
-                        <td>{{ $cuenta->nombre }}</td>
-                        <td class="text-end text-danger">{{ $monedaSimbolo }}{{ number_format($cuenta->total_periodo, 2) }}</td>
-                        @if($periodoAnterior ?? false)
-                        <td class="text-end text-muted">{{ $monedaSimbolo }}{{ number_format($cuenta->total_anterior, 2) }}</td>
-                        <td class="text-end">
-                            @php
-                                $variacion = $cuenta->total_anterior > 0 ? 
-                                    (($cuenta->total_periodo - $cuenta->total_anterior) / $cuenta->total_anterior) * 100 : 0;
-                            @endphp
-                            <span class="{{ $variacion <= 0 ? 'text-success' : 'text-danger' }}">
-                                {{ $variacion >= 0 ? '+' : '' }}{{ number_format($variacion, 1) }}%
-                            </span>
-                        </td>
-                        @else
-                        <td colspan="2"></td>
-                        @endif
-                        <td class="text-end">
-                            <button class="btn btn-sm btn-outline-info" onclick="verDetalleCuenta({{ $cuenta->id }})">
-                                <i class="fas fa-eye"></i>
-                            </button>
-                        </td>
-                    </tr>
-                    @empty
-                    <tr>
-                        <td colspan="6" class="text-center text-muted">No hay gastos operacionales</td>
-                    </tr>
-                    @endforelse
-                    
-                    <tr class="table-danger fw-bold">
-                        <td colspan="2" class="text-end">TOTAL GASTOS OPERACIONALES</td>
-                        <td class="text-end text-danger">{{ $monedaSimbolo }}{{ number_format($totalGastosOperacionales ?? 0, 2) }}</td>
-                        @if($periodoAnterior ?? false)
-                        <td class="text-end">{{ $monedaSimbolo }}{{ number_format($totalGastosOperacionalesAnterior ?? 0, 2) }}</td>
-                        <td></td>
-                        @else
-                        <td colspan="2"></td>
-                        @endif
-                        <td></td>
-                    </tr>
-                    
-                    <!-- Gastos No Operacionales -->
-                    <tr class="table-light">
-                        <td colspan="6" class="fw-bold">
-                            <i class="fas fa-chevron-right me-2"></i>
-                            GASTOS NO OPERACIONALES
-                        </td>
-                    </tr>
-                    
-                    @forelse($gastosNoOperacionales ?? [] as $cuenta)
-                    <tr class="{{ $cuenta->nivel == 3 ? '' : 'fw-bold' }}">
-                        <td>{{ $cuenta->codigo }}</td>
-                        <td>{{ $cuenta->nombre }}</td>
-                        <td class="text-end text-danger">{{ $monedaSimbolo }}{{ number_format($cuenta->total_periodo, 2) }}</td>
-                        @if($periodoAnterior ?? false)
-                        <td class="text-end text-muted">{{ $monedaSimbolo }}{{ number_format($cuenta->total_anterior, 2) }}</td>
-                        <td class="text-end">
-                            @php
-                                $variacion = $cuenta->total_anterior > 0 ? 
-                                    (($cuenta->total_periodo - $cuenta->total_anterior) / $cuenta->total_anterior) * 100 : 0;
-                            @endphp
-                            <span class="{{ $variacion <= 0 ? 'text-success' : 'text-danger' }}">
-                                {{ $variacion >= 0 ? '+' : '' }}{{ number_format($variacion, 1) }}%
-                            </span>
-                        </td>
-                        @else
-                        <td colspan="2"></td>
-                        @endif
-                        <td class="text-end">
-                            <button class="btn btn-sm btn-outline-info" onclick="verDetalleCuenta({{ $cuenta->id }})">
-                                <i class="fas fa-eye"></i>
-                            </button>
-                        </td>
-                    </tr>
-                    @empty
-                    <tr>
-                        <td colspan="6" class="text-center text-muted">No hay gastos no operacionales</td>
-                    </tr>
-                    @endforelse
-                    
-                    <tr class="table-danger fw-bold">
-                        <td colspan="2" class="text-end">TOTAL GASTOS NO OPERACIONALES</td>
-                        <td class="text-end text-danger">{{ $monedaSimbolo }}{{ number_format($totalGastosNoOperacionales ?? 0, 2) }}</td>
-                        @if($periodoAnterior ?? false)
-                        <td class="text-end">{{ $monedaSimbolo }}{{ number_format($totalGastosNoOperacionalesAnterior ?? 0, 2) }}</td>
-                        <td></td>
-                        @else
-                        <td colspan="2"></td>
-                        @endif
-                        <td></td>
-                    </tr>
-                    
-                    <!-- Total Gastos -->
-                    <tr class="table-danger fw-bold">
-                        <td colspan="2" class="text-end">TOTAL GASTOS</td>
-                        <td class="text-end text-danger">{{ $monedaSimbolo }}{{ number_format($totalGastos ?? 0, 2) }}</td>
-                        @if($periodoAnterior ?? false)
-                        <td class="text-end">{{ $monedaSimbolo }}{{ number_format($totalGastosAnterior ?? 0, 2) }}</td>
-                        <td></td>
-                        @else
-                        <td colspan="2"></td>
-                        @endif
-                        <td></td>
-                    </tr>
-                    
-                    <!-- Separador -->
-                    <tr><td colspan="6" class="p-3 border-0"></td></tr>
-                    
-                    <!-- RESULTADOS -->
-                    <tr class="table-info fw-bold fs-5">
-                        <td colspan="2" class="text-end">UTILIDAD (PÉRDIDA) OPERACIONAL</td>
-                        <td class="text-end {{ ($utilidadOperacional ?? 0) >= 0 ? 'text-success' : 'text-danger' }}">
-                            {{ $monedaSimbolo }}{{ number_format($utilidadOperacional ?? 0, 2) }}
-                        </td>
-                        @if($periodoAnterior ?? false)
-                        <td class="text-end">{{ $monedaSimbolo }}{{ number_format($utilidadOperacionalAnterior ?? 0, 2) }}</td>
-                        <td></td>
-                        @else
-                        <td colspan="2"></td>
-                        @endif
-                        <td></td>
-                    </tr>
-                    
-                    <tr class="table-info fw-bold fs-5">
-                        <td colspan="2" class="text-end">UTILIDAD (PÉRDIDA) BRUTA</td>
-                        <td class="text-end {{ ($utilidadBruta ?? 0) >= 0 ? 'text-success' : 'text-danger' }}">
-                            {{ $monedaSimbolo }}{{ number_format($utilidadBruta ?? 0, 2) }}
-                        </td>
-                        @if($periodoAnterior ?? false)
-                        <td class="text-end">{{ $monedaSimbolo }}{{ number_format($utilidadBrutaAnterior ?? 0, 2) }}</td>
-                        <td></td>
-                        @else
-                        <td colspan="2"></td>
-                        @endif
-                        <td></td>
-                    </tr>
-                    
-                    <tr class="table-primary fw-bold fs-4">
-                        <td colspan="2" class="text-end">UTILIDAD (PÉRDIDA) NETA</td>
-                        <td class="text-end {{ ($utilidadNeta ?? 0) >= 0 ? 'text-success' : 'text-danger' }}">
-                            {{ $monedaSimbolo }}{{ number_format($utilidadNeta ?? 0, 2) }}
-                        </td>
-                        @if($periodoAnterior ?? false)
-                        <td class="text-end">{{ $monedaSimbolo }}{{ number_format($utilidadNetaAnterior ?? 0, 2) }}</td>
-                        <td></td>
-                        @else
-                        <td colspan="2"></td>
-                        @endif
-                        <td></td>
-                    </tr>
-                    
-                    <!-- Márgenes -->
-                    <tr class="table-light">
-                        <td colspan="6">
-                            <div class="row text-center">
-                                <div class="col-md-3">
-                                    <strong>Margen Bruto:</strong>
-                                    <span class="{{ ($margenBruto ?? 0) >= 0 ? 'text-success' : 'text-danger' }}">
-                                        {{ number_format($margenBruto ?? 0, 1) }}%
-                                    </span>
-                                </div>
-                                <div class="col-md-3">
-                                    <strong>Margen Operacional:</strong>
-                                    <span class="{{ ($margenOperacional ?? 0) >= 0 ? 'text-success' : 'text-danger' }}">
-                                        {{ number_format($margenOperacional ?? 0, 1) }}%
-                                    </span>
-                                </div>
-                                <div class="col-md-3">
-                                    <strong>Margen Neto:</strong>
-                                    <span class="{{ ($margenNeto ?? 0) >= 0 ? 'text-success' : 'text-danger' }}">
-                                        {{ number_format($margenNeto ?? 0, 1) }}%
-                                    </span>
-                                </div>
-                                <div class="col-md-3">
-                                    <strong>EBITDA:</strong>
-                                    <span class="{{ ($ebitda ?? 0) >= 0 ? 'text-success' : 'text-danger' }}">
-                                        {{ $monedaSimbolo }}{{ number_format($ebitda ?? 0, 2) }}
-                                    </span>
-                                </div>
+                    <div class="mb-0">
+                        <div class="d-flex justify-content-between">
+                            <span><i class="fas fa-circle {{ $utilidadNeta >= 0 ? 'text-success' : 'text-danger' }} me-2"></i>Utilidad Operativa</span>
+                            <strong>{{ number_format($resumen['UTILIDAD_OPERATIVA'], 2) }}</strong>
+                        </div>
+                        <div class="progress mt-1" style="height: 6px;">
+                            <div class="progress-bar {{ $utilidadNeta >= 0 ? 'bg-success' : 'bg-danger' }}" style="width: {{ abs($resumen['UTILIDAD_OPERATIVA'] / $resumen['INGRESOS']) * 100 }}%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Margenes -->
+            <div class="card mt-3">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-percentage me-2"></i>
+                        Márgenes Financieros
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-4">
+                            <div class="border rounded p-2">
+                                <h6 class="text-primary mb-1">{{ number_format($margenBruto, 1) }}%</h6>
+                                <small class="text-muted">Margen Bruto</small>
                             </div>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-    </div>
-</div>
-
-<!-- Análisis de Rentabilidad -->
-<div class="row mt-4">
-    <div class="col-lg-8">
-        <div class="card">
-            <div class="card-header">
-                <h6 class="mb-0">
-                    <i class="fas fa-chart-line me-2"></i>
-                    Evolución de Ingresos y Gastos
-                </h6>
-            </div>
-            <div class="card-body">
-                <div class="chart-container">
-                    <canvas id="ingresosGastosChart"></canvas>
+                        </div>
+                        <div class="col-4">
+                            <div class="border rounded p-2">
+                                <h6 class="text-info mb-1">{{ number_format($margenOperativo, 1) }}%</h6>
+                                <small class="text-muted">Margen Operativo</small>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="border rounded p-2">
+                                <h6 class="{{ $margenNeto >= 0 ? 'text-success' : 'text-danger' }} mb-1">{{ number_format($margenNeto, 1) }}%</h6>
+                                <small class="text-muted">Margen Neto</small>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-    <div class="col-lg-4">
-        <div class="card">
-            <div class="card-header">
-                <h6 class="mb-0">
-                    <i class="fas fa-percentage me-2"></i>
-                    Distribución de Gastos
-                </h6>
+
+    <!-- Análisis de Cuentas -->
+    <div class="row mb-4">
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-plus-circle me-2"></i>
+                        Cuentas de Ingresos (4xxx)
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Cuenta</th>
+                                    <th>Descripción</th>
+                                    <th class="text-end">Total (S/.)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($ingresos as $ingreso)
+                                <tr>
+                                    <td><code>{{ $ingreso->cuenta }}</code></td>
+                                    <td>{{ $ingreso->descripcion }}</td>
+                                    <td class="text-end">{{ number_format($ingreso->total, 2) }}</td>
+                                </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
-            <div class="card-body">
-                <div class="chart-container">
-                    <canvas id="distribucionGastosChart"></canvas>
+        </div>
+
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-minus-circle me-2"></i>
+                        Cuentas de Gastos (5xxx)
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Cuenta</th>
+                                    <th>Descripción</th>
+                                    <th class="text-end">Total (S/.)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($gastos as $gasto)
+                                <tr>
+                                    <td><code>{{ $gasto->cuenta }}</code></td>
+                                    <td>{{ $gasto->descripcion }}</td>
+                                    <td class="text-end">{{ number_format($gasto->total, 2) }}</td>
+                                </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Comparación con Período Anterior -->
+    @if(isset($comparacion))
+    <div class="card mb-4">
+        <div class="card-header bg-info text-white">
+            <h5 class="mb-0">
+                <i class="fas fa-chart-line me-2"></i>
+                Comparación con Período Anterior
+            </h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <h6>Ventas</h6>
+                    <div class="progress mb-2" style="height: 25px;">
+                        <div class="progress-bar bg-success" style="width: 100%">
+                            <span class="text-dark">Actual: {{ number_format($comparacion['actual']['ventas_netas'], 2) }}</span>
+                        </div>
+                    </div>
+                    <div class="progress mb-2" style="height: 25px;">
+                        <div class="progress-bar bg-secondary" style="width: {{ ($comparacion['anterior']['ventas_netas'] / $comparacion['actual']['ventas_netas']) * 100 }}%">
+                            <span class="text-dark">Anterior: {{ number_format($comparacion['anterior']['ventas_netas'], 2) }}</span>
+                        </div>
+                    </div>
+                    <div class="mt-2">
+                        <small class="text-muted">Variación: 
+                            <span class="{{ $comparacion['variacion_ventas'] >= 0 ? 'text-success' : 'text-danger' }}">
+                                {{ $comparacion['variacion_ventas'] >= 0 ? '+' : '' }}{{ number_format($comparacion['variacion_ventas'], 2) }}%
+                            </span>
+                        </small>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <h6>Utilidad Operativa</h6>
+                    <div class="progress mb-2" style="height: 25px;">
+                        <div class="progress-bar bg-success" style="width: 100%">
+                            <span class="text-dark">Actual: {{ number_format($comparacion['actual']['utilidad_operativa'], 2) }}</span>
+                        </div>
+                    </div>
+                    <div class="progress mb-2" style="height: 25px;">
+                        <div class="progress-bar bg-secondary" style="width: {{ abs($comparacion['anterior']['utilidad_operativa'] / $comparacion['actual']['utilidad_operativa']) * 100 }}%">
+                            <span class="text-dark">Anterior: {{ number_format($comparacion['anterior']['utilidad_operativa'], 2) }}</span>
+                        </div>
+                    </div>
+                    <div class="mt-2">
+                        <small class="text-muted">Variación: 
+                            <span class="{{ $comparacion['variacion_utilidad'] >= 0 ? 'text-success' : 'text-danger' }}">
+                                {{ $comparacion['variacion_utilidad'] >= 0 ? '+' : '' }}{{ number_format($comparacion['variacion_utilidad'], 2) }}%
+                            </span>
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    @endif
+
+    <!-- Botones de Acción -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <a href="{{ route('contador.estado-resultados.periodos') }}" class="btn btn-info me-2">
+                                <i class="fas fa-calendar-alt"></i> Ver Períodos
+                            </a>
+                            <a href="{{ route('contador.estado-resultados.comparativo') }}" class="btn btn-warning me-2">
+                                <i class="fas fa-comparison"></i> Comparativo
+                            </a>
+                            <a href="{{ route('contador.estado-resultados.farmaceutico') }}" class="btn btn-success">
+                                <i class="fas fa-pills"></i> Análisis Farmacéutico
+                            </a>
+                        </div>
+                        <div>
+                            <a href="{{ route('contador.estado-resultados.detalle', ['cuenta' => 'all']) }}" class="btn btn-outline-primary me-2">
+                                <i class="fas fa-search"></i> Ver Detalles
+                            </a>
+                            <a href="{{ route('contador.estado-resultados.exportar') }}" class="btn btn-primary">
+                                <i class="fas fa-download"></i> Exportar
+                            </a>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
-@endsection
 
-@section('scripts')
+<!-- Chart.js Script -->
 <script>
-    function exportarEstado() {
-        const params = new URLSearchParams(window.location.search);
-        const url = `/estados-financieros/resultados/exportar-pdf?${params.toString()}`;
-        
-        showLoading();
-        window.open(url, '_blank');
-        hideLoading();
-    }
-
-    function imprimirEstado() {
-        window.print();
-    }
-
-    function verAnálisisVertical() {
-        const params = new URLSearchParams(window.location.search);
-        params.set('analisis', 'vertical');
-        const url = `/estados-financieros/resultados?${params.toString()}`;
-        
-        window.location.href = url;
-    }
-
-    function verDetalleCuenta(cuentaId) {
-        const params = new URLSearchParams(window.location.search);
-        params.set('cuenta_id', cuentaId);
-        const url = `/libros-mayor/${cuentaId}?${params.toString()}`;
-        
-        window.open(url, '_blank');
-    }
-
-    // Gráfico de evolución de ingresos y gastos
-    document.addEventListener('DOMContentLoaded', function() {
-        // Gráfico de líneas
-        const ctx1 = document.getElementById('ingresosGastosChart');
-        if (ctx1) {
-            new Chart(ctx1, {
-                type: 'line',
-                data: {
-                    labels: {!! json_encode($labelsEvolucion ?? []) !!},
-                    datasets: [{
-                        label: 'Ingresos',
-                        data: {!! json_encode($ingresosEvolucion ?? []) !!},
-                        borderColor: '#10b981',
-                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
-                        tension: 0.4,
-                        fill: true
-                    }, {
-                        label: 'Gastos',
-                        data: {!! json_encode($gastosEvolucion ?? []) !!},
-                        borderColor: '#ef4444',
-                        backgroundColor: 'rgba(239, 68, 68, 0.1)',
-                        tension: 0.4,
-                        fill: true
-                    }, {
-                        label: 'Utilidad Neta',
-                        data: {!! json_encode($utilidadEvolucion ?? []) !!},
-                        borderColor: '#3b82f6',
-                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
-                        tension: 0.4,
-                        fill: true
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            position: 'top'
-                        },
-                        tooltip: {
-                            mode: 'index',
-                            intersect: false
-                        }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            ticks: {
-                                callback: function(value) {
-                                    return '{{ $monedaSimbolo ?? "S/" }}' + value.toFixed(0);
-                                }
+document.addEventListener('DOMContentLoaded', function() {
+    // Gráfico de barras para comparación de períodos
+    const ctxComparacion = document.getElementById('chartComparacion');
+    if (ctxComparacion) {
+        new Chart(ctxComparacion, {
+            type: 'bar',
+            data: {
+                labels: ['Ventas', 'Costo Ventas', 'Utilidad Bruta', 'Gastos', 'Utilidad Neta'],
+                datasets: [{
+                    label: 'Período Actual',
+                    data: [
+                        {{ $comparacion['actual']['ventas_netas'] ?? 0 }},
+                        {{ $comparacion['actual']['costo_ventas'] ?? 0 }},
+                        {{ $comparacion['actual']['utilidad_bruta'] ?? 0 }},
+                        {{ $comparacion['actual']['gastos_operativos'] ?? 0 }},
+                        {{ $comparacion['actual']['utilidad_operativa'] ?? 0 }}
+                    ],
+                    backgroundColor: 'rgba(54, 162, 235, 0.8)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 1
+                }, {
+                    label: 'Período Anterior',
+                    data: [
+                        {{ $comparacion['anterior']['ventas_netas'] ?? 0 }},
+                        {{ $comparacion['anterior']['costo_ventas'] ?? 0 }},
+                        {{ $comparacion['anterior']['utilidad_bruta'] ?? 0 }},
+                        {{ $comparacion['anterior']['gastos_operativos'] ?? 0 }},
+                        {{ $comparacion['anterior']['utilidad_operativa'] ?? 0 }}
+                    ],
+                    backgroundColor: 'rgba(153, 102, 255, 0.8)',
+                    borderColor: 'rgba(153, 102, 255, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                return 'S/. ' + value.toLocaleString();
                             }
                         }
                     }
-                }
-            });
-        }
-
-        // Gráfico de distribución de gastos
-        const ctx2 = document.getElementById('distribucionGastosChart');
-        if (ctx2) {
-            new Chart(ctx2, {
-                type: 'doughnut',
-                data: {
-                    labels: {!! json_encode($categoriasGastos ?? []) !!},
-                    datasets: [{
-                        data: {!! json_encode($montosGastos ?? []) !!},
-                        backgroundColor: [
-                            '#ef4444',
-                            '#f59e0b',
-                            '#3b82f6',
-                            '#8b5cf6',
-                            '#06b6d4'
-                        ],
-                        borderWidth: 2,
-                        borderColor: '#ffffff'
-                    }]
                 },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            position: 'bottom'
-                        },
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                                    const percentage = ((context.parsed / total) * 100).toFixed(1);
-                                    return context.label + ': {{ $monedaSimbolo ?? "S/" }}' + context.parsed.toFixed(2) + ' (' + percentage + '%)';
-                                }
-                            }
-                        }
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Comparación de Períodos'
                     }
                 }
-            });
-        }
-    });
+            }
+        });
+    }
+});
 </script>
-
-<style>
-@media print {
-    .btn, .card-header, .breadcrumb, .d-flex.justify-content-between {
-        display: none !important;
-    }
-    
-    .card {
-        border: none !important;
-        box-shadow: none !important;
-    }
-    
-    .table {
-        font-size: 11px;
-    }
-    
-    .fw-bold {
-        font-weight: bold !important;
-    }
-}
-</style>
 @endsection

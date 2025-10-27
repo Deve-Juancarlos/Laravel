@@ -19,9 +19,9 @@
             <i class="fas fa-book"></i> Libros Contables
         </a>
         <div class="nav-submenu">
-            <a href="#" class="nav-link"><i class="fas fa-file-alt"></i> Libro Diario</a>
-            <a href="#" class="nav-link"><i class="fas fa-book-open"></i> Libro Mayor</a>
-            <a href="#" class="nav-link"><i class="fas fa-balance-scale"></i> Balance Comprobación</a>
+            <a href="{{ route('contador.libro-diario.index') }}" class="nav-link"><i class="fas fa-file-alt"></i> Libro Diario</a>
+            <a href="{{ route('contador.libro-mayor.index') }}" class="nav-link"><i class="fas fa-book-open"></i> Libro Mayor</a>
+            <a href="{{route('contador.balance-comprobacion.index')}}" class="nav-link"><i class="fas fa-balance-scale"></i> Balance Comprobación</a>    
             <a href="#" class="nav-link"><i class="fas fa-chart-bar"></i> Estados Financieros</a>
         </div>
     </li>

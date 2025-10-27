@@ -182,7 +182,7 @@ class LibroDiarioController extends Controller
         try {
             // Obtener asiento con información del usuario (tabla correcta: libro_diario)
             $asiento = DB::table('libro_diario as a')
-                ->leftJoin('accesoweb as u', 'a.usuario_id', '=', 'u.id') // Usar tabla accesoweb
+                ->leftJoin('accesoweb as u', 'a.usuario_id', '=', 'u.idusuario') // Usar tabla accesoweb
                 ->select(
                     'a.*',
                     'u.nombre as usuario_nombre',
@@ -346,7 +346,7 @@ class LibroDiarioController extends Controller
     private function obtenerAsientos($fechaInicio, $fechaFin, $numeroAsiento = null, $cuentaContable = null)
     {
         $query = DB::table('libro_diario as a') // tabla correcta
-            ->leftJoin('accesoweb as u', 'a.usuario_id', '=', 'u.id') // tabla accesoweb
+            ->leftJoin('accesoweb as u', 'a.usuario_id', '=', 'u.idusuario')// tabla accesoweb
             ->select(
                 'a.*',
                 'u.nombre as usuario_nombre'
@@ -435,33 +435,37 @@ class LibroDiarioController extends Controller
 
     private function obtenerAsientosPorMes()
     {
-        $resultado = DB::table('libro_diario') // tabla correcta
+        // Obtener conteo de asientos por mes del año actual
+        $resultado = DB::table('libro_diario')
             ->whereYear('fecha', now()->year)
             ->selectRaw('
                 MONTH(fecha) as mes,
                 COUNT(*) as cantidad,
                 SUM(total_debe) as total
             ')
-            ->groupBy('mes')
-            ->orderBy('mes')
+            ->groupBy(DB::raw('MONTH(fecha)')) // SQL Server requiere la expresión completa
+            ->orderBy(DB::raw('MONTH(fecha)'), 'asc')
             ->get();
-            
+
         $meses = [];
         $datos = [];
-        
+
+        // Generar etiquetas de meses y asignar cantidad de asientos por mes
         for ($i = 1; $i <= 12; $i++) {
             $mesNombre = Carbon::create(now()->year, $i)->locale('es')->isoFormat('MMM');
             $meses[] = ucfirst($mesNombre);
-            
-            $asientoMes = $resultado->where('mes', $i)->first();
+
+            $asientoMes = $resultado->firstWhere('mes', $i);
             $datos[] = $asientoMes ? $asientoMes->cantidad : 0;
         }
-        
+
         return [
             'labels' => $meses,
             'data' => $datos
         ];
     }
+ 
+    
 
     private function obtenerMovimientosPorCuenta()
     {

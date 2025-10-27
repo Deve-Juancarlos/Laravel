@@ -201,6 +201,47 @@ Route::middleware(['auth', 'check.contador'])->group(function () {
         });
         
         Route::get('caja', [App\Http\Controllers\Contabilidad\CajaController::class, 'index'])->name('caja');
+
+
+        Route::prefix('libro-mayor')->name('libro-mayor.')->group(function () {
+            // 1. Vista principal - Resumen por cuentas
+            Route::get('/', [App\Http\Controllers\Contabilidad\LibroMayorController::class, 'index'])->name('index');
+            
+            // 2. Detalle de cuenta específica  
+            Route::get('/cuenta/{cuenta}', [App\Http\Controllers\Contabilidad\LibroMayorController::class, 'cuenta'])->name('cuenta');
+            
+            // 3. Movimientos por período
+            Route::get('/movimientos', [App\Http\Controllers\Contabilidad\LibroMayorController::class, 'movimientos'])->name('movimientos');
+            
+            // 4. Comparación de períodos
+            Route::get('/comparacion', [App\Http\Controllers\Contabilidad\LibroMayorController::class, 'comparacionPeriodos'])->name('comparacion');
+            
+            // 5. Exportar (resumen/detallado)
+            Route::get('/exportar', [App\Http\Controllers\Contabilidad\LibroMayorController::class, 'exportar'])->name('exportar');
+            
+            // 6. Exportar cuenta específica
+            Route::get('/exportar-cuenta/{cuenta}', [App\Http\Controllers\Contabilidad\LibroMayorController::class, 'exportarCuenta'])->name('exportar-cuenta');
+        });
+
+        Route::prefix('balance-comprobacion')->name('balance-comprobacion.')->group(function () {
+            // 1. Vista principal del Balance de Comprobación
+            Route::get('/', [App\Http\Controllers\Contabilidad\BalanceComprobacionController::class, 'index'])->name('index');
+            
+            // 2. Detalle de cuenta específica
+            Route::get('/detalle/{cuenta}', [App\Http\Controllers\Contabilidad\BalanceComprobacionController::class, 'detalleCuenta'])->name('detalle');
+            
+            // 3. Balance por clases de cuentas (PCGE)
+            Route::get('/clases', [App\Http\Controllers\Contabilidad\BalanceComprobacionController::class, 'porClases'])->name('clases');
+            
+            // 4. Comparación entre períodos
+            Route::get('/comparacion', [App\Http\Controllers\Contabilidad\BalanceComprobacionController::class, 'comparacion'])->name('comparacion');
+            
+            // 5. Verificación de integridad
+            Route::get('/verificar', [App\Http\Controllers\Contabilidad\BalanceComprobacionController::class, 'verificar'])->name('verificar');
+            
+            // 6. Exportar balance en diferentes formatos
+            Route::get('/exportar', [App\Http\Controllers\Contabilidad\BalanceComprobacionController::class, 'exportar'])->name('exportar');
+        });
         
         
     });

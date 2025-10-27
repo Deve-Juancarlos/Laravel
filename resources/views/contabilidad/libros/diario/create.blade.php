@@ -1,5 +1,5 @@
 {{-- Vista create.blade.php CORREGIDA para contador.libro-diario.create --}}
-@extends('layouts.app') {{-- Usar tu layout --}}
+@extends('layouts.app') 
 
 @section('title', 'Nuevo Asiento - Libro Diario')
 
@@ -263,30 +263,33 @@
         const tbody = document.getElementById('detallesBody');
         const row = document.createElement('tr');
         row.id = `detalle-${cuentaActual}`;
+
         row.innerHTML = `
             <td>
-                <select name="detalles[${cuentaActual}][cuenta_contable]" class="form-select form-select-sm" onchange="actualizarBalance()" required>
+                <select name="detalles[${cuentaActual}][cuenta_contable]" class="form-select form-select-sm" onchange="actualizarBalance()">
                     <option value="">Seleccionar...</option>
                     ${generarOpcionesCuentas()}
                 </select>
+                <div class="mt-1" id="badge-${cuentaActual}"></div> <!-- Contenedor del badge -->
             </td>
             <td>
                 <input type="text" name="detalles[${cuentaActual}][concepto]" 
-                       class="form-control form-control-sm" placeholder="Concepto" required>
+                    class="form-control form-control-sm" placeholder="Concepto">
             </td>
             <td>
                 <input type="number" name="detalles[${cuentaActual}][debe]" 
-                       class="form-control form-control-sm text-end" step="0.01" min="0" value="0"
-                       onchange="actualizarBalance()">
+                    class="form-control form-control-sm text-end" step="0.01" min="0" value="0"
+                    onchange="actualizarBalance(); actualizarBadges(${cuentaActual})">
             </td>
             <td>
                 <input type="number" name="detalles[${cuentaActual}][haber]" 
-                       class="form-control form-control-sm text-end" step="0.01" min="0" value="0"
-                       onchange="actualizarBalance()">
+                    class="form-control form-control-sm text-end" step="0.01" min="0" value="0"
+                    onchange="actualizarBalance(); actualizarBadges(${cuentaActual})">
             </td>
             <td>
                 <input type="text" name="detalles[${cuentaActual}][documento_referencia]" 
-                       class="form-control form-control-sm" placeholder="Doc.">
+                    class="form-control form-control-sm" placeholder="Cheque/Nro doc"
+                    onchange="actualizarBadges(${cuentaActual})">
             </td>
             <td>
                 <button type="button" onclick="eliminarFila(${cuentaActual})" 
@@ -295,9 +298,31 @@
                 </button>
             </td>
         `;
+
         tbody.appendChild(row);
         cuentaActual++;
     }
+
+    // Función para actualizar badges Efectivo / Banco / Cheque
+    function actualizarBadges(id) {
+        const row = document.getElementById(`detalle-${id}`);
+        const debe = parseFloat(row.querySelector('input[name*="[debe]"]').value) || 0;
+        const haber = parseFloat(row.querySelector('input[name*="[haber]"]').value) || 0;
+        const docRef = row.querySelector('input[name*="[documento_referencia]"]').value;
+
+        const badgeContainer = document.getElementById(`badge-${id}`);
+        badgeContainer.innerHTML = ''; // Limpiar contenido
+
+        if (debe > 0) {
+            badgeContainer.innerHTML = `<span class="badge bg-success">Efectivo</span>`;
+        } else if (haber > 0) {
+            let badgeText = `Banco: ${haber.toFixed(2)}`;
+            if (docRef) badgeText += ` (Cheque: ${docRef})`;
+            badgeContainer.innerHTML = `<span class="badge bg-primary">${badgeText}</span>`;
+        }
+    }
+
+
 
     function eliminarFila(id) {
         const row = document.getElementById(`detalle-${id}`);
