@@ -72,7 +72,7 @@ class EstadoResultadosController extends Controller
             // Comparación con período anterior
             $comparacion = $this->obtenerComparacionPeriodo($fechaInicio, $fechaFin);
 
-            return view('contabilidad.estados-financieros.resultados', compact(
+            return view('contabilidad.libros.estados-financieros.resultados', compact(
                 'ingresos', 'gastos', 'totalIngresos', 'totalGastos', 'totalVentas', 'totalCostoVentas',
                 'utilidadBruta', 'utilidadOperativa', 'utilidadNeta', 'margenBruto', 'margenOperativo', 'margenNeto',
                 'fechaInicio', 'fechaFin', 'resumen', 'comparacion'
@@ -104,7 +104,7 @@ class EstadoResultadosController extends Controller
             // Calcular tendencias y promedios
             $tendencias = $this->calcularTendencias($resultadosMensuales);
 
-            return view('contabilidad.estados-financieros.resultados-periodos', compact(
+            return view('contabilidad.libros.estados-financieros.resultados-periodos', compact(
                 'resultadosMensuales', 'tendencias', 'anio'
             ));
 
@@ -141,7 +141,7 @@ class EstadoResultadosController extends Controller
             // Clasificar movimientos
             $clasificacion = $this->clasificarCuenta($cuenta);
 
-            return view('contabilidad.estados-financieros.resultados-detalle', compact(
+            return view('contabilidad.libros.estados-financieros.resultados-detalle', compact(
                 'cuenta', 'movimientos', 'clasificacion', 'fechaInicio', 'fechaFin'
             ));
 
@@ -153,51 +153,75 @@ class EstadoResultadosController extends Controller
     /**
      * Get comparative analysis
      */
-    public function comparativo(Request $request)
-    {
-        try {
-            $fechaActual = Carbon::now();
-            
-            // Períodos a comparar
-            $periodos = [
-                'actual_mensual' => [
-                    'inicio' => $request->input('fecha_inicio', $fechaActual->startOfMonth()->format('Y-m-d')),
-                    'fin' => $request->input('fecha_fin', $fechaActual->endOfMonth()->format('Y-m-d')),
-                    'nombre' => 'Mes Actual'
-                ],
-                'anterior_mensual' => [
-                    'inicio' => $fechaActual->subMonth()->startOfMonth()->format('Y-m-d'),
-                    'fin' => $fechaActual->subMonth()->endOfMonth()->format('Y-m-d'),
-                    'nombre' => 'Mes Anterior'
-                ],
-                'actual_anual' => [
-                    'inicio' => $fechaActual->startOfYear()->format('Y-m-d'),
-                    'fin' => $fechaActual->endOfYear()->format('Y-m-d'),
-                    'nombre' => 'Año Actual'
-                ],
-                'anterior_anual' => [
-                    'inicio' => $fechaActual->subYear()->startOfYear()->format('Y-m-d'),
-                    'fin' => $fechaActual->subYear()->endOfYear()->format('Y-m-d'),
-                    'nombre' => 'Año Anterior'
-                ]
-            ];
+    
+public function comparativo(Request $request)
+{
+    // Fechas
+    $fechaInicio = $request->fecha_inicio ?? now()->startOfMonth()->format('Y-m-d');
+    $fechaFin = $request->fecha_fin ?? now()->endOfMonth()->format('Y-m-d');
 
-            // Calcular resultados para cada período
-            foreach ($periodos as $key => $periodo) {
-                $periodos[$key]['resultados'] = $this->calcularResultados($periodo['inicio'], $periodo['fin']);
-            }
+    // Datos básicos (ventas, costo, gastos)
+    $totalVentas = DB::table('Doccab')->whereBetween('Fecha', [$fechaInicio, $fechaFin])
+        ->where('Tipo', 1)->where('Eliminado', 0)->sum('Subtotal');
 
-            // Calcular variaciones
-            $variaciones = $this->calcularVariaciones($periodos);
+    $totalCostoVentas = DB::table('Docdet as dd')
+        ->join('Doccab as dc', 'dd.Numero', '=', 'dc.Numero')
+        ->whereBetween('dc.Fecha', [$fechaInicio, $fechaFin])
+        ->where('dc.Tipo', 1)
+        ->where('dc.Eliminado', 0)
+        ->sum(DB::raw('CAST(dd.Costo as MONEY) * dd.Cantidad'));
 
-            return view('contabilidad.estados-financieros.resultados-comparativo', compact(
-                'periodos', 'variaciones'
-            ));
+    $totalGastos = DB::table('t_detalle_diario')
+        ->whereBetween('FechaF', [$fechaInicio, $fechaFin])
+        ->where('Tipo', 'like', '5%')
+        ->whereNotIn('Tipo', ['501','511'])
+        ->sum(DB::raw('CAST(Importe as MONEY)'));
 
-        } catch (\Exception $e) {
-            return redirect()->back()->with('error', 'Error al generar comparativo: ' . $e->getMessage());
-        }
-    }
+    $utilidadBruta = $totalVentas - $totalCostoVentas;
+    $utilidadNeta = $utilidadBruta - $totalGastos;
+
+    $margenBruto = $totalVentas ? ($utilidadBruta / $totalVentas) * 100 : 0;
+    $margenNeto = $totalVentas ? ($utilidadNeta / $totalVentas) * 100 : 0;
+    $margenOperativo = $totalVentas ? (($utilidadBruta - $totalGastos) / $totalVentas) * 100 : 0;
+
+    $resumen = [
+        'INGRESOS' => $totalVentas,
+        'COSTO_VENTAS' => $totalCostoVentas,
+        'UTILIDAD_BRUTA' => $utilidadBruta,
+        'GASTOS_OPERATIVOS' => $totalGastos,
+        'UTILIDAD_OPERATIVA' => $utilidadBruta - $totalGastos,
+    ];
+
+    // Ingresos / Gastos por cuentas
+    $ingresos = DB::table('libro_diario_detalles')
+    ->select('cuenta_contable as cuenta','concepto as descripcion', DB::raw('SUM(debe - haber) as total'))
+    ->join('libro_diario as ld', 'libro_diario_detalles.asiento_id', '=', 'ld.id')
+    ->whereBetween('ld.fecha', [$fechaInicio, $fechaFin])
+    ->where('cuenta_contable', 'like', '4%')
+    ->groupBy('cuenta_contable','concepto')
+    ->get();
+
+    $gastos = DB::table('libro_diario_detalles')
+        ->select('cuenta_contable as cuenta','concepto as descripcion', DB::raw('SUM(debe - haber) as total'))
+        ->join('libro_diario as ld', 'libro_diario_detalles.asiento_id', '=', 'ld.id')
+        ->whereBetween('ld.fecha', [$fechaInicio, $fechaFin])
+        ->where('cuenta_contable', 'like', '5%')
+        ->groupBy('cuenta_contable','concepto')
+        ->get();
+
+
+    // Retorno a la vista con todas las variables
+    return view('contabilidad.libros.estados-financieros.resultados', compact(
+        'fechaInicio','fechaFin',
+        'totalVentas','totalCostoVentas','totalGastos',
+        'utilidadBruta','utilidadNeta',
+        'margenBruto','margenNeto','margenOperativo',
+        'resumen','ingresos','gastos'
+    ));
+}
+
+
+
 
     /**
      * Get specific product line analysis (for pharmacy)
@@ -223,7 +247,7 @@ class EstadoResultadosController extends Controller
             // Análisis de rentabilidad farmacéutica
             $rentabilidad = $this->calcularRentabilidadFarmaceutica($fechaInicio, $fechaFin);
 
-            return view('contabilidad.estados-financieros.farmaceutico', compact(
+            return view('contabilidad.libros.estados-financieros.farmaceutico', compact(
                 'ventasPorLinea', 'costosFarmaceuticos', 'rentabilidad', 'fechaInicio', 'fechaFin'
             ));
 
@@ -364,20 +388,50 @@ class EstadoResultadosController extends Controller
     /**
      * Calculate trends
      */
-    private function calcularTendencias($resultadosMensuales)
+   private function calcularTendencias(array $resultadosMensuales): array
     {
         $ventas = array_column($resultadosMensuales, 'ventas_netas');
         $utilidad = array_column($resultadosMensuales, 'utilidad_operativa');
 
+        // Inicializamos valores por defecto
+        $crecimiento_ventas = 0;
+        $promedio_mensual_ventas = 0;
+        $promedio_mensual_utilidad = 0;
+        $mes_mayor_venta = null;
+        $mes_mayor_utilidad = null;
+
+        // Calculamos crecimiento de ventas (solo si hay más de un mes y el primer valor no es 0)
+        if (count($ventas) > 1 && $ventas[0] != 0) {
+            $crecimiento_ventas = (($ventas[array_key_last($ventas)] - $ventas[0]) / $ventas[0]) * 100;
+        }
+
+        // Promedios mensuales (si hay datos)
+        if (!empty($ventas)) {
+            $promedio_mensual_ventas = array_sum($ventas) / count($ventas);
+        }
+
+        if (!empty($utilidad)) {
+            $promedio_mensual_utilidad = array_sum($utilidad) / count($utilidad);
+        }
+
+        // Mes con mayor venta/utilidad
+        if (!empty($ventas) && max($ventas) != 0) {
+            $mes_mayor_venta = array_keys($ventas, max($ventas))[0];
+        }
+
+        if (!empty($utilidad) && max($utilidad) != 0) {
+            $mes_mayor_utilidad = array_keys($utilidad, max($utilidad))[0];
+        }
+
         return [
-            'crecimiento_ventas' => count($ventas) > 1 ? 
-                (($ventas[array_key_last($ventas)] - $ventas[0]) / $ventas[0]) * 100 : 0,
-            'promedio_mensual_ventas' => array_sum($ventas) / count($ventas),
-            'promedio_mensual_utilidad' => array_sum($utilidad) / count($utilidad),
-            'mes_mayor_venta' => array_keys($ventas, max($ventas))[0],
-            'mes_mayor_utilidad' => array_keys($utilidad, max($utilidad))[0]
+            'crecimiento_ventas' => $crecimiento_ventas,
+            'promedio_mensual_ventas' => $promedio_mensual_ventas,
+            'promedio_mensual_utilidad' => $promedio_mensual_utilidad,
+            'mes_mayor_venta' => $mes_mayor_venta,
+            'mes_mayor_utilidad' => $mes_mayor_utilidad
         ];
     }
+
 
     /**
      * Calculate variations between periods
@@ -421,50 +475,126 @@ class EstadoResultadosController extends Controller
      * Get pharmaceutical costs
      */
     private function obtenerCostosFarmaceuticos($fechaInicio, $fechaFin)
+        {
+            $costos = DB::table('Docdet as dd')
+                ->join('Doccab as dc', 'dd.Numero', '=', 'dc.Numero')
+                ->join('Productos as p', 'dd.Codpro', '=', 'p.CodPro')
+                ->whereBetween('dc.Fecha', [$fechaInicio, $fechaFin])
+                ->where('dc.Tipo', 1)
+                ->where('dc.Eliminado', 0)
+                ->select([
+                    'p.Nombre',
+                    DB::raw('SUM(CAST(dd.Costo as MONEY) * dd.Cantidad) as costo_total'),
+                    DB::raw('SUM(dd.Cantidad) as cantidad_total')
+                ])
+                ->groupBy('p.CodPro', 'p.Nombre')
+                ->orderBy('costo_total', 'desc')
+                ->limit(10)
+                ->get();
+
+            return $costos;
+        }
+
+        /**
+         * Calculate pharmaceutical profitability
+         */
+        private function calcularRentabilidadFarmaceutica($fechaInicio, $fechaFin)
+        {
+            $ventas = DB::table('Docdet as dd')
+                ->join('Doccab as dc', 'dd.Numero', '=', 'dc.Numero')
+                ->join('Productos as p', 'dd.Codpro', '=', 'p.CodPro')
+                ->whereBetween('dc.Fecha', [$fechaInicio, $fechaFin])
+                ->where('dc.Tipo', 1)
+                ->where('dc.Eliminado', 0)
+                ->select([
+                    'p.Nombre',
+                    DB::raw('SUM(CAST(dd.Subtotal as MONEY)) as ventas_total'),
+                    DB::raw('SUM(CAST(dd.Costo as MONEY) * dd.Cantidad) as costo_total')
+                ])
+                ->groupBy('p.CodPro', 'p.Nombre')
+                ->get()
+                ->map(function ($item) {
+                    $item->margen = $item->ventas_total > 0 ? 
+                        (($item->ventas_total - $item->costo_total) / $item->ventas_total) * 100 : 0;
+                    return $item;
+                });
+
+            return $ventas;
+        }
+
+        public function estadoResultados(Request $request)
     {
-        $costos = DB::table('Docdet as dd')
-            ->join('Doccab as dc', 'dd.Numero', '=', 'dc.Numero')
-            ->join('Productos as p', 'dd.Codpro', '=', 'p.CodPro')
-            ->whereBetween('dc.Fecha', [$fechaInicio, $fechaFin])
-            ->where('dc.Tipo', 1)
-            ->where('dc.Eliminado', 0)
-            ->select([
-                'p.Nombre',
-                DB::raw('SUM(CAST(dd.Costo as MONEY) * dd.Cantidad) as costo_total'),
-                DB::raw('SUM(dd.Cantidad) as cantidad_total')
-            ])
-            ->groupBy('p.CodPro', 'p.Nombre')
-            ->orderBy('costo_total', 'desc')
-            ->limit(10)
+        // Fechas de filtro
+        $fechaInicio = $request->fecha_inicio ?? now()->startOfMonth()->format('Y-m-d');
+        $fechaFin = $request->fecha_fin ?? now()->endOfMonth()->format('Y-m-d');
+
+        // Ventas netas
+        $totalVentas = DB::table('movimientos_contables')
+            ->whereBetween('fecha', [$fechaInicio, $fechaFin])
+            ->where('cuenta', 'like', '4%')
+            ->sum('debe') - DB::table('movimientos_contables')
+            ->whereBetween('fecha', [$fechaInicio, $fechaFin])
+            ->where('cuenta', 'like', '4%')
+            ->sum('haber');
+
+        // Costo de ventas
+        $totalCostoVentas = DB::table('movimientos_contables')
+            ->whereBetween('fecha', [$fechaInicio, $fechaFin])
+            ->where('cuenta', 'like', '5%')
+            ->sum('debe') - DB::table('movimientos_contables')
+            ->whereBetween('fecha', [$fechaInicio, $fechaFin])
+            ->where('cuenta', 'like', '5%')
+            ->sum('haber');
+
+        // Gastos operativos (ejemplo cuentas 51xx)
+        $totalGastos = DB::table('movimientos_contables')
+            ->whereBetween('fecha', [$fechaInicio, $fechaFin])
+            ->where('cuenta', 'like', '51%')
+            ->sum('debe') - DB::table('movimientos_contables')
+            ->whereBetween('fecha', [$fechaInicio, $fechaFin])
+            ->where('cuenta', 'like', '51%')
+            ->sum('haber');
+
+        // Utilidades y márgenes
+        $utilidadBruta = $totalVentas - $totalCostoVentas;
+        $utilidadNeta = $utilidadBruta - $totalGastos;
+
+        $margenBruto = $totalVentas ? ($utilidadBruta / $totalVentas) * 100 : 0;
+        $margenNeto = $totalVentas ? ($utilidadNeta / $totalVentas) * 100 : 0;
+        $margenOperativo = $totalVentas ? (($utilidadBruta - $totalGastos) / $totalVentas) * 100 : 0;
+
+        // Resumen
+        $resumen = [
+            'INGRESOS' => $totalVentas,
+            'COSTO_VENTAS' => $totalCostoVentas,
+            'UTILIDAD_BRUTA' => $utilidadBruta,
+            'GASTOS_OPERATIVOS' => $totalGastos,
+            'UTILIDAD_OPERATIVA' => $utilidadBruta - $totalGastos,
+        ];
+
+        // Detalle de cuentas
+        $ingresos = DB::table('movimientos_contables')
+            ->select('cuenta', 'descripcion', DB::raw('SUM(debe - haber) as total'))
+            ->whereBetween('fecha', [$fechaInicio, $fechaFin])
+            ->where('cuenta', 'like', '4%')
+            ->groupBy('cuenta', 'descripcion')
             ->get();
 
-        return $costos;
+        $gastos = DB::table('movimientos_contables')
+            ->select('cuenta', 'descripcion', DB::raw('SUM(debe - haber) as total'))
+            ->whereBetween('fecha', [$fechaInicio, $fechaFin])
+            ->where('cuenta', 'like', '5%')
+            ->groupBy('cuenta', 'descripcion')
+            ->get();
+
+        return view('contabilidad.libros.estados-financieros.resultados', compact(
+            'fechaInicio', 'fechaFin',
+            'totalVentas', 'totalCostoVentas', 'totalGastos',
+            'utilidadBruta', 'utilidadNeta',
+            'margenBruto', 'margenNeto', 'margenOperativo',
+            'resumen', 'ingresos', 'gastos'
+        ));
     }
 
-    /**
-     * Calculate pharmaceutical profitability
-     */
-    private function calcularRentabilidadFarmaceutica($fechaInicio, $fechaFin)
-    {
-        $ventas = DB::table('Docdet as dd')
-            ->join('Doccab as dc', 'dd.Numero', '=', 'dc.Numero')
-            ->join('Productos as p', 'dd.Codpro', '=', 'p.CodPro')
-            ->whereBetween('dc.Fecha', [$fechaInicio, $fechaFin])
-            ->where('dc.Tipo', 1)
-            ->where('dc.Eliminado', 0)
-            ->select([
-                'p.Nombre',
-                DB::raw('SUM(CAST(dd.Subtotal as MONEY)) as ventas_total'),
-                DB::raw('SUM(CAST(dd.Costo as MONEY) * dd.Cantidad) as costo_total')
-            ])
-            ->groupBy('p.CodPro', 'p.Nombre')
-            ->get()
-            ->map(function ($item) {
-                $item->margen = $item->ventas_total > 0 ? 
-                    (($item->ventas_total - $item->costo_total) / $item->ventas_total) * 100 : 0;
-                return $item;
-            });
 
-        return $ventas;
-    }
 }

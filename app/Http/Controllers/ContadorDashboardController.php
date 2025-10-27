@@ -14,39 +14,24 @@ class ContadorDashboardController extends Controller
     public function contadorDashboard(Request $request)
     {
         try {
-            // ==================== MÉTRICAS FINANCIERAS ====================
+
             $ventasMes = $this->calcularVentasMes();
             $ventasMesAnterior = $this->calcularVentasMesAnterior();
             $variacionVentas = $this->calcularVariacion($ventasMes, $ventasMesAnterior);
-            
             $cuentasPorCobrar = $this->calcularCuentasPorCobrar();
             $cuentasPorCobrarVencidas = $this->calcularCuentasPorCobrarVencidas();
-            
-            // ==================== MÉTRICAS OPERATIVAS ====================
             $clientesActivos = $this->contarClientesActivos();
             $facturasPendientes = $this->contarFacturasPendientes();
             $facturasVencidas = $this->contarFacturasVencidas();
-            
-            // ==================== INDICADORES DE DISTRIBUIDORA ====================
             $ticketPromedio = $this->calcularTicketPromedio();
             $diasPromedioCobranza = $this->calcularDiasPromedioCobranza();
             $margenBrutoMes = $this->calcularMargenBrutoMes();
-            
-            // ==================== DATOS PARA GRÁFICOS ====================
             $mesesLabels = $this->obtenerMesesLabels(6);
             $ventasData = $this->obtenerVentasPorMes(6);
             $cobranzasData = $this->obtenerCobranzasPorMes(6);
-            
-            // Top 10 clientes del mes
             $topClientes = $this->obtenerTopClientesMes(10);
-            
-            // ==================== VENTAS RECIENTES ====================
-            $ventasRecientes = $this->obtenerVentasRecientes(15);
-            
-            // ==================== ALERTAS Y NOTIFICACIONES ====================
-            $alertas = $this->generarAlertas();
-            
-            // ==================== PRODUCTOS CRÍTICOS ====================
+            $ventasRecientes = $this->obtenerVentasRecientes(15);  
+            $alertas = $this->generarAlertas();      
             $productosStockBajo = $this->obtenerProductosStockBajo(10);
             $productosProximosVencer = $this->obtenerProductosProximosVencer(10);
 
@@ -89,7 +74,7 @@ class ContadorDashboardController extends Controller
         }
     }
 
-    // ==================== MÉTRICAS FINANCIERAS ====================
+  
     
     private function calcularVentasMes()
     {
@@ -153,8 +138,6 @@ class ContadorDashboardController extends Controller
         return round($margen, 2);
     }
 
-    // ==================== MÉTRICAS OPERATIVAS ====================
-    
     private function contarClientesActivos()
     {
         return DB::table('Clientes')
