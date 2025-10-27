@@ -1,515 +1,766 @@
-@extends('layouts.contador')
+@extends('layouts.app')
 
-@section('title', 'Dashboard Contable - SIFANO')
+@section('title', 'Dashboard Contador - Distribuidora')
 
-@section('page-title', 'Área Contable')
+@section('styles')
+<style>
+    :root {
+        --primary: #2563eb;
+        --success: #10b981;
+        --warning: #f59e0b;
+        --danger: #ef4444;
+        --info: #06b6d4;
+        --dark: #1f2937;
+        --light: #f3f4f6;
+    }
 
-@section('breadcrumb')
-    <li class="breadcrumb-item active">Dashboard</li>
+    .dashboard-contador {
+        background: #f9fafb;
+        min-height: 100vh;
+        padding: 2rem 0;
+    }
+
+    .metric-card {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        border-left: 4px solid var(--primary);
+        transition: all 0.3s ease;
+        height: 100%;
+    }
+
+    .metric-card:hover {
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        transform: translateY(-2px);
+    }
+
+    .metric-card.success { border-left-color: var(--success); }
+    .metric-card.warning { border-left-color: var(--warning); }
+    .metric-card.danger { border-left-color: var(--danger); }
+    .metric-card.info { border-left-color: var(--info); }
+
+    .metric-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+    }
+
+    .metric-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+    }
+
+    .metric-icon.primary { background: rgba(37, 99, 235, 0.1); color: var(--primary); }
+    .metric-icon.success { background: rgba(16, 185, 129, 0.1); color: var(--success); }
+    .metric-icon.warning { background: rgba(245, 158, 11, 0.1); color: var(--warning); }
+    .metric-icon.danger { background: rgba(239, 68, 68, 0.1); color: var(--danger); }
+    .metric-icon.info { background: rgba(6, 182, 212, 0.1); color: var(--info); }
+
+    .metric-value {
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--dark);
+        margin: 0.5rem 0;
+    }
+
+    .metric-label {
+        color: #6b7280;
+        font-size: 0.875rem;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .metric-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        margin-top: 0.5rem;
+    }
+
+    .metric-badge.up {
+        background: rgba(16, 185, 129, 0.1);
+        color: var(--success);
+    }
+
+    .metric-badge.down {
+        background: rgba(239, 68, 68, 0.1);
+        color: var(--danger);
+    }
+
+    .chart-card {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        margin-bottom: 1.5rem;
+    }
+
+    .chart-title {
+        font-size: 1.125rem;
+        font-weight: 600;
+        color: var(--dark);
+        margin-bottom: 1.5rem;
+    }
+
+    .table-card {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        overflow: hidden;
+    }
+
+    .table-header {
+        padding: 1.25rem 1.5rem;
+        background: #f9fafb;
+        border-bottom: 1px solid #e5e7eb;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .table-title {
+        font-size: 1rem;
+        font-weight: 600;
+        color: var(--dark);
+    }
+
+    .custom-table {
+        width: 100%;
+        font-size: 0.875rem;
+    }
+
+    .custom-table thead {
+        background: #f9fafb;
+    }
+
+    .custom-table th {
+        padding: 0.75rem 1rem;
+        text-align: left;
+        font-weight: 600;
+        color: #6b7280;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        letter-spacing: 0.5px;
+    }
+
+    .custom-table td {
+        padding: 1rem;
+        border-top: 1px solid #f3f4f6;
+    }
+
+    .custom-table tbody tr:hover {
+        background: #f9fafb;
+    }
+
+    .status-badge {
+        display: inline-block;
+        padding: 0.25rem 0.75rem;
+        border-radius: 12px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+
+    .status-badge.success {
+        background: rgba(16, 185, 129, 0.1);
+        color: var(--success);
+    }
+
+    .status-badge.warning {
+        background: rgba(245, 158, 11, 0.1);
+        color: var(--warning);
+    }
+
+    .status-badge.danger {
+        background: rgba(239, 68, 68, 0.1);
+        color: var(--danger);
+    }
+
+    .status-badge.secondary {
+        background: rgba(107, 114, 128, 0.1);
+        color: #6b7280;
+    }
+
+    .alert-item {
+        display: flex;
+        align-items: start;
+        gap: 1rem;
+        padding: 1rem;
+        border-radius: 8px;
+        margin-bottom: 0.75rem;
+    }
+
+    .alert-item.danger { background: rgba(239, 68, 68, 0.05); border-left: 3px solid var(--danger); }
+    .alert-item.warning { background: rgba(245, 158, 11, 0.05); border-left: 3px solid var(--warning); }
+    .alert-item.info { background: rgba(6, 182, 212, 0.05); border-left: 3px solid var(--info); }
+
+    .alert-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+        flex-shrink: 0;
+    }
+
+    .alert-icon.danger { background: rgba(239, 68, 68, 0.1); color: var(--danger); }
+    .alert-icon.warning { background: rgba(245, 158, 11, 0.1); color: var(--warning); }
+    .alert-icon.info { background: rgba(6, 182, 212, 0.1); color: var(--info); }
+
+    .alert-content h6 {
+        font-size: 0.875rem;
+        font-weight: 600;
+        margin: 0 0 0.25rem 0;
+        color: var(--dark);
+    }
+
+    .alert-content p {
+        font-size: 0.8rem;
+        color: #6b7280;
+        margin: 0;
+    }
+
+    .progress-bar-custom {
+        height: 8px;
+        background: #e5e7eb;
+        border-radius: 10px;
+        overflow: hidden;
+        margin-top: 0.5rem;
+    }
+
+    .progress-fill {
+        height: 100%;
+        border-radius: 10px;
+        transition: width 0.3s ease;
+    }
+
+    .progress-fill.danger { background: var(--danger); }
+    .progress-fill.warning { background: var(--warning); }
+    .progress-fill.success { background: var(--success); }
+
+    .section-title {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: var(--dark);
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .page-header {
+        background: white;
+        padding: 2rem;
+        border-radius: 12px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        margin-bottom: 2rem;
+    }
+
+    .page-header h1 {
+        font-size: 1.875rem;
+        font-weight: 700;
+        color: var(--dark);
+        margin: 0 0 0.5rem 0;
+    }
+
+    .page-header p {
+        color: #6b7280;
+        margin: 0;
+    }
+
+    @media (max-width: 768px) {
+        .metric-value { font-size: 1.5rem; }
+        .dashboard-contador { padding: 1rem 0; }
+    }
+</style>
 @endsection
 
-@section('contador-content')
-
-<!-- Alerta Tributaria -->
-<div class="tax-alert">
-    <i class="fas fa-info-circle" style="font-size: 1.5rem;"></i>
-    <div>
-        <strong>Recordatorio Tributario:</strong> Los libros electrónicos del mes anterior deben ser enviados a SUNAT antes del día 15.
-    </div>
-</div>
-
-@hasrole('Administrador|Contador')
-<!-- Métricas Principales - Fila Superior -->
-<div class="financial-summary">
-    <div class="summary-card">
-        <div class="summary-icon icon-green">
-            <i class="fas fa-dollar-sign"></i>
+@section('content')
+<div class="dashboard-contador">
+    <div class="container-fluid px-4">
+        
+        {{-- Header --}}
+        <div class="page-header">
+            <h1>📊 Dashboard Contador</h1>
+            <p>Distribuidora de Fármacos - Panel de Control Financiero</p>
         </div>
-        <h6 class="text-muted mb-1">Ingresos del Mes</h6>
-        <h4 class="mb-0">S/ {{ number_format($ingresosMes ?? 0, 2) }}</h4>
-        <small class="text-success">
-            <i class="fas fa-arrow-up me-1"></i>
-            +{{ number_format(abs($crecimientoIngresos ?? 0), 1) }}% vs mes anterior
-        </small>
-    </div>
-    
-    <div class="summary-card">
-        <div class="summary-icon icon-orange">
-            <i class="fas fa-credit-card"></i>
-        </div>
-        <h6 class="text-muted mb-1">Gastos del Mes</h6>
-        <h4 class="mb-0">S/ {{ number_format($gastosMes ?? 0, 2) }}</h4>
-        <small class="text-muted">
-            <i class="fas fa-minus me-1"></i>
-            S/ {{ number_format($gastosMesAnterior ?? 0, 2) }} mes anterior
-        </small>
-    </div>
-    
-    <div class="summary-card">
-        <div class="summary-icon icon-blue">
-            <i class="fas fa-chart-line"></i>
-        </div>
-        <h6 class="text-muted mb-1">Utilidad Neta</h6>
-        <h4 class="mb-0 {{ ($utilidadNeta ?? 0) >= 0 ? 'text-success' : 'text-danger' }}">
-            S/ {{ number_format($utilidadNeta ?? 0, 2) }}
-        </h4>
-        <small class="{{ ($utilidadNeta ?? 0) >= 0 ? 'text-success' : 'text-danger' }}">
-            <i class="fas fa-percentage me-1"></i>
-            {{ number_format(abs($margenUtilidad ?? 0), 1) }}% margen
-        </small>
-    </div>
-    
-    <div class="summary-card">
-        <div class="summary-icon icon-purple">
-            <i class="fas fa-balance-scale"></i>
-        </div>
-        <h6 class="text-muted mb-1">Balance General</h6>
-        <h4 class="mb-0">S/ {{ number_format($balanceGeneral ?? 0, 2) }}</h4>
-        <small class="text-muted">
-            <i class="fas fa-calendar me-1"></i>
-            Actualizado: {{ date('d/m/Y') }}
-        </small>
-    </div>
-</div>
 
-<!-- Métricas del Día - Segunda Fila -->
-<div class="financial-summary">
-    <div class="summary-card">
-        <div class="summary-icon icon-green">
-            <i class="fas fa-dollar-sign"></i>
-        </div>
-        <h6 class="text-muted mb-1">Ingresos del Día</h6>
-        <h4 class="mb-0">S/ {{ number_format($ingresosHoy ?? 0, 2) }}</h4>
-        <small class="{{ ($crecimientoIngresosHoy ?? 0) >= 0 ? 'text-success' : 'text-danger' }}">
-            <i class="fas fa-arrow-{{ ($crecimientoIngresosHoy ?? 0) >= 0 ? 'up' : 'down' }} me-1"></i>
-            {{ number_format(abs($crecimientoIngresosHoy ?? 0), 1) }}% vs ayer
-        </small>
-    </div>
-
-    <div class="summary-card">
-        <div class="summary-icon icon-orange">
-            <i class="fas fa-credit-card"></i>
-        </div>
-        <h6 class="text-muted mb-1">Gastos del Día</h6>
-        <h4 class="mb-0">S/ {{ number_format($gastosHoy ?? 0, 2) }}</h4>
-        <small class="text-muted">
-            <i class="fas fa-minus me-1"></i>
-            {{ number_format(abs($crecimientoGastosHoy ?? 0), 1) }}% vs ayer
-        </small>
-    </div>
-
-    <div class="summary-card">
-        <div class="summary-icon icon-blue">
-            <i class="fas fa-chart-line"></i>
-        </div>
-        <h6 class="text-muted mb-1">Utilidad del Día</h6>
-        <h4 class="mb-0 {{ ($utilidadHoy ?? 0) >= 0 ? 'text-success' : 'text-danger' }}">
-            S/ {{ number_format($utilidadHoy ?? 0, 2) }}
-        </h4>
-        <small class="{{ ($margenUtilidadHoy ?? 0) >= 0 ? 'text-success' : 'text-danger' }}">
-            <i class="fas fa-percentage me-1"></i>
-            {{ number_format(abs($margenUtilidadHoy ?? 0), 1) }}% margen
-        </small>
-    </div>
-
-    <div class="summary-card">
-        <div class="summary-icon icon-red">
-            <i class="fas fa-shopping-cart"></i>
-        </div>
-        <h6 class="text-muted mb-1">Ventas del Mes</h6>
-        <h4 class="mb-0">{{ $ventasDelMes ?? 0 }}</h4>
-        <small class="text-success">
-            <i class="fas fa-arrow-up me-1"></i>
-            +{{ number_format(abs($crecimientoVentas ?? 0), 1) }}% vs mes anterior
-        </small>
-    </div>
-</div>
-@endhasrole
-
-<!-- Estado SUNAT -->
-<div class="chart-container" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border: none;">
-    <div class="d-flex justify-content-between align-items-center">
-        <div>
-            <h5 class="mb-2 text-white">
-                <i class="fas fa-university me-2"></i>
-                Estado de Libros Electrónicos SUNAT
-            </h5>
-            <p class="mb-0 opacity-75">Última sincronización: {{ $ultimaSyncSunat ?? 'Nunca' }}</p>
-        </div>
-        <div class="text-end">
-            <div class="d-inline-flex align-items-center gap-2">
-         
-            <span style="width: 12px; height: 12px; border-radius: 50%; background: {{ $estadoSunatColor === 'green' ? '#10b981' : '#f59e0b' }}; display: inline-block;"></span>
-
-                <strong style="font-size: 1.1rem;">{{ $estadoSunat ?? 'Pendiente' }}</strong>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div class="row g-3">
-    <!-- Gráfico Principal: Ingresos vs Gastos -->
-    <div class="col-lg-8">
-        <div class="chart-container">
-            <h5>
-                <i class="fas fa-chart-line text-primary"></i>
-                Ingresos vs Gastos - Últimos 30 Días
-            </h5>
-            <div class="chart-wrapper">
-                <canvas id="financialTrendChart"></canvas>
-            </div>
-        </div>
-    </div>
-
-    <!-- Acciones Rápidas -->
-    <div class="col-lg-4">
-        <div class="quick-actions">
-            <h5 class="mb-3">
-                <i class="fas fa-bolt me-2"></i>
-                Acciones Rápidas
-            </h5>
-            
-            <a href="{{ route('contador.estados-financieros.balance') }}" class="action-btn">
-                <div style="background: rgba(59, 130, 246, 0.1);">
-                    <i class="fas fa-chart-bar" style="color: #3b82f6;"></i>
-                </div>
-                <div class="flex-grow-1">
-                    <strong>Reportes Financieros</strong>
-                    <small class="d-block text-muted">Estado de resultados, balance</small>
-                </div>
-            </a>
-
-            <a href="{{ route('reportes.sunat.libros-electronicos') }}" class="action-btn">
-                <div style="background: rgba(16, 185, 129, 0.1);">
-                    <i class="fas fa-book" style="color: #10b981;"></i>
-                </div>
-                <div class="flex-grow-1">
-                    <strong>Libros Electrónicos</strong>
-                    <small class="d-block text-muted">Ventas, compras, diario</small>
-                </div>
-            </a>
-
-            <a href="{{ route('contador.registros.ventas') }}" class="action-btn">
-                <div style="background: rgba(245, 158, 11, 0.1);">
-                    <i class="fas fa-file-invoice" style="color: #f59e0b;"></i>
-                </div>
-                <div class="flex-grow-1">
-                    <strong>Registro de Ventas</strong>
-                    <small class="d-block text-muted">Ver y gestionar ventas</small>
-                </div>
-            </a>
-
-            <button onclick="syncWithSunat()" class="action-btn w-100 text-start border-0 bg-transparent">
-                <div style="background: rgba(239, 68, 68, 0.1);">
-                    <i class="fas fa-sync" style="color: #ef4444;"></i>
-                </div>
-                <div class="flex-grow-1">
-                    <strong>Sincronizar con SUNAT</strong>
-                    <small class="d-block text-muted">Enviar libros electrónicos</small>
-                </div>
-            </button>
-        </div>
-    </div>
-</div>
-
-<!-- Segunda Fila de Gráficos -->
-<div class="row g-3 mt-2">
-    <!-- Distribución de Gastos -->
-    <div class="col-lg-6">
-        <div class="chart-container">
-            <h5>
-                <i class="fas fa-chart-pie text-warning"></i>
-                Distribución de Gastos del Mes
-            </h5>
-            <div class="chart-wrapper">
-                <canvas id="expenseDistributionChart"></canvas>
-            </div>
-        </div>
-    </div>
-
-    <!-- Comparativo Mensual -->
-    <div class="col-lg-6">
-        <div class="chart-container">
-            <h5>
-                <i class="fas fa-chart-bar text-info"></i>
-                Comparativo Mensual (Últimos 6 Meses)
-            </h5>
-            <div class="chart-wrapper">
-                <canvas id="monthlyComparisonChart"></canvas>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Tabla de Movimientos Recientes -->
-<div class="row mt-3">
-    <div class="col-12">
-        <div class="contador-card">
-            <h5 class="mb-3">
-                <i class="fas fa-list me-2"></i>
-                Movimientos Financieros Recientes
-            </h5>
-            <div class="table-responsive">
-                <table class="table table-hover align-middle">
-                    <thead>
-                        <tr>
-                            <th>Fecha</th>
-                            <th>Tipo</th>
-                            <th>Documento</th>
-                            <th>Concepto</th>
-                            <th class="text-end">Monto</th>
-                            <th>Estado</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse(($movimientosRecientes ?? []) as $movimiento)
-                        <tr>
-                            <td>{{ date('d/m/Y H:i', strtotime($movimiento->$fecha ?? now())) }}</td>
-                            <td>
-                                <span class="badge bg-{{ $movimiento->$tipo === 'ingreso' ? 'success' : 'warning' }}">
-                                    {{ ucfirst($movimiento->$tipo ?? 'N/A') }}
+        {{-- Métricas Principales --}}
+        <div class="row g-3 mb-4">
+            {{-- Ventas del Mes --}}
+            <div class="col-12 col-md-6 col-xl-3">
+                <div class="metric-card primary">
+                    <div class="metric-header">
+                        <div>
+                            <div class="metric-label">Ventas del Mes</div>
+                            <div class="metric-value">S/ {{ number_format($ventasMes, 2) }}</div>
+                            @if($variacionVentas != 0)
+                                <span class="metric-badge {{ $variacionVentas > 0 ? 'up' : 'down' }}">
+                                    <i class="fas fa-{{ $variacionVentas > 0 ? 'arrow-up' : 'arrow-down' }}"></i>
+                                    {{ abs($variacionVentas) }}% vs mes anterior
                                 </span>
-                            </td>
-                            <td>{{ $movimiento->$documento ?? 'N/A' }}</td>
-                            <td>{{ $movimiento->$concepto ?? 'Sin concepto' }}</td>
-                            <td class="text-end fw-bold {{ $movimiento->$tipo === 'ingreso' ? 'text-success' : 'text-warning' }}"></td>
-                                {{ $movimiento->$tipo === 'ingreso' ? '+' : '-' }}S/ {{ number_format($movimiento->$monto ?? 0, 2) }}
-                            </td>
-                            <td>
-                                <span class="badge bg-{{ $movimiento->$estado === 'confirmado' ? 'success' : 'secondary' }}">
-                                    {{ ucfirst($movimiento->$estado ?? 'Pendiente') }}
+                            @endif
+                        </div>
+                        <div class="metric-icon primary">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {{-- Cuentas por Cobrar --}}
+            <div class="col-12 col-md-6 col-xl-3">
+                <div class="metric-card {{ $cuentasPorCobrarVencidas > ($cuentasPorCobrar * 0.3) ? 'danger' : 'warning' }}">
+                    <div class="metric-header">
+                        <div>
+                            <div class="metric-label">Cuentas por Cobrar</div>
+                            <div class="metric-value">S/ {{ number_format($cuentasPorCobrar, 2) }}</div>
+                            @if($cuentasPorCobrarVencidas > 0)
+                                <span class="metric-badge down">
+                                    <i class="fas fa-exclamation-triangle"></i>
+                                    S/ {{ number_format($cuentasPorCobrarVencidas, 2) }} vencidas
                                 </span>
-                            </td>
-                        </tr>
-                        @empty
-                        <tr>
-                            <td colspan="6" class="text-center text-muted py-4">
-                                <i class="fas fa-inbox fa-2x mb-2 d-block"></i>
-                                No hay movimientos recientes
-                            </td>
-                        </tr>
-                        @endforelse
-                    </tbody>
-                </table>
+                            @endif
+                        </div>
+                        <div class="metric-icon {{ $cuentasPorCobrarVencidas > ($cuentasPorCobrar * 0.3) ? 'danger' : 'warning' }}">
+                            <i class="fas fa-hand-holding-usd"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {{-- Ticket Promedio --}}
+            <div class="col-12 col-md-6 col-xl-3">
+                <div class="metric-card success">
+                    <div class="metric-header">
+                        <div>
+                            <div class="metric-label">Ticket Promedio</div>
+                            <div class="metric-value">S/ {{ number_format($ticketPromedio, 2) }}</div>
+                            <span class="metric-badge up">
+                                <i class="fas fa-shopping-cart"></i>
+                                Valor por venta
+                            </span>
+                        </div>
+                        <div class="metric-icon success">
+                            <i class="fas fa-receipt"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {{-- Margen Bruto --}}
+            <div class="col-12 col-md-6 col-xl-3">
+                <div class="metric-card info">
+                    <div class="metric-header">
+                        <div>
+                            <div class="metric-label">Margen Bruto</div>
+                            <div class="metric-value">{{ number_format($margenBrutoMes, 1) }}%</div>
+                            <span class="metric-badge {{ $margenBrutoMes > 15 ? 'up' : 'down' }}">
+                                <i class="fas fa-{{ $margenBrutoMes > 15 ? 'check-circle' : 'exclamation-circle' }}"></i>
+                                {{ $margenBrutoMes > 15 ? 'Saludable' : 'Bajo' }}
+                            </span>
+                        </div>
+                        <div class="metric-icon info">
+                            <i class="fas fa-percentage"></i>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
+
+        {{-- Indicadores Secundarios --}}
+        <div class="row g-3 mb-4">
+            <div class="col-12 col-md-4">
+                <div class="metric-card">
+                    <div class="metric-header">
+                        <div>
+                            <div class="metric-label">Clientes Activos</div>
+                            <div class="metric-value">{{ number_format($clientesActivos) }}</div>
+                        </div>
+                        <div class="metric-icon primary">
+                            <i class="fas fa-users"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-12 col-md-4">
+                <div class="metric-card">
+                    <div class="metric-header">
+                        <div>
+                            <div class="metric-label">Facturas Pendientes</div>
+                            <div class="metric-value">{{ number_format($facturasPendientes) }}</div>
+                            <span class="metric-badge {{ $facturasVencidas > 0 ? 'down' : 'up' }}">
+                                {{ $facturasVencidas }} vencidas
+                            </span>
+                        </div>
+                        <div class="metric-icon warning">
+                            <i class="fas fa-file-invoice-dollar"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-12 col-md-4">
+                <div class="metric-card">
+                    <div class="metric-header">
+                        <div>
+                            <div class="metric-label">Días Prom. Cobranza</div>
+                            <div class="metric-value">{{ $diasPromedioCobranza }}</div>
+                            <span class="metric-badge {{ $diasPromedioCobranza <= 30 ? 'up' : 'down' }}">
+                                <i class="fas fa-{{ $diasPromedioCobranza <= 30 ? 'check' : 'clock' }}"></i>
+                                {{ $diasPromedioCobranza <= 30 ? 'Óptimo' : 'Mejorar' }}
+                            </span>
+                        </div>
+                        <div class="metric-icon info">
+                            <i class="fas fa-calendar-alt"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {{-- Gráficos --}}
+        <div class="row g-3 mb-4">
+            {{-- Gráfico Ventas y Cobranzas --}}
+            <div class="col-12 col-lg-8">
+                <div class="chart-card">
+                    <h3 class="chart-title">📈 Ventas y Cobranzas (Últimos 6 Meses)</h3>
+                    <canvas id="ventasCobranzasChart" height="80"></canvas>
+                </div>
+            </div>
+
+            {{-- Top Clientes --}}
+            <div class="col-12 col-lg-4">
+                <div class="table-card">
+                    <div class="table-header">
+                        <h3 class="table-title">🏆 Top 10 Clientes del Mes</h3>
+                    </div>
+                    <div style="max-height: 400px; overflow-y: auto;">
+                        <table class="custom-table">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Cliente</th>
+                                    <th class="text-end">Total</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @forelse($topClientes as $index => $cliente)
+                                    <tr>
+                                        <td><strong>{{ $index + 1 }}</strong></td>
+                                        <td>
+                                            <div style="font-weight: 600; font-size: 0.85rem;">
+                                                {{ Str::limit($cliente['cliente'], 30) }}
+                                            </div>
+                                            <small class="text-muted">{{ $cliente['facturas'] }} facturas</small>
+                                        </td>
+                                        <td class="text-end">
+                                            <strong style="color: var(--success);">S/ {{ number_format($cliente['total'], 2) }}</strong>
+                                        </td>
+                                    </tr>
+                                @empty
+                                    <tr>
+                                        <td colspan="3" class="text-center text-muted">No hay datos disponibles</td>
+                                    </tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {{-- Alertas --}}
+        @if(count($alertas) > 0)
+        <div class="row mb-4">
+            <div class="col-12">
+                <h2 class="section-title">
+                    <i class="fas fa-bell"></i> Alertas y Notificaciones
+                </h2>
+                <div class="row g-3">
+                    @foreach($alertas as $alerta)
+                    <div class="col-12 col-md-6 col-lg-4">
+                        <div class="alert-item {{ $alerta['tipo'] }}">
+                            <div class="alert-icon {{ $alerta['tipo'] }}">
+                                <i class="fas fa-{{ $alerta['icono'] }}"></i>
+                            </div>
+                            <div class="alert-content">
+                                <h6>{{ $alerta['titulo'] }}</h6>
+                                <p>{{ $alerta['mensaje'] }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    @endforeach
+                </div>
+            </div>
+        </div>
+        @endif
+
+        {{-- Tablas de Datos --}}
+        <div class="row g-3 mb-4">
+            {{-- Ventas Recientes --}}
+            <div class="col-12 col-xl-6">
+                <div class="table-card">
+                    <div class="table-header">
+                        <h3 class="table-title">📋 Ventas Recientes</h3>
+                        <a href="#" class="btn btn-sm btn-outline-primary">Ver todas</a>
+                    </div>
+                    <div style="overflow-x: auto;">
+                        <table class="custom-table">
+                            <thead>
+                                <tr>
+                                    <th>Documento</th>
+                                    <th>Cliente</th>
+                                    <th>Fecha</th>
+                                    <th class="text-end">Total</th>
+                                    <th>Estado</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @forelse($ventasRecientes as $venta)
+                                    <tr>
+                                        <td>
+                                            <strong>{{ $venta['numero'] }}</strong><br>
+                                            <small class="text-muted">{{ $venta['tipo'] }}</small>
+                                        </td>
+                                        <td>{{ Str::limit($venta['cliente'], 25) }}</td>
+                                        <td>{{ $venta['fecha'] }}</td>
+                                        <td class="text-end">
+                                            <strong>S/ {{ number_format($venta['total'], 2) }}</strong>
+                                            @if($venta['saldo'] > 0)
+                                                <br><small class="text-danger">Saldo: S/ {{ number_format($venta['saldo'], 2) }}</small>
+                                            @endif
+                                        </td>
+                                        <td>
+                                            <span class="status-badge {{ $venta['estado_class'] }}">
+                                                {{ $venta['estado'] }}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                @empty
+                                    <tr>
+                                        <td colspan="5" class="text-center text-muted">No hay ventas recientes</td>
+                                    </tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            {{-- Productos Stock Bajo --}}
+            <div class="col-12 col-xl-6">
+                <div class="table-card">
+                    <div class="table-header">
+                        <h3 class="table-title">📦 Productos con Stock Bajo</h3>
+                        <a href="#" class="btn btn-sm btn-outline-warning">Ver todos</a>
+                    </div>
+                    <div style="overflow-x: auto;">
+                        <table class="custom-table">
+                            <thead>
+                                <tr>
+                                    <th>Producto</th>
+                                    <th>Laboratorio</th>
+                                    <th class="text-center">Stock</th>
+                                    <th>Nivel</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @forelse($productosStockBajo as $producto)
+                                    <tr>
+                                        <td>
+                                            <strong>{{ $producto['codigo'] }}</strong><br>
+                                            <small>{{ Str::limit($producto['nombre'], 30) }}</small>
+                                        </td>
+                                        <td>{{ Str::limit($producto['laboratorio'], 20) }}</td>
+                                        <td class="text-center">
+                                            <strong>{{ number_format($producto['stock'], 0) }}</strong> / {{ number_format($producto['minimo'], 0) }}
+                                        </td>
+                                        <td>
+                                            <div class="progress-bar-custom">
+                                                <div class="progress-fill {{ $producto['porcentaje'] < 30 ? 'danger' : ($producto['porcentaje'] < 70 ? 'warning' : 'success') }}" 
+                                                     style="width: {{ min($producto['porcentaje'], 100) }}%">
+                                                </div>
+                                            </div>
+                                            <small class="text-muted">{{ $producto['porcentaje'] }}%</small>
+                                        </td>
+                                    </tr>
+                                @empty
+                                    <tr>
+                                        <td colspan="4" class="text-center text-muted">Todos los productos tienen stock adecuado</td>
+                                    </tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {{-- Productos Próximos a Vencer --}}
+        @if(count($productosProximosVencer) > 0)
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="table-card">
+                    <div class="table-header">
+                        <h3 class="table-title">⏰ Productos Próximos a Vencer (90 días)</h3>
+                        <a href="#" class="btn btn-sm btn-outline-danger">Ver todos</a>
+                    </div>
+                    <div style="overflow-x: auto;">
+                        <table class="custom-table">
+                            <thead>
+                                <tr>
+                                    <th>Código</th>
+                                    <th>Producto</th>
+                                    <th>Laboratorio</th>
+                                    <th>Lote</th>
+                                    <th>Vencimiento</th>
+                                    <th class="text-center">Stock</th>
+                                    <th class="text-center">Días</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($productosProximosVencer as $producto)
+                                    <tr>
+                                        <td><strong>{{ $producto['codigo'] }}</strong></td>
+                                        <td>{{ Str::limit($producto['nombre'], 40) }}</td>
+                                        <td>{{ Str::limit($producto['laboratorio'], 20) }}</td>
+                                        <td>{{ $producto['lote'] }}</td>
+                                        <td>{{ $producto['vencimiento'] }}</td>
+                                        <td class="text-center">{{ number_format($producto['stock'], 0) }}</td>
+                                        <td class="text-center">
+                                            <span class="status-badge {{ $producto['dias'] <= 30 ? 'danger' : ($producto['dias'] <= 60 ? 'warning' : 'info') }}">
+                                                {{ $producto['dias'] }} días
+                                            </span>
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        @endif
+
     </div>
 </div>
 @endsection
-@push('scripts')
+
+@section('scripts')
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-
-    //  GRÁFICO DE TENDENCIAS FINANCIERAS (LÍNEAS)
-    
-    const financialTrendCtx = document.getElementById('financialTrendChart');
-    if (financialTrendCtx) {
-        new Chart(financialTrendCtx, {
-            type: 'line',
-            data: {
-                labels: {!! json_encode($labelsUltimos30Dias ?? array_map(fn($i) => date('d/m', strtotime("-$i days")), range(29, 0))) !!},
-                datasets: [
-                    {
-                        label: 'Ingresos',
-                        data: {!! json_encode($ingresos30Dias ?? array_fill(0, 30, 0)) !!},
-                        borderColor: '#10b981',
-                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
-                        tension: 0.4,
-                        fill: true,
-                        borderWidth: 2
-                    },
-                    {
-                        label: 'Gastos',
-                        data: {!! json_encode($gastos30Dias ?? array_fill(0, 30, 0)) !!},
-                        borderColor: '#f59e0b',
-                        backgroundColor: 'rgba(245, 158, 11, 0.1)',
-                        tension: 0.4,
-                        fill: true,
-                        borderWidth: 2
-                    },
-                    {
-                        label: 'Utilidad',
-                        data: {!! json_encode($utilidad30Dias ?? array_fill(0, 30, 0)) !!},
-                        borderColor: '#3b82f6',
-                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
-                        tension: 0.4,
-                        fill: true,
-                        borderWidth: 2
-                    }
-                ]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        position: 'top',
-                        labels: {
-                            usePointStyle: true,
-                            padding: 15
+    document.addEventListener('DOMContentLoaded', function() {
+        // Gráfico Ventas y Cobranzas
+        const ctx = document.getElementById('ventasCobranzasChart');
+        if (ctx) {
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: @json($mesesLabels),
+                    datasets: [
+                        {
+                            label: 'Ventas',
+                            data: @json($ventasData),
+                            borderColor: '#2563eb',
+                            backgroundColor: 'rgba(37, 99, 235, 0.1)',
+                            borderWidth: 3,
+                            tension: 0.4,
+                            fill: true,
+                            pointRadius: 5,
+                            pointHoverRadius: 7
+                        },
+                        {
+                            label: 'Cobranzas',
+                            data: @json($cobranzasData),
+                            borderColor: '#10b981',
+                            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                            borderWidth: 3,
+                            tension: 0.4,
+                            fill: true,
+                            pointRadius: 5,
+                            pointHoverRadius: 7
                         }
-                    },
-                    tooltip: {
-                        mode: 'index',
-                        intersect: false,
-                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                        padding: 12,
-                        titleFont: { size: 14, weight: 'bold' },
-                        bodyFont: { size: 13 },
-                        callbacks: {
-                            label: function(context) {
-                                return `${context.dataset.label}: S/ ${context.parsed.y.toFixed(2)}`;
-                            }
-                        }
-                    }
+                    ]
                 },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        ticks: {
-                            callback: function(value) {
-                                return 'S/ ' + value.toLocaleString();
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top',
+                            labels: {
+                                usePointStyle: true,
+                                padding: 20,
+                                font: {
+                                    size: 12,
+                                    weight: '600'
+                                }
                             }
                         },
-                        grid: {
-                            color: 'rgba(0, 0, 0, 0.05)'
-                        }
-                    },
-                    x: {
-                        grid: {
-                            display: false
-                        }
-                    }
-                }
-            }
-        });
-    }
-
-    //    GRÁFICO DE DISTRIBUCIÓN DE GASTOS (DOUGHNUT)
-    
-    const expenseCtx = document.getElementById('expenseDistributionChart');
-    if (expenseCtx) {
-        new Chart(expenseCtx, {
-            type: 'doughnut',
-            data: {
-                labels: {!! json_encode($categoriasGastos ?? ['Operativos', 'Personal', 'Marketing', 'Otros']) !!},
-                datasets: [{
-                    data: {!! json_encode($montosCategoriasGastos ?? [5000, 3000, 2000, 1000]) !!},
-                    backgroundColor: [
-                        '#3b82f6',
-                        '#10b981',
-                        '#f59e0b',
-                        '#ef4444',
-                        '#8b5cf6',
-                        '#06b6d4'
-                    ],
-                    borderWidth: 3,
-                    borderColor: '#ffffff',
-                    hoverOffset: 8
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        position: 'bottom',
-                        labels: {
-                            padding: 15,
-                            usePointStyle: true
-                        }
-                    },
-                    tooltip: {
-                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                        padding: 12,
-                        callbacks: {
-                            label: function(context) {
-                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                                const percentage = ((context.parsed / total) * 100).toFixed(1);
-                                return `${context.label}: S/ ${context.parsed.toFixed(2)} (${percentage}%)`;
+                        tooltip: {
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            padding: 12,
+                            titleFont: { size: 14, weight: 'bold' },
+                            bodyFont: { size: 13 },
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    label += 'S/ ' + context.parsed.y.toLocaleString('es-PE', {
+                                        minimumFractionDigits: 2,
+                                        maximumFractionDigits: 2
+                                    });
+                                    return label;
+                                }
                             }
                         }
-                    }
-                }
-            }
-        });
-    }
-
-    //  GRÁFICO COMPARATIVO MENSUAL (BARRAS)
-    
-    const comparisonCtx = document.getElementById('monthlyComparisonChart');
-    if (comparisonCtx) {
-        new Chart(comparisonCtx, {
-            type: 'bar',
-            data: {
-                labels: {!! json_encode($mesesComparativo ?? ['Ene','Feb','Mar','Abr','May','Jun']) !!},
-                datasets: [
-                    {
-                        label: 'Ingresos';
-                        data: {!! json_encode($ingresosComparativo ?? [15000, 18000, 16000, 20000, 22000, 25000]) !!};
-                        backgroundColor: '#10b981';
-                        borderRadius: 6;
-                        borderSkipped: false;
                     },
-                    {
-                        label: 'Gastos',
-                        data: {!! json_encode($gastosComparativo ?? [8000, 9000, 8500, 10000, 11000, 12000]) !!},
-                        backgroundColor: '#f59e0b',
-                        borderRadius: 6,
-                        borderSkipped: false
-                    },
-                    {
-                        label: 'Utilidad',
-                        data: {!! json_encode($utilidadComparativo ?? [7000, 9000, 7500, 10000, 11000, 13000]) !!},
-                        backgroundColor: '#3b82f6',
-                        borderRadius: 6,
-                        borderSkipped: false
-                    }
-                ]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        position: 'top',
-                        labels: {
-                            padding: 15,
-                            usePointStyle: true
-                        }
-                    },
-                    tooltip: {
-                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                        padding: 12,
-                        callbacks: {
-                            label: function(context) {
-                                return `${context.dataset.label}: S/ ${context.parsed.y.toFixed(2)}`;
-                            }
-                        }
-                    }
-                },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        ticks: {
-                            callback: function(value) {
-                                return 'S/ ' + value.toLocaleString();
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return 'S/ ' + value.toLocaleString('es-PE');
+                                }
+                            },
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.05)'
                             }
                         },
-                        grid: {
-                            color: 'rgba(0, 0, 0, 0.05)'
-                        }
-                    },
-                    x: {
-                        grid: {
-                            display: false
+                        x: {
+                            grid: {
+                                display: false
+                            }
                         }
                     }
                 }
-            }
-        });
-    }
+            });
+        }
 
-});
+        // Auto-refresh cada 5 minutos
+        setTimeout(function() {
+            location.reload();
+        }, 300000);
+    });
 </script>
-@endpush
+
+@endsection
