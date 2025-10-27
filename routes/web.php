@@ -124,6 +124,7 @@ Route::middleware(['auth', 'check.contador'])->group(function () {
         Route::get('planillas', [App\Http\Controllers\Ventas\PlanillasController::class, 'index'])->name('planillas');
         Route::get('analytics', [App\Http\Controllers\Reportes\AnalyticsController::class, 'index'])->name('analytics');
         Route::get('kpis', [App\Http\Controllers\Reportes\KpiController::class, 'index'])->name('kpis');
+        Route::get('caja', [App\Http\Controllers\Contabilidad\CajaController::class, 'index'])->name('caja');
         
         // Reportes Financieros y Libros Electrónicos
         Route::get('reportes/financiero', [ReportesSunatController::class, 'index'])->name('reportes.financiero');
@@ -198,6 +199,8 @@ Route::middleware(['auth', 'check.contador'])->group(function () {
             Route::get('api/estadisticas', [LibroDiarioController::class, 'getEstadisticas'])->name('api.estadisticas');
             Route::get('api/busqueda-avanzada', [LibroDiarioController::class, 'getBusquedaAvanzada'])->name('api.busqueda-avanzada');
         });
+        
+        Route::get('caja', [App\Http\Controllers\Contabilidad\CajaController::class, 'index'])->name('caja');
         
         
     });

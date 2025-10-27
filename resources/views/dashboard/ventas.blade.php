@@ -486,7 +486,7 @@
                 Acciones Rápidas
             </h5>
 
-            <a href="{{ route('facturas.create') }}" class="quick-action-btn">
+            <a href="{{ route('contador.facturas.create') }}" class="quick-action-btn">
                 <i class="fas fa-plus-circle" style="background: linear-gradient(135deg, #10b981, #059669);"></i>
                 <div>
                     <strong>Nueva Factura</strong>
@@ -494,7 +494,7 @@
                 </div>
             </a>
 
-            <a href="{{ route('clientes.create') }}" class="quick-action-btn">
+            <a href="{{ route('contador.clientes') }}" class="quick-action-btn">
                 <i class="fas fa-user-plus" style="background: linear-gradient(135deg, #3b82f6, #1d4ed8);"></i>
                 <div>
                     <strong>Nuevo Cliente</strong>
@@ -502,7 +502,7 @@
                 </div>
             </a>
 
-            <a href="{{ route('productos.buscar') }}" class="quick-action-btn">
+            <a href="{{ route('contador.productos.index') }}" class="quick-action-btn">
                 <i class="fas fa-search" style="background: linear-gradient(135deg, #8b5cf6, #7c3aed);"></i>
                 <div>
                     <strong>Buscar Producto</strong>
@@ -510,7 +510,7 @@
                 </div>
             </a>
 
-            <a href="{{ route('caja') }}" class="quick-action-btn">
+            <a href="{{ route('contador.caja.index') }}" class="quick-action-btn">
                 <i class="fas fa-cash-register" style="background: linear-gradient(135deg, #f59e0b, #d97706);"></i>
                 <div>
                     <strong>Control de Caja</strong>
