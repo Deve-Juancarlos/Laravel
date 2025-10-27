@@ -259,19 +259,16 @@ Route::middleware(['auth', 'check.contador'])->group(function () {
             
             // 5. Análisis farmacéutico específico
             Route::get('/farmaceutico', [EstadoResultadosController::class, 'analisisFarmaceutico'])->name('farmaceutico');
-
-            Route::get('/flujo-caja', [CashFlowController::class, 'index'])->name('flujo-efectivo.index');
-
-            Route::get('/balance-general', [BalanceGeneralController::class, 'index'])->name('balance-general.index');
             
-            // 6. Exportar estado de resultados
-            Route::get('/exportar', function() {
-                // TODO: Implementar exportación Estado de Resultados
-                return view('contabilidad.libros.estados-financieros.exportar');
-            })->name('exportar');
-        });
-
-      
+            // 6. Estado de Flujo de Efectivo
+            Route::get('/flujo-caja', [EstadoResultadosController::class, 'cashFlow'])->name('flujo-caja');
+            
+            // 7. Balance General
+            Route::get('/balance-general', [EstadoResultadosController::class, 'balanceGeneral'])->name('balance-general');
+            
+            // 8. Exportar todos los estados
+            Route::get('/exportar', [EstadoResultadosController::class, 'exportar'])->name('exportar');
+        });    
         
         
     });
