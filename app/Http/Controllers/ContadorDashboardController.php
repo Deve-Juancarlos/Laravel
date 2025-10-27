@@ -14,48 +14,54 @@ class ContadorDashboardController extends Controller
     private $cache_ttl = 900;     
   
     public function contadorDashboard(Request $request)
-    {
-        try {
-            $cacheKey = 'dashboard_contador_' . now()->format('Y-m-d-H');
+{
+    try {
+        $cacheKey = 'dashboard_contador_' . now()->format('Y-m-d-H');
 
-            $data = Cache::remember($cacheKey, $this->cache_ttl, function () {
-                return [
-                    'ventasMes' => (float) $this->calcularVentasMes(),
-                    'ventasMesAnterior' => (float) $this->calcularVentasMesAnterior(),
-                    'variacionVentas' => $this->calcularVariacionVentas(),
-                    'cuentasPorCobrar' => (float) $this->calcularCuentasPorCobrar(),
-                    'cuentasPorCobrarVencidas' => (float) $this->calcularCuentasPorCobrarVencidas(),
-                    'clientesActivos' => $this->contarClientesActivos(),
-                    'facturasPendientes' => $this->contarFacturasPendientes(),
-                    'facturasVencidas' => $this->contarFacturasVencidas(),
-                    'ticketPromedio' => (float) $this->calcularTicketPromedio(),
-                    'diasPromedioCobranza' => (int) $this->calcularDiasPromedioCobranza(),
-                    'margenBrutoMes' => (float) $this->calcularMargenBrutoMes(),
-                    'mesesLabels' => $this->obtenerMesesLabels(6),
-                    'ventasData' => $this->obtenerVentasPorMes(6),
-                    'cobranzasData' => $this->obtenerCobranzasPorMes(6),
-                    'topClientes' => $this->obtenerTopClientesMes(10),
-                    'ventasRecientes' => $this->obtenerVentasRecientes(15),
-                    'alertas' => $this->generarAlertas(),
-                    'productosStockBajo' => $this->obtenerProductosStockBajo(10),
-                    'productosProximosVencer' => $this->obtenerProductosProximosVencer(10),
-                    'analisisFinanciero' => $this->obtenerAnalisisFinanciero(),
-                    'vencimientosPorRango' => $this->analizarVencimientosPorRango(),
-                    'moraDetalle' => $this->analizarMoraDetalle(),
-                    // 👇 Agrega esto:
-                    'ultimasFacturas' => $this->obtenerUltimasFacturas(10),
-                ];
-            });
+        $data = Cache::remember($cacheKey, $this->cache_ttl, function () {
+            return [
+                'ventasMes' => (float) $this->calcularVentasMes(),
+                'ventasMesAnterior' => (float) $this->calcularVentasMesAnterior(),
+                'variacionVentas' => $this->calcularVariacionVentas(),
+                'cuentasPorCobrar' => (float) $this->calcularCuentasPorCobrar(),
+                'cuentasPorCobrarVencidas' => (float) $this->calcularCuentasPorCobrarVencidas(),
+                'clientesActivos' => $this->contarClientesActivos(),
+                'facturasPendientes' => $this->contarFacturasPendientes(),
+                'facturasVencidas' => $this->contarFacturasVencidas(),
+                'ticketPromedio' => (float) $this->calcularTicketPromedio(),
+                'diasPromedioCobranza' => (int) $this->calcularDiasPromedioCobranza(),
+                'margenBrutoMes' => (float) $this->calcularMargenBrutoMes(),
+                'mesesLabels' => $this->obtenerMesesLabels(6),
+                'ventasData' => $this->obtenerVentasPorMes(6),
+                'cobranzasData' => $this->obtenerCobranzasPorMes(6),
+                'topClientes' => $this->obtenerTopClientesMes(10),
+                'ventasRecientes' => $this->obtenerVentasRecientes(15),
+                'alertas' => $this->generarAlertas(),
+                'productosStockBajo' => $this->obtenerProductosStockBajo(10),
+                'productosProximosVencer' => $this->obtenerProductosProximosVencer(10),
+                'analisisFinanciero' => $this->obtenerAnalisisFinanciero(),
+                'vencimientosPorRango' => $this->analizarVencimientosPorRango(),
+                'moraDetalle' => $this->analizarMoraDetalle(),
+                'ultimasFacturas' => $this->obtenerUltimasFacturas(10),                
+                'topClientesSaldo' => DB::table('clientes')
+                    ->select('Razon', DB::raw('SUM(saldo) as saldo'))
+                    ->groupBy('Razon')
+                    ->orderByDesc('saldo')
+                    ->limit(5)
+                    ->get(),
+            ];
+        });
 
-            return view('dashboard.contador', $data);
+        return view('dashboard.contador', $data);
 
-        } catch (\Exception $e) {
-            Log::error('Error en dashboard contador: ' . $e->getMessage());
-            Log::error('Stack trace: ' . $e->getTraceAsString());
+    } catch (\Exception $e) {
+        Log::error('Error en dashboard contador: ' . $e->getMessage());
+        Log::error('Stack trace: ' . $e->getTraceAsString());
 
-            return view('dashboard.contador', $this->getDatosVacios());
-        }
+        return view('dashboard.contador', $this->getDatosVacios());
     }
+}
+
 
     private function obtenerUltimasFacturas($limite = 10)
     {
@@ -677,19 +683,36 @@ class ContadorDashboardController extends Controller
         return $colors[$codigo % count($colors)];
     }
 
-    private function getDatosVacios()
-    {
-        return [
-            'ventasMes' => 0, 'ventasMesAnterior' => 0, 'variacionVentas' => 0,
-            'cuentasPorCobrar' => 0, 'cuentasPorCobrarVencidas' => 0,
-            'clientesActivos' => 0, 'facturasPendientes' => 0, 'facturasVencidas' => 0,
-            'ticketPromedio' => 0, 'diasPromedioCobranza' => 0, 'margenBrutoMes' => 0,
-            'mesesLabels' => [], 'ventasData' => [], 'cobranzasData' => [],
-            'topClientes' => [], 'ventasRecientes' => [], 'alertas' => [],
-            'productosStockBajo' => [], 'productosProximosVencer' => [],
-            'analisisFinanciero' => [], 'vencimientosPorRango' => [], 'moraDetalle' => []
-        ];
-    }
+   private function getDatosVacios()
+{
+    return [
+        'ventasMes' => 0,
+        'ventasMesAnterior' => 0,
+        'variacionVentas' => 0,
+        'cuentasPorCobrar' => 0,
+        'cuentasPorCobrarVencidas' => 0,
+        'clientesActivos' => 0,
+        'facturasPendientes' => 0,
+        'facturasVencidas' => 0,
+        'ticketPromedio' => 0,
+        'diasPromedioCobranza' => 0,
+        'margenBrutoMes' => 0,
+        'mesesLabels' => [],
+        'ventasData' => [],
+        'cobranzasData' => [],
+        'topClientes' => [],
+        'ventasRecientes' => [],
+        'alertas' => [],
+        'productosStockBajo' => [],
+        'productosProximosVencer' => [],
+        'analisisFinanciero' => [],
+        'vencimientosPorRango' => [],
+        'moraDetalle' => [],
+        'ultimasFacturas' => collect(), 
+        'topClientesSaldo' => [],
+    ];
+}
+
 
     
     
