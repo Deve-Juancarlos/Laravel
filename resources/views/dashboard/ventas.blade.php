@@ -542,7 +542,7 @@
                     {{ $index + 1 }}
                 </div>
                 <div class="flex-grow-1">
-                    <strong>{{ $producto->nombre }}</strong>
+                    <strong>{{ $producto->$nombre }}</strong>
                     <br>
                     <small class="text-muted">{{ $producto->codigo }}</small>
                 </div>

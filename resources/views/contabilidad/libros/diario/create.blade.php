@@ -1,424 +1,411 @@
-@extends('layouts.contador')
+{{-- Vista create.blade.php CORREGIDA para contador.libro-diario.create --}}
+@extends('layouts.app') {{-- Usar tu layout --}}
 
-@section('title', 'Nuevo Asiento Diario - SIFANO')
+@section('title', 'Nuevo Asiento - Libro Diario')
 
-@section('breadcrumb')
-    <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Dashboard</a></li>
-    <li class="breadcrumb-item"><a href="{{ route('contabilidad') }}">Contabilidad</a></li>
-    <li class="breadcrumb-item"><a href="{{ route('libros-diario') }}">Libro Diario</a></li>
-    <li class="breadcrumb-item active">Nuevo Asiento</li>
-@endsection
-
-@section('contador-content')
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h1 class="h3 mb-0">
-        <i class="fas fa-plus text-success me-2"></i>
-        Nuevo Asiento Diario
-    </h1>
-    <div>
-        <a href="{{ route('libros-diario') }}" class="btn btn-outline-secondary">
-            <i class="fas fa-arrow-left me-2"></i>
-            Volver al Listado
-        </a>
+@section('content')
+<div class="container-fluid p-0">
+    {{-- Header --}}
+    <div class="d-flex justify-content-between align-items-center p-4 mb-4" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px; color: white;">
+        <div>
+            <h1 class="h3 mb-1">
+                <i class="fas fa-plus"></i> Nuevo Asiento Contable
+            </h1>
+            <p class="mb-0 opacity-75">Registrar nuevo asiento en el libro diario</p>
+        </div>
+        <div>
+            <a href="{{ route('contador.libro-diario.index') }}" class="btn btn-light">
+                <i class="fas fa-arrow-left"></i> Volver
+            </a>
+        </div>
     </div>
-</div>
 
-<form method="POST" action="{{ route('libros-diario.store') }}" id="asientoForm">
-    @csrf
-    
-    <div class="row">
-        <!-- Información Principal -->
-        <div class="col-lg-8">
-            <div class="card mb-4">
-                <div class="card-header">
-                    <h5 class="mb-0">
-                        <i class="fas fa-info-circle me-2"></i>
-                        Información del Asiento
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <div class="row g-3">
-                        <div class="col-md-3">
-                            <label class="form-label">Número de Asiento</label>
-                            <input type="text" name="numero_asiento" class="form-control" 
-                                   value="{{ $numeroAsiento ?? '' }}" readonly>
-                        </div>
-                        <div class="col-md-3">
-                            <label class="form-label">Fecha *</label>
-                            <input type="date" name="fecha" class="form-control" 
-                                   value="{{ date('Y-m-d') }}" required>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">Descripción *</label>
-                            <input type="text" name="descripcion" class="form-control" 
-                                   placeholder="Descripción del asiento" required>
-                        </div>
-                    </div>
-                    
-                    <div class="row g-3 mt-3">
-                        <div class="col-md-6">
-                            <label class="form-label">Tipo de Asiento</label>
-                            <select name="tipo_asiento" class="form-select" required>
-                                <option value="">Seleccionar tipo</option>
-                                <option value="manual">Manual</option>
-                                <option value="automático">Automático</option>
-                                <option value="ajuste">Ajuste</option>
-                                <option value="cierre">Cierre</option>
-                            </select>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">Referencia</label>
-                            <input type="text" name="referencia" class="form-control" 
-                                   placeholder="Factura, recibo, etc.">
-                        </div>
-                    </div>
-                </div>
+    {{-- Errores de validación --}}
+    @if($errors->any())
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-circle"></i>
+            <strong>Errores de validación:</strong>
+            <ul class="mb-0 mt-2">
+                @foreach($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    @endif
+
+    {{-- Alertas --}}
+    @if(session('error'))
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-circle"></i> {{ session('error') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    @endif
+
+    <form id="asientoForm" action="{{ route('contador.libro-diario.store') }}" method="POST">
+        @csrf
+        
+        {{-- Información del Asiento --}}
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-info-circle"></i> Información del Asiento
+                </h5>
             </div>
-
-            <!-- Partidas Contables -->
-            <div class="card">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0">
-                        <i class="fas fa-list me-2"></i>
-                        Partidas Contables
-                    </h5>
-                    <button type="button" class="btn btn-sm btn-success" onclick="agregarPartida()">
-                        <i class="fas fa-plus me-1"></i>
-                        Agregar Partida
-                    </button>
-                </div>
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table table-sm" id="partidasTable">
-                            <thead class="table-dark">
-                                <tr>
-                                    <th style="width: 40%">Cuenta</th>
-                                    <th style="width: 30%">Descripción</th>
-                                    <th style="width: 15%">Debe</th>
-                                    <th style="width: 15%">Haber</th>
-                                    <th style="width: 5%">Acción</th>
-                                </tr>
-                            </thead>
-                            <tbody id="partidasBody">
-                                <!-- Las partidas se agregarán dinámicamente -->
-                            </tbody>
-                            <tfoot>
-                                <tr class="table-light">
-                                    <th colspan="2" class="text-end">Totales:</th>
-                                    <th>
-                                        <span id="totalDebe" class="fw-bold text-success">S/ 0.00</span>
-                                    </th>
-                                    <th>
-                                        <span id="totalHaber" class="fw-bold text-primary">S/ 0.00</span>
-                                    </th>
-                                    <th>
-                                        <span id="diferencia" class="fw-bold text-warning">S/ 0.00</span>
-                                    </th>
-                                </tr>
-                            </tfoot>
-                        </table>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label class="form-label">Número de Asiento *</label>
+                        <input type="text" class="form-control" id="numero" name="numero" 
+                               value="{{ $siguienteNumero }}" required readonly>
                     </div>
-                    
-                    <!-- Validación de Balance -->
-                    <div id="balanceValidation" class="alert mt-3" style="display: none;">
-                        <i class="fas fa-check-circle me-2"></i>
-                        <strong id="balanceMessage"></strong>
+                    <div class="col-md-4">
+                        <label class="form-label">Fecha *</label>
+                        <input type="date" class="form-control" id="fecha" name="fecha" 
+                               value="{{ date('Y-m-d') }}" required>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Usuario</label>
+                        <input type="text" class="form-control" value="Contador" readonly style="background-color: #f8f9fa;">
+                    </div>
+                </div>
+                
+                <div class="row g-3 mt-2">
+                    <div class="col-12">
+                        <label class="form-label">Glosa / Descripción *</label>
+                        <input type="text" class="form-control" id="glosa" name="glosa" 
+                               placeholder="Describa el motivo del asiento contable" required>
+                    </div>
+                </div>
+                
+                <div class="row g-3 mt-2">
+                    <div class="col-12">
+                        <label class="form-label">Observaciones</label>
+                        <textarea class="form-control" id="observaciones" name="observaciones" 
+                                  rows="3" placeholder="Observaciones adicionales (opcional)"></textarea>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Panel Lateral -->
-        <div class="col-lg-4">
-            <!-- Resumen del Asiento -->
-            <div class="card mb-4">
-                <div class="card-header">
-                    <h6 class="mb-0">
-                        <i class="fas fa-calculator me-2"></i>
-                        Resumen
-                    </h6>
-                </div>
-                <div class="card-body">
-                    <div class="d-flex justify-content-between mb-2">
-                        <span>Total Debe:</span>
-                        <strong class="text-success" id="resumenDebe">S/ 0.00</strong>
+        {{-- Plantillas predefinidas --}}
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-layer-group"></i> Plantillas Farmacéuticas
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row g-2">
+                    <div class="col-md-4">
+                        <button type="button" class="btn btn-outline-primary w-100" onclick="aplicarPlantilla('ventas-medicamentos')">
+                            <i class="fas fa-pills"></i><br>Venta de Medicamentos
+                        </button>
                     </div>
-                    <div class="d-flex justify-content-between mb-2">
-                        <span>Total Haber:</span>
-                        <strong class="text-primary" id="resumenHaber">S/ 0.00</strong>
+                    <div class="col-md-4">
+                        <button type="button" class="btn btn-outline-primary w-100" onclick="aplicarPlantilla('compra-stock')">
+                            <i class="fas fa-boxes"></i><br>Compra de Stock
+                        </button>
                     </div>
-                    <hr>
-                    <div class="d-flex justify-content-between">
-                        <span>Diferencia:</span>
-                        <strong id="resumenDiferencia" class="text-warning">S/ 0.00</strong>
+                    <div class="col-md-4">
+                        <button type="button" class="btn btn-outline-primary w-100" onclick="aplicarPlantilla('gastos-operativos')">
+                            <i class="fas fa-briefcase"></i><br>Gastos Operativos
+                        </button>
+                    </div>
+                    <div class="col-md-4">
+                        <button type="button" class="btn btn-outline-warning w-100" onclick="aplicarPlantilla('medicamentos-caducos')">
+                            <i class="fas fa-exclamation-triangle"></i><br>Medicamentos Caducos
+                        </button>
+                    </div>
+                    <div class="col-md-4">
+                        <button type="button" class="btn btn-outline-success w-100" onclick="aplicarPlantilla('cobranzas')">
+                            <i class="fas fa-money-bill-wave"></i><br>Cobranzas
+                        </button>
+                    </div>
+                    <div class="col-md-4">
+                        <button type="button" class="btn btn-outline-info w-100" onclick="aplicarPlantilla('pagos-proveedores')">
+                            <i class="fas fa-store"></i><br>Pagos Proveedores
+                        </button>
                     </div>
                 </div>
             </div>
+        </div>
 
-            <!-- Cuentas Principales -->
-            <div class="card mb-4">
-                <div class="card-header">
-                    <h6 class="mb-0">
-                        <i class="fas fa-star me-2"></i>
-                        Cuentas Frecuentes
-                    </h6>
+        {{-- Detalles del Asiento --}}
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-list"></i> Detalles del Asiento
+                </h5>
+                <button type="button" class="btn btn-primary btn-sm" onclick="agregarFilaDetalle()">
+                    <i class="fas fa-plus"></i> Agregar Línea
+                </button>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-bordered mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th style="width: 20%;">Cuenta Contable</th>
+                                <th style="width: 30%;">Concepto</th>
+                                <th style="width: 15%;">Debe</th>
+                                <th style="width: 15%;">Haber</th>
+                                <th style="width: 10%;">Doc. Ref.</th>
+                                <th style="width: 10%;">Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody id="detallesBody">
+                            {{-- Los detalles se agregarán aquí dinámicamente --}}
+                        </tbody>
+                    </table>
                 </div>
-                <div class="card-body">
-                    @foreach($cuentasFrecuentes ?? [] as $cuenta)
-                    <button type="button" class="btn btn-sm btn-outline-primary mb-2 w-100 text-start"
-                            onclick="agregarPartidaRapida({{ $cuenta->id }}, '{{ $cuenta->nombre }}', 'Cuenta {{ $cuenta->codigo }}')">
-                        {{ $cuenta->codigo }} - {{ Str::limit($cuenta->nombre, 25) }}
-                    </button>
-                    @endforeach
+                
+                {{-- Resumen del Balance --}}
+                <div class="mt-3 p-3" style="background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); border-radius: 8px; border-left: 4px solid #0d6efd;">
+                    <h6 class="mb-3">
+                        <i class="fas fa-calculator"></i> Resumen del Balance
+                    </h6>
+                    <div class="row">
+                        <div class="col-md-3">
+                            <strong>Total Debe:</strong>
+                            <div id="totalDebe" class="text-success fs-5">S/ 0.00</div>
+                        </div>
+                        <div class="col-md-3">
+                            <strong>Total Haber:</strong>
+                            <div id="totalHaber" class="text-danger fs-5">S/ 0.00</div>
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Diferencia:</strong>
+                            <div id="diferencia" class="fs-5">S/ 0.00</div>
+                            <div id="balanceStatus" class="badge bg-success">Balanceado</div>
+                        </div>
+                    </div>
                 </div>
             </div>
+        </div>
 
-            <!-- Acciones -->
-            <div class="card">
-                <div class="card-body">
-                    <div class="d-grid gap-2">
-                        <button type="submit" class="btn btn-success" id="guardarBtn" disabled>
-                            <i class="fas fa-save me-2"></i>
-                            Guardar Asiento
-                        </button>
-                        <button type="button" class="btn btn-outline-secondary" onclick="limpiarFormulario()">
-                            <i class="fas fa-eraser me-2"></i>
-                            Limpiar
-                        </button>
-                        <a href="{{ route('libros-diario') }}" class="btn btn-outline-danger">
-                            <i class="fas fa-times me-2"></i>
-                            Cancelar
+        {{-- Acciones --}}
+        <div class="card">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <a href="{{ route('contador.libro-diario.index') }}" class="btn btn-secondary">
+                            <i class="fas fa-times"></i> Cancelar
                         </a>
                     </div>
+                    <div>
+                        <button type="button" class="btn btn-warning me-2" onclick="guardarBorrador()">
+                            <i class="fas fa-save"></i> Guardar Borrador
+                        </button>
+                        <button type="submit" id="guardarAsiento" class="btn btn-success" disabled>
+                            <i class="fas fa-check"></i> Guardar Asiento
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
-</form>
+    </form>
 
-<!-- Template para nuevas partidas -->
-<template id="partidaTemplate">
-    <tr>
-        <td>
-            <select name="cuenta_id[]" class="form-select form-select-sm cuenta-select" required>
-                <option value="">Seleccionar cuenta</option>
-                @foreach($cuentas ?? [] as $cuenta)
-                    <option value="{{ $cuenta->id }}">{{ $cuenta->codigo }} - {{ $cuenta->nombre }}</option>
-                @endforeach
-            </select>
-        </td>
-        <td>
-            <input type="text" name="descripcion_partida[]" class="form-control form-control-sm" 
-                   placeholder="Descripción" required>
-        </td>
-        <td>
-            <input type="number" name="debe[]" class="form-control form-control-sm debe-input" 
-                   step="0.01" min="0" placeholder="0.00" onchange="calcularTotales()">
-        </td>
-        <td>
-            <input type="number" name="haber[]" class="form-control form-control-sm haber-input" 
-                   step="0.01" min="0" placeholder="0.00" onchange="calcularTotales()">
-        </td>
-        <td class="text-center">
-            <button type="button" class="btn btn-sm btn-outline-danger" onclick="eliminarPartida(this)">
-                <i class="fas fa-trash"></i>
-            </button>
-        </td>
-    </tr>
-</template>
+    {{-- Últimos asientos como referencia --}}
+    @if($ultimosAsientos->count() > 0)
+    <div class="card mt-4">
+        <div class="card-header">
+            <h5 class="card-title mb-0">
+                <i class="fas fa-history"></i> Últimos Asientos (Referencia)
+            </h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-sm">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Número</th>
+                            <th>Fecha</th>
+                            <th>Glosa</th>
+                            <th>Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach($ultimosAsientos as $asiento)
+                        <tr>
+                            <td>{{ $asiento->numero }}</td>
+                            <td>{{ \Carbon\Carbon::parse($asiento->fecha)->format('d/m/Y') }}</td>
+                            <td>{{ Str::limit($asiento->glosa, 60) }}</td>
+                            <td>S/ {{ number_format($asiento->total_debe, 2) }}</td>
+                        </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    @endif
+</div>
+
 @endsection
 
-@section('scripts')
+@push('scripts')
 <script>
-    let partidaCounter = 0;
+    let cuentaActual = 1;
+    let totalDebe = 0;
+    let totalHaber = 0;
 
-    function agregarPartida() {
-        const template = document.getElementById('partidaTemplate');
-        const clone = template.content.cloneNode(true);
-        const tbody = document.getElementById('partidasBody');
-        
-        // Inicializar Select2 en el nuevo select
-        setTimeout(() => {
-            const select = clone.querySelector('.cuenta-select');
-            $(select).select2({
-                theme: 'bootstrap-5',
-                placeholder: 'Buscar cuenta...'
-            });
-        }, 100);
-        
-        tbody.appendChild(clone);
-        partidaCounter++;
-        calcularTotales();
+    // Cuentas contables agrupadas por tipo
+    const cuentasContables = @json($cuentasContables);
+
+    // Inicializar formulario
+    document.addEventListener('DOMContentLoaded', function() {
+        agregarFilaDetalle();
+        agregarFilaDetalle();
+    });
+
+    function agregarFilaDetalle() {
+        const tbody = document.getElementById('detallesBody');
+        const row = document.createElement('tr');
+        row.id = `detalle-${cuentaActual}`;
+        row.innerHTML = `
+            <td>
+                <select name="detalles[${cuentaActual}][cuenta_contable]" class="form-select form-select-sm" onchange="actualizarBalance()" required>
+                    <option value="">Seleccionar...</option>
+                    ${generarOpcionesCuentas()}
+                </select>
+            </td>
+            <td>
+                <input type="text" name="detalles[${cuentaActual}][concepto]" 
+                       class="form-control form-control-sm" placeholder="Concepto" required>
+            </td>
+            <td>
+                <input type="number" name="detalles[${cuentaActual}][debe]" 
+                       class="form-control form-control-sm text-end" step="0.01" min="0" value="0"
+                       onchange="actualizarBalance()">
+            </td>
+            <td>
+                <input type="number" name="detalles[${cuentaActual}][haber]" 
+                       class="form-control form-control-sm text-end" step="0.01" min="0" value="0"
+                       onchange="actualizarBalance()">
+            </td>
+            <td>
+                <input type="text" name="detalles[${cuentaActual}][documento_referencia]" 
+                       class="form-control form-control-sm" placeholder="Doc.">
+            </td>
+            <td>
+                <button type="button" onclick="eliminarFila(${cuentaActual})" 
+                        class="btn btn-sm btn-outline-danger" title="Eliminar">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </td>
+        `;
+        tbody.appendChild(row);
+        cuentaActual++;
     }
 
-    function agregarPartidaRapida(cuentaId, cuentaNombre, cuentaCodigo) {
-        const template = document.getElementById('partidaTemplate');
-        const clone = template.content.cloneNode(true);
-        const tbody = document.getElementById('partidasBody');
-        
-        // Seleccionar la cuenta automáticamente
-        const select = clone.querySelector('.cuenta-select');
-        select.value = cuentaId;
-        
-        tbody.appendChild(clone);
-        partidaCounter++;
-        calcularTotales();
-        
-        // Enfocar en la descripción
-        const descInput = tbody.lastElementChild.querySelector('input[name="descripcion_partida[]"]');
-        if (descInput) {
-            descInput.focus();
+    function eliminarFila(id) {
+        const row = document.getElementById(`detalle-${id}`);
+        if (row) {
+            row.remove();
+            actualizarBalance();
         }
     }
 
-    function eliminarPartida(button) {
-        const row = button.closest('tr');
-        row.remove();
-        partidaCounter--;
-        calcularTotales();
+    function generarOpcionesCuentas() {
+        let opciones = '';
+        cuentasContables.forEach(grupo => {
+            grupo.forEach(cuenta => {
+                opciones += `<option value="${cuenta.codigo}">${cuenta.codigo} - ${cuenta.nombre}</option>`;
+            });
+        });
+        return opciones;
     }
 
-    function calcularTotales() {
-        let totalDebe = 0;
-        let totalHaber = 0;
+    function actualizarBalance() {
+        totalDebe = 0;
+        totalHaber = 0;
         
-        // Calcular totales
-        document.querySelectorAll('.debe-input').forEach(input => {
-            const value = parseFloat(input.value) || 0;
-            totalDebe += value;
+        // Recorrer todas las filas de detalles
+        const rows = document.querySelectorAll('#detallesBody tr');
+        rows.forEach(row => {
+            const debeInput = row.querySelector('input[name*="[debe]"]');
+            const haberInput = row.querySelector('input[name*="[haber]"]');
+            
+            if (debeInput && debeInput.value) {
+                totalDebe += parseFloat(debeInput.value) || 0;
+            }
+            if (haberInput && haberInput.value) {
+                totalHaber += parseFloat(haberInput.value) || 0;
+            }
         });
         
-        document.querySelectorAll('.haber-input').forEach(input => {
-            const value = parseFloat(input.value) || 0;
-            totalHaber += value;
-        });
-        
-        const diferencia = totalDebe - totalHaber;
-        
-        // Actualizar visualizaciones
+        // Actualizar display
         document.getElementById('totalDebe').textContent = 'S/ ' + totalDebe.toFixed(2);
         document.getElementById('totalHaber').textContent = 'S/ ' + totalHaber.toFixed(2);
-        document.getElementById('diferencia').textContent = 'S/ ' + diferencia.toFixed(2);
         
-        document.getElementById('resumenDebe').textContent = 'S/ ' + totalDebe.toFixed(2);
-        document.getElementById('resumenHaber').textContent = 'S/ ' + totalHaber.toFixed(2);
-        document.getElementById('resumenDiferencia').textContent = 'S/ ' + diferencia.toFixed(2);
+        const diferencia = totalDebe - totalHaber;
+        document.getElementById('diferencia').textContent = 'S/ ' + Math.abs(diferencia).toFixed(2);
         
-        // Validar balance
-        validarBalance(diferencia);
-        
-        // Habilitar/deshabilitar botón de guardar
-        const guardarBtn = document.getElementById('guardarBtn');
-        const balanceValid = Math.abs(diferencia) < 0.01 && partidaCounter > 0;
-        guardarBtn.disabled = !balanceValid;
-    }
-
-    function validarBalance(diferencia) {
-        const balanceDiv = document.getElementById('balanceValidation');
-        const balanceMessage = document.getElementById('balanceMessage');
-        
-        if (partidaCounter === 0) {
-            balanceDiv.style.display = 'none';
-            return;
-        }
+        const balanceStatus = document.getElementById('balanceStatus');
+        const guardarBtn = document.getElementById('guardarAsiento');
         
         if (Math.abs(diferencia) < 0.01) {
-            balanceDiv.className = 'alert alert-success mt-3';
-            balanceMessage.innerHTML = '<i class="fas fa-check-circle me-2"></i>El asiento está balanceado correctamente.';
+            balanceStatus.className = 'badge bg-success';
+            balanceStatus.textContent = 'Balanceado ✓';
+            guardarBtn.disabled = false;
         } else {
-            balanceDiv.className = 'alert alert-danger mt-3';
-            balanceMessage.innerHTML = '<i class="fas fa-exclamation-triangle me-2"></i>El asiento NO está balanceado. La diferencia es de S/ ' + Math.abs(diferencia).toFixed(2);
-        }
-        
-        balanceDiv.style.display = 'block';
-    }
-
-    function limpiarFormulario() {
-        if (confirm('¿Estás seguro de que deseas limpiar el formulario?')) {
-            document.getElementById('partidasBody').innerHTML = '';
-            partidaCounter = 0;
-            calcularTotales();
-            
-            // Limpiar otros campos
-            document.querySelector('input[name="descripcion"]').value = '';
-            document.querySelector('select[name="tipo_asiento"]').value = '';
-            document.querySelector('input[name="referencia"]').value = '';
+            balanceStatus.className = 'badge bg-danger';
+            balanceStatus.textContent = 'No balancea ✗';
+            guardarBtn.disabled = true;
         }
     }
 
-    // Validación del formulario
-    document.getElementById('asientoForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-        
-        if (partidaCounter === 0) {
-            Swal.fire('Error', 'Debe agregar al menos una partida contable', 'error');
-            return;
-        }
-        
-        showLoading();
-        
-        const formData = new FormData(this);
-        
-        fetch(this.action, {
-            method: 'POST',
-            body: formData,
-            headers: {
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            hideLoading();
-            
-            if (data.success) {
-                Swal.fire('Éxito', 'Asiento creado correctamente', 'success')
-                    .then(() => {
-                        window.location.href = data.redirect || '{{ route("libros-diario") }}';
-                    });
-            } else {
-                Swal.fire('Error', data.message || 'Error creando el asiento', 'error');
-            }
-        })
-        .catch(error => {
-            hideLoading();
-            console.error('Error:', error);
-            Swal.fire('Error', 'Error de conexión', 'error');
-        });
-    });
+    function aplicarPlantilla(tipo) {
+        const templates = {
+            'ventas-medicamentos': [
+                { cuenta: '10411', concepto: 'Ventas medicamentos varios', debe: 0, haber: 0 },
+                { cuenta: '7011', concepto: 'Ingreso por ventas', debe: 0, haber: 0 }
+            ],
+            'compra-stock': [
+                { cuenta: '1311', concepto: 'Medicamentos en stock', debe: 0, haber: 0 },
+                { cuenta: '40111', concepto: 'Proveedores farmacéuticos', debe: 0, haber: 0 }
+            ],
+            'gastos-operativos': [
+                { cuenta: '90111', concepto: 'Sueldos personal almacén', debe: 0, haber: 0 },
+                { cuenta: '1011', concepto: 'Caja chica', debe: 0, haber: 0 }
+            ],
+            'medicamentos-caducos': [
+                { cuenta: '6331', concepto: 'Pérdida medicamentos vencidos', debe: 0, haber: 0 },
+                { cuenta: '1311', concepto: 'Afectación stock medicamentos', debe: 0, haber: 0 }
+            ],
+            'cobranzas': [
+                { cuenta: '1011', concepto: 'Cobro facturas clientes', debe: 0, haber: 0 },
+                { cuenta: '10411', concepto: 'Clientes diversos', debe: 0, haber: 0 }
+            ],
+            'pagos-proveedores': [
+                { cuenta: '40111', concepto: 'Pago proveedores', debe: 0, haber: 0 },
+                { cuenta: '1011', concepto: 'Salida efectivo', debe: 0, haber: 0 }
+            ]
+        };
 
-    // Inicializar componentes
-    document.addEventListener('DOMContentLoaded', function() {
-        // Inicializar Select2 en todas las cuentas
-        $('.cuenta-select').select2({
-            theme: 'bootstrap-5',
-            placeholder: 'Buscar cuenta...'
-        });
-        
-        // Agregar una partida inicial
-        agregarPartida();
-        
-        // Evitar que se ingresen valores en ambos campos (debe y haber)
-        document.addEventListener('input', function(e) {
-            if (e.target.classList.contains('debe-input')) {
-                const row = e.target.closest('tr');
-                const haberInput = row.querySelector('.haber-input');
-                if (e.target.value && parseFloat(e.target.value) > 0) {
-                    haberInput.value = '';
-                    haberInput.disabled = true;
-                } else {
-                    haberInput.disabled = false;
-                }
-            } else if (e.target.classList.contains('haber-input')) {
-                const row = e.target.closest('tr');
-                const debeInput = row.querySelector('.debe-input');
-                if (e.target.value && parseFloat(e.target.value) > 0) {
-                    debeInput.value = '';
-                    debeInput.disabled = true;
-                } else {
-                    debeInput.disabled = false;
-                }
-            }
-        });
-    });
+        // Limpiar detalles actuales
+        document.getElementById('detallesBody').innerHTML = '';
+        cuentaActual = 1;
+
+        // Agregar plantillas
+        if (templates[tipo]) {
+            templates[tipo].forEach(template => {
+                agregarFilaDetalle();
+                const row = document.querySelector(`#detalle-${cuentaActual - 1}`);
+                const select = row.querySelector('select');
+                const conceptoInput = row.querySelector('input[name*="[concepto]"]');
+                
+                select.value = template.cuenta;
+                conceptoInput.value = template.concepto;
+            });
+        }
+
+        actualizarBalance();
+    }
+
+    function guardarBorrador() {
+        alert('Función de borrador暂时未实现 (Función de borrador temporalmente no implementada)');
+    }
 </script>
-@endsection
+@endpush

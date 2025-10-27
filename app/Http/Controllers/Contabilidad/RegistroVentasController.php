@@ -203,7 +203,7 @@ class RegistroVentasController extends Controller
                 'total_general' => $ventasDiarias->sum('Total')
             ];
 
-            return view('contabilidad.registros.ventas-diario', compact(
+            return view('contabilidad.registros.ventas', compact(
                 'ventasDiarias', 'resumenPorMoneda', 'clientesDiarios', 'ventasPorVendedor', 'totalesDiarios', 'fecha'
             ));
 
@@ -290,7 +290,7 @@ class RegistroVentasController extends Controller
                 ])
                 ->first();
 
-            return view('contabilidad.registros.ventas-mensual', compact(
+            return view('contabilidad.registros.ventas', compact(
                 'resumenDiario', 'productosTop', 'topClientesMes', 'totalesMes', 'anio', 'mes'
             ));
 
@@ -360,7 +360,7 @@ class RegistroVentasController extends Controller
                     $analisisClientes->sum('total_ventas') / $analisisClientes->count() : 0
             ];
 
-            return view('contabilidad.registros.ventas-clientes', compact(
+            return view('contabilidad.registros.ventas', compact(
                 'analisisClientes', 'totalesGenerales', 'fechaInicio', 'fechaFin'
             ));
 
@@ -428,7 +428,7 @@ class RegistroVentasController extends Controller
             // Proyección para el resto del año
             $proyeccionAnio = $this->proyectarVentasAnio($anio, $tendenciasMensuales);
 
-            return view('contabilidad.registros.ventas-tendencias', compact(
+            return view('contabilidad.registros.ventas', compact(
                 'tendenciasMensuales', 'anio', 'anioAnterior', 'proyeccionAnio'
             ));
 
@@ -503,7 +503,7 @@ class RegistroVentasController extends Controller
                 'margen_promedio' => $this->calcularMargenPromedio($ventasFarmaceuticas)
             ];
 
-            return view('contabilidad.registros.ventas-farmaceuticas', compact(
+            return view('contabilidad.registros.ventas', compact(
                 'ventasFarmaceuticas', 'clasificacionProductos', 'ventasPorTipoCliente',
                 'totalesFarmaceuticos', 'fechaInicio', 'fechaFin'
             ));
@@ -572,7 +572,7 @@ class RegistroVentasController extends Controller
                 ->groupBy('Moneda')
                 ->get();
 
-            return view('contabilidad.registros.ventas-impuestos', compact(
+            return view('contabilidad.registros.bancos', compact(
                 'analisisIgv', 'igvPorTipoCliente', 'comprasIgv', 'igvPorPagar', 
                 'resumenPorMoneda', 'fechaInicio', 'fechaFin'
             ));
@@ -614,7 +614,7 @@ class RegistroVentasController extends Controller
                 ->get();
 
             // Aquí implementarías la generación del archivo para SUNAT
-            return view('contabilidad.registros.ventas-exportar', compact(
+            return view('contabilidad.registros.caja', compact(
                 'registroSunat', 'fechaInicio', 'fechaFin'
             ));
 

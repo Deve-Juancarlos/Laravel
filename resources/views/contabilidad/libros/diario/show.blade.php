@@ -1,333 +1,368 @@
-@extends('layouts.contador')
+{{-- Vista show.blade.php CORREGIDA para contador.libro-diario.show --}}
+@extends('layouts.app') {{-- Usar tu layout --}}
 
-@section('title', 'Ver Asiento Diario - SIFANO')
+@section('title', 'Asiento ' . $asiento->numero)
 
-@section('breadcrumb')
-    <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Dashboard</a></li>
-    <li class="breadcrumb-item"><a href="{{ route('contabilidad') }}">Contabilidad</a></li>
-    <li class="breadcrumb-item"><a href="{{ route('libros-diario') }}">Libro Diario</a></li>
-    <li class="breadcrumb-item active">Ver Asiento</li>
-@endsection
-
-@section('contador-content')
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h1 class="h3 mb-0">
-        <i class="fas fa-eye text-info me-2"></i>
-        Asiento Diario #{{ $asiento->numero_asiento ?? '' }}
-    </h1>
-    <div class="d-flex gap-2">
-        <button class="btn btn-outline-success" onclick="exportAsiento()">
-            <i class="fas fa-download me-2"></i>
-            Exportar PDF
-        </button>
-        @can('update', $asiento ?? null)
-        <a href="{{ route('libros-diario.edit', $asiento->id ?? 0) }}" class="btn btn-outline-warning">
-            <i class="fas fa-edit me-2"></i>
-            Editar
-        </a>
-        @endcan
-        <a href="{{ route('libros-diario') }}" class="btn btn-outline-secondary">
-            <i class="fas fa-arrow-left me-2"></i>
-            Volver
-        </a>
+@section('content')
+<div class="container-fluid p-0">
+    {{-- Header con navegación --}}
+    <div class="d-flex justify-content-between align-items-center p-4 mb-4" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px; color: white;">
+        <div>
+            <h1 class="h3 mb-1">
+                <i class="fas fa-clipboard-check"></i> Asiento #{{ $asiento->numero }}
+            </h1>
+            <p class="mb-0 opacity-75">Detalles del asiento contable</p>
+        </div>
+        <div>
+            <a href="{{ route('contador.libro-diario.index') }}" class="btn btn-light">
+                <i class="fas fa-arrow-left"></i> Volver al Libro
+            </a>
+        </div>
     </div>
-</div>
 
-<div class="row">
-    <!-- Información Principal -->
-    <div class="col-lg-8">
-        <!-- Encabezado del Asiento -->
-        <div class="card mb-4">
-            <div class="card-header bg-primary text-white">
-                <h5 class="mb-0">
-                    <i class="fas fa-info-circle me-2"></i>
-                    Información del Asiento
-                </h5>
-            </div>
-            <div class="card-body">
-                <div class="row g-3">
-                    <div class="col-md-3">
-                        <label class="form-label fw-bold">Número de Asiento</label>
-                        <p class="form-control-plaintext">{{ $asiento->numero_asiento ?? '' }}</p>
-                    </div>
-                    <div class="col-md-3">
-                        <label class="form-label fw-bold">Fecha</label>
-                        <p class="form-control-plaintext">{{ date('d/m/Y', strtotime($asiento->fecha ?? '')) }}</p>
-                    </div>
-                    <div class="col-md-3">
-                        <label class="form-label fw-bold">Tipo</label>
-                        <p class="form-control-plaintext">
-                            <span class="badge bg-secondary">{{ ucfirst($asiento->tipo_asiento ?? '') }}</span>
-                        </p>
-                    </div>
-                    <div class="col-md-3">
-                        <label class="form-label fw-bold">Estado</label>
-                        <p class="form-control-plaintext">
-                            @if(($asiento->total_debe ?? 0) - ($asiento->total_haber ?? 0) == 0)
-                                <span class="badge bg-success">Balanceado</span>
-                            @else
-                                <span class="badge bg-danger">Desbalanceado</span>
-                            @endif
-                        </p>
-                    </div>
+    {{-- Navegación entre asientos --}}
+    <div class="row mb-4">
+        <div class="col-6">
+            @if($asientoAnterior)
+                <a href="{{ route('contador.libro-diario.show', $asientoAnterior->id) }}" class="btn btn-outline-primary w-100">
+                    <i class="fas fa-chevron-left"></i> Asiento Anterior<br>
+                    <small>{{ $asientoAnterior->numero }} - {{ \Carbon\Carbon::parse($asientoAnterior->fecha)->format('d/m/Y') }}</small>
+                </a>
+            @else
+                <div class="btn btn-outline-secondary w-100" style="cursor: not-allowed;">
+                    <i class="fas fa-chevron-left"></i> Sin Asiento Anterior
                 </div>
-                
-                <div class="row g-3 mt-2">
-                    <div class="col-md-8">
-                        <label class="form-label fw-bold">Descripción</label>
-                        <p class="form-control-plaintext">{{ $asiento->descripcion ?? '' }}</p>
+            @endif
+        </div>
+        <div class="col-6">
+            @if($asientoSiguiente)
+                <a href="{{ route('contador.libro-diario.show', $asientoSiguiente->id) }}" class="btn btn-outline-primary w-100">
+                    <i class="fas fa-chevron-right"></i> Asiento Siguiente<br>
+                    <small>{{ $asientoSiguiente->numero }} - {{ \Carbon\Carbon::parse($asientoSiguiente->fecha)->format('d/m/Y') }}</small>
+                </a>
+            @else
+                <div class="btn btn-outline-secondary w-100" style="cursor: not-allowed;">
+                    <i class="fas fa-chevron-right"></i> Sin Siguiente Asiento
+                </div>
+            @endif
+        </div>
+    </div>
+
+    {{-- Alertas --}}
+    @if(session('success'))
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle"></i> {{ session('success') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    @endif
+
+    @if(session('error'))
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-circle"></i> {{ session('error') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    @endif
+
+    {{-- Información del Asiento --}}
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-info-circle"></i> Información General
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-6">
+                            <strong>Número:</strong>
+                        </div>
+                        <div class="col-6">
+                            <span class="badge bg-primary fs-6">{{ $asiento->numero }}</span>
+                        </div>
                     </div>
-                    <div class="col-md-4">
-                        <label class="form-label fw-bold">Referencia</label>
-                        <p class="form-control-plaintext">{{ $asiento->referencia ?? 'N/A' }}</p>
+                    <div class="row mb-3">
+                        <div class="col-6">
+                            <strong>Fecha:</strong>
+                        </div>
+                        <div class="col-6">
+                            {{ \Carbon\Carbon::parse($asiento->fecha)->format('d/m/Y') }}
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-6">
+                            <strong>Estado:</strong>
+                        </div>
+                        <div class="col-6">
+                            @if($asiento->balanceado)
+                                <span class="badge bg-success">
+                                    <i class="fas fa-check"></i> Balanceado
+                                </span>
+                            @else
+                                <span class="badge bg-warning">
+                                    <i class="fas fa-exclamation-triangle"></i> Sin Balancear
+                                </span>
+                            @endif
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-6">
+                            <strong>Estado Sistema:</strong>
+                        </div>
+                        <div class="col-6">
+                            <span class="badge bg-info">{{ $asiento->estado }}</span>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Información del Usuario -->
-        <div class="card mb-4">
-            <div class="card-header">
-                <h6 class="mb-0">
-                    <i class="fas fa-user me-2"></i>
-                    Información del Usuario
-                </h6>
-            </div>
-            <div class="card-body">
-                <div class="row g-3">
-                    <div class="col-md-6">
-                        <label class="form-label fw-bold">Creado por</label>
-                        <div class="d-flex align-items-center">
-                            <div class="avatar-sm bg-primary rounded-circle d-flex align-items-center justify-content-center text-white me-3">
-                                {{ strtoupper(substr($asiento->usuario_nombre ?? 'U', 0, 1)) }}
-                            </div>
-                            <div>
-                                <p class="mb-0 fw-bold">{{ $asiento->usuario_nombre ?? 'N/A' }}</p>
-                                <small class="text-muted">{{ $asiento->usuario_email ?? '' }}</small>
-                            </div>
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-user"></i> Información del Usuario
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-6">
+                            <strong>Usuario:</strong>
+                        </div>
+                        <div class="col-6">
+                            {{ $asiento->usuario_nombre ?? 'Sistema' }}
                         </div>
                     </div>
-                    <div class="col-md-6">
-                        <label class="form-label fw-bold">Fecha de Creación</label>
-                        <p class="form-control-plaintext">{{ date('d/m/Y H:i:s', strtotime($asiento->created_at ?? '')) }}</p>
+                    <div class="row mb-3">
+                        <div class="col-6">
+                            <strong>Email:</strong>
+                        </div>
+                        <div class="col-6">
+                            {{ $asiento->usuario_email ?? '-' }}
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-6">
+                            <strong>Creado:</strong>
+                        </div>
+                        <div class="col-6">
+                            {{ \Carbon\Carbon::parse($asiento->created_at)->format('d/m/Y H:i') }}
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-6">
+                            <strong>Actualizado:</strong>
+                        </div>
+                        <div class="col-6">
+                            {{ \Carbon\Carbon::parse($asiento->updated_at)->format('d/m/Y H:i') }}
+                        </div>
                     </div>
                 </div>
-                @if($asiento->updated_at ?? false)
-                <div class="row g-3 mt-2">
-                    <div class="col-md-6">
-                        <label class="form-label fw-bold">Última Modificación</label>
-                        <p class="form-control-plaintext">{{ date('d/m/Y H:i:s', strtotime($asiento->updated_at)) }}</p>
+            </div>
+        </div>
+    </div>
+
+    {{-- Resumen Financiero --}}
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="card-title mb-0">
+                <i class="fas fa-chart-pie"></i> Resumen Financiero
+            </h5>
+        </div>
+        <div class="card-body">
+            <div class="row text-center">
+                <div class="col-md-3">
+                    <div class="p-3" style="background: rgba(16, 185, 129, 0.1); border-radius: 8px;">
+                        <div class="h4 text-success mb-1">S/ {{ number_format($asiento->total_debe, 2) }}</div>
+                        <div class="text-muted">Total Debe</div>
                     </div>
-                    <div class="col-md-6">
-                        <label class="form-label fw-bold">Modificado por</label>
-                        <div class="d-flex align-items-center">
-                            <div class="avatar-sm bg-warning rounded-circle d-flex align-items-center justify-content-center text-white me-3">
-                                {{ strtoupper(substr($asiento->updated_by ?? 'U', 0, 1)) }}
-                            </div>
-                            <div>
-                                <p class="mb-0 fw-bold">{{ $asiento->updated_by ?? 'N/A' }}</p>
-                                <small class="text-muted">Usuario que modificó</small>
-                            </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="p-3" style="background: rgba(239, 68, 68, 0.1); border-radius: 8px;">
+                        <div class="h4 text-danger mb-1">S/ {{ number_format($asiento->total_haber, 2) }}</div>
+                        <div class="text-muted">Total Haber</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="p-3" style="background: rgba(59, 130, 246, 0.1); border-radius: 8px;">
+                        <div class="h4 text-primary mb-1">S/ {{ number_format(abs($asiento->total_debe - $asiento->total_haber), 2) }}</div>
+                        <div class="text-muted">Diferencia</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="p-3" style="background: {{ $asiento->balanceado ? 'rgba(16, 185, 129, 0.1)' : 'rgba(245, 158, 11, 0.1)' }}; border-radius: 8px;">
+                        <div class="h5 mb-1 {{ $asiento->balanceado ? 'text-success' : 'text-warning' }}">
+                            @if($asiento->balanceado)
+                                <i class="fas fa-check-circle"></i> CUADRA
+                            @else
+                                <i class="fas fa-exclamation-triangle"></i> NO CUADRA
+                            @endif
                         </div>
+                        <div class="text-muted">Balance</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- Descripción --}}
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="card-title mb-0">
+                <i class="fas fa-file-alt"></i> Descripción
+            </h5>
+        </div>
+        <div class="card-body">
+            <div class="mb-3">
+                <strong>Glosa Principal:</strong>
+                <p class="mt-2 p-3 bg-light rounded">{{ $asiento->glosa }}</p>
+            </div>
+            @if($asiento->observaciones)
+            <div>
+                <strong>Observaciones:</strong>
+                <p class="mt-2 p-3" style="background: #fff3cd; border-left: 3px solid #f59e0b; border-radius: 0 8px 8px 0;">
+                    {{ $asiento->observaciones }}
+                </p>
+            </div>
+            @endif
+        </div>
+    </div>
+
+    {{-- Acciones --}}
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="d-flex flex-wrap gap-2 justify-content-center">
+                <a href="{{ route('contador.libro-diario.index') }}" class="btn btn-secondary">
+                    <i class="fas fa-list"></i> Volver al Libro
+                </a>
+                <a href="{{ route('contador.libro-diario.edit', $asiento->id) }}" class="btn btn-primary">
+                    <i class="fas fa-edit"></i> Editar Asiento
+                </a>
+                <button onclick="exportarAsientoPDF()" class="btn btn-danger">
+                    <i class="fas fa-file-pdf"></i> Exportar PDF
+                </button>
+                <button onclick="exportarAsientoExcel()" class="btn btn-success">
+                    <i class="fas fa-file-excel"></i> Exportar Excel
+                </button>
+                @if($asiento->balanceado)
+                <button onclick="duplicarAsiento()" class="btn btn-info">
+                    <i class="fas fa-copy"></i> Duplicar
+                </button>
+                @endif
+                <button onclick="eliminarAsiento()" class="btn btn-warning">
+                    <i class="fas fa-trash"></i> Eliminar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    {{-- Detalles del Asiento --}}
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="card-title mb-0">
+                <i class="fas fa-list-alt"></i> Detalles del Asiento
+            </h5>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th style="width: 15%;">Cuenta</th>
+                            <th style="width: 25%;">Nombre Cuenta</th>
+                            <th style="width: 30%;">Concepto</th>
+                            <th style="width: 15%;">Debe</th>
+                            <th style="width: 15%;">Haber</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @php $totalDebeDetalle = 0; $totalHaberDetalle = 0; @endphp
+                        @foreach($detalles as $detalle)
+                        <tr>
+                            <td>
+                                <strong class="text-primary">{{ $detalle->cuenta_contable }}</strong>
+                            </td>
+                            <td>{{ $detalle->cuenta_nombre ?? 'Cuenta no encontrada' }}</td>
+                            <td>{{ $detalle->concepto }}</td>
+                            <td class="text-end">
+                                @if($detalle->debe > 0)
+                                    <span class="text-success fw-bold">S/ {{ number_format($detalle->debe, 2) }}</span>
+                                    @php $totalDebeDetalle += $detalle->debe; @endphp
+                                @else
+                                    <span class="text-muted">-</span>
+                                @endif
+                            </td>
+                            <td class="text-end">
+                                @if($detalle->haber > 0)
+                                    <span class="text-danger fw-bold">S/ {{ number_format($detalle->haber, 2) }}</span>
+                                    @php $totalHaberDetalle += $detalle->haber; @endphp
+                                @else
+                                    <span class="text-muted">-</span>
+                                @endif
+                            </td>
+                        </tr>
+                        @endforeach
+                        {{-- Fila de totales --}}
+                        <tr class="table-active">
+                            <td colspan="3"><strong>TOTALES</strong></td>
+                            <td class="text-end">
+                                <strong class="text-success">S/ {{ number_format($totalDebeDetalle, 2) }}</strong>
+                            </td>
+                            <td class="text-end">
+                                <strong class="text-danger">S/ {{ number_format($totalHaberDetalle, 2) }}</strong>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    {{-- Historial de Auditoría --}}
+    <div class="card">
+        <div class="card-header">
+            <h5 class="card-title mb-0">
+                <i class="fas fa-history"></i> Historial de Auditoría
+            </h5>
+        </div>
+        <div class="card-body">
+            <div class="timeline">
+                <div class="timeline-item">
+                    <div class="timeline-marker bg-success"></div>
+                    <div class="timeline-content">
+                        <h6 class="timeline-title">Asiento Creado</h6>
+                        <p class="timeline-text">
+                            Por: {{ $asiento->usuario_nombre ?? 'Sistema' }}<br>
+                            Fecha: {{ \Carbon\Carbon::parse($asiento->created_at)->format('d/m/Y H:i:s') }}
+                        </p>
+                        <p class="mb-0">Asiento contable #{{ $asiento->numero }} registrado en el sistema</p>
+                    </div>
+                </div>
+
+                <div class="timeline-item">
+                    <div class="timeline-marker bg-info"></div>
+                    <div class="timeline-content">
+                        <h6 class="timeline-title">Última Actualización</h6>
+                        <p class="timeline-text">
+                            Por: {{ $asiento->usuario_nombre ?? 'Sistema' }}<br>
+                            Fecha: {{ \Carbon\Carbon::parse($asiento->updated_at)->format('d/m/Y H:i:s') }}
+                        </p>
+                        <p class="mb-0">Información del asiento actualizada</p>
+                    </div>
+                </div>
+
+                @if($asiento->balanceado)
+                <div class="timeline-item">
+                    <div class="timeline-marker bg-success"></div>
+                    <div class="timeline-content">
+                        <h6 class="timeline-title">Balance Verificado</h6>
+                        <p class="timeline-text">
+                            Fecha: {{ \Carbon\Carbon::parse($asiento->updated_at)->format('d/m/Y H:i:s') }}
+                        </p>
+                        <p class="mb-0">Sistema automático verificó el balance del asiento contable</p>
                     </div>
                 </div>
                 @endif
-            </div>
-        </div>
-
-        <!-- Partidas Contables -->
-        <div class="card">
-            <div class="card-header">
-                <h5 class="mb-0">
-                    <i class="fas fa-list me-2"></i>
-                    Partidas Contables
-                </h5>
-            </div>
-            <div class="card-body p-0">
-                <div class="table-responsive">
-                    <table class="table table-striped mb-0">
-                        <thead class="table-dark">
-                            <tr>
-                                <th class="text-center" style="width: 5%">#</th>
-                                <th style="width: 35%">Cuenta Contable</th>
-                                <th style="width: 35%">Descripción</th>
-                                <th class="text-end" style="width: 12%">Debe</th>
-                                <th class="text-end" style="width: 13%">Haber</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @forelse($asiento->partidas ?? [] as $index => $partida)
-                            <tr>
-                                <td class="text-center fw-bold">{{ $index + 1 }}</td>
-                                <td>
-                                    <div>
-                                        <strong>{{ $partida->cuenta->codigo ?? '' }}</strong>
-                                        <br>
-                                        <small class="text-muted">{{ $partida->cuenta->nombre ?? '' }}</small>
-                                    </div>
-                                </td>
-                                <td>{{ $partida->descripcion ?? '' }}</td>
-                                <td class="text-end fw-bold text-success">
-                                    @if(($partida->debe ?? 0) > 0)
-                                        S/ {{ number_format($partida->debe, 2) }}
-                                    @else
-                                        -
-                                    @endif
-                                </td>
-                                <td class="text-end fw-bold text-primary">
-                                    @if(($partida->haber ?? 0) > 0)
-                                        S/ {{ number_format($partida->haber, 2) }}
-                                    @else
-                                        -
-                                    @endif
-                                </td>
-                            </tr>
-                            @empty
-                            <tr>
-                                <td colspan="5" class="text-center text-muted py-4">
-                                    No hay partidas registradas
-                                </td>
-                            </tr>
-                            @endforelse
-                        </tbody>
-                        <tfoot class="table-light">
-                            <tr class="fw-bold">
-                                <th colspan="3" class="text-end">TOTALES:</th>
-                                <th class="text-end text-success">
-                                    S/ {{ number_format($asiento->total_debe ?? 0, 2) }}
-                                </th>
-                                <th class="text-end text-primary">
-                                    S/ {{ number_format($asiento->total_haber ?? 0, 2) }}
-                                </th>
-                            </tr>
-                        </tfoot>
-                    </table>
-                </div>
-            </div>
-        </div>
-
-        <!-- Observaciones -->
-        @if($asiento->observaciones ?? false)
-        <div class="card mt-4">
-            <div class="card-header">
-                <h6 class="mb-0">
-                    <i class="fas fa-sticky-note me-2"></i>
-                    Observaciones
-                </h6>
-            </div>
-            <div class="card-body">
-                <p class="form-control-plaintext">{{ $asiento->observaciones }}</p>
-            </div>
-        </div>
-        @endif
-    </div>
-
-    <!-- Panel Lateral -->
-    <div class="col-lg-4">
-        <!-- Resumen del Balance -->
-        <div class="card mb-4">
-            <div class="card-header">
-                <h6 class="mb-0">
-                    <i class="fas fa-balance-scale me-2"></i>
-                    Balance del Asiento
-                </h6>
-            </div>
-            <div class="card-body">
-                <div class="text-center mb-3">
-                    @if(($asiento->total_debe ?? 0) - ($asiento->total_haber ?? 0) == 0)
-                        <div class="text-success">
-                            <i class="fas fa-check-circle fa-3x mb-2"></i>
-                            <h5 class="mb-0">Balanceado</h5>
-                            <small class="text-muted">El asiento está correctamente balanceado</small>
-                        </div>
-                    @else
-                        <div class="text-danger">
-                            <i class="fas fa-exclamation-triangle fa-3x mb-2"></i>
-                            <h5 class="mb-0">Desbalanceado</h5>
-                            <small class="text-muted">
-                                Diferencia: S/ {{ number_format(abs(($asiento->total_debe ?? 0) - ($asiento->total_haber ?? 0)), 2) }}
-                            </small>
-                        </div>
-                    @endif
-                </div>
-                
-                <hr>
-                
-                <div class="row g-2">
-                    <div class="col-6">
-                        <div class="text-center">
-                            <div class="text-success fw-bold fs-5">S/ {{ number_format($asiento->total_debe ?? 0, 2) }}</div>
-                            <small class="text-muted">Total Debe</small>
-                        </div>
-                    </div>
-                    <div class="col-6">
-                        <div class="text-center">
-                            <div class="text-primary fw-bold fs-5">S/ {{ number_format($asiento->total_haber ?? 0, 2) }}</div>
-                            <small class="text-muted">Total Haber</small>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Acciones Rápidas -->
-        <div class="card mb-4">
-            <div class="card-header">
-                <h6 class="mb-0">
-                    <i class="fas fa-bolt me-2"></i>
-                    Acciones
-                </h6>
-            </div>
-            <div class="card-body">
-                <div class="d-grid gap-2">
-                    <button class="btn btn-outline-primary" onclick="duplicarAsiento()">
-                        <i class="fas fa-copy me-2"></i>
-                        Duplicar Asiento
-                    </button>
-                    <button class="btn btn-outline-info" onclick="verEnLibroMayor()">
-                        <i class="fas fa-book me-2"></i>
-                        Ver en Libro Mayor
-                    </button>
-                    @can('delete', $asiento ?? null)
-                    <button class="btn btn-outline-danger" onclick="eliminarAsiento()">
-                        <i class="fas fa-trash me-2"></i>
-                        Eliminar Asiento
-                    </button>
-                    @endcan
-                </div>
-            </div>
-        </div>
-
-        <!-- Historial de Cambios -->
-        <div class="card">
-            <div class="card-header">
-                <h6 class="mb-0">
-                    <i class="fas fa-history me-2"></i>
-                    Historial
-                </h6>
-            </div>
-            <div class="card-body">
-                <div class="timeline">
-                    <div class="timeline-item">
-                        <div class="timeline-marker bg-primary"></div>
-                        <div class="timeline-content">
-                            <h6 class="timeline-title">Asiento Creado</h6>
-                            <p class="timeline-text">{{ date('d/m/Y H:i', strtotime($asiento->created_at ?? '')) }}</p>
-                            <small class="text-muted">por {{ $asiento->usuario_nombre ?? 'N/A' }}</small>
-                        </div>
-                    </div>
-                    
-                    @if($asiento->updated_at ?? false)
-                    <div class="timeline-item">
-                        <div class="timeline-marker bg-warning"></div>
-                        <div class="timeline-content">
-                            <h6 class="timeline-title">Última Modificación</h6>
-                            <p class="timeline-text">{{ date('d/m/Y H:i', strtotime($asiento->updated_at)) }}</p>
-                            <small class="text-muted">por {{ $asiento->updated_by ?? 'N/A' }}</small>
-                        </div>
-                    </div>
-                    @endif
-                </div>
             </div>
         </div>
     </div>
@@ -336,193 +371,87 @@
 <style>
 .timeline {
     position: relative;
-    padding-left: 2rem;
+    padding-left: 30px;
 }
 
 .timeline-item {
     position: relative;
-    padding-bottom: 1.5rem;
+    padding-bottom: 30px;
 }
 
-.timeline-item::before {
-    content: '';
-    position: absolute;
-    left: -2rem;
-    top: 0.5rem;
-    width: 12px;
-    height: 12px;
-    border-radius: 50%;
-    background: #dee2e6;
-    border: 3px solid #fff;
-    box-shadow: 0 0 0 1px #dee2e6;
+.timeline-item:last-child {
+    padding-bottom: 0;
 }
 
 .timeline-marker {
     position: absolute;
-    left: -2rem;
-    top: 0.5rem;
+    left: -35px;
+    top: 0;
     width: 12px;
     height: 12px;
     border-radius: 50%;
-    border: 3px solid #fff;
+}
+
+.timeline-content {
+    border-left: 2px solid #e9ecef;
+    padding-left: 20px;
 }
 
 .timeline-title {
-    font-size: 0.9rem;
-    font-weight: 600;
-    margin-bottom: 0.25rem;
+    margin-bottom: 8px;
+    color: #495057;
 }
 
 .timeline-text {
-    font-size: 0.8rem;
-    margin-bottom: 0.25rem;
-}
-
-.avatar-sm {
-    width: 2.5rem;
-    height: 2.5rem;
-    font-size: 0.875rem;
+    color: #6c757d;
+    margin-bottom: 8px;
 }
 </style>
+
 @endsection
 
-@section('scripts')
+@push('scripts')
 <script>
-    function exportAsiento() {
-        showLoading();
-        
-        const url = `/libros-diario/{{ $asiento->id ?? 0 }}/exportar-pdf`;
-        window.open(url, '_blank');
-        
-        setTimeout(hideLoading, 2000);
+    function exportarAsientoPDF() {
+        if (confirm('¿Desea exportar este asiento a PDF?')) {
+            window.open(`{{ route('contador.libro-diario.exportar') }}?asiento_id={{ $asiento->id }}&formato=pdf`, '_blank');
+        }
+    }
+
+    function exportarAsientoExcel() {
+        if (confirm('¿Desea exportar este asiento a Excel?')) {
+            window.open(`{{ route('contador.libro-diario.exportar') }}?asiento_id={{ $asiento->id }}&formato=excel`, '_blank');
+        }
     }
 
     function duplicarAsiento() {
-        Swal.fire({
-            title: 'Duplicar Asiento',
-            text: '¿Deseas crear un nuevo asiento con la misma información?',
-            icon: 'question',
-            showCancelButton: true,
-            confirmButtonColor: '#3b82f6',
-            cancelButtonColor: '#6b7280',
-            confirmButtonText: 'Sí, duplicar',
-            cancelButtonText: 'Cancelar'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                showLoading();
-                
-                fetch(`/libros-diario/{{ $asiento->id ?? 0 }}/duplicar`, {
-                    method: 'POST',
-                    headers: {
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                        'Content-Type': 'application/json'
-                    }
-                })
-                .then(response => response.json())
-                .then(data => {
-                    hideLoading();
-                    
-                    if (data.success) {
-                        Swal.fire('Éxito', 'Asiento duplicado correctamente', 'success')
-                            .then(() => {
-                                window.location.href = data.redirect || `/libros-diario/${data.id}/edit`;
-                            });
-                    } else {
-                        Swal.fire('Error', data.message || 'Error duplicando el asiento', 'error');
-                    }
-                })
-                .catch(error => {
-                    hideLoading();
-                    console.error('Error:', error);
-                    Swal.fire('Error', 'Error de conexión', 'error');
-                });
-            }
-        });
-    }
-
-    function verEnLibroMayor() {
-        const cuentaIds = [];
-        @foreach($asiento->partidas ?? [] as $partida)
-        cuentaIds.push({{ $partida->cuenta_id ?? 0 }});
-        @endforeach
-        
-        const url = `/libros-mayor?cuenta_ids=${cuentaIds.join(',')}&fecha_desde={{ $asiento->fecha }}&fecha_hasta={{ $asiento->fecha }}`;
-        window.open(url, '_blank');
+        if (confirm('¿Desea crear un nuevo asiento con los mismos datos?')) {
+            window.location.href = `{{ route('contador.libro-diario.create') }}?duplicar={{ $asiento->id }}`;
+        }
     }
 
     function eliminarAsiento() {
-        Swal.fire({
-            title: 'Eliminar Asiento',
-            text: '¿Estás seguro de que deseas eliminar este asiento? Esta acción no se puede deshacer.',
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#ef4444',
-            cancelButtonColor: '#6b7280',
-            confirmButtonText: 'Sí, eliminar',
-            cancelButtonText: 'Cancelar'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                showLoading();
-                
-                fetch(`/libros-diario/{{ $asiento->id ?? 0 }}`, {
-                    method: 'DELETE',
-                    headers: {
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                        'Content-Type': 'application/json'
-                    }
-                })
-                .then(response => response.json())
-                .then(data => {
-                    hideLoading();
-                    
-                    if (data.success) {
-                        Swal.fire('Eliminado', 'Asiento eliminado correctamente', 'success')
-                            .then(() => {
-                                window.location.href = '{{ route("libros-diario") }}';
-                            });
-                    } else {
-                        Swal.fire('Error', data.message || 'Error eliminando el asiento', 'error');
-                    }
-                })
-                .catch(error => {
-                    hideLoading();
-                    console.error('Error:', error);
-                    Swal.fire('Error', 'Error de conexión', 'error');
-                });
-            }
-        });
-    }
-
-    // Imprimir asiento
-    function imprimirAsiento() {
-        const printContent = document.querySelector('.card').cloneNode(true);
-        const printWindow = window.open('', '_blank');
-        
-        printWindow.document.write(`
-            <html>
-                <head>
-                    <title>Asiento #{{ $asiento->numero_asiento ?? '' }}</title>
-                    <style>
-                        body { font-family: Arial, sans-serif; margin: 20px; }
-                        .card { border: 1px solid #ddd; margin-bottom: 20px; }
-                        .card-header { background: #f8f9fa; padding: 10px; border-bottom: 1px solid #ddd; }
-                        .table { width: 100%; border-collapse: collapse; }
-                        .table th, .table td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-                        .table th { background: #f8f9fa; }
-                        .text-end { text-align: right; }
-                        .text-success { color: #28a745; }
-                        .text-primary { color: #007bff; }
-                    </style>
-                </head>
-                <body>
-                    <h1>Asiento Contable #{{ $asiento->numero_asiento ?? '' }}</h1>
-                    ${printContent.outerHTML}
-                </body>
-            </html>
-        `);
-        
-        printWindow.document.close();
-        printWindow.print();
+        if (confirm('¿Está seguro que desea eliminar este asiento? Esta acción no se puede deshacer.')) {
+            fetch(`{{ route('contador.libro-diario.destroy', $asiento->id) }}`, {
+                method: 'DELETE',
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    window.location.href = `{{ route('contador.libro-diario.index') }}`;
+                } else {
+                    alert('Error al eliminar el asiento: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error al eliminar el asiento');
+            });
+        }
     }
 </script>
-@endsection
+@endpush

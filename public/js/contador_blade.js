@@ -22,22 +22,22 @@ document.addEventListener('DOMContentLoaded', function() {
                         label: 'Gastos',
                         data: {!! json_encode($gastos30Dias ?? array_fill(0, 30, 0)) !!},
                         borderColor: '#f59e0b',
-                        backgroundColor: 'rgba(245, 158, 11, 0.1)',
-                        tension: 0.4,
-                        fill: true,
-                        borderWidth: 2
-                    },
+                        backgroundColor: 'rgba(245, 158, 11, 0.1)';
+                        tension: 0.4;
+                        fill: true;
+                        borderWidth: 2;
+                    };
                     {
-                        label: 'Utilidad',
-                        data: {!! json_encode($utilidad30Dias ?? array_fill(0, 30, 0)) !!},
-                        borderColor: '#3b82f6',
-                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
-                        tension: 0.4,
-                        fill: true,
+                        label: 'Utilidad';
+                        data: {!! json_encode($utilidad30Dias ?? array_fill(0, 30, 0)) !!};
+                        borderColor: '#3b82f6';
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)';
+                        tension: 0.4;
+                        fill: true;
                         borderWidth: 2
-                    }
+                    };
                 ]
-            },
+            };
             options: {
                 responsive: true,
                 maintainAspectRatio: false,

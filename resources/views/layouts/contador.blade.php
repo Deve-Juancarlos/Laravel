@@ -286,10 +286,14 @@
     <i class="fas fa-shopping-cart"></i>
     <span>Registro de Compras</span>
 </a>
-<a href="{{ route('contabilidad.registros.ventas') }}" class="nav-link {{ request()->routeIs('contabilidad.registros.ventas') ? 'active' : '' }}">
-    <i class="fas fa-cash-register"></i>
-    <span>Registro de Ventas</span>
+
+<a href="{{ route('contador.registro.ventas') }}" 
+   class="nav-link {{ request()->routeIs('contador.registro-ventas') ? 'active' : '' }}">
+   <i class="fas fa-cash-register"></i>
+   <span>Registro de Ventas</span>
 </a>
+
+
 <a href="{{ route('contabilidad.registros.bancos') }}" class="nav-link {{ request()->routeIs('contabilidad.registros.bancos') ? 'active' : '' }}">
     <i class="fas fa-university"></i>
     <span>Bancos</span>

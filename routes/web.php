@@ -15,6 +15,7 @@ use App\Http\Controllers\Admin\ReporteController;
 use App\Http\Controllers\Admin\AuditoriaController;
 use App\Http\Controllers\Ventas\PlanillasController;
 use App\Http\Controllers\Contabilidad\ReportesSunatController;
+use App\Http\Controllers\Contabilidad\LibroDiarioController;
 
 
 //RUTAS PÚBLICAS
@@ -174,6 +175,31 @@ Route::middleware(['auth', 'check.contador'])->group(function () {
         // Ruta para ver detalle de cliente
         Route::get('clientes/{id}', [App\Http\Controllers\Clientes\ClientesController::class, 'show'])
             ->name('clientes.show');
+
+        Route::get('registro/ventas', [App\Http\Controllers\Contabilidad\RegistroVentasController::class, 'index'])->name('registro.ventas');
+        
+        Route::prefix('libro-diario')->name('libro-diario.')->group(function () {
+            
+            // Rutas principales
+            Route::get('/', [LibroDiarioController::class, 'index'])->name('index');        // contador.libro-diario.index
+            Route::get('create', [LibroDiarioController::class, 'create'])->name('create'); // contador.libro-diario.create
+            Route::post('store', [LibroDiarioController::class, 'store'])->name('store');   // contador.libro-diario.store
+            
+            // CRUD de asientos
+            Route::get('{id}', [LibroDiarioController::class, 'show'])->name('show');       // contador.libro-diario.show
+            Route::get('{id}/edit', [LibroDiarioController::class, 'edit'])->name('edit'); // contador.libro-diario.edit
+            Route::put('{id}', [LibroDiarioController::class, 'update'])->name('update');  // contador.libro-diario.update
+            Route::delete('{id}', [LibroDiarioController::class, 'destroy'])->name('destroy'); // contador.libro-diario.destroy
+            
+            // Exportación
+            Route::get('exportar', [LibroDiarioController::class, 'exportar'])->name('exportar');
+            
+            // APIs opcionales
+            Route::get('api/estadisticas', [LibroDiarioController::class, 'getEstadisticas'])->name('api.estadisticas');
+            Route::get('api/busqueda-avanzada', [LibroDiarioController::class, 'getBusquedaAvanzada'])->name('api.busqueda-avanzada');
+        });
+        
+        
     });
 });
 

@@ -85,7 +85,7 @@ class ContadorDashboardController extends Controller
             \Log::error('Error en dashboard contador: ' . $e->getMessage());
             \Log::error('Stack trace: ' . $e->getTraceAsString());
             
-            return view('contador.dashboard', $this->getDatosVacios());
+            return view('dashboard.contador', $this->getDatosVacios());
         }
     }
 
