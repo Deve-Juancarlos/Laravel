@@ -1,456 +1,337 @@
+/**
+ * APP.JS - Sistema SIFANO
+ * JavaScript principal para funcionalidad del dashboard
+ */
 
-class LayoutManager {
-    constructor() {
-        this.activeDropdown = null;
-        this.sidebarOpen = false;
-        this.init();
-    }
+(function() {
+    'use strict';
 
-    init() {
-        this.setupSidebarToggle();
-        this.setupDropdownMenus();
-        this.setupSubmenuToggle();
-        this.setupClickOutside();
-        this.setupKeyboardNavigation();
-        this.setupMobileMenu();
-        this.setupAccessibility();
-        
-        console.log('Layout Manager inicializado correctamente');
-    }
+    // ============================================
+    // CONFIGURACIÓN GLOBAL
+    // ============================================
+    const CONFIG = {
+        animationDuration: 300,
+        sidebarBreakpoint: 1024
+    };
 
-    /**
-     * Maneja el toggle del sidebar
-     */
-    setupSidebarToggle() {
+    // ============================================
+    // INICIALIZACIÓN AL CARGAR EL DOM
+    // ============================================
+    document.addEventListener('DOMContentLoaded', function() {
+        initSidebar();
+        initDropdowns();
+        initSubmenuToggles();
+        initAlerts();
+        initLoadingOverlay();
+        initResponsiveTables();
+        console.log('✅ Sistema SIFANO inicializado correctamente');
+    });
+
+    // ============================================
+    // SIDEBAR: Toggle y manejo responsive
+    // ============================================
+    function initSidebar() {
+        const sidebar = document.getElementById('sidebar');
         const sidebarToggle = document.getElementById('sidebarToggle');
-        const sidebar = document.querySelector('.sidebar');
-        const overlay = document.querySelector('.sidebar-overlay');
+        const mainContent = document.querySelector('.main-content');
         
-        if (!sidebarToggle || !sidebar) return;
+        if (!sidebar || !sidebarToggle) return;
 
-        sidebarToggle.addEventListener('click', (e) => {
-            e.preventDefault();
-            this.toggleSidebar();
-        });
-
-        // Cerrar sidebar al hacer clic en el overlay (solo móvil)
-        if (overlay) {
-            overlay.addEventListener('click', () => {
-                this.closeSidebar();
-            });
+        // Crear overlay para móviles
+        let overlay = document.querySelector('.sidebar-overlay');
+        if (!overlay) {
+            overlay = document.createElement('div');
+            overlay.className = 'sidebar-overlay';
+            document.body.appendChild(overlay);
         }
 
-        // Cerrar sidebar al cambiar tamaño de ventana
-        window.addEventListener('resize', () => {
-            if (window.innerWidth > 1024) {
-                this.closeSidebar();
+        // Toggle del sidebar
+        sidebarToggle.addEventListener('click', function(e) {
+            e.stopPropagation();
+            toggleSidebar();
+        });
+
+        // Cerrar sidebar al hacer clic en el overlay
+        overlay.addEventListener('click', function() {
+            closeSidebar();
+        });
+
+        // Cerrar sidebar con tecla ESC
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && sidebar.classList.contains('show')) {
+                closeSidebar();
             }
         });
+
+        // Ajustar sidebar en resize
+        let resizeTimer;
+        window.addEventListener('resize', function() {
+            clearTimeout(resizeTimer);
+            resizeTimer = setTimeout(function() {
+                if (window.innerWidth > CONFIG.sidebarBreakpoint) {
+                    closeSidebar();
+                }
+            }, 250);
+        });
+
+        function toggleSidebar() {
+            const isOpen = sidebar.classList.contains('show');
+            if (isOpen) {
+                closeSidebar();
+            } else {
+                openSidebar();
+            }
+        }
+
+        function openSidebar() {
+            sidebar.classList.add('show');
+            overlay.classList.add('show');
+            document.body.classList.add('sidebar-open');
+        }
+
+        function closeSidebar() {
+            sidebar.classList.remove('show');
+            overlay.classList.remove('show');
+            document.body.classList.remove('sidebar-open');
+        }
     }
 
-    /**
-     * Maneja los menús desplegables de manera exclusiva
-     */
-    setupDropdownMenus() {
-        const dropdownToggles = document.querySelectorAll('.dropdown-toggle');
+    // ============================================
+    // SUBMENÚS: Toggle de menús desplegables
+    // ============================================
+    function initSubmenuToggles() {
+        const submenuLinks = document.querySelectorAll('.has-submenu > .nav-link');
         
-        dropdownToggles.forEach(toggle => {
-            const dropdown = toggle.closest('.dropdown');
-            const menu = dropdown?.querySelector('.dropdown-menu');
+        submenuLinks.forEach(link => {
+            // Remover event listeners duplicados
+            const newLink = link.cloneNode(true);
+            link.parentNode.replaceChild(newLink, link);
             
-            if (!dropdown || !menu) return;
-
-            toggle.addEventListener('click', (e) => {
+            newLink.addEventListener('click', function(e) {
                 e.preventDefault();
                 e.stopPropagation();
                 
-                // Si ya está activo, lo cerramos
-                if (this.activeDropdown === dropdown) {
-                    this.closeDropdown(dropdown);
-                    return;
-                }
+                const parent = this.parentElement;
+                const isExpanded = parent.classList.contains('expanded');
+                const submenu = parent.querySelector('.nav-submenu');
                 
-                // Cerramos cualquier dropdown activo
-                if (this.activeDropdown) {
-                    this.closeDropdown(this.activeDropdown);
-                }
-                
-                // Abrimos el nuevo dropdown
-                this.openDropdown(dropdown);
-            });
-
-            // Accesibilidad por teclado
-            toggle.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    toggle.click();
-                }
-                
-                if (e.key === 'Escape') {
-                    this.closeDropdown(dropdown);
-                    toggle.focus();
-                }
-            });
-
-            // Navegación dentro del dropdown
-            const items = menu.querySelectorAll('.dropdown-item');
-            items.forEach((item, index) => {
-                item.addEventListener('keydown', (e) => {
-                    if (e.key === 'ArrowDown') {
-                        e.preventDefault();
-                        const nextItem = items[index + 1] || items[0];
-                        nextItem.focus();
-                    } else if (e.key === 'ArrowUp') {
-                        e.preventDefault();
-                        const prevItem = items[index - 1] || items[items.length - 1];
-                        prevItem.focus();
-                    } else if (e.key === 'Escape') {
-                        this.closeDropdown(dropdown);
-                        toggle.focus();
+                // Cerrar otros submenús del mismo nivel
+                const siblings = parent.parentElement.querySelectorAll('.has-submenu');
+                siblings.forEach(sibling => {
+                    if (sibling !== parent && sibling.classList.contains('expanded')) {
+                        sibling.classList.remove('expanded');
+                        const siblingSubmenu = sibling.querySelector('.nav-submenu');
+                        if (siblingSubmenu) {
+                            siblingSubmenu.style.maxHeight = '0px';
+                        }
                     }
                 });
-            });
-        });
-    }
-
-    /**
-     * Maneja los submenús del sidebar
-     */
-    setupSubmenuToggle() {
-        const submenuToggles = document.querySelectorAll('.has-submenu > .nav-link');
-        
-        submenuToggles.forEach(toggle => {
-            toggle.addEventListener('click', (e) => {
-                e.preventDefault();
-                const parent = toggle.parentElement;
                 
-                // En móvil, siempre permite toggle
-                // En desktop, solo si está en modo compacto
-                if (window.innerWidth > 1024) {
-                    const sidebar = document.querySelector('.sidebar');
-                    if (sidebar.classList.contains('sidebar-compact')) {
-                        this.toggleSubmenu(parent);
-                    }
+                // Toggle del submenú actual
+                if (isExpanded) {
+                    parent.classList.remove('expanded');
+                    submenu.style.maxHeight = '0px';
                 } else {
-                    this.toggleSubmenu(parent);
+                    parent.classList.add('expanded');
+                    // Calcular altura real del contenido
+                    submenu.style.maxHeight = submenu.scrollHeight + 'px';
                 }
-            });
-
-            // Accesibilidad
-            toggle.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    toggle.click();
-                }
+                
+                console.log('📂 Submenú toggled:', this.textContent.trim());
             });
         });
-    }
 
-    /**
-     * Cierra menús al hacer clic fuera
-     */
-    setupClickOutside() {
-        document.addEventListener('click', (e) => {
-            // Cerrar dropdowns si el clic no es dentro de ellos
-            if (!e.target.closest('.dropdown')) {
-                this.closeAllDropdowns();
-            }
-            
-            // Cerrar sidebar en móvil si el clic no es dentro del sidebar
-            if (this.sidebarOpen && 
-                window.innerWidth <= 1024 && 
-                !e.target.closest('.sidebar') && 
-                !e.target.closest('#sidebarToggle')) {
-                this.closeSidebar();
-            }
-        });
-    }
-
-    /**
-     * Navegación por teclado
-     */
-    setupKeyboardNavigation() {
-        document.addEventListener('keydown', (e) => {
-            // ESC cierra menús
-            if (e.key === 'Escape') {
-                this.closeAllDropdowns();
-                this.closeSidebar();
-            }
-            
-            // Alt + M abre/cierra sidebar (móvil)
-            if (e.altKey && e.key === 'm' && window.innerWidth <= 1024) {
-                e.preventDefault();
-                if (this.sidebarOpen) {
-                    this.closeSidebar();
-                } else {
-                    this.openSidebar();
+        // Expandir submenú activo al cargar la página
+        const activeSubmenuItem = document.querySelector('.nav-submenu .nav-link.active');
+        if (activeSubmenuItem) {
+            const parent = activeSubmenuItem.closest('.has-submenu');
+            if (parent) {
+                parent.classList.add('expanded');
+                const submenu = parent.querySelector('.nav-submenu');
+                if (submenu) {
+                    submenu.style.maxHeight = submenu.scrollHeight + 'px';
                 }
             }
-        });
-    }
-
-    /**
-     * Configuración específica para móvil
-     */
-    setupMobileMenu() {
-        const sidebar = document.querySelector('.sidebar');
-        const overlay = document.querySelector('.sidebar-overlay');
-        
-        if (!sidebar || !overlay) return;
-
-        // Añadir overlay si no existe
-        if (!overlay) {
-            const newOverlay = document.createElement('div');
-            newOverlay.className = 'sidebar-overlay';
-            document.body.appendChild(newOverlay);
         }
     }
 
-    /**
-     * Mejoras de accesibilidad
-     */
-    setupAccessibility() {
-        // Añadir atributos ARIA
-        this.updateAriaAttributes();
+    // ============================================
+    // DROPDOWNS: Menú de usuario y notificaciones
+    // ============================================
+    function initDropdowns() {
+        const dropdownToggles = document.querySelectorAll('[data-bs-toggle="dropdown"]');
         
-        // Manejar cambios de foco
-        const focusableElements = document.querySelectorAll(
-            'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
-        );
-        
-        focusableElements.forEach(element => {
-            if (!element.hasAttribute('tabindex')) {
-                element.setAttribute('tabindex', '0');
-            }
-        });
-    }
-
-    /**
-     * Abre un dropdown específico
-     */
-    openDropdown(dropdown) {
-        const toggle = dropdown.querySelector('.dropdown-toggle');
-        const menu = dropdown.querySelector('.dropdown-menu');
-        
-        if (!toggle || !menu) return;
-
-        menu.classList.add('show');
-        toggle.setAttribute('aria-expanded', 'true');
-        dropdown.classList.add('dropdown-open');
-        this.activeDropdown = dropdown;
-
-        // Animación suave
-        requestAnimationFrame(() => {
-            menu.style.opacity = '1';
-            menu.style.transform = 'translateY(0)';
-        });
-    }
-
-    /**
-     * Cierra un dropdown específico
-     */
-    closeDropdown(dropdown) {
-        const toggle = dropdown.querySelector('.dropdown-toggle');
-        const menu = dropdown.querySelector('.dropdown-menu');
-        
-        if (!toggle || !menu) return;
-
-        menu.classList.remove('show');
-        toggle.setAttribute('aria-expanded', 'false');
-        dropdown.classList.remove('dropdown-open');
-
-        if (this.activeDropdown === dropdown) {
-            this.activeDropdown = null;
-        }
-
-        // Animación de salida
-        menu.style.opacity = '0';
-        menu.style.transform = 'translateY(-10px)';
-    }
-
-    /**
-     * Cierra todos los dropdowns
-     */
-    closeAllDropdowns() {
-        const openDropdowns = document.querySelectorAll('.dropdown.dropdown-open');
-        openDropdowns.forEach(dropdown => {
-            this.closeDropdown(dropdown);
-        });
-    }
-
-    /**
-     * Toggle de submenú
-     */
-    toggleSubmenu(submenuItem) {
-        const isExpanded = submenuItem.classList.contains('expanded');
-        
-        if (isExpanded) {
-            this.collapseSubmenu(submenuItem);
-        } else {
-            this.expandSubmenu(submenuItem);
-        }
-    }
-
-    /**
-     * Expande un submenú
-     */
-    expandSubmenu(submenuItem) {
-        const link = submenuItem.querySelector('.nav-link');
-        const submenu = submenuItem.querySelector('.nav-submenu');
-        
-        if (!link || !submenu) return;
-
-        submenuItem.classList.add('expanded');
-        link.setAttribute('aria-expanded', 'true');
-        
-        // Animación suave
-        submenu.style.maxHeight = submenu.scrollHeight + 'px';
-        
-        // Cerrar otros submenús del mismo nivel
-        const siblings = submenuItem.parentElement.querySelectorAll('.has-submenu.expanded');
-        siblings.forEach(sibling => {
-            if (sibling !== submenuItem) {
-                this.collapseSubmenu(sibling);
-            }
-        });
-    }
-
-    /**
-     * Colapsa un submenú
-     */
-    collapseSubmenu(submenuItem) {
-        const link = submenuItem.querySelector('.nav-link');
-        const submenu = submenuItem.querySelector('.nav-submenu');
-        
-        if (!link || !submenu) return;
-
-        submenuItem.classList.remove('expanded');
-        link.setAttribute('aria-expanded', 'false');
-        submenu.style.maxHeight = '0';
-    }
-
-    /**
-     * Abre el sidebar
-     */
-    openSidebar() {
-        const sidebar = document.querySelector('.sidebar');
-        const overlay = document.querySelector('.sidebar-overlay');
-        
-        if (!sidebar) return;
-
-        sidebar.classList.add('show');
-        if (overlay) overlay.classList.add('show');
-        
-        document.body.classList.add('sidebar-open');
-        this.sidebarOpen = true;
-
-        // Prevenir scroll del body
-        document.body.style.overflow = 'hidden';
-    }
-
-    /**
-     * Cierra el sidebar
-     */
-    closeSidebar() {
-        const sidebar = document.querySelector('.sidebar');
-        const overlay = document.querySelector('.sidebar-overlay');
-        
-        if (!sidebar) return;
-
-        sidebar.classList.remove('show');
-        if (overlay) overlay.classList.remove('show');
-        
-        document.body.classList.remove('sidebar-open');
-        this.sidebarOpen = false;
-
-        // Restaurar scroll del body
-        document.body.style.overflow = '';
-    }
-
-    /**
-     * Toggle del sidebar
-     */
-    toggleSidebar() {
-        if (this.sidebarOpen) {
-            this.closeSidebar();
-        } else {
-            this.openSidebar();
-        }
-    }
-
-    /**
-     * Actualiza atributos ARIA para accesibilidad
-     */
-    updateAriaAttributes() {
-        // Dropdowns
-        const dropdownToggles = document.querySelectorAll('.dropdown-toggle');
         dropdownToggles.forEach(toggle => {
-            if (!toggle.hasAttribute('aria-expanded')) {
-                toggle.setAttribute('aria-expanded', 'false');
-            }
-            if (!toggle.hasAttribute('aria-haspopup')) {
-                toggle.setAttribute('aria-haspopup', 'true');
+            toggle.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                const menu = this.nextElementSibling;
+                if (!menu || !menu.classList.contains('dropdown-menu')) return;
+                
+                // Cerrar otros dropdowns
+                document.querySelectorAll('.dropdown-menu.show').forEach(openMenu => {
+                    if (openMenu !== menu) {
+                        openMenu.classList.remove('show');
+                    }
+                });
+                
+                // Toggle del dropdown actual
+                menu.classList.toggle('show');
+            });
+        });
+
+        // Cerrar dropdowns al hacer clic fuera
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('[data-bs-toggle="dropdown"]')) {
+                document.querySelectorAll('.dropdown-menu.show').forEach(menu => {
+                    menu.classList.remove('show');
+                });
             }
         });
 
-        const dropdownMenus = document.querySelectorAll('.dropdown-menu');
-        dropdownMenus.forEach(menu => {
-            if (!menu.hasAttribute('role')) {
-                menu.setAttribute('role', 'menu');
-            }
-        });
-
-        // Submenús
-        const submenuLinks = document.querySelectorAll('.has-submenu > .nav-link');
-        submenuLinks.forEach(link => {
-            if (!link.hasAttribute('aria-expanded')) {
-                link.setAttribute('aria-expanded', 'false');
-            }
-            if (!link.hasAttribute('aria-haspopup')) {
-                link.setAttribute('aria-haspopup', 'true');
-            }
-        });
-
-        const submenus = document.querySelectorAll('.nav-submenu');
-        submenus.forEach(submenu => {
-            if (!submenu.hasAttribute('role')) {
-                submenu.setAttribute('role', 'menu');
+        // Cerrar con tecla ESC
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                document.querySelectorAll('.dropdown-menu.show').forEach(menu => {
+                    menu.classList.remove('show');
+                });
             }
         });
     }
 
-    /**
-     * Obtiene el estado actual del layout
-     */
-    getState() {
-        return {
-            activeDropdown: this.activeDropdown,
-            sidebarOpen: this.sidebarOpen,
-            isMobile: window.innerWidth <= 768
+    // ============================================
+    // ALERTAS: Auto-dismiss con animación
+    // ============================================
+    function initAlerts() {
+        const alerts = document.querySelectorAll('.alert');
+        
+        alerts.forEach(alert => {
+            // Auto-dismiss después de 5 segundos
+            setTimeout(() => {
+                dismissAlert(alert);
+            }, 5000);
+            
+            // Botón de cerrar
+            const closeBtn = alert.querySelector('.btn-close');
+            if (closeBtn) {
+                closeBtn.addEventListener('click', function() {
+                    dismissAlert(alert);
+                });
+            }
+        });
+
+        function dismissAlert(alert) {
+            alert.style.opacity = '0';
+            alert.style.transform = 'translateY(-10px)';
+            setTimeout(() => {
+                alert.remove();
+            }, 300);
+        }
+    }
+
+    // ============================================
+    // LOADING OVERLAY
+    // ============================================
+    function initLoadingOverlay() {
+        window.showLoading = function() {
+            const overlay = document.getElementById('loadingOverlay');
+            if (overlay) {
+                overlay.classList.add('show');
+                overlay.style.display = 'flex';
+            }
+        };
+
+        window.hideLoading = function() {
+            const overlay = document.getElementById('loadingOverlay');
+            if (overlay) {
+                overlay.classList.remove('show');
+                setTimeout(() => {
+                    overlay.style.display = 'none';
+                }, 300);
+            }
         };
     }
 
-    /**
-     * Destruye la instancia y limpia eventos
-     */
-    destroy() {
-        // Limpiar eventos
-        document.removeEventListener('click', this.handleClickOutside);
-        document.removeEventListener('keydown', this.handleKeyboardNavigation);
-        window.removeEventListener('resize', this.handleResize);
+    // ============================================
+    // TABLAS RESPONSIVE
+    // ============================================
+    function initResponsiveTables() {
+        const tables = document.querySelectorAll('table:not(.table-responsive table)');
         
-        console.log('Layout Manager destruido');
+        tables.forEach(table => {
+            if (!table.parentElement.classList.contains('table-responsive')) {
+                const wrapper = document.createElement('div');
+                wrapper.className = 'table-responsive';
+                table.parentNode.insertBefore(wrapper, table);
+                wrapper.appendChild(table);
+            }
+        });
     }
-}
 
-/**
- * Funciones de utilidad
- */
-class LayoutUtils {
-    /**
-     * Debounce function para optimizar eventos de resize
-     */
-    static debounce(func, wait) {
+    // ============================================
+    // UTILIDADES GLOBALES
+    // ============================================
+
+    // Formatear números como moneda
+    window.formatCurrency = function(amount) {
+        return new Intl.NumberFormat('es-PE', {
+            style: 'currency',
+            currency: 'PEN',
+            minimumFractionDigits: 2
+        }).format(amount);
+    };
+
+    // Formatear fechas
+    window.formatDate = function(date) {
+        return new Intl.DateTimeFormat('es-PE', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric'
+        }).format(new Date(date));
+    };
+
+    // Mostrar toast notification
+    window.showToast = function(message, type = 'info') {
+        if (typeof Swal !== 'undefined') {
+            const Toast = Swal.mixin({
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 3000,
+                timerProgressBar: true,
+                didOpen: (toast) => {
+                    toast.addEventListener('mouseenter', Swal.stopTimer);
+                    toast.addEventListener('mouseleave', Swal.resumeTimer);
+                }
+            });
+
+            Toast.fire({
+                icon: type,
+                title: message
+            });
+        }
+    };
+
+    // Confirmar acción
+    window.confirmAction = function(title, text, confirmText = 'Sí, continuar') {
+        if (typeof Swal !== 'undefined') {
+            return Swal.fire({
+                title: title,
+                text: text,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#2563eb',
+                cancelButtonColor: '#6b7280',
+                confirmButtonText: confirmText,
+                cancelButtonText: 'Cancelar'
+            });
+        }
+        return Promise.resolve({ isConfirmed: confirm(text) });
+    };
+
+    // Debounce para búsquedas
+    window.debounce = function(func, wait) {
         let timeout;
         return function executedFunction(...args) {
             const later = () => {
@@ -460,63 +341,130 @@ class LayoutUtils {
             clearTimeout(timeout);
             timeout = setTimeout(later, wait);
         };
-    }
+    };
 
-    /**
-     * Detecta si el dispositivo es móvil
-     */
-    static isMobile() {
-        return window.innerWidth <= 768;
-    }
-
-    /**
-     * Detecta si el dispositivo es tablet
-     */
-    static isTablet() {
-        return window.innerWidth > 768 && window.innerWidth <= 1024;
-    }
-
-    /**
-     * Obtiene información del viewport
-     */
-    static getViewportInfo() {
-        return {
-            width: window.innerWidth,
-            height: window.innerHeight,
-            isMobile: this.isMobile(),
-            isTablet: this.isTablet(),
-            isDesktop: window.innerWidth > 1024
-        };
-    }
-}
-
-/**
- * Inicialización cuando el DOM está listo
- */
-document.addEventListener('DOMContentLoaded', function() {
-    // Inicializar Layout Manager
-    window.layoutManager = new LayoutManager();
+    // ============================================
+    // MANEJO DE FORMULARIOS
+    // ============================================
     
-    // Configurar optimizaciones de rendimiento
-    const debouncedResize = LayoutUtils.debounce(() => {
-        window.layoutManager.updateAriaAttributes();
-    }, 250);
-    
-    window.addEventListener('resize', debouncedResize);
-
-    // Manejar visibilidad de la página
-    document.addEventListener('visibilitychange', function() {
-        if (document.hidden) {
-            window.layoutManager.closeAllDropdowns();
-            window.layoutManager.closeSidebar();
-        }
+    // Prevenir doble submit
+    document.querySelectorAll('form').forEach(form => {
+        form.addEventListener('submit', function(e) {
+            const submitBtn = this.querySelector('[type="submit"]');
+            if (submitBtn && !submitBtn.disabled) {
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Procesando...';
+                
+                // Re-habilitar después de 3 segundos por seguridad
+                setTimeout(() => {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = submitBtn.dataset.originalText || 'Enviar';
+                }, 3000);
+            }
+        });
     });
 
-    console.log('Layout inicializado correctamente');
-});
+    // ============================================
+    // BÚSQUEDA EN TIEMPO REAL
+    // ============================================
+    const searchInput = document.querySelector('.topbar-search input');
+    if (searchInput) {
+        const debouncedSearch = debounce(function(value) {
+            console.log('🔍 Buscando:', value);
+            // Aquí puedes agregar la lógica de búsqueda
+        }, 500);
 
-/**
- * Exposer para uso global
- */
-window.LayoutManager = LayoutManager;
-window.LayoutUtils = LayoutUtils;
+        searchInput.addEventListener('input', function(e) {
+            const value = e.target.value.trim();
+            if (value.length >= 3) {
+                debouncedSearch(value);
+            }
+        });
+    }
+
+    // ============================================
+    // ANIMACIONES DE ENTRADA
+    // ============================================
+    const observerOptions = {
+        threshold: 0.1,
+        rootMargin: '0px 0px -50px 0px'
+    };
+
+    const observer = new IntersectionObserver(function(entries) {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.style.opacity = '1';
+                entry.target.style.transform = 'translateY(0)';
+                observer.unobserve(entry.target);
+            }
+        });
+    }, observerOptions);
+
+    // Observar tarjetas para animación
+    document.querySelectorAll('.card').forEach((card, index) => {
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(20px)';
+        card.style.transition = `all 0.5s ease ${index * 0.1}s`;
+        observer.observe(card);
+    });
+
+    // ============================================
+    // ACTUALIZAR DATOS AUTOMÁTICAMENTE
+    // ============================================
+    window.autoRefreshData = function(callback, interval = 60000) {
+        setInterval(callback, interval);
+        console.log(`🔄 Auto-refresh activado cada ${interval / 1000}s`);
+    };
+
+    // ============================================
+    // MANEJO DE ERRORES GLOBAL
+    // ============================================
+    window.addEventListener('error', function(e) {
+        console.error('❌ Error capturado:', e.error);
+    });
+
+    window.addEventListener('unhandledrejection', function(e) {
+        console.error('❌ Promesa rechazada:', e.reason);
+    });
+
+    // ============================================
+    // HELPERS PARA CHARTS.JS
+    // ============================================
+    window.chartColors = {
+        primary: '#2563eb',
+        success: '#10b981',
+        warning: '#f59e0b',
+        danger: '#ef4444',
+        info: '#06b6d4',
+        secondary: '#6b7280'
+    };
+
+    window.createChartGradient = function(ctx, color1, color2) {
+        const gradient = ctx.createLinearGradient(0, 0, 0, 400);
+        gradient.addColorStop(0, color1);
+        gradient.addColorStop(1, color2);
+        return gradient;
+    };
+
+
+    if (typeof Swal !== 'undefined') {
+        window.Swal = Swal.mixin({
+            customClass: {
+                confirmButton: 'btn btn-primary mx-2',
+                cancelButton: 'btn btn-outline-secondary mx-2'
+            },
+            buttonsStyling: false
+        });
+    }
+
+    window.log = {
+        info: (msg, ...args) => console.log('ℹ️', msg, ...args),
+        success: (msg, ...args) => console.log('✅', msg, ...args),
+        warning: (msg, ...args) => console.warn('⚠️', msg, ...args),
+        error: (msg, ...args) => console.error('❌', msg, ...args),
+        debug: (msg, ...args) => console.debug('🐛', msg, ...args)
+    };
+
+    console.log('%c SIFANO Sistema Inicializado', 'color: #2563eb; font-size: 16px; font-weight: bold;');
+
+})();

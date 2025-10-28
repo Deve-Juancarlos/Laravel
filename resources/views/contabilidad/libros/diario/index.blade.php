@@ -1,5 +1,10 @@
 {{-- Vista index.blade.php CORREGIDA para contador.libro-diario.index --}}
-@extends('layouts.app') {{-- Usar tu layout --}}
+@extends('layouts.app')
+
+@endpush('head')
+<link rel="stylesheet" href="{{ asset('css/app.css') }}">
+<link rel="stylesheet" href="{{ asset('css/contabilidad/libros/diario/index.css') }}">
+@endpush('head')
 
 @section('title', 'Libro Diario - SIFANO')
 

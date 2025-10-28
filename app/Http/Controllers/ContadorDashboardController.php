@@ -13,7 +13,7 @@ class ContadorDashboardController extends Controller
 {
     private $cache_ttl = 900;     
   
-    public function contadorDashboard(Request $request)
+public function contadorDashboard(Request $request)
 {
     try {
         $cacheKey = 'dashboard_contador_' . now()->format('Y-m-d-H');
@@ -52,6 +52,11 @@ class ContadorDashboardController extends Controller
             ];
         });
 
+        // ✅ Aseguramos que exista la variable incluso si vino desde cache antigua
+        if (!isset($data['topClientesSaldo'])) {
+            $data['topClientesSaldo'] = collect();
+        }
+
         return view('dashboard.contador', $data);
 
     } catch (\Exception $e) {
@@ -61,6 +66,7 @@ class ContadorDashboardController extends Controller
         return view('dashboard.contador', $this->getDatosVacios());
     }
 }
+
 
 
     private function obtenerUltimasFacturas($limite = 10)

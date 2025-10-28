@@ -1,0 +1,437 @@
+/* ============================================
+   SIDEBAR Y MENÚS DESPLEGABLES - CSS ESPECÍFICO
+   Asegura el correcto funcionamiento de submenús
+   ============================================ */
+
+/* ============================================
+   SUBMENÚS - Estructura Base
+   ============================================ */
+.has-submenu {
+    position: relative;
+}
+
+.has-submenu > .nav-link {
+    position: relative;
+    padding-right: 3rem;
+}
+
+/* Flecha indicadora de submenú */
+.has-submenu > .nav-link::after {
+    content: '\f078';
+    font-family: 'Font Awesome 5 Free';
+    font-weight: 900;
+    position: absolute;
+    right: 1.5rem;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 0.75rem;
+    transition: transform 0.3s ease;
+    color: #9ca3af;
+}
+
+/* Rotar flecha cuando está expandido */
+.has-submenu.expanded > .nav-link::after {
+    transform: translateY(-50%) rotate(180deg);
+    color: #2563eb;
+}
+
+/* Resaltar link principal cuando está expandido */
+.has-submenu.expanded > .nav-link {
+    background-color: #f1f5f9;
+    color: #1f2937;
+    font-weight: 600;
+}
+
+/* ============================================
+   SUBMENÚ - Contenedor
+   ============================================ */
+.nav-submenu {
+    background: #f8fafc;
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    border-left: 3px solid #e2e8f0;
+    margin-left: 1rem;
+}
+
+/* Submenú expandido */
+.has-submenu.expanded .nav-submenu {
+    border-left-color: #2563eb;
+}
+
+/* ============================================
+   ITEMS DEL SUBMENÚ
+   ============================================ */
+.nav-submenu .nav-link {
+    padding: 0.625rem 1rem 0.625rem 2.5rem;
+    font-size: 0.875rem;
+    color: #6b7280;
+    font-weight: 400;
+    position: relative;
+    transition: all 0.2s ease;
+}
+
+/* Indicador visual antes del texto */
+.nav-submenu .nav-link::before {
+    content: '';
+    position: absolute;
+    left: 1.5rem;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 4px;
+    height: 4px;
+    background: #9ca3af;
+    border-radius: 50%;
+    transition: all 0.2s ease;
+}
+
+/* Hover en items del submenú */
+.nav-submenu .nav-link:hover {
+    color: #2563eb;
+    background-color: #eff6ff;
+    padding-left: 2.75rem;
+}
+
+.nav-submenu .nav-link:hover::before {
+    background: #2563eb;
+    width: 6px;
+    height: 6px;
+}
+
+/* Item activo del submenú */
+.nav-submenu .nav-link.active {
+    background-color: #dbeafe;
+    color: #2563eb;
+    font-weight: 600;
+    border-left: 3px solid #2563eb;
+}
+
+.nav-submenu .nav-link.active::before {
+    background: #2563eb;
+    width: 6px;
+    height: 6px;
+}
+
+/* ============================================
+   ICONOS EN SUBMENÚS
+   ============================================ */
+.nav-submenu .nav-link i {
+    width: 16px;
+    margin-right: 0.5rem;
+    text-align: center;
+    font-size: 0.875rem;
+}
+
+/* ============================================
+   SECCIONES DEL MENÚ
+   ============================================ */
+.nav-section {
+    padding: 1rem 1.5rem 0.5rem;
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #9ca3af;
+    margin-top: 0.5rem;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.nav-section:first-child {
+    margin-top: 0;
+}
+
+/* ============================================
+   LISTA DE NAVEGACIÓN
+   ============================================ */
+.sidebar-nav ul {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 1rem 0;
+}
+
+.sidebar-nav li {
+    margin: 0;
+}
+
+/* ============================================
+   LINKS DE NAVEGACIÓN PRINCIPAL
+   ============================================ */
+.sidebar-nav > ul > li > .nav-link {
+    display: flex;
+    align-items: center;
+    padding: 0.75rem 1.5rem;
+    color: #6b7280;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    border-radius: 0;
+    position: relative;
+    font-weight: 500;
+    cursor: pointer;
+}
+
+.sidebar-nav > ul > li > .nav-link:hover {
+    background-color: #f8fafc;
+    color: #1f2937;
+    padding-left: 1.75rem;
+}
+
+/* Link activo */
+.sidebar-nav > ul > li > .nav-link.active {
+    background-color: #2563eb;
+    color: white;
+    font-weight: 600;
+}
+
+.sidebar-nav > ul > li > .nav-link.active::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    background: #1d4ed8;
+}
+
+/* Iconos en links principales */
+.sidebar-nav > ul > li > .nav-link i {
+    width: 20px;
+    margin-right: 0.75rem;
+    text-align: center;
+    font-size: 1rem;
+}
+
+/* ============================================
+   ANIMACIONES
+   ============================================ */
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        max-height: 0;
+    }
+    to {
+        opacity: 1;
+        max-height: 500px;
+    }
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 1;
+        max-height: 500px;
+    }
+    to {
+        opacity: 0;
+        max-height: 0;
+    }
+}
+
+/* ============================================
+   STATES ADICIONALES
+   ============================================ */
+
+/* Disabled state */
+.nav-link.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+/* Loading state */
+.nav-link.loading {
+    position: relative;
+    pointer-events: none;
+}
+
+.nav-link.loading::after {
+    content: '';
+    position: absolute;
+    right: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 12px;
+    height: 12px;
+    border: 2px solid #e2e8f0;
+    border-top-color: #2563eb;
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: translateY(-50%) rotate(360deg); }
+}
+
+/* ============================================
+   BADGES EN MENÚ
+   ============================================ */
+.nav-link .badge {
+    margin-left: auto;
+    font-size: 0.7rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: 10px;
+    font-weight: 600;
+}
+
+/* ============================================
+   HOVER MEJORADO PARA TOUCH DEVICES
+   ============================================ */
+@media (hover: none) {
+    .nav-link:hover {
+        transform: none;
+    }
+    
+    .nav-link:active {
+        background-color: #f1f5f9;
+        transform: scale(0.98);
+    }
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+@media (max-width: 1024px) {
+    .sidebar {
+        transform: translateX(-100%);
+    }
+    
+    .sidebar.show {
+        transform: translateX(0);
+    }
+    
+    /* Hacer el sidebar más ancho en tablets */
+    .sidebar {
+        width: 280px;
+    }
+}
+
+@media (max-width: 768px) {
+    /* Sidebar full width en móvil */
+    .sidebar {
+        width: 100vw;
+    }
+    
+    /* Reducir padding en móvil */
+    .nav-link {
+        padding-left: 1rem !important;
+        padding-right: 1rem !important;
+    }
+    
+    .nav-submenu .nav-link {
+        padding-left: 2rem !important;
+    }
+    
+    .nav-section {
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+}
+
+/* ============================================
+   SIDEBAR OVERLAY (MÓVIL)
+   ============================================ */
+.sidebar-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1029;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(2px);
+}
+
+.sidebar-overlay.show {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* Prevenir scroll cuando sidebar está abierto */
+body.sidebar-open {
+    overflow: hidden;
+}
+
+/* ============================================
+   SCROLLBAR DEL SIDEBAR
+   ============================================ */
+.sidebar::-webkit-scrollbar {
+    width: 6px;
+}
+
+.sidebar::-webkit-scrollbar-track {
+    background: #f8fafc;
+}
+
+.sidebar::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 3px;
+}
+
+.sidebar::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+}
+
+/* ============================================
+   MEJORAS DE ACCESIBILIDAD
+   ============================================ */
+.nav-link:focus-visible {
+    outline: 2px solid #2563eb;
+    outline-offset: -2px;
+    z-index: 1;
+}
+
+/* ============================================
+   SIDEBAR BRAND
+   ============================================ */
+.sidebar-brand {
+    background: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%);
+    color: white;
+    text-align: center;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    box-shadow: 0 2px 8px rgba(37, 99, 235, 0.2);
+}
+
+.sidebar-brand h4 {
+    margin: 0 0 0.25rem 0;
+    font-size: 1.5rem;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.sidebar-brand small {
+    font-size: 0.75rem;
+    opacity: 0.9;
+    font-weight: 300;
+}
+
+/* ============================================
+   TRANSICIONES SUAVES
+   ============================================ */
+* {
+    -webkit-tap-highlight-color: transparent;
+}
+
+.nav-link,
+.nav-submenu,
+.has-submenu > .nav-link::after {
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.sidebar,
+.nav-submenu {
+    will-change: transform;
+}
+
+.sidebar-overlay {
+    will-change: opacity;
+}
+
+@media print {
+    .sidebar {
+        display: none !important;
+    }
+}

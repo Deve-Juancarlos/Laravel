@@ -4,6 +4,7 @@
 
 @push('head')
     <link href="{{ asset('css/dashboard-contador.css') }}" rel="stylesheet">
+    <link href="{{ asset('css/sidebar-menu.css') }}" rel="stylesheet">
 @endpush
 
 
@@ -20,7 +21,7 @@
 <div class="nav-section">Contabilidad</div>
 <ul>
     <li>
-        <a href="#" class="nav-link has-submenu">
+        <a href="{{ route('contador.libro-diario.index') }}" class="nav-link has-submenu">
             <i class="fas fa-book"></i> Libros Contables
         </a>
         <div class="nav-submenu">
@@ -694,4 +695,5 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 </script>
+<script src="{{ asset('js/app.js') }}"></script>
 @endpush
