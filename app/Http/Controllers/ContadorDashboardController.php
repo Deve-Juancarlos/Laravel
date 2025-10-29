@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Schema;
 use Carbon\Carbon;
 
 
@@ -43,9 +44,10 @@ public function contadorDashboard(Request $request)
                 'vencimientosPorRango' => $this->analizarVencimientosPorRango(),
                 'moraDetalle' => $this->analizarMoraDetalle(),
                 'ultimasFacturas' => $this->obtenerUltimasFacturas(10),                
-                'topClientesSaldo' => DB::table('clientes')
-                    ->select('Razon', DB::raw('SUM(saldo) as saldo'))
-                    ->groupBy('Razon')
+                'topClientesSaldo' => DB::table('Clientes as c')
+                    ->join('CtaCliente as cc', 'c.Codclie', '=', 'cc.CodClie')
+                    ->select('c.Razon', DB::raw('SUM(cc.Saldo) as saldo'))
+                    ->groupBy('c.Razon')
                     ->orderByDesc('saldo')
                     ->limit(5)
                     ->get(),
@@ -71,12 +73,26 @@ public function contadorDashboard(Request $request)
 
     private function obtenerUltimasFacturas($limite = 10)
     {
-        return DB::table('Doccab')
-            ->select('Documento', 'Importe', 'Saldo', 'Fecha as FechaF', 'Estado')
-            ->where('Eliminado', 0)
-            ->orderByDesc('Fecha')
-            ->limit($limite)
-            ->get();
+        // Usamos CtaCliente como principal para Documento/Importe/Saldo y enlazamos con Doccab para obtener fecha/estado si existe
+        $query = DB::table('CtaCliente as cc')
+            ->leftJoin('Clientes as c', 'cc.CodClie', '=', 'c.Codclie')
+            ->leftJoin('Doccab as dc', function ($join) {
+                $join->on('dc.Numero', '=', 'cc.Documento')
+                     ->on('dc.Tipo', '=', DB::raw('cc.Tipo'));
+            })
+            ->select(
+                'cc.Documento',
+                'cc.Importe',
+                'cc.Saldo',
+                'cc.FechaF as FechaF',
+                'cc.FechaV as FechaV',
+                'c.Razon as Cliente',
+                'dc.estado as Estado'
+            )
+            ->orderByDesc('cc.FechaF')
+            ->limit($limite);
+
+        return $query->get();
     }
 
 
@@ -84,7 +100,9 @@ public function contadorDashboard(Request $request)
     {
         $actual = $this->calcularVentasMes();
         $anterior = $this->calcularVentasMesAnterior();
-        if ($anterior == 0) return $actual > 0 ? round((($actual - $anterior) / max($anterior,1)) * 100, 2) : 0;
+        if ($anterior == 0) {
+            return $actual > 0 ? 100.00 : 0.00;
+        }
         return round((($actual - $anterior) / $anterior) * 100, 2);
     }
 
@@ -122,7 +140,7 @@ public function contadorDashboard(Request $request)
             'ticket_promedio' => round($resultado->ticket_promedio ?? 0, 2),
             'venta_minima' => round($resultado->venta_minima ?? 0, 2),
             'venta_maxima' => round($resultado->venta_maxima ?? 0, 2),
-            'margen_bruto' => $resultado->ventas_totales > 0 
+            'margen_bruto' => ($resultado->ventas_totales > 0) 
                 ? round((($resultado->ventas_totales - $resultado->costo_total) / $resultado->ventas_totales) * 100, 2)
                 : 0,
         ];
@@ -139,7 +157,7 @@ public function contadorDashboard(Request $request)
             ->join('Productos as p', 's.codpro', '=', 'p.CodPro')
             ->where('s.saldo', '>', 0)
             ->where('p.Eliminado', 0)
-            ->select('s.codpro', 's.lote', 's.vencimiento', 's.saldo', 'p.StockP')
+            ->select('s.codpro', 's.lote', 's.vencimiento', 's.saldo', DB::raw('ISNULL(p.CosReal, p.Costo) as unidad_valor'))
             ->get();
 
         $buckets = [
@@ -166,7 +184,7 @@ public function contadorDashboard(Request $request)
 
             $buckets[$key]['cantidad_lotes'] += 1;
             $buckets[$key]['cantidad_total'] += (float) $r->saldo;
-            $buckets[$key]['valor_total'] += ((float)$r->saldo * ((float)$r->StockP ?? 0));
+            $buckets[$key]['valor_total'] += ((float)$r->saldo * ((float)$r->unidad_valor ?? 0));
         }
 
         // Formateo salida
@@ -228,39 +246,43 @@ public function contadorDashboard(Request $request)
         $fechaActual = now();
 
         // 1. Alertas DIGEMID - Reportes pendientes
-        $reportesDigemid = DB::table('Trazabilidad_Controlados')
-            ->where('ReporteDIGEMID', 0)
-            ->where('FechaMovimiento', '>=', $fechaActual->copy()->subMonths(1))
-            ->count();
+        if (Schema::hasTable('Trazabilidad_Controlados')) {
+            $reportesDigemid = DB::table('Trazabilidad_Controlados')
+                ->where('ReporteDIGEMID', 0)
+                ->where('FechaMovimiento', '>=', $fechaActual->copy()->subMonths(1))
+                ->count();
 
-        if ($reportesDigemid > 0) {
-            $alertas[] = [
-                'tipo' => 'danger',
-                'icono' => 'shield-alt',
-                'titulo' => 'Reporte DIGEMID Pendiente',
-                'mensaje' => "{$reportesDigemid} movimientos de controlados sin reportar",
-                'accion' => route('contador.reportes.financiero'),
-                'prioridad' => 'alta'
-            ];
+            if ($reportesDigemid > 0) {
+                $alertas[] = [
+                    'tipo' => 'danger',
+                    'icono' => 'shield-alt',
+                    'titulo' => 'Reporte DIGEMID Pendiente',
+                    'mensaje' => "{$reportesDigemid} movimientos de controlados sin reportar",
+                    'accion' => route('contador.reportes.financiero'),
+                    'prioridad' => 'alta'
+                ];
+            }
         }
 
         // 2. Productos controlados - Stock crítico
-        $controladosBaja = DB::table('Productos as p')
-            ->join('Categorias as cat', DB::raw('LEFT(p.CodPro, 2)'), '=', DB::raw('RTRIM(cat.CodCat)'))
-            ->where('p.Eliminado', 0)
-            ->where('cat.Tipo', 'CONTROLADO')
-            ->whereRaw('p.Stock <= p.Minimo')
-            ->count();
+        if (Schema::hasTable('Categorias')) {
+            $controladosBaja = DB::table('Productos as p')
+                ->join('Categorias as cat', DB::raw('LEFT(p.CodPro, 2)'), '=', DB::raw('RTRIM(cat.CodCat)'))
+                ->where('p.Eliminado', 0)
+                ->where('cat.Tipo', 'CONTROLADO')
+                ->whereRaw('p.Stock <= p.Minimo')
+                ->count();
 
-        if ($controladosBaja > 0) {
-            $alertas[] = [
-                'tipo' => 'warning',
-                'icono' => 'prescription-bottle-alt',
-                'titulo' => 'Medicamentos Controlados',
-                'mensaje' => "{$controladosBaja} productos controlados con stock bajo",
-                'accion' => route('contador.productos.index'),
-                'prioridad' => 'alta'
-            ];
+            if ($controladosBaja > 0) {
+                $alertas[] = [
+                    'tipo' => 'warning',
+                    'icono' => 'prescription-bottle-alt',
+                    'titulo' => 'Medicamentos Controlados',
+                    'mensaje' => "{$controladosBaja} productos controlados con stock bajo",
+                    'accion' => route('contador.productos.index'),
+                    'prioridad' => 'alta'
+                ];
+            }
         }
 
         // 3. Facturas vencidas críticas (> 60 días)
@@ -518,7 +540,7 @@ public function contadorDashboard(Request $request)
             ->limit($limite)
             ->get()
             ->map(function($venta) {
-                $diasVencimiento = $venta->Saldo > 0 ? now()->diffInDays(Carbon::parse($venta->FechaV)) : 0;
+                $diasVencimiento = ($venta->Saldo ?? 0) > 0 && !empty($venta->FechaV) ? now()->diffInDays(Carbon::parse($venta->FechaV)) : 0;
                 
                 return [
                     'numero' => trim($venta->Numero),
@@ -549,9 +571,9 @@ public function contadorDashboard(Request $request)
                 'l.Descripcion as laboratorio',
                 'p.Stock',
                 'p.Minimo',
-                'p.StockP',
+                DB::raw('ISNULL(p.CosReal, p.Costo) as unidad_valor'),
                 DB::raw('ROUND((p.Stock / NULLIF(p.Minimo, 0)) * 100, 0) as porcentaje'),
-                DB::raw('(p.Stock * p.StockP) as valor_stock')
+                DB::raw('(p.Stock * ISNULL(p.CosReal, p.Costo)) as valor_stock')
             )
             ->orderBy('porcentaje', 'asc')
             ->limit($limite)
@@ -589,9 +611,9 @@ public function contadorDashboard(Request $request)
                 's.Lote',
                 's.vencimiento',
                 's.saldo',
-                'p.StockP',
+                DB::raw('ISNULL(p.CosReal, p.Costo) as unidad_valor'),
                 DB::raw('DATEDIFF(day, GETDATE(), s.vencimiento) as dias_restantes'),
-                DB::raw('(s.saldo * p.StockP) as valor_lote')
+                DB::raw('(s.saldo * ISNULL(p.CosReal, p.Costo)) as valor_lote')
             )
             ->orderBy('dias_restantes', 'asc')
             ->limit($limite)
@@ -605,7 +627,7 @@ public function contadorDashboard(Request $request)
                     'vencimiento' => Carbon::parse($item->vencimiento)->format('d/m/Y'),
                     'stock' => round($item->saldo, 2),
                     'valor_lote' => round($item->valor_lote, 2),
-                    'dias' => $item->dias_restantes,
+                    'dias' => (int)$item->dias_restantes,
                     'riesgo' => $item->dias_restantes <= 30 ? 'alto' : ($item->dias_restantes <= 60 ? 'medio' : 'bajo')
                 ];
             })
@@ -613,6 +635,7 @@ public function contadorDashboard(Request $request)
     }
 
  
+    
     
     private function contarClientesActivos()
     {

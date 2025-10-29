@@ -404,6 +404,12 @@ class FacturacionController extends Controller
         return response()->json($productos);
     }
 
+    public function create()
+    {
+        // Retorna la vista del formulario de creación
+        return view('modules.ventas.facturacion.crear');
+    }
+
     /**
      * Marcar factura como pagada
      */

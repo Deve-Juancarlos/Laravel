@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
 
 class FlujoCajaController extends Controller
@@ -19,6 +20,11 @@ class FlujoCajaController extends Controller
             $fechaInicio = $request->input('fecha_inicio', Carbon::now()->startOfMonth()->format('Y-m-d'));
             $fechaFin = $request->input('fecha_fin', Carbon::now()->endOfMonth()->format('Y-m-d'));
 
+            // Normalize dates
+            if (Carbon::parse($fechaInicio)->gt(Carbon::parse($fechaFin))) {
+                [$fechaInicio, $fechaFin] = [$fechaFin, $fechaInicio];
+            }
+
             // Obtener flujo de caja de actividades operativas
             $actividadesOperativas = $this->obtenerActividadesOperativas($fechaInicio, $fechaFin);
 
@@ -29,9 +35,9 @@ class FlujoCajaController extends Controller
             $actividadesFinanciamiento = $this->obtenerActividadesFinanciamiento($fechaInicio, $fechaFin);
 
             // Calcular totales
-            $totalOperativas = $actividadesOperativas['neto'];
-            $totalInversion = $actividadesInversion['neto'];
-            $totalFinanciamiento = $actividadesFinanciamiento['neto'];
+            $totalOperativas = $actividadesOperativas['neto'] ?? 0;
+            $totalInversion = $actividadesInversion['neto'] ?? 0;
+            $totalFinanciamiento = $actividadesFinanciamiento['neto'] ?? 0;
 
             $flujoNeto = $totalOperativas + $totalInversion + $totalFinanciamiento;
 
@@ -49,6 +55,8 @@ class FlujoCajaController extends Controller
             ));
 
         } catch (\Exception $e) {
+            Log::error('Error en FlujoCajaController@index: ' . $e->getMessage());
+            Log::error($e->getTraceAsString());
             return redirect()->back()->with('error', 'Error al cargar el flujo de caja: ' . $e->getMessage());
         }
     }
@@ -61,7 +69,7 @@ class FlujoCajaController extends Controller
         try {
             $fecha = $request->input('fecha', Carbon::now()->format('Y-m-d'));
 
-            // Flujo de entrada (ingresos del día)
+            // Flujo de entrada (ingresos del día) - facturas (Tipo = 1)
             $ingresosDiarios = DB::table('Doccab')
                 ->whereDate('Fecha', $fecha)
                 ->where('Tipo', 1) // Facturas
@@ -76,30 +84,38 @@ class FlujoCajaController extends Controller
                 ])
                 ->get();
 
-            // Cobranzas del día
-            $cobranzas = DB::table('CtaCliente')
-                ->whereDate('FechaF', $fecha)
-                ->where('Saldo', '>', 0)
+            // Cobranzas del día - asumimos que los cobros registrados en caja tienen Tipo = 1 (ingresos)
+            $cobranzas = DB::table('Caja')
+                ->whereDate('Fecha', $fecha)
+                ->where('Tipo', 1) // Ingresos / cobros
                 ->select([
+                    'Numero',
+                    'Fecha',
                     'Documento',
-                    'CodClie',
-                    'FechaF',
-                    'Importe',
-                    'Saldo'
+                    'Monto',
+                    'Moneda',
+                    'Cambio'
                 ])
                 ->get();
+
+            // Si prefieres usar PlanD_cobranza/PlanC_cobranza, reemplaza la consulta anterior por la correspondiente.
 
             // Flujo de salida (egresos del día)
             $egresos = $this->obtenerEgresosDiarios($fecha);
 
             // Resumen diario
+            $ventasSum = (float) $ingresosDiarios->sum('Total');
+            $cobranzasSum = (float) $cobranzas->sum('Monto');
+            $totalIngresos = $ventasSum + $cobranzasSum;
+            $totalEgresos = (float) $egresos['total'];
+
             $resumenDiario = [
                 'fecha' => $fecha,
-                'ventas_facturadas' => $ingresosDiarios->sum('Total'),
-                'cobranzas' => $cobranzas->sum('Importe'),
-                'total_ingresos' => $ingresosDiarios->sum('Total') + $cobranzas->sum('Importe'),
-                'total_egresos' => $egresos['total'],
-                'flujo_neto' => ($ingresosDiarios->sum('Total') + $cobranzas->sum('Importe')) - $egresos['total']
+                'ventas_facturadas' => $ventasSum,
+                'cobranzas' => $cobranzasSum,
+                'total_ingresos' => $totalIngresos,
+                'total_egresos' => $totalEgresos,
+                'flujo_neto' => $totalIngresos - $totalEgresos
             ];
 
             return view('contabilidad.estados-financieros.flujo-diario', compact(
@@ -107,6 +123,8 @@ class FlujoCajaController extends Controller
             ));
 
         } catch (\Exception $e) {
+            Log::error('Error en FlujoCajaController@flujoDiario: ' . $e->getMessage());
+            Log::error($e->getTraceAsString());
             return redirect()->back()->with('error', 'Error al cargar flujo diario: ' . $e->getMessage());
         }
     }
@@ -117,7 +135,7 @@ class FlujoCajaController extends Controller
     public function proyecciones(Request $request)
     {
         try {
-            $diasProyeccion = $request->input('dias', 30);
+            $diasProyeccion = (int) $request->input('dias', 30);
             $fechaInicio = Carbon::now()->startOfDay();
             $fechaFin = $fechaInicio->copy()->addDays($diasProyeccion);
 
@@ -137,11 +155,13 @@ class FlujoCajaController extends Controller
             $alertas = $this->generarAlertasFlujo($balanceProyectado);
 
             return view('contabilidad.estados-financieros.flujo-proyecciones', compact(
-                'proyeccionIngresos', 'proyeccionEgresos', 'proyeccionCobranzas', 
+                'proyeccionIngresos', 'proyeccionEgresos', 'proyeccionCobranzas',
                 'balanceProyectado', 'alertas', 'fechaInicio', 'fechaFin'
             ));
 
         } catch (\Exception $e) {
+            Log::error('Error en FlujoCajaController@proyecciones: ' . $e->getMessage());
+            Log::error($e->getTraceAsString());
             return redirect()->back()->with('error', 'Error al generar proyecciones: ' . $e->getMessage());
         }
     }
@@ -152,15 +172,15 @@ class FlujoCajaController extends Controller
     public function porPeriodos(Request $request)
     {
         try {
-            $anio = $request->input('anio', Carbon::now()->year);
+            $anio = (int) $request->input('anio', Carbon::now()->year);
 
             // Flujo de caja mensual del año
             $flujoMensual = [];
             for ($mes = 1; $mes <= 12; $mes++) {
-                $fechaInicio = Carbon::create($anio, $mes, 1)->startOfMonth()->format('Y-m-d');
-                $fechaFin = Carbon::create($anio, $mes, 1)->endOfMonth()->format('Y-m-d');
+                $fechaInicioMes = Carbon::create($anio, $mes, 1)->startOfMonth()->format('Y-m-d');
+                $fechaFinMes = Carbon::create($anio, $mes, 1)->endOfMonth()->format('Y-m-d');
 
-                $flujoMensual[$mes] = $this->calcularFlujoMensual($fechaInicio, $fechaFin);
+                $flujoMensual[$mes] = $this->calcularFlujoMensual($fechaInicioMes, $fechaFinMes);
                 $flujoMensual[$mes]['mes'] = Carbon::create($anio, $mes, 1)->format('F');
             }
 
@@ -172,6 +192,8 @@ class FlujoCajaController extends Controller
             ));
 
         } catch (\Exception $e) {
+            Log::error('Error en FlujoCajaController@porPeriodos: ' . $e->getMessage());
+            Log::error($e->getTraceAsString());
             return redirect()->back()->with('error', 'Error al analizar períodos: ' . $e->getMessage());
         }
     }
@@ -204,6 +226,8 @@ class FlujoCajaController extends Controller
             ));
 
         } catch (\Exception $e) {
+            Log::error('Error en FlujoCajaController@farmacia: ' . $e->getMessage());
+            Log::error($e->getTraceAsString());
             return redirect()->back()->with('error', 'Error en flujo farmacéutico: ' . $e->getMessage());
         }
     }
@@ -278,22 +302,23 @@ class FlujoCajaController extends Controller
     }
 
     /**
-     * Get initial cash balance
+     * Get initial cash balance (sum ingresos - egresos before fechaInicio)
      */
     private function obtenerSaldoInicial($fechaInicio)
     {
-        // Buscar último movimiento de caja antes de la fecha inicio
-        $saldoInicial = DB::table('Caja')
-            ->where('Fecha', '<', $fechaInicio)
-            ->orderBy('Fecha', 'desc')
-            ->orderBy('Numero', 'desc')
-            ->value('Monto') ?? 0;
+        // Sumamos ingresos (Tipo = 1) y restamos egresos (Tipo = 2) en Caja antes de la fechaInicio
+        $saldo = DB::table('Caja')
+            ->whereDate('Fecha', '<', $fechaInicio)
+            ->selectRaw('
+                ISNULL(SUM(CASE WHEN Tipo = 1 THEN Monto ELSE -Monto END), 0) as saldo
+            ')
+            ->value('saldo');
 
-        return $saldoInicial;
+        return (float) ($saldo ?? 0);
     }
 
     /**
-     * Get cash flow projections
+     * Get cash flow projections (30 días por defecto)
      */
     private function obtenerProyecciones($fechaFin)
     {
@@ -301,11 +326,11 @@ class FlujoCajaController extends Controller
         $proyecciones = [];
         for ($i = 1; $i <= 30; $i++) {
             $fechaProyeccion = Carbon::parse($fechaFin)->addDays($i);
-            
-            // Proyección basada en histórico
+
+            // Proyección basada en histórico (promedio de últimos 30 días comparables)
             $proyeccionIngresos = $this->proyectarIngresosUnDia($fechaProyeccion);
             $proyeccionEgresos = $this->proyectarEgresosUnDia($fechaProyeccion);
-            
+
             $proyecciones[] = [
                 'fecha' => $fechaProyeccion->format('Y-m-d'),
                 'ingresos_proyectados' => $proyeccionIngresos,
@@ -322,7 +347,7 @@ class FlujoCajaController extends Controller
      */
     private function obtenerEgresosDiarios($fecha)
     {
-        // Obtener egresos del día desde caja
+        // Obtener egresos del día desde caja (Tipo = 2)
         $egresosCaja = DB::table('Caja')
             ->whereDate('Fecha', $fecha)
             ->where('Tipo', 2) // Egresos
@@ -335,10 +360,10 @@ class FlujoCajaController extends Controller
             ])
             ->get();
 
-        // Obtener pagos a proveedores del día
-        $pagosProveedores = $this->obtenerPagosProveedoresFecha($fecha);
+        // Obtener pagos a proveedores del día (si están en otra tabla, implementar)
+        $pagosProveedores = $this->obtenerPagosProveedoresFecha($fecha); // stub devuelve 0 por defecto
 
-        $totalEgresos = $egresosCaja->sum('Monto') + $pagosProveedores;
+        $totalEgresos = (float)$egresosCaja->sum('Monto') + (float)$pagosProveedores;
 
         return [
             'egresos_caja' => $egresosCaja,
@@ -353,20 +378,26 @@ class FlujoCajaController extends Controller
     private function obtenerUtilidadNeta($fechaInicio, $fechaFin)
     {
         // Calcular utilidad neta basada en el estado de resultados
-        $ventas = DB::table('Doccab')
+        $ventas = (float) DB::table('Doccab')
             ->whereBetween('Fecha', [$fechaInicio, $fechaFin])
             ->where('Tipo', 1)
             ->where('Eliminado', 0)
             ->sum('Subtotal');
 
-        $costos = DB::table('Docdet as dd')
-            ->join('Doccab as dc', 'dd.Numero', '=', 'dc.Numero')
+        // Join seguro Docdet con Doccab por Numero y Tipo (Docdet tiene campo Tipo)
+        $costos = (float) DB::table('Docdet as dd')
+            ->join('Doccab as dc', function($join) {
+                $join->on('dd.Numero', '=', 'dc.Numero')
+                     ->on('dd.Tipo', '=', 'dc.Tipo');
+            })
             ->whereBetween('dc.Fecha', [$fechaInicio, $fechaFin])
             ->where('dc.Tipo', 1)
             ->where('dc.Eliminado', 0)
-            ->sum(DB::raw('CAST(dd.Costo as MONEY) * dd.Cantidad'));
+            ->selectRaw('ISNULL(SUM(CAST(dd.Costo AS MONEY) * dd.Cantidad),0) as suma')
+            ->value('suma');
 
-        $gastosOperativos = DB::table('t_detalle_diario')
+        // Gastos operativos desde t_detalle_diario (FechaF)
+        $gastosOperativos = (float) DB::table('t_detalle_diario')
             ->whereBetween('FechaF', [$fechaInicio, $fechaFin])
             ->where('Tipo', 'like', '5%')
             ->sum('Importe');
@@ -379,8 +410,8 @@ class FlujoCajaController extends Controller
      */
     private function obtenerAjustesNoEfectivo($fechaInicio, $fechaFin)
     {
-        // Depreciaciones, amortizaciones, etc.
-        $depreciaciones = DB::table('t_detalle_diario')
+        // Depreciaciones, amortizaciones, etc. (buscamos en t_detalle_diario por descripción)
+        $depreciaciones = (float) DB::table('t_detalle_diario')
             ->whereBetween('FechaF', [$fechaInicio, $fechaFin])
             ->where('Descripcion', 'like', '%depreciaci%')
             ->sum('Importe');
@@ -420,33 +451,33 @@ class FlujoCajaController extends Controller
     }
 
     /**
-     * Project daily income
+     * Project daily income (average of last 30 days prior to $fecha)
      */
     private function proyectarIngresosUnDia($fecha)
     {
-        // Promedio de ingresos de los últimos 30 días similares
-        $promedioDiario = DB::table('Doccab')
+        $fecha = Carbon::parse($fecha)->startOfDay();
+        $inicioWindow = $fecha->copy()->subDays(30);
+
+        $promedioDiario = (float) DB::table('Doccab')
             ->where('Tipo', 1)
             ->where('Eliminado', 0)
-            ->whereDate('Fecha', '<', $fecha)
-            ->orderBy('Fecha', 'desc')
-            ->limit(30)
+            ->whereBetween('Fecha', [$inicioWindow->format('Y-m-d'), $fecha->subDay()->format('Y-m-d')])
             ->avg('Total') ?? 0;
 
         return $promedioDiario;
     }
 
     /**
-     * Project daily expenses
+     * Project daily expenses (average of last 30 days prior to $fecha)
      */
     private function proyectarEgresosUnDia($fecha)
     {
-        // Promedio de egresos de los últimos 30 días
-        $promedioEgresos = DB::table('Caja')
+        $fecha = Carbon::parse($fecha)->startOfDay();
+        $inicioWindow = $fecha->copy()->subDays(30);
+
+        $promedioEgresos = (float) DB::table('Caja')
             ->where('Tipo', 2)
-            ->where('Fecha', '<', $fecha)
-            ->orderBy('Fecha', 'desc')
-            ->limit(30)
+            ->whereBetween('Fecha', [$inicioWindow->format('Y-m-d'), $fecha->subDay()->format('Y-m-d')])
             ->avg('Monto') ?? 0;
 
         return $promedioEgresos;
@@ -458,14 +489,17 @@ class FlujoCajaController extends Controller
     private function obtenerIngresosFarmaceuticos($fechaInicio, $fechaFin)
     {
         return DB::table('Doccab as dc')
-            ->join('Docdet as dd', 'dc.Numero', '=', 'dd.Numero')
+            ->join('Docdet as dd', function($join) {
+                $join->on('dd.Numero', '=', 'dc.Numero')
+                     ->on('dd.Tipo', '=', 'dc.Tipo');
+            })
             ->join('Productos as p', 'dd.Codpro', '=', 'p.CodPro')
             ->whereBetween('dc.Fecha', [$fechaInicio, $fechaFin])
             ->where('dc.Tipo', 1)
             ->where('dc.Eliminado', 0)
             ->select([
                 'p.Nombre as producto',
-                DB::raw('SUM(CAST(dc.Subtotal as MONEY)) as total_ventas'),
+                DB::raw('SUM(CAST(dd.Subtotal as MONEY)) as total_ventas'),
                 DB::raw('COUNT(dd.Numero) as cantidad_transacciones')
             ])
             ->groupBy('p.CodPro', 'p.Nombre')
@@ -501,19 +535,29 @@ class FlujoCajaController extends Controller
      */
     private function calcularDiasInventario($fechaFin)
     {
-        $costoDiarioPromedio = DB::table('Docdet as dd')
-            ->join('Doccab as dc', 'dd.Numero', '=', 'dc.Numero')
-            ->where('dc.Fecha', '>=', Carbon::parse($fechaFin)->subDays(30))
-            ->where('dc.Fecha', '<=', $fechaFin)
+        $fechaFinDt = Carbon::parse($fechaFin);
+        $desde = $fechaFinDt->copy()->subDays(30)->format('Y-m-d');
+        $hasta = $fechaFinDt->format('Y-m-d');
+
+        $costoDiarioPromedio = 0;
+        $sumaCosto = (float) DB::table('Docdet as dd')
+            ->join('Doccab as dc', function($join) {
+                $join->on('dd.Numero', '=', 'dc.Numero')
+                     ->on('dd.Tipo', '=', 'dc.Tipo');
+            })
+            ->whereBetween('dc.Fecha', [$desde, $hasta])
             ->where('dc.Tipo', 1)
             ->where('dc.Eliminado', 0)
-            ->sum(DB::raw('CAST(dd.Costo as MONEY) * dd.Cantidad')) / 30;
+            ->selectRaw('ISNULL(SUM(CAST(dd.Costo AS MONEY) * dd.Cantidad),0) as suma')
+            ->value('suma');
 
-        $inventarioActual = DB::table('Saldos')
-            ->selectRaw('SUM(CAST(saldo as MONEY)) as total_inventario')
-            ->value('total_inventario') ?? 0;
+        $costoDiarioPromedio = $sumaCosto / 30;
 
-        return $costoDiarioPromedio > 0 ? $inventarioActual / $costoDiarioPromedio : 0;
+        $inventarioActual = (float) DB::table('Saldos')
+            ->selectRaw('ISNULL(SUM(CAST(saldo AS MONEY)), 0) as total_inventario')
+            ->value('total_inventario');
+
+        return $costoDiarioPromedio > 0 ? ($inventarioActual / $costoDiarioPromedio) : 0;
     }
 
     /**
@@ -525,11 +569,15 @@ class FlujoCajaController extends Controller
         $actividadesInversion = $this->obtenerActividadesInversion($fechaInicio, $fechaFin);
         $actividadesFinanciamiento = $this->obtenerActividadesFinanciamiento($fechaInicio, $fechaFin);
 
+        $oper = $actividadesOperativas['neto'] ?? 0;
+        $inv = $actividadesInversion['neto'] ?? 0;
+        $fin = $actividadesFinanciamiento['neto'] ?? 0;
+
         return [
-            'operativas' => $actividadesOperativas['neto'],
-            'inversion' => $actividadesInversion['neto'],
-            'financiamiento' => $actividadesFinanciamiento['neto'],
-            'neto' => $actividadesOperativas['neto'] + $actividadesInversion['neto'] + $actividadesFinanciamiento['neto']
+            'operativas' => $oper,
+            'inversion' => $inv,
+            'financiamiento' => $fin,
+            'neto' => $oper + $inv + $fin
         ];
     }
 
@@ -538,12 +586,16 @@ class FlujoCajaController extends Controller
      */
     private function analizarTendenciasFlujo($flujoMensual)
     {
-        $flujos = array_column($flujoMensual, 'neto');
-        
+        $flujos = array_map(function($m) { return (float)($m['neto'] ?? 0); }, $flujoMensual);
+        $count = count($flujos);
+        $promedio = $count > 0 ? array_sum($flujos) / $count : 0;
+        $mesMayor = $count > 0 ? (int) array_search(max($flujos), $flujos) : null;
+        $mesMenor = $count > 0 ? (int) array_search(min($flujos), $flujos) : null;
+
         return [
-            'promedio_mensual' => array_sum($flujos) / count($flujos),
-            'mes_mayor_flujo' => array_keys($flujos, max($flujos))[0] ?? null,
-            'mes_menor_flujo' => array_keys($flujos, min($flujos))[0] ?? null,
+            'promedio_mensual' => $promedio,
+            'mes_mayor_flujo' => $mesMayor,
+            'mes_menor_flujo' => $mesMenor,
             'tendencia' => $this->calcularTendencia($flujos)
         ];
     }
@@ -553,12 +605,13 @@ class FlujoCajaController extends Controller
      */
     private function calcularTendencia($valores)
     {
-        if (count($valores) < 2) return 0;
-        
+        $n = count($valores);
+        if ($n < 2) return 0;
+
         $primero = $valores[0];
-        $ultimo = $valores[array_key_last($valores)];
-        
-        return $primero > 0 ? (($ultimo - $primero) / $primero) * 100 : 0;
+        $ultimo = $valores[$n - 1];
+
+        return $primero != 0 ? (($ultimo - $primero) / $primero) * 100 : 0;
     }
 
     /**
@@ -567,18 +620,21 @@ class FlujoCajaController extends Controller
     private function generarAlertasFlujo($balanceProyectado)
     {
         $alertas = [];
-        
+
+        $proyectado = $balanceProyectado['proyectado'] ?? 0;
+        $promedioDiario = $balanceProyectado['promedio_diario'] ?? 1;
+
         // Alerta de flujo negativo
-        if ($balanceProyectado['proyectado'] < 0) {
+        if ($proyectado < 0) {
             $alertas[] = [
                 'tipo' => 'danger',
                 'mensaje' => 'Flujo de caja proyectado en negativo',
-                'valor' => $balanceProyectado['proyectado']
+                'valor' => $proyectado
             ];
         }
-        
+
         // Alerta de flujo crítico (menos de 7 días de operación)
-        $diasOperacion = $balanceProyectado['proyectado'] / ($balanceProyectado['promedio_diario'] ?? 1);
+        $diasOperacion = $promedioDiario != 0 ? ($proyectado / $promedioDiario) : PHP_INT_MAX;
         if ($diasOperacion < 7) {
             $alertas[] = [
                 'tipo' => 'warning',
@@ -586,11 +642,11 @@ class FlujoCajaController extends Controller
                 'valor' => round($diasOperacion, 1)
             ];
         }
-        
+
         return $alertas;
     }
 
-    // Métodos auxiliares adicionales que usarías en un proyecto real
+    // Métodos auxiliares adicionales (stubs - implementar según tu lógica de negocio)
     private function obtenerComprasActivosFijos($fechaInicio, $fechaFin) { return 0; }
     private function obtenerVentasActivosFijos($fechaInicio, $fechaFin) { return 0; }
     private function obtenerPrestamosRecibidos($fechaInicio, $fechaFin) { return 0; }
@@ -609,5 +665,14 @@ class FlujoCajaController extends Controller
     private function proyectarIngresos($fechaInicio, $fechaFin) { return []; }
     private function proyectarEgresos($fechaInicio, $fechaFin) { return []; }
     private function proyectarCobranzas($fechaInicio, $fechaFin) { return []; }
-    private function calcularBalanceProyectado($fechaInicio, $ingresos, $egresos, $cobranzas) { return []; }
+    private function calcularBalanceProyectado($fechaInicio, $ingresos, $egresos, $cobranzas) { 
+        // Ejemplo simple: suma ingresos - egresos + cobranzas, y promedio diario base
+        $totalIngresos = array_sum($ingresos ?: []);
+        $totalEgresos = array_sum($egresos ?: []);
+        $totalCobranzas = array_sum($cobranzas ?: []);
+        $proyectado = $totalIngresos - $totalEgresos + $totalCobranzas;
+        $dias = max(1, count($ingresos));
+        $promedio_diario = $dias > 0 ? $proyectado / $dias : 0;
+        return ['proyectado' => $proyectado, 'promedio_diario' => $promedio_diario];
+    }
 }

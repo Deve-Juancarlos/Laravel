@@ -3,373 +3,86 @@
 @section('title', 'Libro Mayor - SIFANO Contabilidad')
 
 @section('styles')
-<style>
-    :root {
-        --primary: #0d3b66;
-        --secondary: #1a5276;
-        --success: #27ae60;
-        --danger: #e74c3c;
-        --warning: #f39c12;
-        --info: #3498db;
-        --light: #ecf0f1;
-        --dark: #2c3e50;
-        --gray-600: #7f8c8d;
-        --border: #bdc3c7;
-        --shadow: 0 2px 8px rgba(0,0,0,0.08);
-        --transition: all 0.25s ease;
-    }
+    <link href="{{ asset('css/contabilidad/libro-mayor.css') }}" rel="stylesheet">
+@endsection
 
-    body {
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        background-color: #f5f7fa;
-    }
+@section('sidebar-menu')
+{{-- MENÚ PRINCIPAL --}}
+<div class="nav-section">Dashboard</div>
+<ul>
+    <li><a href="{{ route('dashboard.contador') }}" class="nav-link active">
+        <i class="fas fa-chart-pie"></i> Panel Principal
+    </a></li>
+</ul>
 
-    .container-fluid {
-        padding: 0;
-    }
+{{-- CONTABILIDAD --}}
+<div class="nav-section">Contabilidad</div>
+<ul>
+    <li>
+        <a href="{{ route('contador.libro-diario.index') }}" class="nav-link has-submenu">
+            <i class="fas fa-book"></i> Libros Contables
+        </a>
+        <div class="nav-submenu">
+            <a href="{{ route('contador.libro-diario.index') }}" class="nav-link"><i class="fas fa-file-alt"></i> Libro Diario</a>
+            <a href="{{ route('contador.libro-mayor.index') }}" class="nav-link"><i class="fas fa-book-open"></i> Libro Mayor</a>
+            <a href="{{route('contador.balance-comprobacion.index')}}" class="nav-link"><i class="fas fa-balance-scale"></i> Balance Comprobación</a>    
+            <a href="{{ route('contador.estado-resultados.index') }}" class="nav-link"><i class="fas fa-chart-bar"></i> Estados Financieros</a>
+        </div>
+    </li>
+    <li>
+        <a href="#" class="nav-link has-submenu">
+            <i class="fas fa-file-invoice"></i> Registros
+        </a>
+        <div class="nav-submenu">
+            <a href="#" class="nav-link"><i class="fas fa-shopping-cart"></i> Compras</a>
+            <a href="#" class="nav-link"><i class="fas fa-cash-register"></i> Ventas</a>
+            <a href="#" class="nav-link"><i class="fas fa-university"></i> Bancos</a>
+            <a href="#" class="nav-link"><i class="fas fa-money-bill-wave"></i> Caja</a>
+        </div>
+    </li>
+</ul>
 
-    .main-content-wrapper {
-        margin-left: 0;
-        padding: 0;
-    }
+{{-- VENTAS Y COBRANZAS --}}
+<div class="nav-section">Ventas & Cobranzas</div>
+<ul>
+    <li><a href="{{ route('contador.reportes.ventas') }}" class="nav-link">
+        <i class="fas fa-chart-line"></i> Análisis Ventas
+    </a></li>
+    <li><a href="{{ route('contador.reportes.compras') }}" class="nav-link">
+        <i class="fas fa-wallet"></i> Cartera
+    </a></li>
+    <li><a href="{{ route('contador.facturas.create') }}" class="nav-link">
+        <i class="fas fa-clock"></i> Fact. Pendientes
+    </a></li>
+    <li><a href="{{ route('contador.facturas.index') }}" class="nav-link">
+        <i class="fas fa-exclamation-triangle"></i> Fact. Vencidas
+    </a></li>
+</ul>
 
-    .page-header {
-        background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
-        color: white;
-        padding: 1.5rem 2rem;
-        margin-bottom: 1.5rem;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-        position: relative;
-    }
+{{-- GESTIÓN --}}
+<div class="nav-section">Gestión</div>
+<ul>
+    <li><a href="{{ route('contador.clientes') }}" class="nav-link">
+        <i class="fas fa-users"></i> Clientes
+    </a></li>
+    <li><a href="{{ route('contador.reportes.medicamentos-controlados') }}" class="nav-link">
+        <i class="fas fa-percentage"></i> Márgenes
+    </a></li>
+    <li><a href="{{ route('contador.reportes.inventario') }}" class="nav-link">
+        <i class="fas fa-boxes"></i> Inventario
+    </a></li>
+</ul>
 
-    .btn-back-dashboard {
-        position: absolute;
-        top: 1.25rem;
-        right: 2rem;
-        background: rgba(255,255,255,0.2);
-        color: white;
-        border: none;
-        border-radius: 6px;
-        padding: 0.4rem 0.8rem;
-        font-size: 0.85rem;
-        font-weight: 600;
-        text-decoration: none;
-        display: flex;
-        align-items: center;
-        gap: 0.4rem;
-        transition: var(--transition);
-    }
-
-    .btn-back-dashboard:hover {
-        background: rgba(255,255,255,0.3);
-        transform: translateY(-1px);
-    }
-
-    .page-header h1 {
-        margin: 0;
-        font-size: 1.8rem;
-        font-weight: 700;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-    }
-
-    .page-header p {
-        margin: 0.25rem 0 0;
-        opacity: 0.9;
-        font-size: 0.95rem;
-    }
-
-    .filter-context {
-        font-size: 0.9rem;
-        opacity: 0.9;
-        margin-top: 0.25rem;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-    }
-
-    .filter-context .badge {
-        background: rgba(255,255,255,0.2);
-        padding: 0.2rem 0.6rem;
-        border-radius: 20px;
-        font-size: 0.8rem;
-    }
-
-    .filters-card {
-        background: white;
-        border-radius: 8px;
-        box-shadow: var(--shadow);
-        margin-bottom: 1.5rem;
-        padding: 1.25rem;
-    }
-
-    .filter-row {
-        display: flex;
-        gap: 1rem;
-        flex-wrap: wrap;
-        align-items: end;
-    }
-
-    .filter-group {
-        display: flex;
-        flex-direction: column;
-        gap: 0.25rem;
-    }
-
-    .filter-group label {
-        font-size: 0.85rem;
-        font-weight: 600;
-        color: var(--dark);
-    }
-
-    .filter-group input,
-    .filter-group select {
-        padding: 0.5rem;
-        border: 1px solid var(--border);
-        border-radius: 6px;
-        font-size: 0.9rem;
-        transition: var(--transition);
-    }
-
-    .filter-group input:focus,
-    .filter-group select:focus {
-        outline: none;
-        border-color: var(--primary);
-        box-shadow: 0 0 0 2px rgba(13, 59, 102, 0.1);
-    }
-
-    .btn-apply {
-        background: var(--primary);
-        color: white;
-        border: none;
-        padding: 0.5rem 1rem;
-        border-radius: 6px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: var(--transition);
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-    }
-
-    .btn-apply:hover {
-        background: var(--secondary);
-        transform: translateY(-1px);
-        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-    }
-
-    .stats-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-        gap: 1rem;
-        margin-bottom: 1.5rem;
-    }
-
-    .stat-card {
-        background: white;
-        border-radius: 10px;
-        padding: 1rem;
-        box-shadow: var(--shadow);
-        border-left: 4px solid var(--primary);
-        transition: var(--transition);
-    }
-
-    .stat-card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 16px rgba(0,0,0,0.1);
-    }
-
-    .stat-card.success { border-left-color: var(--success); }
-    .stat-card.danger { border-left-color: var(--danger); }
-    .stat-card.warning { border-left-color: var(--warning); }
-    .stat-card.info { border-left-color: var(--info); }
-
-    .stat-icon {
-        font-size: 1.5rem;
-        color: var(--dark);
-        opacity: 0.7;
-        margin-bottom: 0.5rem;
-    }
-
-    .stat-value {
-        font-size: 1.75rem;
-        font-weight: 700;
-        margin: 0.25rem 0;
-        color: var(--dark);
-    }
-
-    .stat-label {
-        font-size: 0.85rem;
-        color: var(--gray-600);
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        margin: 0;
-    }
-
-    .table-container {
-        background: white;
-        border-radius: 10px;
-        overflow: hidden;
-        box-shadow: var(--shadow);
-        margin-top: 1rem;
-    }
-
-    .table-header {
-        padding: 1rem 1.5rem;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        background: var(--light);
-        border-bottom: 1px solid var(--border);
-    }
-
-    .table-title {
-        font-size: 1.15rem;
-        font-weight: 600;
-        margin: 0;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        color: var(--dark);
-    }
-
-    .btn-export {
-        background: var(--success);
-        border: none;
-        color: white;
-        padding: 0.5rem 1rem;
-        border-radius: 6px;
-        text-decoration: none;
-        font-size: 0.9rem;
-        font-weight: 500;
-        transition: var(--transition);
-        display: inline-flex;
-        align-items: center;
-        gap: 0.4rem;
-    }
-
-    .btn-export:hover {
-        background: #218838;
-        transform: translateY(-1px);
-        box-shadow: 0 2px 6px rgba(39, 174, 96, 0.3);
-    }
-
-    .table {
-        margin: 0;
-        font-size: 0.92rem;
-        border-collapse: separate;
-        border-spacing: 0;
-    }
-
-    .table th {
-        background: var(--light);
-        font-weight: 600;
-        padding: 0.75rem 1rem;
-        color: var(--dark);
-        text-transform: uppercase;
-        font-size: 0.75rem;
-        letter-spacing: 0.5px;
-        white-space: nowrap;
-        border: none;
-    }
-
-    .table td {
-        padding: 0.75rem 1rem;
-        vertical-align: middle;
-        border-top: 1px solid var(--border);
-        border-right: 1px solid var(--border);
-        border-left: 1px solid var(--border);
-    }
-
-    .table tbody tr:hover {
-        background-color: #fafafa;
-    }
-
-    .saldo-deudor { color: var(--danger); font-weight: 600; }
-    .saldo-acreedor { color: var(--success); font-weight: 600; }
-    .saldo-saldo { color: var(--gray-600); font-weight: 600; }
-
-    .btn-action {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        width: 32px;
-        height: 32px;
-        border-radius: 6px;
-        background: var(--info);
-        color: white;
-        text-decoration: none;
-        transition: var(--transition);
-        font-size: 0.85rem;
-    }
-
-    .btn-action:hover {
-        background: #117a8b;
-        transform: scale(1.05);
-    }
-
-    .account-link {
-        color: var(--primary);
-        text-decoration: none;
-        font-weight: 600;
-    }
-
-    .account-link:hover {
-        text-decoration: underline;
-        color: var(--secondary);
-    }
-
-    .empty-state {
-        padding: 3rem 1rem;
-        text-align: center;
-        color: var(--gray-600);
-        font-size: 0.95rem;
-    }
-
-    .empty-state i {
-        font-size: 3rem;
-        margin-bottom: 1rem;
-        opacity: 0.5;
-    }
-
-    .pagination-wrapper {
-        margin-top: 1.5rem;
-        display: flex;
-        justify-content: center;
-    }
-
-    @media (max-width: 768px) {
-        .page-header {
-            padding: 1rem;
-        }
-        .btn-back-dashboard {
-            position: static;
-            margin-top: 1rem;
-            width: 100%;
-            justify-content: center;
-        }
-        .page-header h1 {
-            font-size: 1.4rem;
-        }
-        .filter-row {
-            flex-direction: column;
-            gap: 0.75rem;
-        }
-        .btn-apply {
-            width: 100%;
-        }
-        .stats-grid {
-            grid-template-columns: 1fr;
-        }
-        .table-responsive {
-            font-size: 0.85rem;
-        }
-        .btn-export span {
-            display: none;
-        }
-    }
-</style>
+{{-- REPORTES SUNAT --}}
+<div class="nav-section">SUNAT</div>
+<ul>
+    <li><a href="#" class="nav-link">
+        <i class="fas fa-file-invoice-dollar"></i> PLE
+    </a></li>
+    <li><a href="#" class="nav-link">
+        <i class="fas fa-percent"></i> IGV Mensual
+    </a></li>
+</ul>
 @endsection
 
 @section('content')

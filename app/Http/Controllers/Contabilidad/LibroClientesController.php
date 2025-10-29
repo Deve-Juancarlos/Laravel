@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
 
 class LibroClientesController extends Controller
@@ -55,11 +56,31 @@ class LibroClientesController extends Controller
             ->orderBy('c.Razon')
             ->paginate(50);
 
-            // Obtener saldos por cliente
+            // Optimización: obtener saldos para todos los clientes de la página en una sola consulta
+            $clienteIds = $clientes->pluck('Codclie')->filter()->unique()->values()->all();
+
             $saldosPorCliente = [];
-            foreach ($clientes as $clienteItem) {
-                $saldosPorCliente[$clienteItem->Codclie] = $this->obtenerSaldosCliente($clienteItem->Codclie);
+            if (!empty($clienteIds)) {
+                $saldos = DB::table('CtaCliente')
+                    ->whereIn('CodClie', $clienteIds)
+                    ->select(
+                        'CodClie',
+                        DB::raw('SUM(Importe) as total_facturado'),
+                        DB::raw('SUM(Saldo) as saldo_pendiente'),
+                        DB::raw('SUM(Importe) - SUM(Saldo) as total_pagado')
+                    )
+                    ->groupBy('CodClie')
+                    ->get()
+                    ->keyBy('CodClie');
+
+                foreach ($clientes as $clienteItem) {
+                    $c = $saldos->get($clienteItem->Codclie);
+                    $saldosPorCliente[$clienteItem->Codclie] = $c ?: (object)['total_facturado' => 0, 'saldo_pendiente' => 0, 'total_pagado' => 0];
+                }
             }
+
+            // Obtener compras del período (agregadas por cliente)
+            $comprasPeriodo = $this->obtenerComprasPorCliente($fechaInicio, $fechaFin);
 
             // Resumen general
             $resumenGeneral = [
@@ -71,10 +92,12 @@ class LibroClientesController extends Controller
             ];
 
             return view('contabilidad.auxiliares.clientes', compact(
-                'clientes', 'saldosPorCliente', 'resumenGeneral', 'fechaInicio', 'fechaFin', 'cliente'
+                'clientes', 'saldosPorCliente', 'resumenGeneral', 'fechaInicio', 'fechaFin', 'cliente', 'comprasPeriodo'
             ));
 
         } catch (\Exception $e) {
+            Log::error('Error en LibroClientesController@index: ' . $e->getMessage());
+            Log::error($e->getTraceAsString());
             return redirect()->back()->with('error', 'Error al cargar el libro de clientes: ' . $e->getMessage());
         }
     }
@@ -111,10 +134,12 @@ class LibroClientesController extends Controller
                 return redirect()->route('libro-clientes')->with('error', 'Cliente no encontrado');
             }
 
-            // Movimientos del cliente (facturas)
+            // Movimientos del cliente (facturas) - filtrar por Tipo = 1 (ventas) y no eliminadas
             $facturas = DB::table('Doccab as dc')
                 ->where('dc.CodClie', $clienteId)
                 ->whereBetween('dc.Fecha', [$fechaInicio, $fechaFin])
+                ->where('dc.Tipo', 1)
+                ->where('dc.Eliminado', 0)
                 ->select([
                     'dc.Numero',
                     'dc.Fecha',
@@ -129,7 +154,7 @@ class LibroClientesController extends Controller
                 ->orderBy('dc.Fecha', 'desc')
                 ->get();
 
-            // Pagos recibidos
+            // Pagos recibidos (PlanD_cobranza / PlanC_cobranza)
             $pagos = DB::table('PlanD_cobranza as pd')
                 ->leftJoin('PlanC_cobranza as pc', function($join) {
                     $join->on('pd.Serie', '=', 'pc.Serie')
@@ -164,10 +189,10 @@ class LibroClientesController extends Controller
                 ])
                 ->get();
 
-            // Cálculo de antigüedad de la deuda
+            // Cálculo de antigüedad de la deuda (manejar FechaV nula)
             foreach ($saldoPendiente as $saldo) {
-                $saldo->dias_vencido = Carbon::parse($saldo->FechaV)->diffInDays(Carbon::now(), false);
-                $saldo->clasificacion_edad = $this->clasificarEdadDeuda($saldo->dias_vencido);
+                $saldo->dias_vencido = $saldo->FechaV ? Carbon::parse($saldo->FechaV)->diffInDays(Carbon::now(), false) : null;
+                $saldo->clasificacion_edad = $saldo->dias_vencido === null ? 'SIN_FECHA' : $this->clasificarEdadDeuda($saldo->dias_vencido);
             }
 
             // Totales
@@ -178,7 +203,7 @@ class LibroClientesController extends Controller
                 'facturas_pendientes' => $saldoPendiente->count()
             ];
 
-            // Clasificación de cartera
+            // Clasificación de cartera (usar colecciones en lugar de array_column)
             $clasificacionCartera = [
                 'VIGENTE' => $saldoPendiente->where('dias_vencido', '<=', 0)->sum('Saldo'),
                 '1_30_DIAS' => $saldoPendiente->whereBetween('dias_vencido', [1, 30])->sum('Saldo'),
@@ -193,6 +218,8 @@ class LibroClientesController extends Controller
             ));
 
         } catch (\Exception $e) {
+            Log::error('Error en LibroClientesController@estadoCuenta: ' . $e->getMessage());
+            Log::error($e->getTraceAsString());
             return redirect()->back()->with('error', 'Error al cargar estado de cuenta: ' . $e->getMessage());
         }
     }
@@ -227,43 +254,50 @@ class LibroClientesController extends Controller
                 ])
                 ->get();
 
-            // Clasificar por edad
-            $clasificacionEdad = [];
-            $totalCartera = 0;
+            // Clasificar por edad usando colecciones
+            $clasificacionEdad = [
+                'VIGENTE' => collect(),
+                '1_30_DIAS' => collect(),
+                '31_60_DIAS' => collect(),
+                '61_90_DIAS' => collect(),
+                'MAS_90_DIAS' => collect()
+            ];
+            $totalCartera = 0.0;
 
             foreach ($saldosPendientes as $saldo) {
-                $diasVencido = Carbon::parse($saldo->FechaV)->diffInDays(Carbon::now(), false);
+                $diasVencido = $saldo->FechaV ? Carbon::parse($saldo->FechaV)->diffInDays(Carbon::now(), false) : null;
                 $saldo->dias_vencido = $diasVencido;
-                
-                if ($diasVencido <= 0) {
-                    $clasificacionEdad['VIGENTE'][] = $saldo;
+                $totalCartera += (float)$saldo->Saldo;
+
+                if ($diasVencido === null) {
+                    $clasificacionEdad['VIGENTE']->push($saldo);
+                } elseif ($diasVencido <= 0) {
+                    $clasificacionEdad['VIGENTE']->push($saldo);
                 } elseif ($diasVencido <= 30) {
-                    $clasificacionEdad['1_30_DIAS'][] = $saldo;
+                    $clasificacionEdad['1_30_DIAS']->push($saldo);
                 } elseif ($diasVencido <= 60) {
-                    $clasificacionEdad['31_60_DIAS'][] = $saldo;
+                    $clasificacionEdad['31_60_DIAS']->push($saldo);
                 } elseif ($diasVencido <= 90) {
-                    $clasificacionEdad['61_90_DIAS'][] = $saldo;
+                    $clasificacionEdad['61_90_DIAS']->push($saldo);
                 } else {
-                    $clasificacionEdad['MAS_90_DIAS'][] = $saldo;
+                    $clasificacionEdad['MAS_90_DIAS']->push($saldo);
                 }
-                
-                $totalCartera += $saldo->Saldo;
             }
 
-            // Calcular totales por clasificación
+            // Calcular totales por clasificación con colecciones
             $totalesClasificacion = [];
             foreach ($clasificacionEdad as $categoria => $saldos) {
                 $totalesClasificacion[$categoria] = [
-                    'cantidad_clientes' => count(array_unique(array_column($saldos, 'CodClie'))),
-                    'cantidad_documentos' => count($saldos),
-                    'saldo_total' => array_sum(array_column($saldos, 'Saldo')),
-                    'porcentaje' => $totalCartera > 0 ? (array_sum(array_column($saldos, 'Saldo')) / $totalCartera) * 100 : 0
+                    'cantidad_clientes' => $saldos->pluck('CodClie')->unique()->count(),
+                    'cantidad_documentos' => $saldos->count(),
+                    'saldo_total' => $saldos->sum('Saldo'),
+                    'porcentaje' => $totalCartera > 0 ? ($saldos->sum('Saldo') / $totalCartera) * 100 : 0
                 ];
             }
 
-            // Clientes críticos (más de 60 días)
-            $clientesCriticos = collect($clasificacionEdad['MAS_90_DIAS'] ?? [])
-                ->merge($clasificacionEdad['61_90_DIAS'] ?? [])
+            // Clientes críticos (más de 90 días)
+            $clientesCriticos = $clasificacionEdad['MAS_90_DIAS']
+                ->merge($clasificacionEdad['61_90_DIAS'])
                 ->sortByDesc('Saldo')
                 ->take(20);
 
@@ -273,6 +307,8 @@ class LibroClientesController extends Controller
             ));
 
         } catch (\Exception $e) {
+            Log::error('Error en LibroClientesController@clasificacionEdad: ' . $e->getMessage());
+            Log::error($e->getTraceAsString());
             return redirect()->back()->with('error', 'Error en clasificación de edad: ' . $e->getMessage());
         }
     }
@@ -322,6 +358,8 @@ class LibroClientesController extends Controller
             ));
 
         } catch (\Exception $e) {
+            Log::error('Error en LibroClientesController@analisisPorZona: ' . $e->getMessage());
+            Log::error($e->getTraceAsString());
             return redirect()->back()->with('error', 'Error en análisis por zona: ' . $e->getMessage());
         }
     }
@@ -338,7 +376,10 @@ class LibroClientesController extends Controller
             // Analizar comportamiento de pago
             $comportamientoPago = DB::table('CtaCliente as cc')
                 ->leftJoin('Clientes as c', 'cc.CodClie', '=', 'c.Codclie')
-                ->leftJoin('Doccab as dc', 'cc.Documento', '=', 'dc.Numero')
+                ->leftJoin('Doccab as dc', function($join) {
+                    $join->on('cc.Documento', '=', 'dc.Numero')
+                         ->on('cc.Tipo', '=', 'dc.Tipo');
+                })
                 ->whereBetween('cc.FechaF', [$fechaInicio, $fechaFin])
                 ->select([
                     'cc.CodClie',
@@ -352,18 +393,18 @@ class LibroClientesController extends Controller
                 ])
                 ->get();
 
-            // Calcular días de pago promedio por cliente
+            // Calcular días de pago promedio por cliente (solo documentos pagados en el período)
             $diasPagoPorCliente = [];
             foreach ($comportamientoPago->groupBy('CodClie') as $clienteId => $documentos) {
                 $diasPago = [];
                 foreach ($documentos as $doc) {
-                    if ($doc->Saldo <= 0) { // Documento pagado
-                        $dias_pago = Carbon::parse($doc->fecha_facturacion)
-                            ->diffInDays(Carbon::now()); // Días hasta ahora (asumiendo pago)
+                    // Consideramos documento pagado si Saldo <= 0
+                    if (($doc->Saldo ?? 0) <= 0 && !empty($doc->fecha_facturacion)) {
+                        $dias_pago = Carbon::parse($doc->fecha_facturacion)->diffInDays(Carbon::now());
                         $diasPago[] = $dias_pago;
                     }
                 }
-                
+
                 if (count($diasPago) > 0) {
                     $diasPagoPorCliente[$clienteId] = [
                         'cliente' => $documentos->first()->Razon,
@@ -398,6 +439,8 @@ class LibroClientesController extends Controller
             ));
 
         } catch (\Exception $e) {
+            Log::error('Error en LibroClientesController@comportamientoPago: ' . $e->getMessage());
+            Log::error($e->getTraceAsString());
             return redirect()->back()->with('error', 'Error en análisis de comportamiento: ' . $e->getMessage());
         }
     }
@@ -414,7 +457,11 @@ class LibroClientesController extends Controller
             // Calcular rentabilidad por cliente
             $rentabilidadClientes = DB::table('Doccab as dc')
                 ->leftJoin('Clientes as c', 'dc.CodClie', '=', 'c.Codclie')
-                ->leftJoin('Docdet as dd', 'dc.Numero', '=', 'dd.Numero')
+                // Unir docdet por NUMERO y TIPO para evitar mezclar líneas de otros tipos de documento
+                ->leftJoin('Docdet as dd', function($join) {
+                    $join->on('dc.Numero', '=', 'dd.Numero')
+                         ->on('dc.Tipo', '=', 'dd.Tipo');
+                })
                 ->leftJoin('Empleados as e', 'dc.Vendedor', '=', 'e.Codemp')
                 ->whereBetween('dc.Fecha', [$fechaInicio, $fechaFin])
                 ->where('dc.Tipo', 1) // Ventas
@@ -428,7 +475,7 @@ class LibroClientesController extends Controller
                     DB::raw('COUNT(DISTINCT dc.Numero) as cantidad_facturas'),
                     DB::raw('SUM(CAST(dc.Total as MONEY)) as total_ventas'),
                     DB::raw('SUM(CAST(dd.Costo as MONEY) * dd.Cantidad) as costo_ventas'),
-                    DB::raw('SUM(CAST(dc.Total as MONEY)) - SUM(CAST(dd.Costo as MONEY) * dd.Cantidad) as utilidad_bruta')
+                    DB::raw('(SUM(CAST(dc.Total as MONEY)) - SUM(CAST(dd.Costo as MONEY) * dd.Cantidad)) as utilidad_bruta')
                 ])
                 ->groupBy('c.Codclie', 'c.Razon', 'c.Zona', 'dc.Vendedor', 'e.Nombre')
                 ->orderBy('total_ventas', 'desc')
@@ -436,9 +483,9 @@ class LibroClientesController extends Controller
 
             // Calcular margen y otras métricas
             foreach ($rentabilidadClientes as $cliente) {
-                $cliente->margen_bruto = $cliente->total_ventas > 0 ? 
+                $cliente->margen_bruto = $cliente->total_ventas > 0 ?
                     ($cliente->utilidad_bruta / $cliente->total_ventas) * 100 : 0;
-                
+
                 $cliente->promedio_factura = $cliente->cantidad_facturas > 0 ?
                     $cliente->total_ventas / $cliente->cantidad_facturas : 0;
             }
@@ -453,6 +500,8 @@ class LibroClientesController extends Controller
             ));
 
         } catch (\Exception $e) {
+            Log::error('Error en LibroClientesController@rentabilidad: ' . $e->getMessage());
+            Log::error($e->getTraceAsString());
             return redirect()->back()->with('error', 'Error en análisis de rentabilidad: ' . $e->getMessage());
         }
     }
@@ -478,16 +527,14 @@ class LibroClientesController extends Controller
             ->sum('Saldo') ?? 0;
     }
 
-    
     private function obtenerClientesConDeuda()
     {
         return DB::table('CtaCliente')
             ->where('Saldo', '>', 0)
-            ->distinct('CodClie')
+            ->distinct()
             ->count('CodClie');
     }
 
-    
     private function obtenerMayorDeudor()
     {
         return DB::table('CtaCliente as cc')
@@ -498,9 +545,9 @@ class LibroClientesController extends Controller
             ->first();
     }
 
-  
     private function clasificarEdadDeuda($diasVencido)
     {
+        if ($diasVencido === null) return 'SIN_FECHA';
         if ($diasVencido <= 0) return 'VIGENTE';
         if ($diasVencido <= 30) return '1-30 DÍAS';
         if ($diasVencido <= 60) return '31-60 DÍAS';
@@ -508,7 +555,6 @@ class LibroClientesController extends Controller
         return 'MÁS DE 90 DÍAS';
     }
 
-    
     private function obtenerCarteraVencidaZona($zona, $fechaInicio, $fechaFin)
     {
         return DB::table('CtaCliente as cc')
@@ -519,7 +565,6 @@ class LibroClientesController extends Controller
             ->sum('cc.Saldo') ?? 0;
     }
 
-    
     private function obtenerVentasZona($zona, $fechaInicio, $fechaFin)
     {
         return DB::table('Doccab as dc')

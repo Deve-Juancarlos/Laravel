@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Contabilidad;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
 
 class LibroMayorController extends Controller
@@ -19,12 +20,24 @@ class LibroMayorController extends Controller
             $fechaFin = $request->input('fecha_fin', Carbon::now()->endOfMonth()->format('Y-m-d'));
             $cuenta = $request->input('cuenta');
 
-            // Resumen por cuentas
-            $query = DB::table('libro_diario_detalles as dld')
+            // Si las fechas vienen invertidas, las intercambiamos para evitar consultas vacías
+            if (Carbon::parse($fechaInicio)->gt(Carbon::parse($fechaFin))) {
+                [$fechaInicio, $fechaFin] = [$fechaFin, $fechaInicio];
+            }
+
+            // Construyo la query base (reutilizable para totals y para el group/paginate)
+            $baseQuery = DB::table('libro_diario_detalles as dld')
                 ->join('libro_diario as ld', 'dld.asiento_id', '=', 'ld.id')
                 ->leftJoin('plan_cuentas as pc', 'dld.cuenta_contable', '=', 'pc.codigo')
                 ->whereBetween('ld.fecha', [$fechaInicio, $fechaFin])
-                ->where('ld.estado', 'ACTIVO')
+                ->where('ld.estado', 'ACTIVO');
+
+            if ($cuenta) {
+                $baseQuery->where('dld.cuenta_contable', 'like', "%$cuenta%");
+            }
+
+            // Query agrupada por cuenta (para paginar)
+            $groupQuery = (clone $baseQuery)
                 ->select([
                     'dld.cuenta_contable as cuenta',
                     'pc.nombre as cuenta_nombre',
@@ -32,28 +45,33 @@ class LibroMayorController extends Controller
                     DB::raw('COUNT(dld.id) as movimientos'),
                     DB::raw('SUM(CAST(dld.debe AS DECIMAL(15,2))) as total_debe'),
                     DB::raw('SUM(CAST(dld.haber AS DECIMAL(15,2))) as total_haber')
-                ]);
+                ])
+                ->groupBy('dld.cuenta_contable', 'pc.nombre', 'pc.tipo')
+                ->orderBy('dld.cuenta_contable');
 
-            if ($cuenta) {
-                $query->where('dld.cuenta_contable', 'like', "%$cuenta%");
-            }
+            $cuentas = $groupQuery->paginate(50);
 
-            $cuentas = $query->groupBy('dld.cuenta_contable', 'pc.nombre', 'pc.tipo')
-                ->orderBy('dld.cuenta_contable')
-                ->paginate(50);
-
-            // Calcular saldo para cada cuenta
+            // Calcular saldo y naturaleza para cada registro de la página
             foreach ($cuentas as $item) {
-                $item->saldo = ($item->total_debe ?? 0) - ($item->total_haber ?? 0);
+                $item->saldo = (float) (($item->total_debe ?? 0) - ($item->total_haber ?? 0));
                 $item->naturaleza = $this->determinarNaturaleza($item->cuenta);
             }
 
-            // Totales generales
+            // Totales globales: calculados con una consulta agregada que respeta los mismos filtros
+            $globalTotals = (clone $baseQuery)
+                ->selectRaw('
+                    COUNT(DISTINCT dld.cuenta_contable) as total_cuentas,
+                    SUM(CAST(dld.debe AS DECIMAL(25,2))) as total_debe,
+                    SUM(CAST(dld.haber AS DECIMAL(25,2))) as total_haber
+                ')
+                ->first();
+
             $totales = (object)[
-                'total_cuentas' => $cuentas->total(),
-                'total_debe' => $cuentas->sum('total_debe'),
-                'total_haber' => $cuentas->sum('total_haber'),
-                'diferencia' => $cuentas->sum('total_debe') - $cuentas->sum('total_haber')
+                'total_cuentas' => (int)($globalTotals->total_cuentas ?? 0),
+                // Los siguientes totales son los globales (no sólo de la página)
+                'total_debe' => round((float)($globalTotals->total_debe ?? 0), 2),
+                'total_haber' => round((float)($globalTotals->total_haber ?? 0), 2),
+                'diferencia' => round(((float)($globalTotals->total_debe ?? 0) - (float)($globalTotals->total_haber ?? 0)), 2)
             ];
 
             return view('contabilidad.libros.mayor.index', compact(
@@ -65,7 +83,8 @@ class LibroMayorController extends Controller
             ));
 
         } catch (\Exception $e) {
-            \Log::error('Error en Libro Mayor: ' . $e->getMessage());
+            Log::error('Error en Libro Mayor: ' . $e->getMessage());
+            Log::error($e->getTraceAsString());
             return redirect()->back()->with('error', 'Error al cargar el libro mayor: ' . $e->getMessage());
         }
     }
@@ -78,6 +97,11 @@ class LibroMayorController extends Controller
         try {
             $fechaInicio = $request->input('fecha_inicio', Carbon::now()->startOfYear()->format('Y-m-d'));
             $fechaFin = $request->input('fecha_fin', Carbon::now()->format('Y-m-d'));
+
+            // Asegurar orden de fechas
+            if (Carbon::parse($fechaInicio)->gt(Carbon::parse($fechaFin))) {
+                [$fechaInicio, $fechaFin] = [$fechaFin, $fechaInicio];
+            }
 
             // Información de la cuenta
             $infoCuenta = DB::table('plan_cuentas')
@@ -101,7 +125,7 @@ class LibroMayorController extends Controller
                 ')
                 ->first();
 
-            $saldoAnterior = ($saldoInicial->debe_inicial ?? 0) - ($saldoInicial->haber_inicial ?? 0);
+            $saldoAnterior = (float)(($saldoInicial->debe_inicial ?? 0) - ($saldoInicial->haber_inicial ?? 0));
 
             // Movimientos del período
             $movimientos = DB::table('libro_diario_detalles as dld')
@@ -114,8 +138,8 @@ class LibroMayorController extends Controller
                     'ld.fecha',
                     'ld.glosa as glosa_general',
                     'dld.concepto',
-                    'dld.debe',
-                    'dld.haber',
+                    DB::raw('CAST(dld.debe AS DECIMAL(25,2)) as debe'),
+                    DB::raw('CAST(dld.haber AS DECIMAL(25,2)) as haber'),
                     'dld.documento_referencia'
                 ])
                 ->orderBy('ld.fecha')
@@ -125,15 +149,15 @@ class LibroMayorController extends Controller
             // Calcular saldos acumulados
             $saldoAcumulado = $saldoAnterior;
             foreach ($movimientos as $mov) {
-                $saldoAcumulado += ($mov->debe ?? 0) - ($mov->haber ?? 0);
-                $mov->saldo_acumulado = $saldoAcumulado;
+                $saldoAcumulado += ((float)($mov->debe ?? 0) - (float)($mov->haber ?? 0));
+                $mov->saldo_acumulado = round($saldoAcumulado, 2);
             }
 
             // Totales del período
             $totalesPeriodo = [
-                'debe' => $movimientos->sum('debe'),
-                'haber' => $movimientos->sum('haber'),
-                'saldo_final' => $saldoAcumulado
+                'debe' => round($movimientos->sum(function($m){ return (float)($m->debe ?? 0); }), 2),
+                'haber' => round($movimientos->sum(function($m){ return (float)($m->haber ?? 0); }), 2),
+                'saldo_final' => round($saldoAcumulado, 2)
             ];
 
             return view('contabilidad.libros.mayor.cuenta', compact(
@@ -147,7 +171,8 @@ class LibroMayorController extends Controller
             ));
 
         } catch (\Exception $e) {
-            \Log::error('Error al cargar cuenta: ' . $e->getMessage());
+            Log::error('Error al cargar cuenta: ' . $e->getMessage());
+            Log::error($e->getTraceAsString());
             return redirect()->back()->with('error', 'Error al cargar la cuenta: ' . $e->getMessage());
         }
     }
@@ -162,6 +187,10 @@ class LibroMayorController extends Controller
             $fechaFin = $request->input('fecha_fin', Carbon::now()->endOfMonth()->format('Y-m-d'));
             $tipo = $request->input('tipo', 'resumen'); // resumen o detallado
 
+            if (Carbon::parse($fechaInicio)->gt(Carbon::parse($fechaFin))) {
+                [$fechaInicio, $fechaFin] = [$fechaFin, $fechaInicio];
+            }
+
             if ($tipo === 'resumen') {
                 return $this->exportarResumen($fechaInicio, $fechaFin);
             } else {
@@ -169,7 +198,8 @@ class LibroMayorController extends Controller
             }
 
         } catch (\Exception $e) {
-            \Log::error('Error al exportar: ' . $e->getMessage());
+            Log::error('Error al exportar: ' . $e->getMessage());
+            Log::error($e->getTraceAsString());
             return redirect()->back()->with('error', 'Error al exportar: ' . $e->getMessage());
         }
     }
@@ -208,7 +238,6 @@ class LibroMayorController extends Controller
 
         $callback = function() use ($datos, $fechaInicio, $fechaFin) {
             $file = fopen('php://output', 'w');
-            
             // BOM para UTF-8
             fprintf($file, chr(0xEF).chr(0xBB).chr(0xBF));
 
@@ -230,14 +259,13 @@ class LibroMayorController extends Controller
                 'Naturaleza'
             ]);
 
-            // Datos
             $totalDebe = 0;
             $totalHaber = 0;
-            
+
             foreach ($datos as $row) {
-                $saldo = ($row->total_debe ?? 0) - ($row->total_haber ?? 0);
+                $saldo = (float)(($row->total_debe ?? 0) - ($row->total_haber ?? 0));
                 $naturaleza = $this->determinarNaturaleza($row->cuenta_contable);
-                
+
                 fputcsv($file, [
                     $row->cuenta_contable,
                     $row->cuenta_nombre ?? 'Sin nombre',
@@ -249,8 +277,8 @@ class LibroMayorController extends Controller
                     $naturaleza
                 ]);
 
-                $totalDebe += $row->total_debe ?? 0;
-                $totalHaber += $row->total_haber ?? 0;
+                $totalDebe += (float)($row->total_debe ?? 0);
+                $totalHaber += (float)($row->total_haber ?? 0);
             }
 
             // Totales
@@ -310,7 +338,7 @@ class LibroMayorController extends Controller
 
         $callback = function() use ($datos, $fechaInicio, $fechaFin) {
             $file = fopen('php://output', 'w');
-            
+
             fprintf($file, chr(0xEF).chr(0xBB).chr(0xBF));
 
             fputcsv($file, ['LIBRO MAYOR - DETALLADO']);
@@ -378,6 +406,10 @@ class LibroMayorController extends Controller
             $fechaInicio = $request->input('fecha_inicio', Carbon::now()->startOfYear()->format('Y-m-d'));
             $fechaFin = $request->input('fecha_fin', Carbon::now()->format('Y-m-d'));
 
+            if (Carbon::parse($fechaInicio)->gt(Carbon::parse($fechaFin))) {
+                [$fechaInicio, $fechaFin] = [$fechaFin, $fechaInicio];
+            }
+
             $infoCuenta = DB::table('plan_cuentas')
                 ->where('codigo', $codigoCuenta)
                 ->first();
@@ -394,7 +426,7 @@ class LibroMayorController extends Controller
                 ')
                 ->first();
 
-            $saldoAnterior = ($saldoInicial->debe_inicial ?? 0) - ($saldoInicial->haber_inicial ?? 0);
+            $saldoAnterior = (float)(($saldoInicial->debe_inicial ?? 0) - ($saldoInicial->haber_inicial ?? 0));
 
             // Movimientos
             $movimientos = DB::table('libro_diario_detalles as dld')
@@ -440,7 +472,7 @@ class LibroMayorController extends Controller
 
                 foreach ($movimientos as $mov) {
                     $saldoAcumulado += ($mov->debe ?? 0) - ($mov->haber ?? 0);
-                    
+
                     fputcsv($file, [
                         $mov->numero,
                         Carbon::parse($mov->fecha)->format('d/m/Y'),
@@ -457,10 +489,10 @@ class LibroMayorController extends Controller
                 }
 
                 fputcsv($file, []);
-                fputcsv($file, ['TOTALES', '', '', '', 
-                    number_format($totalDebe, 2, '.', ''), 
-                    number_format($totalHaber, 2, '.', ''), 
-                    number_format($saldoAcumulado, 2, '.', ''), 
+                fputcsv($file, ['TOTALES', '', '', '',
+                    number_format($totalDebe, 2, '.', ''),
+                    number_format($totalHaber, 2, '.', ''),
+                    number_format($saldoAcumulado, 2, '.', ''),
                     ''
                 ]);
 
@@ -470,7 +502,8 @@ class LibroMayorController extends Controller
             return response()->stream($callback, 200, $headers);
 
         } catch (\Exception $e) {
-            \Log::error('Error al exportar cuenta: ' . $e->getMessage());
+            Log::error('Error al exportar cuenta: ' . $e->getMessage());
+            Log::error($e->getTraceAsString());
             return redirect()->back()->with('error', 'Error al exportar: ' . $e->getMessage());
         }
     }
@@ -483,6 +516,10 @@ class LibroMayorController extends Controller
         try {
             $fechaInicio = $request->input('fecha_inicio', Carbon::now()->startOfYear()->format('Y-m-d'));
             $fechaFin = $request->input('fecha_fin', Carbon::now()->format('Y-m-d'));
+
+            if (Carbon::parse($fechaInicio)->gt(Carbon::parse($fechaFin))) {
+                [$fechaInicio, $fechaFin] = [$fechaFin, $fechaInicio];
+            }
 
             $balance = DB::table('libro_diario_detalles as dld')
                 ->join('libro_diario as ld', 'dld.asiento_id', '=', 'ld.id')
@@ -501,16 +538,16 @@ class LibroMayorController extends Controller
                 ->get();
 
             foreach ($balance as $item) {
-                $item->saldo = ($item->debe ?? 0) - ($item->haber ?? 0);
+                $item->saldo = (float)(($item->debe ?? 0) - ($item->haber ?? 0));
                 $item->deudor = $item->saldo > 0 ? $item->saldo : 0;
                 $item->acreedor = $item->saldo < 0 ? abs($item->saldo) : 0;
             }
 
             $totales = [
-                'debe' => $balance->sum('debe'),
-                'haber' => $balance->sum('haber'),
-                'deudor' => $balance->sum('deudor'),
-                'acreedor' => $balance->sum('acreedor')
+                'debe' => round($balance->sum('debe'), 2),
+                'haber' => round($balance->sum('haber'), 2),
+                'deudor' => round($balance->sum('deudor'), 2),
+                'acreedor' => round($balance->sum('acreedor'), 2)
             ];
 
             return view('contabilidad.libros.mayor.balance-comprobacion', compact(
@@ -521,7 +558,8 @@ class LibroMayorController extends Controller
             ));
 
         } catch (\Exception $e) {
-            \Log::error('Error en Balance de Comprobación: ' . $e->getMessage());
+            Log::error('Error en Balance de Comprobación: ' . $e->getMessage());
+            Log::error($e->getTraceAsString());
             return redirect()->back()->with('error', 'Error al generar balance: ' . $e->getMessage());
         }
     }
@@ -531,8 +569,8 @@ class LibroMayorController extends Controller
      */
     private function determinarNaturaleza($codigoCuenta)
     {
-        $primerDigito = substr($codigoCuenta, 0, 1);
-        
+        $primerDigito = substr((string)$codigoCuenta, 0, 1);
+
         switch ($primerDigito) {
             case '1': // Activo
             case '6': // Gastos

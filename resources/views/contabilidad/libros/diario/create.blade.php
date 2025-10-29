@@ -3,6 +3,10 @@
 
 @section('title', 'Nuevo Asiento - Libro Diario')
 
+@push('styles')
+    <link href="{{ asset('css/contabilidad/libro-diario-create.css') }}" rel="stylesheet">
+@endpush
+
 @section('content')
 <div class="container-fluid p-0">
     {{-- Header --}}
@@ -266,30 +270,49 @@
 
         row.innerHTML = `
             <td>
-                <select name="detalles[${cuentaActual}][cuenta_contable]" class="form-select form-select-sm" onchange="actualizarBalance()">
-                    <option value="">Seleccionar...</option>
+                <select name="detalles[${cuentaActual}][cuenta_contable]" 
+                        class="form-select form-select-sm" 
+                        onchange="actualizarBalance()" 
+                        required>
+                    <option value="" disabled selected>Seleccionar cuenta...</option>
                     ${generarOpcionesCuentas()}
                 </select>
-                <div class="mt-1" id="badge-${cuentaActual}"></div> <!-- Contenedor del badge -->
+
+                <div class="mt-1">
+                    <button type="button" class="btn btn-sm btn-outline-success me-1"
+                            onclick="seleccionarCuenta(${cuentaActual}, '1011')">
+                            Efectivo
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-primary"
+                            onclick="seleccionarCuenta(${cuentaActual}, '10411')">
+                            Banco
+                    </button>
+                </div>
+
+                <div class="mt-1" id="badge-${cuentaActual}"></div>
             </td>
             <td>
                 <input type="text" name="detalles[${cuentaActual}][concepto]" 
-                    class="form-control form-control-sm" placeholder="Concepto">
+                    class="form-control form-control-sm" 
+                    placeholder="Concepto" 
+                    required>
             </td>
             <td>
                 <input type="number" name="detalles[${cuentaActual}][debe]" 
-                    class="form-control form-control-sm text-end" step="0.01" min="0" value="0"
+                    class="form-control form-control-sm text-end" 
+                    step="0.01" min="0" value="0"
                     onchange="actualizarBalance(); actualizarBadges(${cuentaActual})">
             </td>
             <td>
                 <input type="number" name="detalles[${cuentaActual}][haber]" 
-                    class="form-control form-control-sm text-end" step="0.01" min="0" value="0"
+                    class="form-control form-control-sm text-end" 
+                    step="0.01" min="0" value="0"
                     onchange="actualizarBalance(); actualizarBadges(${cuentaActual})">
             </td>
             <td>
                 <input type="text" name="detalles[${cuentaActual}][documento_referencia]" 
-                    class="form-control form-control-sm" placeholder="Cheque/Nro doc"
-                    onchange="actualizarBadges(${cuentaActual})">
+                    class="form-control form-control-sm" 
+                    placeholder="Cheque/Nro doc">
             </td>
             <td>
                 <button type="button" onclick="eliminarFila(${cuentaActual})" 
@@ -432,5 +455,14 @@
     function guardarBorrador() {
         alert('Función de borrador暂时未实现 (Función de borrador temporalmente no implementada)');
     }
+
+    function seleccionarCuenta(id, codigoCuenta) {
+        const select = document.querySelector(`#detalle-${id} [name*='cuenta_contable']`);
+        if (select) {
+            select.value = codigoCuenta;
+            actualizarBalance();
+            actualizarBadges(id);
+        }
+}
 </script>
 @endpush

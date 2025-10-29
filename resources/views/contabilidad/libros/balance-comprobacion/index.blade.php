@@ -3,96 +3,86 @@
 @section('title', 'Balance de Comprobación - SIFANO')
 
 @section('styles')
-<style>
-    .balance-header {
-        background: linear-gradient(135deg, #1e3a8a 0%, #3730a3 100%);
-        color: white;
-        padding: 30px;
-        border-radius: 15px;
-        margin-bottom: 30px;
-        text-align: center;
-    }
-    
-    .balance-table {
-        background: white;
-        border-radius: 15px;
-        overflow: hidden;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-        margin-bottom: 30px;
-    }
-    
-    .balance-table table {
-        margin-bottom: 0;
-    }
-    
-    .balance-table th {
-        background: #f8fafc;
-        border: none;
-        padding: 15px 12px;
-        font-weight: 700;
-        color: #374151;
-        text-transform: uppercase;
-        font-size: 0.85rem;
-        letter-spacing: 0.5px;
-    }
-    
-    .balance-table td {
-        padding: 12px;
-        border-color: #e5e7eb;
-        vertical-align: middle;
-    }
-    
-    .total-row {
-        background: #f3f4f6 !important;
-        font-weight: 700;
-        border-top: 3px solid #1e3a8a !important;
-    }
-    
-    .cuadra-badge {
-        padding: 8px 16px;
-        border-radius: 20px;
-        font-weight: 600;
-        font-size: 0.9rem;
-    }
-    
-    .cuadra-true {
-        background: #d1fae5;
-        color: #065f46;
-    }
-    
-    .cuadra-false {
-        background: #fee2e2;
-        color: #991b1b;
-    }
-    
-    .stat-card {
-        background: white;
-        border-radius: 12px;
-        padding: 25px;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-        border-left: 4px solid #1e3a8a;
-        margin-bottom: 20px;
-        transition: transform 0.2s ease;
-    }
-    
-    .stat-card:hover {
-        transform: translateY(-2px);
-    }
-    
-    .stat-value {
-        font-size: 2rem;
-        font-weight: 700;
-        color: #1e3a8a;
-        margin-bottom: 5px;
-    }
-    
-    .stat-label {
-        color: #6b7280;
-        font-size: 0.9rem;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-    }
-</style>
+    <link href="{{ asset('css/contabilidad/balance-comprobacion.css') }}" rel="stylesheet">
+@endsection
+
+@section('sidebar-menu')
+{{-- MENÚ PRINCIPAL --}}
+<div class="nav-section">Dashboard</div>
+<ul>
+    <li><a href="{{ route('dashboard.contador') }}" class="nav-link active">
+        <i class="fas fa-chart-pie"></i> Panel Principal
+    </a></li>
+</ul>
+
+{{-- CONTABILIDAD --}}
+<div class="nav-section">Contabilidad</div>
+<ul>
+    <li>
+        <a href="{{ route('contador.libro-diario.index') }}" class="nav-link has-submenu">
+            <i class="fas fa-book"></i> Libros Contables
+        </a>
+        <div class="nav-submenu">
+            <a href="{{ route('contador.libro-diario.index') }}" class="nav-link"><i class="fas fa-file-alt"></i> Libro Diario</a>
+            <a href="{{ route('contador.libro-mayor.index') }}" class="nav-link"><i class="fas fa-book-open"></i> Libro Mayor</a>
+            <a href="{{route('contador.balance-comprobacion.index')}}" class="nav-link"><i class="fas fa-balance-scale"></i> Balance Comprobación</a>    
+            <a href="{{ route('contador.estado-resultados.index') }}" class="nav-link"><i class="fas fa-chart-bar"></i> Estados Financieros</a>
+        </div>
+    </li>
+    <li>
+        <a href="#" class="nav-link has-submenu">
+            <i class="fas fa-file-invoice"></i> Registros
+        </a>
+        <div class="nav-submenu">
+            <a href="#" class="nav-link"><i class="fas fa-shopping-cart"></i> Compras</a>
+            <a href="#" class="nav-link"><i class="fas fa-cash-register"></i> Ventas</a>
+            <a href="#" class="nav-link"><i class="fas fa-university"></i> Bancos</a>
+            <a href="#" class="nav-link"><i class="fas fa-money-bill-wave"></i> Caja</a>
+        </div>
+    </li>
+</ul>
+
+{{-- VENTAS Y COBRANZAS --}}
+<div class="nav-section">Ventas & Cobranzas</div>
+<ul>
+    <li><a href="{{ route('contador.reportes.ventas') }}" class="nav-link">
+        <i class="fas fa-chart-line"></i> Análisis Ventas
+    </a></li>
+    <li><a href="{{ route('contador.reportes.compras') }}" class="nav-link">
+        <i class="fas fa-wallet"></i> Cartera
+    </a></li>
+    <li><a href="{{ route('contador.facturas.create') }}" class="nav-link">
+        <i class="fas fa-clock"></i> Fact. Pendientes
+    </a></li>
+    <li><a href="{{ route('contador.facturas.index') }}" class="nav-link">
+        <i class="fas fa-exclamation-triangle"></i> Fact. Vencidas
+    </a></li>
+</ul>
+
+{{-- GESTIÓN --}}
+<div class="nav-section">Gestión</div>
+<ul>
+    <li><a href="{{ route('contador.clientes') }}" class="nav-link">
+        <i class="fas fa-users"></i> Clientes
+    </a></li>
+    <li><a href="{{ route('contador.reportes.medicamentos-controlados') }}" class="nav-link">
+        <i class="fas fa-percentage"></i> Márgenes
+    </a></li>
+    <li><a href="{{ route('contador.reportes.inventario') }}" class="nav-link">
+        <i class="fas fa-boxes"></i> Inventario
+    </a></li>
+</ul>
+
+{{-- REPORTES SUNAT --}}
+<div class="nav-section">SUNAT</div>
+<ul>
+    <li><a href="#" class="nav-link">
+        <i class="fas fa-file-invoice-dollar"></i> PLE
+    </a></li>
+    <li><a href="#" class="nav-link">
+        <i class="fas fa-percent"></i> IGV Mensual
+    </a></li>
+</ul>
 @endsection
 
 @section('content')

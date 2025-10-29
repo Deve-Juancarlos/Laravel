@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
 
 class LibroProveedoresController extends Controller
@@ -52,7 +53,7 @@ class LibroProveedoresController extends Controller
             ->orderBy('c.Razon')
             ->paginate(50);
 
-            // Obtener saldos por proveedor
+            // Obtener saldos por proveedor (nota: puede generar N queries por página)
             $saldosPorProveedor = [];
             foreach ($proveedores as $proveedorItem) {
                 $saldosPorProveedor[$proveedorItem->Codclie] = $this->obtenerSaldosProveedor($proveedorItem->Codclie);
@@ -76,6 +77,8 @@ class LibroProveedoresController extends Controller
             ));
 
         } catch (\Exception $e) {
+            Log::error('Error en LibroProveedoresController@index: ' . $e->getMessage());
+            Log::error($e->getTraceAsString());
             return redirect()->back()->with('error', 'Error al cargar el libro de proveedores: ' . $e->getMessage());
         }
     }
@@ -132,7 +135,7 @@ class LibroProveedoresController extends Controller
 
             // Pagos realizados al proveedor
             $pagos = DB::table('Caja as c')
-                ->where('c.Razon', $proveedorId)
+                ->where('c.Razon', $proveedorId) // en tu esquema Caja.Razon es int con CodClie
                 ->where('c.Tipo', 2) // Egresos = Pagos
                 ->whereBetween('c.Fecha', [$fechaInicio, $fechaFin])
                 ->select([
@@ -160,10 +163,10 @@ class LibroProveedoresController extends Controller
                 ])
                 ->get();
 
-            // Calcular días de vencimiento
+            // Calcular días de vencimiento (manejar nulls con seguridad)
             foreach ($saldoPendiente as $saldo) {
-                $saldo->dias_vencido = Carbon::parse($saldo->FechaV)->diffInDays(Carbon::now(), false);
-                $saldo->clasificacion_vencimiento = $this->clasificarVencimiento($saldo->dias_vencido);
+                $saldo->dias_vencido = $saldo->FechaV ? Carbon::parse($saldo->FechaV)->diffInDays(Carbon::now(), false) : null;
+                $saldo->clasificacion_vencimiento = $saldo->dias_vencido === null ? 'SIN_FECHA' : $this->clasificarVencimiento($saldo->dias_vencido);
             }
 
             // Totales
@@ -174,7 +177,7 @@ class LibroProveedoresController extends Controller
                 'compras_pendientes' => $saldoPendiente->count()
             ];
 
-            // Clasificación de cuentas por pagar
+            // Clasificación de cuentas por pagar (con collection helpers en lugar de array_column)
             $clasificacionVencimiento = [
                 'POR_VENCER' => $saldoPendiente->where('dias_vencido', '<=', 0)->sum('Saldo'),
                 '1_15_DIAS' => $saldoPendiente->whereBetween('dias_vencido', [1, 15])->sum('Saldo'),
@@ -189,6 +192,8 @@ class LibroProveedoresController extends Controller
             ));
 
         } catch (\Exception $e) {
+            Log::error('Error en LibroProveedoresController@estadoCuenta: ' . $e->getMessage());
+            Log::error($e->getTraceAsString());
             return redirect()->back()->with('error', 'Error al cargar estado de cuenta: ' . $e->getMessage());
         }
     }
@@ -222,42 +227,50 @@ class LibroProveedoresController extends Controller
                 ->get();
 
             // Clasificar por vencimiento
-            $clasificacionVencimiento = [];
-            $totalCuentasPagar = 0;
+            $clasificacionVencimiento = [
+                'POR_VENCER' => collect(),
+                '1_15_DIAS' => collect(),
+                '16_30_DIAS' => collect(),
+                '31_45_DIAS' => collect(),
+                'MAS_45_DIAS' => collect()
+            ];
+            $totalCuentasPagar = 0.0;
 
             foreach ($saldosPendientes as $saldo) {
-                $diasVencido = Carbon::parse($saldo->FechaV)->diffInDays(Carbon::now(), false);
+                $diasVencido = $saldo->FechaV ? Carbon::parse($saldo->FechaV)->diffInDays(Carbon::now(), false) : null;
                 $saldo->dias_vencido = $diasVencido;
-                
-                if ($diasVencido <= 0) {
-                    $clasificacionVencimiento['POR_VENCER'][] = $saldo;
+                $totalCuentasPagar += (float) $saldo->Saldo;
+
+                if ($diasVencido === null) {
+                    // Si no hay fecha de vencimiento, lo dejamos en POR_VENCER
+                    $clasificacionVencimiento['POR_VENCER']->push($saldo);
+                } elseif ($diasVencido <= 0) {
+                    $clasificacionVencimiento['POR_VENCER']->push($saldo);
                 } elseif ($diasVencido <= 15) {
-                    $clasificacionVencimiento['1_15_DIAS'][] = $saldo;
+                    $clasificacionVencimiento['1_15_DIAS']->push($saldo);
                 } elseif ($diasVencido <= 30) {
-                    $clasificacionVencimiento['16_30_DIAS'][] = $saldo;
+                    $clasificacionVencimiento['16_30_DIAS']->push($saldo);
                 } elseif ($diasVencido <= 45) {
-                    $clasificacionVencimiento['31_45_DIAS'][] = $saldo;
+                    $clasificacionVencimiento['31_45_DIAS']->push($saldo);
                 } else {
-                    $clasificacionVencimiento['MAS_45_DIAS'][] = $saldo;
+                    $clasificacionVencimiento['MAS_45_DIAS']->push($saldo);
                 }
-                
-                $totalCuentasPagar += $saldo->Saldo;
             }
 
-            // Calcular totales por clasificación
+            // Calcular totales por clasificación usando colecciones
             $totalesClasificacion = [];
             foreach ($clasificacionVencimiento as $categoria => $saldos) {
                 $totalesClasificacion[$categoria] = [
-                    'cantidad_proveedores' => count(array_unique(array_column($saldos, 'CodClie'))),
-                    'cantidad_documentos' => count($saldos),
-                    'saldo_total' => array_sum(array_column($saldos, 'Saldo')),
-                    'porcentaje' => $totalCuentasPagar > 0 ? (array_sum(array_column($saldos, 'Saldo')) / $totalCuentasPagar) * 100 : 0
+                    'cantidad_proveedores' => $saldos->pluck('CodClie')->unique()->count(),
+                    'cantidad_documentos' => $saldos->count(),
+                    'saldo_total' => $saldos->sum('Saldo'),
+                    'porcentaje' => $totalCuentasPagar > 0 ? ($saldos->sum('Saldo') / $totalCuentasPagar) * 100 : 0
                 ];
             }
 
             // Proveedores críticos (más de 30 días vencidos)
-            $proveedoresCriticos = collect($clasificacionVencimiento['MAS_45_DIAS'] ?? [])
-                ->merge($clasificacionVencimiento['31_45_DIAS'] ?? [])
+            $proveedoresCriticos = $clasificacionVencimiento['MAS_45_DIAS']
+                ->merge($clasificacionVencimiento['31_45_DIAS'])
                 ->sortByDesc('Saldo')
                 ->take(20);
 
@@ -267,6 +280,8 @@ class LibroProveedoresController extends Controller
             ));
 
         } catch (\Exception $e) {
+            Log::error('Error en LibroProveedoresController@clasificacionVencimiento: ' . $e->getMessage());
+            Log::error($e->getTraceAsString());
             return redirect()->back()->with('error', 'Error en clasificación de vencimiento: ' . $e->getMessage());
         }
     }
@@ -298,7 +313,7 @@ class LibroProveedoresController extends Controller
                 ->get();
 
             // Agrupar por proveedor
-            $pagosPorProveedor = $pagosPorProveedor = $pagosProveedores->groupBy('CodClie')->map(function($grupo) {
+            $pagosPorProveedor = $pagosProveedores->groupBy('CodClie')->map(function($grupo) {
                 return [
                     'proveedor' => $grupo->first()->Razon,
                     'total_pagado' => $grupo->sum('Monto'),
@@ -317,6 +332,8 @@ class LibroProveedoresController extends Controller
             ));
 
         } catch (\Exception $e) {
+            Log::error('Error en LibroProveedoresController@analisisPagos: ' . $e->getMessage());
+            Log::error($e->getTraceAsString());
             return redirect()->back()->with('error', 'Error en análisis de pagos: ' . $e->getMessage());
         }
     }
@@ -333,7 +350,11 @@ class LibroProveedoresController extends Controller
             // Calcular rendimiento por proveedor
             $rendimientoProveedores = DB::table('Doccab as dc')
                 ->leftJoin('Clientes as c', 'dc.CodClie', '=', 'c.Codclie')
-                ->leftJoin('Docdet as dd', 'dc.Numero', '=', 'dd.Numero')
+                // Unir docdet por NUMERO y TIPO para evitar mezclar líneas de otros tipos de documento
+                ->leftJoin('Docdet as dd', function($join) {
+                    $join->on('dc.Numero', '=', 'dd.Numero')
+                         ->on('dc.Tipo', '=', 'dd.Tipo');
+                })
                 ->leftJoin('Productos as p', 'dd.Codpro', '=', 'p.CodPro')
                 ->leftJoin('Laboratorios as l', 'p.CodLab', '=', 'l.CodLab')
                 ->whereBetween('dc.Fecha', [$fechaInicio, $fechaFin])
@@ -375,6 +396,8 @@ class LibroProveedoresController extends Controller
             ));
 
         } catch (\Exception $e) {
+            Log::error('Error en LibroProveedoresController@rendimiento: ' . $e->getMessage());
+            Log::error($e->getTraceAsString());
             return redirect()->back()->with('error', 'Error en análisis de rendimiento: ' . $e->getMessage());
         }
     }
@@ -390,7 +413,10 @@ class LibroProveedoresController extends Controller
 
             // Obtener proveedores farmacéuticos específicos
             $proveedoresFarmaceuticos = DB::table('Docdet as dd')
-                ->join('Doccab as dc', 'dd.Numero', '=', 'dc.Numero')
+                ->join('Doccab as dc', function($join) {
+                    $join->on('dd.Numero', '=', 'dc.Numero')
+                         ->on('dd.Tipo', '=', 'dc.Tipo');
+                })
                 ->join('Productos as p', 'dd.Codpro', '=', 'p.CodPro')
                 ->leftJoin('Clientes as c', 'dc.CodClie', '=', 'c.Codclie')
                 ->leftJoin('Laboratorios as l', 'p.CodLab', '=', 'l.CodLab')
@@ -451,6 +477,8 @@ class LibroProveedoresController extends Controller
             ));
 
         } catch (\Exception $e) {
+            Log::error('Error en LibroProveedoresController@proveedoresFarmaceuticos: ' . $e->getMessage());
+            Log::error($e->getTraceAsString());
             return redirect()->back()->with('error', 'Error en proveedores farmacéuticos: ' . $e->getMessage());
         }
     }
@@ -481,11 +509,13 @@ class LibroProveedoresController extends Controller
                 ->get();
 
             // Agrupar por fecha
-            $proyeccionDiaria = $vencimientosProximos->groupBy('FechaV')->map(function($grupo) {
+            $proyeccionDiaria = $vencimientosProximos->groupBy(function($item){
+                return Carbon::parse($item->FechaV)->format('Y-m-d');
+            })->map(function($grupo) {
                 return [
                     'cantidad_documentos' => $grupo->count(),
                     'total_pagar' => $grupo->sum('Saldo'),
-                    'proveedores' => $grupo->unique('proveedor')->count()
+                    'proveedores' => $grupo->pluck('proveedor')->unique()->count()
                 ];
             });
 
@@ -493,8 +523,8 @@ class LibroProveedoresController extends Controller
             $resumenProyeccion = [
                 'total_a_pagar' => $vencimientosProximos->sum('Saldo'),
                 'total_documentos' => $vencimientosProximos->count(),
-                'total_proveedores' => $vencimientosProximos->unique('proveedor')->count(),
-                'fecha_mayor_pago' => $vencimientosProximos->sortByDesc('Saldo')->first()->FechaV ?? null
+                'total_proveedores' => $vencimientosProximos->pluck('proveedor')->unique()->count(),
+                'fecha_mayor_pago' => optional($vencimientosProximos->sortByDesc('Saldo')->first())->FechaV ?? null
             ];
 
             // Alertas de pago
@@ -505,6 +535,8 @@ class LibroProveedoresController extends Controller
             ));
 
         } catch (\Exception $e) {
+            Log::error('Error en LibroProveedoresController@proyeccionPagos: ' . $e->getMessage());
+            Log::error($e->getTraceAsString());
             return redirect()->back()->with('error', 'Error en proyección de pagos: ' . $e->getMessage());
         }
     }
@@ -514,7 +546,6 @@ class LibroProveedoresController extends Controller
      */
     private function obtenerSaldosProveedor($proveedorId)
     {
-      
         $saldos = DB::table('CtaCliente')
             ->where('CodClie', $proveedorId)
             ->select([
@@ -527,7 +558,6 @@ class LibroProveedoresController extends Controller
         return $saldos ?: (object)['total_comprado' => 0, 'saldo_pendiente' => 0, 'total_pagado' => 0];
     }
 
- 
     private function obtenerComprasPorProveedor($fechaInicio, $fechaFin)
     {
         return DB::table('Doccab as dc')
@@ -587,6 +617,7 @@ class LibroProveedoresController extends Controller
 
     private function clasificarVencimiento($diasVencido)
     {
+        if ($diasVencido === null) return 'SIN_FECHA';
         if ($diasVencido <= 0) return 'POR_VENCER';
         if ($diasVencido <= 15) return '1-15 DÍAS';
         if ($diasVencido <= 30) return '16-30 DÍAS';
@@ -597,7 +628,6 @@ class LibroProveedoresController extends Controller
     
     private function analizarTerminosPago($fechaInicio, $fechaFin)
     {
-  
         $terminos = DB::table('Doccab as dc')
             ->leftJoin('Clientes as c', 'dc.CodClie', '=', 'c.Codclie')
             ->whereBetween('dc.Fecha', [$fechaInicio, $fechaFin])
@@ -642,7 +672,11 @@ class LibroProveedoresController extends Controller
         $alertas = [];
         
         // Alerta de pagos críticos (próximos 7 días)
-        $pagosCriticos = $vencimientosProximos->where('FechaV', '<=', Carbon::now()->addDays(7)->format('Y-m-d'));
+        $limite = Carbon::now()->addDays(7)->endOfDay();
+        $pagosCriticos = $vencimientosProximos->filter(function($item) use ($limite) {
+            return Carbon::parse($item->FechaV)->lessThanOrEqualTo($limite);
+        });
+
         if ($pagosCriticos->count() > 0) {
             $alertas[] = [
                 'tipo' => 'warning',

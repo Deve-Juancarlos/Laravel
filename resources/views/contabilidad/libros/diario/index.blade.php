@@ -2,12 +2,87 @@
 
 @section('title', 'Libro Diario')
 
-@push('head')
-<link href="{{ asset('css/libro-diario.css') }}" rel="stylesheet">
+@push('styles')
+    <link href="{{ asset('css/contabilidad/libro-diario.css') }}" rel="stylesheet">
 @endpush
 
 @section('sidebar-menu')
-{{-- Tu menú existente --}}
+{{-- MENÚ PRINCIPAL --}}
+<div class="nav-section">Dashboard</div>
+<ul>
+    <li><a href="{{ route('dashboard.contador') }}" class="nav-link active">
+        <i class="fas fa-chart-pie"></i> Panel Principal
+    </a></li>
+</ul>
+
+{{-- CONTABILIDAD --}}
+<div class="nav-section">Contabilidad</div>
+<ul>
+    <li>
+        <a href="{{ route('contador.libro-diario.index') }}" class="nav-link has-submenu">
+            <i class="fas fa-book"></i> Libros Contables
+        </a>
+        <div class="nav-submenu">
+            <a href="{{ route('contador.libro-diario.index') }}" class="nav-link"><i class="fas fa-file-alt"></i> Libro Diario</a>
+            <a href="{{ route('contador.libro-mayor.index') }}" class="nav-link"><i class="fas fa-book-open"></i> Libro Mayor</a>
+            <a href="{{route('contador.balance-comprobacion.index')}}" class="nav-link"><i class="fas fa-balance-scale"></i> Balance Comprobación</a>    
+            <a href="{{ route('contador.estado-resultados.index') }}" class="nav-link"><i class="fas fa-chart-bar"></i> Estados Financieros</a>
+        </div>
+    </li>
+    <li>
+        <a href="#" class="nav-link has-submenu">
+            <i class="fas fa-file-invoice"></i> Registros
+        </a>
+        <div class="nav-submenu">
+            <a href="#" class="nav-link"><i class="fas fa-shopping-cart"></i> Compras</a>
+            <a href="#" class="nav-link"><i class="fas fa-cash-register"></i> Ventas</a>
+            <a href="#" class="nav-link"><i class="fas fa-university"></i> Bancos</a>
+            <a href="#" class="nav-link"><i class="fas fa-money-bill-wave"></i> Caja</a>
+        </div>
+    </li>
+</ul>
+
+{{-- VENTAS Y COBRANZAS --}}
+<div class="nav-section">Ventas & Cobranzas</div>
+<ul>
+    <li><a href="{{ route('contador.reportes.ventas') }}" class="nav-link">
+        <i class="fas fa-chart-line"></i> Análisis Ventas
+    </a></li>
+    <li><a href="{{ route('contador.reportes.compras') }}" class="nav-link">
+        <i class="fas fa-wallet"></i> Cartera
+    </a></li>
+    <li><a href="{{ route('contador.facturas.create') }}" class="nav-link">
+        <i class="fas fa-clock"></i> Fact. Pendientes
+    </a></li>
+    <li><a href="{{ route('contador.facturas.index') }}" class="nav-link">
+        <i class="fas fa-exclamation-triangle"></i> Fact. Vencidas
+    </a></li>
+</ul>
+
+{{-- GESTIÓN --}}
+<div class="nav-section">Gestión</div>
+<ul>
+    <li><a href="{{ route('contador.clientes') }}" class="nav-link">
+        <i class="fas fa-users"></i> Clientes
+    </a></li>
+    <li><a href="{{ route('contador.reportes.medicamentos-controlados') }}" class="nav-link">
+        <i class="fas fa-percentage"></i> Márgenes
+    </a></li>
+    <li><a href="{{ route('contador.reportes.inventario') }}" class="nav-link">
+        <i class="fas fa-boxes"></i> Inventario
+    </a></li>
+</ul>
+
+{{-- REPORTES SUNAT --}}
+<div class="nav-section">SUNAT</div>
+<ul>
+    <li><a href="#" class="nav-link">
+        <i class="fas fa-file-invoice-dollar"></i> PLE
+    </a></li>
+    <li><a href="#" class="nav-link">
+        <i class="fas fa-percent"></i> IGV Mensual
+    </a></li>
+</ul>
 @endsection
 
 @section('content')
@@ -126,6 +201,12 @@
         <div class="filters-body">
             <form method="GET" action="{{ route('contador.libro-diario.index') }}">
                 <div class="row g-3">
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label class="form-label">Fecha Inicio</label>
+                            <input type="date" class="form-control" name="fecha_inicio" value="{{ $fechaInicio ?? '' }}">
+                        </div>
+                    </div>
                     <div class="col-md-3">
                         <div class="form-group">
                             <label class="form-label">Fecha Fin</label>
@@ -354,26 +435,26 @@ document.querySelectorAll('.asiento-glosa').forEach(element => {
 
 // Confirmación de eliminación (si la agregas)
 function confirmarEliminacion(id) {
-    Swal.fire({
-        title: '¿Estás seguro?',
-        text: "Esta acción no se puede deshacer",
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#ef4444',
-        cancelButtonColor: '#6b7280',
-        confirmButtonText: 'Sí, eliminar',
-        cancelButtonText: 'Cancelar'
-    }).then((result) => {
-        if (result.isConfirmed) {
+    if (typeof Swal !== 'undefined') {
+        Swal.fire({
+            title: '¿Estás seguro?',
+            text: "Esta acción no se puede deshacer",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#ef4444',
+            cancelButtonColor: '#6b7280',
+            confirmButtonText: 'Sí, eliminar',
+            cancelButtonText: 'Cancelar'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                document.getElementById('delete-form-' + id).submit();
+            }
+        });
+    } else {
+        if (confirm('¿Estás seguro de eliminar este asiento?')) {
             document.getElementById('delete-form-' + id).submit();
         }
-    });
+    }
 }
 </script>
-@endpush-group">
-                            <label class="form-label">Fecha Inicio</label>
-                            <input type="date" class="form-control" name="fecha_inicio" value="{{ $fechaInicio ?? '' }}">
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="form
+@endpush

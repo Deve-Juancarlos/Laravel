@@ -6,7 +6,9 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Schema;
 use Carbon\Carbon;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class LibroDiarioController extends Controller
 {
@@ -181,15 +183,26 @@ class LibroDiarioController extends Controller
     {
         try {
             // Obtener asiento con información del usuario (tabla correcta: libro_diario)
-            $asiento = DB::table('libro_diario as a')
-                ->leftJoin('accesoweb as u', 'a.usuario_id', '=', 'u.idusuario') // Usar tabla accesoweb
-                ->select(
+            $query = DB::table('libro_diario as a');
+
+            // Si existe la tabla accesoweb, unimos y seleccionamos columnas válidas
+            if (Schema::hasTable('accesoweb')) {
+                $query->leftJoin('accesoweb as u', 'a.usuario_id', '=', 'u.idusuario')
+                      ->select(
+                          'a.*',
+                          DB::raw('u.usuario as usuario_nombre'),
+                          DB::raw('u.tipousuario as usuario_tipo')
+                      );
+            } else {
+                // garantizar que la vista reciba las columnas esperadas aunque sean null
+                $query->select(
                     'a.*',
-                    'u.nombre as usuario_nombre',
-                    'u.email as usuario_email'
-                )
-                ->where('a.id', $id)
-                ->first();
+                    DB::raw('NULL as usuario_nombre'),
+                    DB::raw('NULL as usuario_tipo')
+                );
+            }
+
+            $asiento = $query->where('a.id', $id)->first();
                 
             if (!$asiento) {
                 return redirect()->route('contador.libro-diario.index')
@@ -316,17 +329,21 @@ class LibroDiarioController extends Controller
         }
     }
 
-    /**
-     * Exportar libro diario a Excel/PDF
-     */
+  
     public function exportar(Request $request)
     {
         try {
             $formato = $request->get('formato', 'excel');
             $fechaInicio = $request->get('fecha_inicio');
             $fechaFin = $request->get('fecha_fin');
-            
-            $asientos = $this->obtenerAsientos($fechaInicio, $fechaFin);
+
+            // Obtener asientos (sin paginar para export)
+            $asientosPaginator = $this->obtenerAsientos($fechaInicio, $fechaFin);
+            // Si viene paginado, extraer colección; si es Collection simple, dejarla
+            $asientos = ($asientosPaginator && method_exists($asientosPaginator, 'items'))
+                ? collect($asientosPaginator->items())
+                : collect($asientosPaginator);
+
             $totales = $this->calcularTotales($fechaInicio, $fechaFin);
             
             if ($formato === 'pdf') {
@@ -343,17 +360,26 @@ class LibroDiarioController extends Controller
 
     // ==================== MÉTODOS PRIVADOS ====================
     
-    private function obtenerAsientos($fechaInicio, $fechaFin, $numeroAsiento = null, $cuentaContable = null)
+    private function obtenerAsientos($fechaInicio = null, $fechaFin = null, $numeroAsiento = null, $cuentaContable = null)
     {
-        $query = DB::table('libro_diario as a') // tabla correcta
-            ->leftJoin('accesoweb as u', 'a.usuario_id', '=', 'u.idusuario')// tabla accesoweb
-            ->select(
-                'a.*',
-                'u.nombre as usuario_nombre'
-            )
-            ->whereBetween('a.fecha', [$fechaInicio, $fechaFin])
-            ->orderBy('a.fecha', 'desc')
-            ->orderBy('a.numero', 'desc');
+        // Construyo la query base sobre libro_diario
+        $query = DB::table('libro_diario as a')->select('a.*');
+
+        // Si existe accesoweb, unir y traer usuario; si no, añadir columna nula para compatibilidad con la vista
+        if (Schema::hasTable('accesoweb')) {
+            $query->leftJoin('accesoweb as u', 'a.usuario_id', '=', 'u.idusuario')
+                  ->addSelect(DB::raw('u.usuario as usuario_nombre'));
+        } else {
+            $query->addSelect(DB::raw('NULL as usuario_nombre'));
+        }
+
+        // Aplicar filtro de fechas sólo si ambos valores están provistos
+        if ($fechaInicio && $fechaFin) {
+            $query->whereBetween('a.fecha', [$fechaInicio, $fechaFin]);
+        }
+
+        $query->orderBy('a.fecha', 'desc')
+              ->orderBy('a.numero', 'desc');
             
         if ($numeroAsiento) {
             $query->where('a.numero', 'like', '%' . $numeroAsiento . '%');
@@ -371,11 +397,15 @@ class LibroDiarioController extends Controller
         return $query->paginate(20);
     }
 
-    private function calcularTotales($fechaInicio, $fechaFin)
+    private function calcularTotales($fechaInicio = null, $fechaFin = null)
     {
-        $resultado = DB::table('libro_diario') // tabla correcta
-            ->whereBetween('fecha', [$fechaInicio, $fechaFin])
-            ->selectRaw('
+        $query = DB::table('libro_diario');
+
+        if ($fechaInicio && $fechaFin) {
+            $query->whereBetween('fecha', [$fechaInicio, $fechaFin]);
+        }
+
+        $resultado = $query->selectRaw('
                 COUNT(*) as total_asientos,
                 SUM(total_debe) as total_debe,
                 SUM(total_haber) as total_haber,
@@ -469,12 +499,11 @@ class LibroDiarioController extends Controller
 
     private function obtenerMovimientosPorCuenta()
     {
+        // Reordeno joins para asegurar que la alias 'a' esté definida antes de usarla en whereYear
         $resultado = DB::table('libro_diario_detalles as d') // tabla correcta
+            ->join('libro_diario as a', 'd.asiento_id', '=', 'a.id') // tabla correcta
             ->join('plan_cuentas as c', 'd.cuenta_contable', '=', 'c.codigo') // tabla correcta
             ->whereYear('a.fecha', now()->year)
-            ->join('libro_diario as a', function($join) { // tabla correcta
-                $join->on('d.asiento_id', '=', 'a.id');
-            })
             ->select(
                 'c.codigo',
                 'c.nombre',
@@ -523,13 +552,125 @@ class LibroDiarioController extends Controller
         return $alertas;
     }
 
+    /**
+     * Genera un PDF del libro diario.
+     *
+     * Requisitos (opcional):
+     *  - barryvdh/laravel-dompdf (recomendado)
+     *    composer require barryvdh/laravel-dompdf
+     *
+     * Si el paquete no está disponible, devolvemos una respuesta con la vista HTML
+     * forzada a descargar (fallback).
+     */
     private function generarPDF($asientos, $totales, $fechaInicio, $fechaFin)
     {
-        // Implementar generación de PDF
+        try {
+            $asientosCollection = $asientos instanceof \Illuminate\Support\Collection ? $asientos : collect($asientos);
+            $filename = 'libro_diario_' . ($fechaInicio ?? 'inicio') . '_a_' . ($fechaFin ?? 'fin') . '.pdf';
+
+            // Comprobación por nombre de clase en vez de ::class para evitar 'Undefined type' en el IDE
+            $dompdfFacade = 'Barryvdh\\DomPDF\\Facade\\Pdf';
+
+            if (class_exists($dompdfFacade)) {
+                // Llamada dinámica al facade (si el paquete está instalado)
+                return $dompdfFacade::loadView('contabilidad.libros.diario.export_pdf', compact('asientosCollection', 'totales', 'fechaInicio', 'fechaFin'))
+                                    ->setPaper('a4', 'landscape')
+                                    ->download($filename);
+            }
+
+            // Fallback: si no está la librería, devolver la vista HTML como descarga
+            $html = view('contabilidad.libros.diario.export_pdf', compact('asientosCollection', 'totales', 'fechaInicio', 'fechaFin'))->render();
+            return response($html, 200, [
+                'Content-Type' => 'text/html; charset=UTF-8',
+                'Content-Disposition' => "attachment; filename=\"$filename\""
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Error generando PDF libro diario: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'No se pudo generar el PDF: ' . $e->getMessage());
+        }
     }
 
+    /**
+     * Genera un Excel/CSV del libro diario.
+     *
+     * - Si maatwebsite/excel está instalado, intentamos generar XLSX.
+     * - Si no está instalado, generamos un CSV compatible que Excel puede abrir.
+     */
     private function generarExcel($asientos, $totales, $fechaInicio, $fechaFin)
     {
-        // Implementar generación de Excel
+        try {
+            $asientosCollection = $asientos instanceof \Illuminate\Support\Collection ? $asientos : collect($asientos);
+            $fechaInicioSafe = $fechaInicio ?? 'inicio';
+            $fechaFinSafe = $fechaFin ?? 'fin';
+            $filenameCsv = "libro_diario_{$fechaInicioSafe}_a_{$fechaFinSafe}.csv";
+            $filenameXlsx = "libro_diario_{$fechaInicioSafe}_a_{$fechaFinSafe}.xlsx";
+
+            // Si está instalado maatwebsite/excel lo usamos para generar XLSX (mejor formato)
+            if (class_exists(\Maatwebsite\Excel\Facades\Excel::class)) {
+                $excelFacade = \Maatwebsite\Excel\Facades\Excel::class;
+
+                // Preparar filas: cabecera + datos
+                $rows = [];
+                $header = [
+                    'Número', 'Fecha', 'Glosa', 'Total Debe', 'Total Haber', 'Balanceado', 'Usuario ID', 'Observaciones'
+                ];
+                $rows[] = $header;
+
+                foreach ($asientosCollection as $a) {
+                    $rows[] = [
+                        (string)($a->numero ?? $a['numero'] ?? ''),
+                        (string)(isset($a->fecha) ? Carbon::parse($a->fecha)->format('Y-m-d') : ''),
+                        (string)($a->glosa ?? $a['glosa'] ?? ''),
+                        (float)($a->total_debe ?? $a['total_debe'] ?? 0),
+                        (float)($a->total_haber ?? $a['total_haber'] ?? 0),
+                        ($a->balanceado ?? $a['balanceado'] ?? '') ? 'SI' : 'NO',
+                        (string)($a->usuario_id ?? $a['usuario_id'] ?? ''),
+                        (string)($a->observaciones ?? $a['observaciones'] ?? ''),
+                    ];
+                }
+
+                // Usamos una clase anónima que implementa FromCollection
+                $export = new class(collect($rows)) implements \Maatwebsite\Excel\Concerns\FromCollection, \Maatwebsite\Excel\Concerns\WithHeadings {
+                    private $rows;
+                    public function __construct($rows) { $this->rows = $rows; }
+                    public function collection() { return $this->rows; }
+                    public function headings(): array { return []; } // ya incluimos cabecera en rows
+                };
+
+                return $excelFacade::download($export, $filenameXlsx);
+            }
+
+            // Fallback: generar CSV y retornarlo como descarga (compatible con Excel)
+            $callback = function() use ($asientosCollection) {
+                $output = fopen('php://output', 'w');
+                // Encabezados
+                fputcsv($output, ['Número', 'Fecha', 'Glosa', 'Total Debe', 'Total Haber', 'Balanceado', 'Usuario ID', 'Observaciones']);
+
+                foreach ($asientosCollection as $a) {
+                    fputcsv($output, [
+                        (string)($a->numero ?? $a['numero'] ?? ''),
+                        (string)(isset($a->fecha) ? Carbon::parse($a->fecha)->format('Y-m-d') : ''),
+                        (string)($a->glosa ?? $a['glosa'] ?? ''),
+                        (float)($a->total_debe ?? $a['total_debe'] ?? 0),
+                        (float)($a->total_haber ?? $a['total_haber'] ?? 0),
+                        ($a->balanceado ?? $a['balanceado'] ?? '') ? 'SI' : 'NO',
+                        (string)($a->usuario_id ?? $a['usuario_id'] ?? ''),
+                        (string)($a->observaciones ?? $a['observaciones'] ?? ''),
+                    ]);
+                }
+
+                fclose($output);
+            };
+
+            return response()->streamDownload($callback, $filenameCsv, [
+                'Content-Type' => 'text/csv; charset=UTF-8',
+                'Content-Disposition' => "attachment; filename=\"$filenameCsv\""
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Error generando Excel/CSV libro diario: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'No se pudo generar el Excel/CSV: ' . $e->getMessage());
+        }
     }
 }

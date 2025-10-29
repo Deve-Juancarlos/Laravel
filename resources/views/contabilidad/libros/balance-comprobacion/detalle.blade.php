@@ -3,39 +3,7 @@
 @section('title', "Detalle Cuenta {$cuenta} - Balance de Comprobación")
 
 @section('styles')
-<style>
-    .detalle-header {
-        background: linear-gradient(135deg, #059669 0%, #047857 100%);
-        color: white;
-        padding: 25px;
-        border-radius: 15px;
-        margin-bottom: 30px;
-    }
-    
-    .movement-row {
-        transition: background-color 0.2s ease;
-    }
-    
-    .movement-row:hover {
-        background-color: #f8fafc;
-    }
-    
-    .saldo-acumulado {
-        font-weight: 600;
-        padding: 4px 8px;
-        border-radius: 4px;
-    }
-    
-    .saldo-positivo {
-        background: #d1fae5;
-        color: #065f46;
-    }
-    
-    .saldo-negativo {
-        background: #fee2e2;
-        color: #991b1b;
-    }
-</style>
+    <link href="{{ asset('css/contabilidad/ver-detalle.css') }}" rel="stylesheet">
 @endsection
 
 @section('content')
