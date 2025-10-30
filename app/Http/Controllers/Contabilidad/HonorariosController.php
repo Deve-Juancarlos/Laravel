@@ -20,9 +20,9 @@ class HonorariosController extends Controller
             $fechaFin = $request->input('fecha_fin', Carbon::now()->endOfYear()->format('Y-m-d'));
             $proveedor = $request->input('proveedor');
 
-            // Obtener honorarios (basado en la tabla Clientes para prestadores de servicios)
+            // Obtener prestadores de servicios (TipoClie = 3)
             $query = DB::table('Clientes as c')
-                ->where('c.TipoClie', 3) // Asumimos que TipoClie = 3 son prestadores de servicios/honorarios
+                ->where('c.TipoClie', 3)
                 ->leftJoin('t_Clientes_ubigeo as ub', 'c.Codclie', '=', 'ub.CODIGO')
                 ->leftJoin('Zonas as z', 'c.Zona', '=', 'z.Codzona');
 
@@ -33,7 +33,7 @@ class HonorariosController extends Controller
                 });
             }
 
-            $honorarios = $query->select([
+            $prestadores = $query->select([
                 'c.Codclie',
                 'c.Razon',
                 'c.Documento',
@@ -51,28 +51,26 @@ class HonorariosController extends Controller
             ->orderBy('c.Razon')
             ->paginate(50);
 
-            // Obtener gastos de honorarios del período
-            $gastosHonorarios = $this->obtenerGastosHonorarios($fechaInicio, $fechaFin);
+            // Obtener documentos de honorarios del período
+            $documentosHonorarios = $this->obtenerDocumentosHonorarios($fechaInicio, $fechaFin);
 
-            // Obtener saldos pendientes
-            $saldosHonorarios = [];
-            foreach ($honorarios as $honorario) {
-                $saldosHonorarios[$honorario->Codclie] = $this->obtenerSaldosHonorarios($honorario->Codclie);
+            // Obtener resumen por prestador
+            $resumenPrestadores = [];
+            foreach ($prestadores as $prestador) {
+                $resumenPrestadores[$prestador->Codclie] = $this->obtenerResumenPrestador($prestador->Codclie, $fechaInicio, $fechaFin);
             }
 
             // Resumen general
             $resumenGeneral = [
                 'total_prestadores' => DB::table('Clientes')->where('TipoClie', 3)->count(),
                 'prestadores_activos' => DB::table('Clientes')->where('TipoClie', 3)->where('Activo', 1)->count(),
-                'total_honorarios_periodo' => $gastosHonorarios->sum('monto'),
-                'prestadores_mas_gastados' => $gastosHonorarios->groupBy('CodClie')
-                    ->map->sum('monto')
-                    ->sortDesc()
-                    ->take(5)
+                'total_honorarios_periodo' => $documentosHonorarios->sum('Total'),
+                'documentos_emitidos' => $documentosHonorarios->count(),
+                'prestadores_con_actividad' => $documentosHonorarios->unique('CodClie')->count()
             ];
 
             return view('contabilidad.auxiliares.honorarios', compact(
-                'honorarios', 'gastosHonorarios', 'saldosHonorarios', 'resumenGeneral', 
+                'prestadores', 'documentosHonorarios', 'resumenPrestadores', 'resumenGeneral', 
                 'fechaInicio', 'fechaFin', 'proveedor'
             ));
 
@@ -84,7 +82,7 @@ class HonorariosController extends Controller
     /**
      * Get detailed statement for honorarium provider
      */
-    public function estadoCuenta($honorarioId, Request $request)
+    public function estadoCuenta($prestadorId, Request $request)
     {
         try {
             $fechaInicio = $request->input('fecha_inicio', Carbon::now()->startOfYear()->format('Y-m-d'));
@@ -93,7 +91,7 @@ class HonorariosController extends Controller
             // Información del prestador
             $prestador = DB::table('Clientes as c')
                 ->leftJoin('Zonas as z', 'c.Zona', '=', 'z.Codzona')
-                ->where('c.Codclie', $honorarioId)
+                ->where('c.Codclie', $prestadorId)
                 ->where('c.TipoClie', 3)
                 ->select([
                     'c.Codclie',
@@ -111,52 +109,62 @@ class HonorariosController extends Controller
                 return redirect()->route('libro-honorarios')->with('error', 'Prestador de servicios no encontrado');
             }
 
-            // Gastos de honorarios del prestador
-            $honorariosPagados = DB::table('Caja as c')
-                ->where('c.Razon', $honorarioId)
-                ->where('c.Tipo', 2) // Egresos = Pagos
-                ->whereBetween('c.Fecha', [$fechaInicio, $fechaFin])
+            // Documentos de honorarios del prestador
+            $documentosHonorarios = DB::table('Doccab as dc')
+                ->leftJoin('Docdet as dd', function($join) {
+                    $join->on('dc.Numero', '=', 'dd.Numero')
+                         ->on('dc.Tipo', '=', 'dd.Tipo');
+                })
+                ->leftJoin('Productos as p', 'dd.Codpro', '=', 'p.CodPro')
+                ->leftJoin('Laboratorios as l', 'p.CodLab', '=', 'l.CodLab')
+                ->where('dc.CodClie', $prestadorId)
+                ->whereBetween('dc.Fecha', [$fechaInicio, $fechaFin])
                 ->where(function($query) {
-                    $query->where('c.Documento', 'like', 'HON%')
-                          ->orWhere('c.Documento', 'like', 'CBO%')
-                          ->orWhere('c.Documento', 'like', 'REC%');
+                    $query->where('dc.Numero', 'like', 'HON%')
+                          ->orWhere('dc.Numero', 'like', 'CBO%')
+                          ->orWhere('dc.Numero', 'like', 'REC%');
                 })
                 ->select([
-                    'c.Numero',
-                    'c.Fecha',
-                    'c.Documento',
-                    'c.Monto',
-                    'c.Moneda',
-                    'c.Cambio',
-                    DB::raw('CASE WHEN c.Moneda = 1 THEN c.Monto ELSE c.Monto * c.Cambio END as total_soles')
+                    'dc.Numero',
+                    'dc.Fecha',
+                    'dc.Total',
+                    'dc.Moneda',
+                    'dc.Bruto',
+                    'dc.Descuento',
+                    'dc.Igv',
+                    'dd.Cantidad',
+                    'dd.Precio',
+                    'dd.Subtotal',
+                    'p.Nombre as producto_nombre',
+                    'l.Descripcion as laboratorio'
                 ])
-                ->orderBy('c.Fecha', 'desc')
+                ->orderBy('dc.Fecha', 'desc')
                 ->get();
 
-            // Clasificar por tipo de servicio
-            $clasificacionServicios = $this->clasificarServicios($honorariosPagados);
+            // Clasificar por tipo de documento
+            $clasificacionDocumentos = $this->clasificarDocumentos($documentosHonorarios);
 
             // Resumen mensual
-            $resumenMensual = $honorariosPagados->groupBy(function($item) {
+            $resumenMensual = $documentosHonorarios->groupBy(function($item) {
                 return Carbon::parse($item->Fecha)->format('Y-m');
             })->map(function($grupo) {
                 return [
                     'cantidad' => $grupo->count(),
-                    'total' => $grupo->sum('total_soles'),
-                    'promedio' => $grupo->avg('total_soles')
+                    'total' => $grupo->sum('Total'),
+                    'promedio' => $grupo->avg('Total')
                 ];
             });
 
             // Totales
             $totales = [
-                'total_honorarios' => $honorariosPagados->sum('total_soles'),
-                'total_documentos' => $honorariosPagados->count(),
-                'promedio_honorario' => $honorariosPagados->count() > 0 ? 
-                    $honorariosPagados->sum('total_soles') / $honorariosPagados->count() : 0
+                'total_honorarios' => $documentosHonorarios->sum('Total'),
+                'total_documentos' => $documentosHonorarios->count(),
+                'promedio_honorario' => $documentosHonorarios->count() > 0 ? 
+                    $documentosHonorarios->sum('Total') / $documentosHonorarios->count() : 0
             ];
 
             return view('contabilidad.auxiliares.honorarios-estado-cuenta', compact(
-                'prestador', 'honorariosPagados', 'clasificacionServicios', 'resumenMensual', 
+                'prestador', 'documentosHonorarios', 'clasificacionDocumentos', 'resumenMensual', 
                 'totales', 'fechaInicio', 'fechaFin'
             ));
 
@@ -166,7 +174,7 @@ class HonorariosController extends Controller
     }
 
     /**
-     * Get honorarium expenses analysis by category
+     * Get honorarium documents analysis by category
      */
     public function analisisCategorias(Request $request)
     {
@@ -174,38 +182,45 @@ class HonorariosController extends Controller
             $fechaInicio = $request->input('fecha_inicio', Carbon::now()->startOfYear()->format('Y-m-d'));
             $fechaFin = $request->input('fecha_fin', Carbon::now()->endOfYear()->format('Y-m-d'));
 
-            // Obtener todos los gastos de honorarios
-            $honorariosGenerales = DB::table('Caja as c')
-                ->leftJoin('Clientes as cl', 'c.Razon', '=', 'cl.Codclie')
-                ->where('c.Tipo', 2) // Egresos
-                ->whereBetween('c.Fecha', [$fechaInicio, $fechaFin])
+            // Obtener todos los documentos de honorarios
+            $documentosGenerales = DB::table('Doccab as dc')
+                ->leftJoin('Clientes as cl', 'dc.CodClie', '=', 'cl.Codclie')
+                ->leftJoin('Docdet as dd', function($join) {
+                    $join->on('dc.Numero', '=', 'dd.Numero')
+                         ->on('dc.Tipo', '=', 'dd.Tipo');
+                })
+                ->leftJoin('Productos as p', 'dd.Codpro', '=', 'p.CodPro')
+                ->whereBetween('dc.Fecha', [$fechaInicio, $fechaFin])
                 ->where(function($query) {
-                    $query->where('c.Documento', 'like', 'HON%')
-                          ->orWhere('c.Documento', 'like', 'CBO%')
-                          ->orWhere('c.Documento', 'like', 'REC%');
+                    $query->where('dc.Numero', 'like', 'HON%')
+                          ->orWhere('dc.Numero', 'like', 'CBO%')
+                          ->orWhere('dc.Numero', 'like', 'REC%');
                 })
                 ->select([
-                    'c.Razon as CodClie',
+                    'dc.CodClie',
                     'cl.Razon',
-                    'c.Documento',
-                    'c.Fecha',
-                    'c.Monto',
-                    'c.Moneda'
+                    'dc.Numero',
+                    'dc.Fecha',
+                    'dc.Total',
+                    'dc.Moneda',
+                    'dd.Codpro',
+                    'p.Nombre as producto_nombre',
+                    'p.Clinea'
                 ])
                 ->get();
 
             // Clasificar por categorías de servicios
-            $categorias = $this->clasificarCategoriasHonorarios($honorariosGenerales);
+            $categorias = $this->clasificarCategoriasDocumentos($documentosGenerales);
 
             // Calcular totales por categoría
             $totalesCategorias = [];
-            foreach ($categorias as $categoria => $servicios) {
+            foreach ($categorias as $categoria => $documentos) {
                 $totalesCategorias[$categoria] = [
-                    'cantidad_servicios' => $servicios->count(),
-                    'prestadores_diferentes' => $servicios->unique('CodClie')->count(),
-                    'total_gastado' => $servicios->sum('Monto'),
-                    'promedio_servicio' => $servicios->avg('Monto'),
-                    'mayor_gasto' => $servicios->max('Monto')
+                    'cantidad_documentos' => $documentos->count(),
+                    'prestadores_diferentes' => $documentos->unique('CodClie')->count(),
+                    'total_facturado' => $documentos->sum('Total'),
+                    'promedio_documento' => $documentos->avg('Total'),
+                    'mayor_factura' => $documentos->max('Total')
                 ];
             }
 
@@ -235,18 +250,17 @@ class HonorariosController extends Controller
                 $fechaInicio = Carbon::create($anio, $mes, 1)->startOfMonth()->format('Y-m-d');
                 $fechaFin = Carbon::create($anio, $mes, 1)->endOfMonth()->format('Y-m-d');
 
-                $honorariosMes = DB::table('Caja as c')
-                    ->where('c.Tipo', 2) // Egresos
-                    ->whereBetween('c.Fecha', [$fechaInicio, $fechaFin])
+                $honorariosMes = DB::table('Doccab as dc')
+                    ->whereBetween('dc.Fecha', [$fechaInicio, $fechaFin])
                     ->where(function($query) {
-                        $query->where('c.Documento', 'like', 'HON%')
-                              ->orWhere('c.Documento', 'like', 'CBO%')
-                              ->orWhere('c.Documento', 'like', 'REC%');
+                        $query->where('dc.Numero', 'like', 'HON%')
+                              ->orWhere('dc.Numero', 'like', 'CBO%')
+                              ->orWhere('dc.Numero', 'like', 'REC%');
                     })
                     ->select([
                         DB::raw('COUNT(*) as cantidad'),
-                        DB::raw('SUM(c.Monto) as total'),
-                        DB::raw('AVG(c.Monto) as promedio')
+                        DB::raw('SUM(dc.Total) as total'),
+                        DB::raw('AVG(dc.Total) as promedio')
                     ])
                     ->first();
 
@@ -259,22 +273,21 @@ class HonorariosController extends Controller
             }
 
             // Top prestadores del año
-            $topPrestadores = DB::table('Caja as c')
-                ->leftJoin('Clientes as cl', 'c.Razon', '=', 'cl.Codclie')
-                ->where('c.Tipo', 2) // Egresos
-                ->whereYear('c.Fecha', $anio)
+            $topPrestadores = DB::table('Doccab as dc')
+                ->leftJoin('Clientes as cl', 'dc.CodClie', '=', 'cl.Codclie')
+                ->whereYear('dc.Fecha', $anio)
                 ->where(function($query) {
-                    $query->where('c.Documento', 'like', 'HON%')
-                          ->orWhere('c.Documento', 'like', 'CBO%')
-                          ->orWhere('c.Documento', 'like', 'REC%');
+                    $query->where('dc.Numero', 'like', 'HON%')
+                          ->orWhere('dc.Numero', 'like', 'CBO%')
+                          ->orWhere('dc.Numero', 'like', 'REC%');
                 })
                 ->select([
-                    'c.Razon as CodClie',
+                    'dc.CodClie',
                     'cl.Razon',
-                    DB::raw('SUM(c.Monto) as total'),
+                    DB::raw('SUM(dc.Total) as total'),
                     DB::raw('COUNT(*) as cantidad')
                 ])
-                ->groupBy('c.Razon', 'cl.Razon')
+                ->groupBy('dc.CodClie', 'cl.Razon')
                 ->orderBy('total', 'desc')
                 ->limit(10)
                 ->get();
@@ -301,25 +314,34 @@ class HonorariosController extends Controller
             $fechaFin = $request->input('fecha_fin', Carbon::now()->endOfYear()->format('Y-m-d'));
 
             // Servicios profesionales específicos para farmacia
-            $serviciosFarmaceuticos = DB::table('Caja as c')
-                ->leftJoin('Clientes as cl', 'c.Razon', '=', 'cl.Codclie')
-                ->where('c.Tipo', 2) // Egresos
-                ->whereBetween('c.Fecha', [$fechaInicio, $fechaFin])
+            $serviciosFarmaceuticos = DB::table('Doccab as dc')
+                ->leftJoin('Clientes as cl', 'dc.CodClie', '=', 'cl.Codclie')
+                ->leftJoin('Docdet as dd', function($join) {
+                    $join->on('dc.Numero', '=', 'dd.Numero')
+                         ->on('dc.Tipo', '=', 'dd.Tipo');
+                })
+                ->leftJoin('Productos as p', 'dd.Codpro', '=', 'p.CodPro')
+                ->leftJoin('Laboratorios as l', 'p.CodLab', '=', 'l.CodLab')
+                ->whereBetween('dc.Fecha', [$fechaInicio, $fechaFin])
                 ->where(function($query) {
-                    $query->where('cl.Razon', 'like', '%Q.F.%')
+                    $query->where(function($q) {
+                        $q->where('cl.Razon', 'like', '%Q.F.%')
                           ->orWhere('cl.Razon', 'like', '%QUIMICO%')
                           ->orWhere('cl.Razon', 'like', '%FARMACEUT%')
                           ->orWhere('cl.Razon', 'like', '%REGENTE%')
                           ->orWhere('cl.Razon', 'like', '%ASESOR%');
+                    });
                 })
                 ->select([
-                    'c.Razon as CodClie',
+                    'dc.CodClie',
                     'cl.Razon',
-                    'c.Documento',
-                    'c.Fecha',
-                    'c.Monto'
+                    'dc.Numero',
+                    'dc.Fecha',
+                    'dc.Total',
+                    'p.Nombre as producto_nombre',
+                    'l.Descripcion as laboratorio'
                 ])
-                ->orderBy('c.Monto', 'desc')
+                ->orderBy('dc.Total', 'desc')
                 ->get();
 
             // Clasificar tipos de servicios farmacéuticos
@@ -352,8 +374,8 @@ class HonorariosController extends Controller
             foreach ($clasificacionServicios as $categoria => $servicios) {
                 $totalesServicios[$categoria] = [
                     'cantidad' => $servicios->count(),
-                    'total' => $servicios->sum('Monto'),
-                    'prestadores' => $servicios->unique('CodClie')->count()
+                    'total' => collect($servicios)->sum('Total'),
+                    'prestadores' => collect($servicios)->unique('CodClie')->count()
                 ];
             }
 
@@ -375,34 +397,34 @@ class HonorariosController extends Controller
             $fechaInicio = $request->input('fecha_inicio', Carbon::now()->startOfMonth()->format('Y-m-d'));
             $fechaFin = $request->input('fecha_fin', Carbon::now()->endOfMonth()->format('Y-m-d'));
 
-            // Análisis de retenciones de honorarios
-            $honorariosConRetencion = DB::table('Caja as c')
-                ->where('c.Tipo', 2) // Egresos
-                ->whereBetween('c.Fecha', [$fechaInicio, $fechaFin])
+            // Análisis de honorarios con retenciones (asumiendo que son servicios profesionales)
+            $honorariosConRetencion = DB::table('Doccab as dc')
+                ->whereBetween('dc.Fecha', [$fechaInicio, $fechaFin])
                 ->where(function($query) {
-                    $query->where('c.Documento', 'like', 'HON%')
-                          ->orWhere('c.Documento', 'like', 'CBO%');
+                    $query->where('dc.Numero', 'like', 'HON%')
+                          ->orWhere('dc.Numero', 'like', 'CBO%');
                 })
                 ->select([
-                    'c.Documento',
-                    'c.Fecha',
-                    'c.Monto',
+                    'dc.Numero',
+                    'dc.Fecha',
+                    'dc.Total',
+                    'dc.Igv',
                     DB::raw('CASE 
-                        WHEN c.Monto <= 1500 THEN c.Monto * 0.08  -- 8% hasta S/. 1,500
-                        ELSE 1500 * 0.08 + (c.Monto - 1500) * 0.10  -- 10% sobre el exceso
+                        WHEN dc.Total <= 1500 THEN dc.Total * 0.08  -- 8% hasta S/. 1,500
+                        ELSE 1500 * 0.08 + (dc.Total - 1500) * 0.10  -- 10% sobre el exceso
                     END as retencion_estimada')
                 ])
                 ->get();
 
             // Calcular totales
-            $totalHonorarios = $honorariosConRetencion->sum('Monto');
+            $totalHonorarios = $honorariosConRetencion->sum('Total');
             $totalRetenciones = $honorariosConRetencion->sum('retencion_estimada');
             $netoPagar = $totalHonorarios - $totalRetenciones;
 
             // Resumen por rangos
             $resumenRangos = [
-                'hasta_1500' => $honorariosConRetencion->where('Monto', '<=', 1500)->sum('Monto'),
-                'mayor_1500' => $honorariosConRetencion->where('Monto', '>', 1500)->sum('Monto')
+                'hasta_1500' => $honorariosConRetencion->where('Total', '<=', 1500)->sum('Total'),
+                'mayor_1500' => $honorariosConRetencion->where('Total', '>', 1500)->sum('Total')
             ];
 
             return view('contabilidad.auxiliares.honorarios-impuestos', compact(
@@ -429,15 +451,14 @@ class HonorariosController extends Controller
                 $fechaInicio = Carbon::create($anio, $mes, 1)->startOfMonth()->format('Y-m-d');
                 $fechaFin = Carbon::create($anio, $mes, 1)->endOfMonth()->format('Y-m-d');
 
-                $gastoMes = DB::table('Caja as c')
-                    ->where('c.Tipo', 2) // Egresos
-                    ->whereBetween('c.Fecha', [$fechaInicio, $fechaFin])
+                $gastoMes = DB::table('Doccab as dc')
+                    ->whereBetween('dc.Fecha', [$fechaInicio, $fechaFin])
                     ->where(function($query) {
-                        $query->where('c.Documento', 'like', 'HON%')
-                              ->orWhere('c.Documento', 'like', 'CBO%')
-                              ->orWhere('c.Documento', 'like', 'REC%');
+                        $query->where('dc.Numero', 'like', 'HON%')
+                              ->orWhere('dc.Numero', 'like', 'CBO%')
+                              ->orWhere('dc.Numero', 'like', 'REC%');
                     })
-                    ->sum('c.Monto') ?? 0;
+                    ->sum('dc.Total') ?? 0;
 
                 $gastosHistoricos[$mes] = $gastoMes;
             }
@@ -454,207 +475,115 @@ class HonorariosController extends Controller
 
             return view('contabilidad.auxiliares.honorarios-proyeccion', compact(
                 'gastosHistoricos', 'promedioMensual', 'proyeccionAnual', 
-                'proyeccionesCategoria', 'alertasPresupuesto', 'anio'
+                'proyeccionesCategoria', 'alertasPresupuesto', 'anio
             ));
 
         } catch (\Exception $e) {
             return redirect()->back()->with('error', 'Error en proyección: ' . $e->getMessage());
         }
-    }
+            }}
 
     /**
-     * Get honorarium expenses by provider
+     * Get honorarium documents by date range
      */
-    private function obtenerGastosHonorarios($fechaInicio, $fechaFin)
+    private function obtenerDocumentosHonorarios($fechaInicio, $fechaFin)
     {
-        return DB::table('Caja as c')
-            ->leftJoin('Clientes as cl', 'c.Razon', '=', 'cl.Codclie')
-            ->where('c.Tipo', 2) // Egresos
-            ->whereBetween('c.Fecha', [$fechaInicio, $fechaFin])
+        return DB::table('Doccab as dc')
+            ->leftJoin('Clientes as cl', 'dc.CodClie', '=', 'cl.Codclie')
+            ->whereBetween('dc.Fecha', [$fechaInicio, $fechaFin])
             ->where(function($query) {
-                $query->where('c.Documento', 'like', 'HON%')
-                      ->orWhere('c.Documento', 'like', 'CBO%')
-                      ->orWhere('c.Documento', 'like', 'REC%');
+                $query->where('dc.Numero', 'like', 'HON%')
+                      ->orWhere('dc.Numero', 'like', 'CBO%')
+                      ->orWhere('dc.Numero', 'like', 'REC%');
             })
             ->select([
-                'c.Razon as CodClie',
+                'dc.CodClie',
                 'cl.Razon',
-                DB::raw('COUNT(*) as cantidad'),
-                DB::raw('SUM(c.Monto) as monto'),
-                DB::raw('AVG(c.Monto) as promedio')
+                'dc.Numero',
+                'dc.Fecha',
+                'dc.Total',
+                'dc.Moneda',
+                'dc.Igv',
+                DB::raw('COUNT(*) OVER() as total_documentos')
             ])
-            ->groupBy('c.Razon', 'cl.Razon')
-            ->orderBy('monto', 'desc')
+            ->orderBy('dc.Fecha', 'desc')
             ->get();
     }
 
     /**
-     * Get balances for honorarium provider
+     * Get summary for a specific provider
      */
-    private function obtenerSaldosHonorarios($honorarioId)
+    private function obtenerResumenPrestador($prestadorId, $fechaInicio, $fechaFin)
     {
-        // Para honorarios, no typically hay saldos pendientes como cuentas por cobrar
-        // Pero podríamos rastrear si hay servicios prestados no facturados
+        $documentos = $this->obtenerDocumentosHonorariosPorPrestador($prestadorId, $fechaInicio, $fechaFin);
+        
         return (object)[
-            'total_facturado' => 0,
-            'saldo_pendiente' => 0,
-            'total_pagado' => 0
+            'total_facturado' => $documentos->sum('Total'),
+            'total_documentos' => $documentos->count(),
+            'promedio_documento' => $documentos->count() > 0 ? $documentos->sum('Total') / $documentos->count() : 0,
+            'saldo_pendiente' => $this->obtenerSaldoPendientePrestador($prestadorId)
         ];
     }
 
     /**
-     * Classify services by type
+     * Get honorarium documents for specific provider
      */
-    private function clasificarServicios($honorarios)
+    private function obtenerDocumentosHonorariosPorPrestador($prestadorId, $fechaInicio, $fechaFin)
+    {
+        return DB::table('Doccab as dc')
+            ->where('dc.CodClie', $prestadorId)
+            ->whereBetween('dc.Fecha', [$fechaInicio, $fechaFin])
+            ->where(function($query) {
+                $query->where('dc.Numero', 'like', 'HON%')
+                      ->orWhere('dc.Numero', 'like', 'CBO%')
+                      ->orWhere('dc.Numero', 'like', 'REC%');
+            })
+            ->select([
+                'dc.Numero',
+                'dc.Fecha',
+                'dc.Total',
+                'dc.Moneda'
+            ])
+            ->orderBy('dc.Fecha', 'desc')
+            ->get();
+    }
+
+    /**
+     * Get pending balance for provider
+     */
+    private function obtenerSaldoPendientePrestador($prestadorId)
+    {
+        // Sumar saldos pendientes en cuentas por cobrar del prestador
+        return DB::table('CtaCliente as cc')
+            ->where('cc.CodClie', $prestadorId)
+            ->sum('cc.Saldo') ?? 0;
+    }
+
+    /**
+     * Classify documents by type
+     */
+    private function clasificarDocumentos($documentos)
     {
         $clasificacion = [
+            'HONORARIOS' => [],
             'CONSULTORIA' => [],
-            'CAPACITACION' => [],
-            'ASESORIA' => [],
-            'SERVICIOS_PROFESIONALES' => [],
+            'RECIBOS' => [],
             'OTROS' => []
         ];
 
-        foreach ($honorarios as $honorario) {
-            $documento = strtoupper($honorario->Documento);
+        foreach ($documentos as $documento) {
+            $numero = strtoupper($documento->Numero);
             
-            if (strpos($documento, 'HON') !== false) {
-                $clasificacion['SERVICIOS_PROFESIONALES'][] = $honorario;
-            } elseif (strpos($documento, 'CBO') !== false) {
-                $clasificacion['CONSULTORIA'][] = $honorario;
-            } elseif (strpos($documento, 'REC') !== false) {
-                $clasificacion['ASESORIA'][] = $honorario;
+            if (strpos($numero, 'HON') !== false) {
+                $clasificacion['HONORARIOS'][] = $documento;
+            } elseif (strpos($numero, 'CBO') !== false) {
+                $clasificacion['CONSULTORIA'][] = $documento;
+            } elseif (strpos($numero, 'REC') !== false) {
+                $clasificacion['RECIBOS'][] = $documento;
             } else {
-                $clasificacion['OTROS'][] = $honorario;
+                $clasificacion['OTROS'][] = $documento;
             }
         }
 
         return $clasificacion;
     }
-
-    /**
-     * Classify honorarium categories
-     */
-    private function clasificarCategoriasHonorarios($honorarios)
-    {
-        $categorias = [
-            'SERVICIOS_MEDICOS' => [],
-            'CONSULTORIA_EMPRESARIAL' => [],
-            'CAPACITACION' => [],
-            'SERVICIOS_LEGALES' => [],
-            'SERVICIOS_CONTABLES' => [],
-            'OTROS' => []
-        ];
-
-        foreach ($honorarios->groupBy('CodClie') as $proveedorId => $servicios) {
-            $proveedor = $servicios->first();
-            $nombre = strtoupper($proveedor->Razon);
-            
-            if (strpos($nombre, 'DR.') !== false || strpos($nombre, 'DRA.') !== false || 
-                strpos($nombre, 'MEDICO') !== false) {
-                $categorias['SERVICIOS_MEDICOS'][$proveedorId] = $servicios;
-            } elseif (strpos($nombre, 'CONSULTOR') !== false || strpos($nombre, 'CONSULTORA') !== false) {
-                $categorias['CONSULTORIA_EMPRESARIAL'][$proveedorId] = $servicios;
-            } elseif (strpos($nombre, 'CAPACIT') !== false || strpos($nombre, 'TRAINING') !== false) {
-                $categorias['CAPACITACION'][$proveedorId] = $servicios;
-            } elseif (strpos($nombre, 'ABOGADO') !== false || strpos($nombre, 'ESTUDIO') !== false) {
-                $categorias['SERVICIOS_LEGALES'][$proveedorId] = $servicios;
-            } elseif (strpos($nombre, 'CONTADOR') !== false || strpos($nombre, 'CONTABLE') !== false) {
-                $categorias['SERVICIOS_CONTABLES'][$proveedorId] = $servicios;
-            } else {
-                $categorias['OTROS'][$proveedorId] = $servicios;
-            }
-        }
-
-        return $categorias;
-    }
-
-    /**
-     * Analyze category growth
-     */
-    private function analizarCrecimientoCategorias($categorias, $fechaInicio, $fechaFin)
-    {
-        $crecimiento = [];
-        
-        foreach ($categorias as $categoria => $servicios) {
-            $totalActual = $servicios->sum('Monto');
-            
-            // Comparar con período anterior (simulado)
-            $totalAnterior = $totalActual * 0.85; // Asumir 15% menos en período anterior
-            
-            $crecimiento[$categoria] = [
-                'actual' => $totalActual,
-                'anterior' => $totalAnterior,
-                'variacion' => $totalAnterior > 0 ? (($totalActual - $totalAnterior) / $totalAnterior) * 100 : 0
-            ];
-        }
-        
-        return $crecimiento;
-    }
-
-    /**
-     * Calculate honorarium trends
-     */
-    private function calcularTendenciasHonorarios($resumenMensual, $anio)
-    {
-        $totales = array_column($resumenMensual, 'total');
-        
-        return [
-            'promedio_mensual' => array_sum($totales) / count($totales),
-            'mes_mayor_gasto' => array_keys($totales, max($totales))[0] ?? null,
-            'mes_menor_gasto' => array_keys($totales, min($totales))[0] ?? null,
-            'tendencia_anual' => $this->calcularTendencia($totales)
-        ];
-    }
-
-    /**
-     * Calculate trend
-     */
-    private function calcularTendencia($valores)
-    {
-        if (count($valores) < 2) return 0;
-        
-        $primero = $valores[0];
-        $ultimo = $valores[count($valores) - 1];
-        
-        return $primero > 0 ? (($ultimo - $primero) / $primero) * 100 : 0;
-    }
-
-    /**
-     * Project by category
-     */
-    private function proyectarPorCategoria($gastosHistoricos)
-    {
-        $promedio = array_sum($gastosHistoricos) / count($gastosHistoricos);
-        
-        return [
-            'SERVICIOS_MEDICOS' => $promedio * 0.4,
-            'CONSULTORIA_EMPRESARIAL' => $promedio * 0.25,
-            'CAPACITACION' => $promedio * 0.15,
-            'SERVICIOS_LEGALES' => $promedio * 0.10,
-            'SERVICIOS_CONTABLES' => $promedio * 0.05,
-            'OTROS' => $promedio * 0.05
-        ];
-    }
-
-    /**
-     * Generate budget alerts
-     */
-    private function generarAlertasPresupuesto($gastosHistoricos, $anio)
-    {
-        $alertas = [];
-        $promedio = array_sum($gastosHistoricos) / count($gastosHistoricos);
-        
-        foreach ($gastosHistoricos as $mes => $gasto) {
-            if ($gasto > $promedio * 1.5) {
-                $alertas[] = [
-                    'tipo' => 'warning',
-                    'mes' => $mes,
-                    'mensaje' => "Gasto de honorarios elevada en mes $mes"
-                ];
-            }
-        }
-        
-        return $alertas;
-    }
-}

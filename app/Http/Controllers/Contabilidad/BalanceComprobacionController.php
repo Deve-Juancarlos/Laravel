@@ -169,21 +169,23 @@ class BalanceComprobacionController extends Controller
             $fechaInicio = $request->input('fecha_inicio', Carbon::now()->startOfYear()->format('Y-m-d'));
             $fechaFin = $request->input('fecha_fin', Carbon::now()->endOfYear()->format('Y-m-d'));
 
-            // Asientos desequilibrados
-            $asientosDesequilibrados = DB::table('libro_diario')
+            // ✅ Asientos desequilibrados
+            $asientosDesequilibrados = DB::table('libro_diario as c')
+                ->join('libro_diario_detalles as d', 'd.asiento_id', '=', 'c.id')
                 ->select(
-                    'id',
-                    'numero',
-                    'total_debe',
-                    'total_haber',
-                    DB::raw('ABS(total_debe - total_haber) as diferencia')
+                    'c.id',
+                    'c.numero',
+                    DB::raw('SUM(d.debe) as total_debe'),
+                    DB::raw('SUM(d.haber) as total_haber'),
+                    DB::raw('ABS(SUM(d.debe) - SUM(d.haber)) as diferencia')
                 )
-                ->whereBetween('fecha', [$fechaInicio, $fechaFin])
-                ->where('estado', 'ACTIVO')
-                ->whereRaw('ABS(total_debe - total_haber) > 0.01')
+                ->whereBetween('c.fecha', [$fechaInicio, $fechaFin])
+                ->where('c.estado', 'ACTIVO')
+                ->groupBy('c.id', 'c.numero')
+                ->havingRaw('ABS(SUM(d.debe) - SUM(d.haber)) > 0.01')
                 ->get();
 
-            // Totales generales
+            // ✅ Totales generales
             $totalDebe = DB::table('libro_diario_detalles as d')
                 ->join('libro_diario as c', 'd.asiento_id', '=', 'c.id')
                 ->whereBetween('c.fecha', [$fechaInicio, $fechaFin])
@@ -198,7 +200,7 @@ class BalanceComprobacionController extends Controller
 
             $diferencia = abs($totalDebe - $totalHaber);
 
-            // Cuentas sin movimientos (opcional: puedes ajustar según necesidad)
+            // ✅ Cuentas sin movimientos
             $cuentasConMov = DB::table('libro_diario_detalles as d')
                 ->join('libro_diario as c', 'd.asiento_id', '=', 'c.id')
                 ->whereBetween('c.fecha', [$fechaInicio, $fechaFin])
@@ -207,11 +209,13 @@ class BalanceComprobacionController extends Controller
                 ->toArray();
 
             $cuentasSinMovimientos = DB::table('plan_cuentas')
-                ->where('activo', 1)
                 ->whereNotIn('codigo', $cuentasConMov)
+                ->select('codigo as cuenta', 'nombre')
+                ->orderBy('codigo')
                 ->limit(20)
-                ->get(['codigo as cuenta']);
+                ->get();
 
+            // ✅ Estadísticas finales
             $estadisticas = [
                 'total_asientos' => DB::table('libro_diario')
                     ->whereBetween('fecha', [$fechaInicio, $fechaFin])
@@ -234,6 +238,7 @@ class BalanceComprobacionController extends Controller
         }
     }
 
+
     // Métodos privados actualizados
 
     private function obtenerResumenPorClases($fechaInicio, $fechaFin)
@@ -255,37 +260,40 @@ class BalanceComprobacionController extends Controller
             'PASIVO' => ['total_debe' => 0, 'total_haber' => 0],
             'PATRIMONIO' => ['total_debe' => 0, 'total_haber' => 0],
             'INGRESOS' => ['total_debe' => 0, 'total_haber' => 0],
-            'GASTOS' => ['total_debe' => 0, 'total_haber' => 0]
+            'GASTOS' => ['total_debe' => 0, 'total_haber' => 0],
         ];
 
         foreach ($balances as $b) {
             $codigo = $b->cuenta;
+            if (empty($codigo) || !ctype_digit(substr($codigo, 0, 1))) continue;
+
             $primera = substr($codigo, 0, 1);
-            $neto = $b->total_debe - $b->total_haber;
 
             switch ($primera) {
-                case '1': // Activo
-                    $resumen['ACTIVO']['total_debe'] += max(0, $neto);
-                    break;
-                case '2': // Pasivo
-                    $resumen['PASIVO']['total_haber'] += max(0, -$neto);
-                    break;
-                case '3': // Patrimonio
-                    $resumen['PATRIMONIO']['total_haber'] += max(0, -$neto);
-                    break;
-                case '4': // Ingresos
-                    $resumen['INGRESOS']['total_haber'] += max(0, -$neto);
-                    break;
+                case '1': $tipo = 'ACTIVO'; break;
+                case '2': $tipo = 'PASIVO'; break;
+                case '3': $tipo = 'PATRIMONIO'; break;
+                case '4': $tipo = 'INGRESOS'; break;
                 case '5':
                 case '6':
-                case '9': // Gastos
-                    $resumen['GASTOS']['total_debe'] += max(0, $neto);
-                    break;
+                case '9': $tipo = 'GASTOS'; break;
+                default: $tipo = null;
             }
+
+            if ($tipo) {
+                $resumen[$tipo]['total_debe'] += $b->total_debe;
+                $resumen[$tipo]['total_haber'] += $b->total_haber;
+            }
+        }
+
+        // Calcular saldos netos por clase
+        foreach ($resumen as $clase => &$valores) {
+            $valores['saldo'] = $valores['total_debe'] - $valores['total_haber'];
         }
 
         return $resumen;
     }
+
 
     private function obtenerEstadisticas($fechaInicio, $fechaFin)
     {
