@@ -115,7 +115,6 @@ Route::middleware(['auth', 'check.contador'])->group(function () {
     Route::get('/dashboard/contador', [ContadorDashboardController::class, 'contadorDashboard'])->name('dashboard.contador');
     Route::prefix('contador')->name('contador.')->group(function () {
         Route::get('ventas', [App\Http\Controllers\Ventas\DashboardVentasController::class, 'index'])->name('ventas');
-        Route::get('facturacion', [App\Http\Controllers\Ventas\FacturacionController::class, 'index'])->name('facturas.index');
         Route::get('cuentas-cobrar', [App\Http\Controllers\Ventas\CuentasCobrarController::class, 'index'])->name('cuentas-cobrar');
         Route::get('inventario', [App\Http\Controllers\Farmacia\InventarioController::class, 'index'])->name('inventario');
         Route::get('clientes', [App\Http\Controllers\Clientes\ClientesController::class, 'index'])->name('clientes');
@@ -241,7 +240,6 @@ Route::middleware(['auth', 'check.contador'])->group(function () {
                 Route::get('/periodos', [EstadoResultadosController::class, 'porPeriodos'])->name('periodos');
                 Route::get('/detalle/{cuenta}', [EstadoResultadosController::class, 'detalleCuenta'])->name('detalle');
                 Route::get('/comparativo', [EstadoResultadosController::class, 'comparativo'])->name('comparativo');
-                Route::get('/farmaceutico', [EstadoResultadosController::class, 'analisisFarmaceutico'])->name('farmaceutico');
                 Route::get('/flujo-caja', [EstadoResultadosController::class, 'cashFlow'])->name('flujo-caja');
                 Route::get('/balance-general', [EstadoResultadosController::class, 'balanceGeneral'])->name('balance-general');
                 Route::get('/exportar', [EstadoResultadosController::class, 'exportar'])->name('exportar');

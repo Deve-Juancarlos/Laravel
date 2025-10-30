@@ -9,7 +9,7 @@ use Carbon\Carbon;
 
 class EstadoResultadosController extends Controller
 {
-    public function index(Request $request)
+   public function index(Request $request) 
     {
         try {
             $fechaInicio = $request->get('fecha_inicio', now()->startOfMonth()->toDateString());
@@ -25,7 +25,7 @@ class EstadoResultadosController extends Controller
                 ->select('pc.nombre as descripcion', DB::raw('SUM(d.haber) as total'))
                 ->groupBy('pc.nombre')
                 ->get()
-                ->map(fn($item) => [
+                ->map(fn($item) => (object)[
                     'descripcion' => $item->descripcion,
                     'total' => round($item->total, 2),
                     'movimientos' => 1
@@ -39,12 +39,13 @@ class EstadoResultadosController extends Controller
                 ->where('c.estado', 'ACTIVO')
                 ->where(function ($q) {
                     $q->where('d.cuenta_contable', 'LIKE', '6%')
-                      ->orWhere('d.cuenta_contable', 'LIKE', '9%');
+                    ->orWhere('d.cuenta_contable', 'LIKE', '9%');
                 })
-                ->select('pc.nombre as descripcion', DB::raw('SUM(d.debe) as total'))
-                ->groupBy('pc.nombre')
+                ->select('d.cuenta_contable', 'pc.nombre as descripcion', DB::raw('SUM(d.debe) as total'))
+                ->groupBy('d.cuenta_contable', 'pc.nombre')
                 ->get()
-                ->map(fn($item) => [
+                ->map(fn($item) => (object)[
+                    'cuenta_contable' => $item->cuenta_contable,
                     'descripcion' => $item->descripcion,
                     'total' => round($item->total, 2),
                     'movimientos' => 1
@@ -78,7 +79,7 @@ class EstadoResultadosController extends Controller
             $fechaFinAnterior = Carbon::parse($fechaFin)->subMonth()->endOfMonth()->toDateString();
             $comparacion = $this->obtenerComparacionPeriodo($fechaInicioAnterior, $fechaFinAnterior, $fechaInicio, $fechaFin);
 
-            return view('contabilidad.estados-financieros.resultados', compact(
+            return view('contabilidad.libros.estados-financieros.resultados', compact(
                 'ingresos', 'gastos', 'ventasNetas', 'costoVentas', 'resultados',
                 'comparacion', 'fechaInicio', 'fechaFin'
             ));
@@ -87,6 +88,77 @@ class EstadoResultadosController extends Controller
             return back()->with('error', 'Error al cargar Estado de Resultados: ' . $e->getMessage());
         }
     }
+
+   
+    public function porPeriodos(Request $request)
+    {
+        $anio = $request->get('anio', now()->year);
+
+        $resultadosMensuales = [];
+
+        for ($mes = 1; $mes <= 12; $mes++) {
+            $inicioMes = Carbon::create($anio, $mes, 1)->startOfMonth()->toDateString();
+            $finMes = Carbon::create($anio, $mes, 1)->endOfMonth()->toDateString();
+
+            $ventasNetas = DB::table('Doccab')
+                ->whereBetween('Fecha', [$inicioMes, $finMes])
+                ->where('Tipo', 1)
+                ->where('Eliminado', 0)
+                ->sum('Subtotal');
+
+            $costoVentas = DB::table('Docdet as d')
+                ->join('Doccab as c', 'd.Numero', '=', 'c.Numero')
+                ->whereBetween('c.Fecha', [$inicioMes, $finMes])
+                ->where('c.Tipo', 1)
+                ->where('c.Eliminado', 0)
+                ->sum(DB::raw('d.Cantidad * d.Costo'));
+
+            $utilidadBruta = $ventasNetas - $costoVentas;
+
+            $gastosOperativos = DB::table('libro_diario_detalles as d')
+                ->join('libro_diario as c', 'd.asiento_id', '=', 'c.id')
+                ->whereBetween('c.fecha', [$inicioMes, $finMes])
+                ->where('c.estado', 'ACTIVO')
+                ->where(function($q) {
+                    $q->where('d.cuenta_contable', 'LIKE', '6%')
+                    ->orWhere('d.cuenta_contable', 'LIKE', '9%');
+                })
+                ->sum('d.debe');
+
+            $utilidadOperativa = $utilidadBruta - $gastosOperativos;
+
+            $resultadosMensuales[$mes] = [
+                'mes' => Carbon::create($anio, $mes, 1)->format('F'),
+                'ventas_netas' => $ventasNetas,
+                'costo_ventas' => $costoVentas,
+                'utilidad_bruta' => $utilidadBruta,
+                'gastos_operativos' => $gastosOperativos,
+                'utilidad_operativa' => $utilidadOperativa,
+                'margen_bruto' => $ventasNetas > 0 ? ($utilidadBruta / $ventasNetas) * 100 : 0,
+                'margen_operativo' => $ventasNetas > 0 ? ($utilidadOperativa / $ventasNetas) * 100 : 0,
+            ];
+        }
+
+        // Evitar undefined key: usamos null si no hay datos
+        $mesMayorVenta = collect($resultadosMensuales)->sortByDesc('ventas_netas')->keys()->first() ?? null;
+        $mesMayorUtilidad = collect($resultadosMensuales)->sortByDesc('utilidad_operativa')->keys()->first() ?? null;
+
+        $ventasAnio = collect($resultadosMensuales)->sum('ventas_netas');
+        $promedioMensual = $ventasAnio > 0 ? round($ventasAnio / 12, 0) : 0;
+
+        $tendencias = [
+            'crecimiento_ventas' => 0, // opcional: puedes calcular crecimiento interanual
+            'promedio_mensual_ventas' => $promedioMensual,
+            'mes_mayor_venta' => $mesMayorVenta,
+            'mes_mayor_utilidad' => $mesMayorUtilidad,
+        ];
+
+        return view('contabilidad.libros.estados-financieros.resultados-periodos', compact(
+            'anio', 'resultadosMensuales', 'tendencias'
+        ));
+    }
+
+
 
     public function balanceGeneral(Request $request)
     {
@@ -156,7 +228,7 @@ class EstadoResultadosController extends Controller
     {
         return DB::table('Doccab')
             ->whereBetween('Fecha', [$fechaInicio, $fechaFin])
-            ->where('Tipo', 'V')
+            ->where('Tipo', 1) // <-- reemplazado
             ->where('Eliminado', 0)
             ->sum('Subtotal');
     }
@@ -166,7 +238,7 @@ class EstadoResultadosController extends Controller
         return DB::table('Docdet as d')
             ->join('Doccab as c', 'd.Numero', '=', 'c.Numero')
             ->whereBetween('c.Fecha', [$fechaInicio, $fechaFin])
-            ->where('c.Tipo', 'V')
+            ->where('c.Tipo', 1) // <-- reemplazado
             ->where('c.Eliminado', 0)
             ->sum(DB::raw('d.Cantidad * d.Costo'));
     }

@@ -1,7 +1,9 @@
 @extends('layouts.app')
 
 @section('title', 'Movimientos - Libro Mayor')
-@php use Carbon\Carbon; @endphp
+@php
+   use Carbon\Carbon; 
+@endphp
 @section('styles')
 <style>
     .stat-card {

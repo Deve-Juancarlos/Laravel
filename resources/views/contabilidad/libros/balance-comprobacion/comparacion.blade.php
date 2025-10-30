@@ -4,6 +4,281 @@
 
 @section('styles')
     <link href="{{ asset('css/contabilidad/comparacion-balance.css') }}" rel="stylesheet">
+    <style>
+        .comparacion-balance-view {
+            background: #f8f9fa;
+            min-height: 100vh;
+            padding: 2rem 0;
+        }
+        
+        .comparison-header {
+            background: white;
+            border-radius: 8px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            border-left: 4px solid #2563eb;
+        }
+        
+        .comparison-header h1 {
+            font-size: 1.875rem;
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 0.5rem;
+        }
+        
+        .comparison-header p {
+            color: #64748b;
+            font-size: 0.95rem;
+            margin: 0;
+        }
+        
+        .card {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+        
+        .card-header {
+            background: #f8fafc;
+            border-bottom: 1px solid #e2e8f0;
+            padding: 1rem 1.5rem;
+        }
+        
+        .card-header h6 {
+            margin: 0;
+            font-weight: 600;
+            color: #1e293b;
+            font-size: 0.9375rem;
+        }
+        
+        .card-body {
+            padding: 1.5rem;
+        }
+        
+        .period-card {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+        
+        .period-header-actual {
+            background: #2563eb;
+            color: white;
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .period-header-actual h4 {
+            font-size: 1rem;
+            font-weight: 600;
+            margin: 0 0 0.25rem 0;
+        }
+        
+        .period-header-actual small {
+            font-size: 0.8125rem;
+            opacity: 0.9;
+        }
+        
+        .period-header-anterior {
+            background: #64748b;
+            color: white;
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .period-header-anterior h4 {
+            font-size: 1rem;
+            font-weight: 600;
+            margin: 0 0 0.25rem 0;
+        }
+        
+        .period-header-anterior small {
+            font-size: 0.8125rem;
+            opacity: 0.9;
+        }
+        
+        .period-body {
+            padding: 1.5rem;
+        }
+        
+        .period-body h6 {
+            font-size: 0.8125rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.5rem;
+        }
+        
+        .period-body h4 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin: 0;
+        }
+        
+        .comparison-table {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            margin-bottom: 2rem;
+        }
+        
+        .comparison-table .card-header {
+            background: #1e293b;
+            color: white;
+            padding: 1rem 1.5rem;
+            border: none;
+        }
+        
+        .comparison-table .card-header h5 {
+            margin: 0;
+            font-weight: 600;
+            font-size: 1rem;
+        }
+        
+        .table {
+            margin: 0;
+        }
+        
+        .table thead th {
+            background: #f8fafc;
+            color: #475569;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.5px;
+            padding: 0.875rem 1rem;
+            border-bottom: 2px solid #e2e8f0;
+        }
+        
+        .table tbody tr {
+            border-bottom: 1px solid #f1f5f9;
+        }
+        
+        .table tbody tr:hover {
+            background: #f8fafc;
+        }
+        
+        .table tbody td {
+            padding: 0.875rem 1rem;
+            vertical-align: middle;
+            color: #334155;
+        }
+        
+        .total-actual {
+            background: #eff6ff;
+        }
+        
+        .total-anterior {
+            color: #64748b;
+        }
+        
+        .chart-container {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .chart-container h6 {
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 1rem;
+            font-size: 0.9375rem;
+        }
+        
+        .form-control {
+            border-radius: 6px;
+            border: 1px solid #cbd5e1;
+            padding: 0.625rem 0.875rem;
+            font-size: 0.9375rem;
+        }
+        
+        .form-control:focus {
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+        
+        .form-label {
+            font-weight: 500;
+            color: #475569;
+            font-size: 0.875rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .btn {
+            border-radius: 6px;
+            padding: 0.625rem 1.25rem;
+            font-weight: 500;
+            font-size: 0.9375rem;
+            border: 1px solid transparent;
+        }
+        
+        .btn-primary {
+            background: #2563eb;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #1d4ed8;
+        }
+        
+        .btn-secondary {
+            background: #64748b;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background: #475569;
+        }
+        
+        .btn-warning {
+            background: #f59e0b;
+            color: white;
+        }
+        
+        .btn-warning:hover {
+            background: #d97706;
+        }
+        
+        .btn-success {
+            background: #10b981;
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background: #059669;
+        }
+        
+        .badge {
+            padding: 0.375rem 0.75rem;
+            border-radius: 4px;
+            font-weight: 500;
+            font-size: 0.8125rem;
+        }
+        
+        .text-success {
+            color: #10b981 !important;
+        }
+        
+        .text-danger {
+            color: #ef4444 !important;
+        }
+        
+        .text-primary {
+            color: #2563eb !important;
+        }
+        
+        .text-secondary {
+            color: #64748b !important;
+        }
+    </style>
 @endsection
 
 @section('sidebar-menu')
@@ -90,20 +365,18 @@
     <div class="container-fluid">
         <!-- Header -->
         <div class="comparison-header">
-            <h1><i class="fas fa-balance-scale me-3"></i>Comparación de Balance</h1>
-            <p class="mb-0">Análisis comparativo entre períodos contables</p>
+            <h1><i class="fas fa-exchange-alt me-2"></i>Comparación de Balance</h1>
+            <p>Análisis comparativo entre períodos contables</p>
         </div>
 
         <!-- Filtros de períodos -->
         <div class="card mb-4">
             <div class="card-header">
-                <h6 class="mb-0">
-                    <i class="fas fa-calendar-alt me-2"></i>Configuración de Períodos
-                </h6>
+                <h6><i class="fas fa-calendar-alt me-2"></i>Configuración de Períodos</h6>
             </div>
             <div class="card-body">
                 <form method="GET" action="{{ route('contador.balance-comprobacion.comparacion') }}">
-                    <div class="row align-items-end">
+                    <div class="row g-3">
                         <div class="col-md-3">
                             <label class="form-label">Período Actual - Inicio</label>
                             <input type="date" name="fecha_inicio" class="form-control" value="{{ $periodoActual['inicio'] }}">
@@ -133,7 +406,7 @@
         </div>
 
         <!-- Tarjetas de resumen por período -->
-        <div class="row mb-4">
+        <div class="row mb-4 g-3">
             <div class="col-md-6">
                 <div class="period-card">
                     <div class="period-header-actual">
@@ -141,7 +414,7 @@
                         <small>{{ \Carbon\Carbon::parse($periodoActual['inicio'])->format('d/m/Y') }} - {{ \Carbon\Carbon::parse($periodoActual['fin'])->format('d/m/Y') }}</small>
                     </div>
                     <div class="period-body">
-                        <div class="row text-center">
+                        <div class="row text-center g-3">
                             <div class="col-md-6">
                                 <div class="p-3 border rounded">
                                     <h6 class="text-primary">TOTAL DEUDOR</h6>
@@ -166,7 +439,7 @@
                                         <i class="fas fa-exclamation-triangle me-1"></i>NO CUADRA
                                     </span>
                                 @endif
-                                <small class="d-block text-muted mt-1">
+                                <small class="d-block text-muted mt-2">
                                     Diferencia: S/ {{ number_format($balanceActual['diferencia'], 2) }}
                                 </small>
                             </div>
@@ -182,7 +455,7 @@
                         <small>{{ \Carbon\Carbon::parse($periodoAnterior['inicio'])->format('d/m/Y') }} - {{ \Carbon\Carbon::parse($periodoAnterior['fin'])->format('d/m/Y') }}</small>
                     </div>
                     <div class="period-body">
-                        <div class="row text-center">
+                        <div class="row text-center g-3">
                             <div class="col-md-6">
                                 <div class="p-3 border rounded">
                                     <h6 class="text-secondary">TOTAL DEUDOR</h6>
@@ -207,7 +480,7 @@
                                         <i class="fas fa-exclamation-triangle me-1"></i>NO CUADRA
                                     </span>
                                 @endif
-                                <small class="d-block text-muted mt-1">
+                                <small class="d-block text-muted mt-2">
                                     Diferencia: S/ {{ number_format($balanceAnterior['diferencia'], 2) }}
                                 </small>
                             </div>
@@ -219,15 +492,12 @@
 
         <!-- Tabla de comparación detallada -->
         <div class="comparison-table">
-            <div class="card-header bg-primary text-white">
-                <h5 class="mb-0">
-                    <i class="fas fa-table me-2"></i>
-                    Comparación Detallada de Balances
-                </h5>
+            <div class="card-header">
+                <h5><i class="fas fa-table me-2"></i>Comparación Detallada de Balances</h5>
             </div>
             
             <div class="table-responsive">
-                <table class="table table-hover mb-0">
+                <table class="table mb-0">
                     <thead>
                         <tr>
                             <th>Concepto</th>
@@ -257,7 +527,7 @@
                                 @if($balanceActual['cuadra'] && $balanceAnterior['cuadra'])
                                     <span class="badge bg-success">Cuadran Ambos</span>
                                 @else
-                                    <span class="badge bg-warning">Revisar</span>
+                                    <span class="badge bg-warning text-dark">Revisar</span>
                                 @endif
                             </td>
                         </tr>
@@ -280,7 +550,7 @@
                                 @if($balanceActual['cuadra'] && $balanceAnterior['cuadra'])
                                     <span class="badge bg-success">Cuadran Ambos</span>
                                 @else
-                                    <span class="badge bg-warning">Revisar</span>
+                                    <span class="badge bg-warning text-dark">Revisar</span>
                                 @endif
                             </td>
                         </tr>
@@ -314,60 +584,50 @@
 
         <!-- Gráfico comparativo -->
         <div class="chart-container">
-            <h6 class="mb-3">
-                <i class="fas fa-chart-bar me-2"></i>
-                Evolución Comparativa de Balances
-            </h6>
+            <h6><i class="fas fa-chart-bar me-2"></i>Evolución Comparativa de Balances</h6>
             <canvas id="comparisonChart" height="100"></canvas>
         </div>
 
         <!-- Análisis de variaciones -->
-        <div class="row mt-4">
-            <div class="col-md-12">
-                <div class="card">
-                    <div class="card-header">
-                        <h6 class="mb-0">
-                            <i class="fas fa-chart-line me-2"></i>
-                            Análisis de Variaciones Significativas
-                        </h6>
+        <div class="card">
+            <div class="card-header">
+                <h6><i class="fas fa-chart-line me-2"></i>Análisis de Variaciones Significativas</h6>
+            </div>
+            <div class="card-body">
+                @php
+                    $variaciones = [
+                        'deudor' => [
+                            'variacion' => $balanceActual['total_deudor'] - $balanceAnterior['total_deudor'],
+                            'porcentaje' => $balanceAnterior['total_deudor'] > 0 ? (($balanceActual['total_deudor'] - $balanceAnterior['total_deudor']) / $balanceAnterior['total_deudor']) * 100 : 0,
+                            'significado' => $balanceActual['total_deudor'] - $balanceAnterior['total_deudor'] > 0 ? 'Incremento en activos y gastos' : 'Reducción en activos y gastos'
+                        ],
+                        'acreedor' => [
+                            'variacion' => $balanceActual['total_acreedor'] - $balanceAnterior['total_acreedor'],
+                            'porcentaje' => $balanceAnterior['total_acreedor'] > 0 ? (($balanceActual['total_acreedor'] - $balanceAnterior['total_acreedor']) / $balanceAnterior['total_acreedor']) * 100 : 0,
+                            'significado' => $balanceActual['total_acreedor'] - $balanceAnterior['total_acreedor'] > 0 ? 'Incremento en pasivos, patrimonio e ingresos' : 'Reducción en pasivos, patrimonio e ingresos'
+                        ]
+                    ];
+                @endphp
+                
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="p-3 border rounded">
+                            <h6>Variación Total Deudor</h6>
+                            <p class="mb-1">
+                                <strong>{{ $variaciones['deudor']['variacion'] >= 0 ? '+' : '' }}S/ {{ number_format($variaciones['deudor']['variacion'], 2) }}</strong>
+                                ({{ $variaciones['deudor']['porcentaje'] >= 0 ? '+' : '' }}{{ number_format($variaciones['deudor']['porcentaje'], 1) }}%)
+                            </p>
+                            <small class="text-muted">{{ $variaciones['deudor']['significado'] }}</small>
+                        </div>
                     </div>
-                    <div class="card-body">
-                        @php
-                            $variaciones = [
-                                'deudor' => [
-                                    'variacion' => $balanceActual['total_deudor'] - $balanceAnterior['total_deudor'],
-                                    'porcentaje' => $balanceAnterior['total_deudor'] > 0 ? (($balanceActual['total_deudor'] - $balanceAnterior['total_deudor']) / $balanceAnterior['total_deudor']) * 100 : 0,
-                                    'significado' => $balanceActual['total_deudor'] - $balanceAnterior['total_deudor'] > 0 ? 'Incremento en activos y gastos' : 'Reducción en activos y gastos'
-                                ],
-                                'acreedor' => [
-                                    'variacion' => $balanceActual['total_acreedor'] - $balanceAnterior['total_acreedor'],
-                                    'porcentaje' => $balanceAnterior['total_acreedor'] > 0 ? (($balanceActual['total_acreedor'] - $balanceAnterior['total_acreedor']) / $balanceAnterior['total_acreedor']) * 100 : 0,
-                                    'significado' => $balanceActual['total_acreedor'] - $balanceAnterior['total_acreedor'] > 0 ? 'Incremento en pasivos, patrimonio e ingresos' : 'Reducción en pasivos, patrimonio e ingresos'
-                                ]
-                            ];
-                        @endphp
-                        
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="p-3 border rounded {{ $variaciones['deudor']['variacion'] >= 0 ? 'border-success' : 'border-danger' }}">
-                                    <h6>Variación Total Deudor</h6>
-                                    <p class="mb-1">
-                                        <strong>{{ $variaciones['deudor']['variacion'] >= 0 ? '+' : '' }}S/ {{ number_format($variaciones['deudor']['variacion'], 2) }}</strong>
-                                        ({{ $variaciones['deudor']['porcentaje'] >= 0 ? '+' : '' }}{{ number_format($variaciones['deudor']['porcentaje'], 1) }}%)
-                                    </p>
-                                    <small class="text-muted">{{ $variaciones['deudor']['significado'] }}</small>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="p-3 border rounded {{ $variaciones['acreedor']['variacion'] >= 0 ? 'border-success' : 'border-danger' }}">
-                                    <h6>Variación Total Acreedor</h6>
-                                    <p class="mb-1">
-                                        <strong>{{ $variaciones['acreedor']['variacion'] >= 0 ? '+' : '' }}S/ {{ number_format($variaciones['acreedor']['variacion'], 2) }}</strong>
-                                        ({{ $variaciones['acreedor']['porcentaje'] >= 0 ? '+' : '' }}{{ number_format($variaciones['acreedor']['porcentaje'], 1) }}%)
-                                    </p>
-                                    <small class="text-muted">{{ $variaciones['acreedor']['significado'] }}</small>
-                                </div>
-                            </div>
+                    <div class="col-md-6">
+                        <div class="p-3 border rounded">
+                            <h6>Variación Total Acreedor</h6>
+                            <p class="mb-1">
+                                <strong>{{ $variaciones['acreedor']['variacion'] >= 0 ? '+' : '' }}S/ {{ number_format($variaciones['acreedor']['variacion'], 2) }}</strong>
+                                ({{ $variaciones['acreedor']['porcentaje'] >= 0 ? '+' : '' }}{{ number_format($variaciones['acreedor']['porcentaje'], 1) }}%)
+                            </p>
+                            <small class="text-muted">{{ $variaciones['acreedor']['significado'] }}</small>
                         </div>
                     </div>
                 </div>
@@ -393,7 +653,6 @@
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-// Gráfico comparativo
 const ctx = document.getElementById('comparisonChart').getContext('2d');
 const comparisonChart = new Chart(ctx, {
     type: 'bar',
@@ -403,15 +662,15 @@ const comparisonChart = new Chart(ctx, {
             {
                 label: 'Período Actual',
                 data: [{{ $balanceActual['total_deudor'] }}, {{ $balanceActual['total_acreedor'] }}, {{ $balanceActual['diferencia'] }}],
-                backgroundColor: 'rgba(59, 130, 246, 0.8)',
-                borderColor: 'rgba(59, 130, 246, 1)',
+                backgroundColor: '#2563eb',
+                borderColor: '#2563eb',
                 borderWidth: 1
             },
             {
                 label: 'Período Anterior',
                 data: [{{ $balanceAnterior['total_deudor'] }}, {{ $balanceAnterior['total_acreedor'] }}, {{ $balanceAnterior['diferencia'] }}],
-                backgroundColor: 'rgba(107, 114, 128, 0.8)',
-                borderColor: 'rgba(107, 114, 128, 1)',
+                backgroundColor: '#64748b',
+                borderColor: '#64748b',
                 borderWidth: 1
             }
         ]
@@ -421,15 +680,35 @@ const comparisonChart = new Chart(ctx, {
         scales: {
             y: {
                 beginAtZero: true,
+                grid: {
+                    color: 'rgba(0, 0, 0, 0.05)'
+                },
                 ticks: {
                     callback: function(value) {
                         return 'S/ ' + value.toLocaleString('es-PE');
                     }
                 }
+            },
+            x: {
+                grid: {
+                    display: false
+                }
             }
         },
         plugins: {
+            legend: {
+                display: true,
+                position: 'top',
+                labels: {
+                    font: {
+                        size: 12,
+                        weight: '500'
+                    }
+                }
+            },
             tooltip: {
+                backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                padding: 10,
                 callbacks: {
                     label: function(context) {
                         return context.dataset.label + ': S/ ' + context.parsed.y.toLocaleString('es-PE', {minimumFractionDigits: 2});
