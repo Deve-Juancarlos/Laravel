@@ -248,7 +248,7 @@ class LibroMayorController extends Controller
 
             // Encabezado del reporte
             fputcsv($file, ['LIBRO MAYOR - RESUMEN POR CUENTAS']);
-            fputcsv($file, ['DISTRIBUIDORA SIFANO']);
+            fputcsv($file, ['DISTRIBUIDORA Sedimcorp']);
             fputcsv($file, ['Período: ' . Carbon::parse($fechaInicio)->format('d/m/Y') . ' - ' . Carbon::parse($fechaFin)->format('d/m/Y')]);
             fputcsv($file, []);
 
@@ -604,6 +604,8 @@ class LibroMayorController extends Controller
         }
     }
 
+
+
     /**
      * Balance de Comprobación
      */
@@ -680,4 +682,100 @@ class LibroMayorController extends Controller
                 return 'Mixta';
         }
     }
+
+    /**
+ * Movimientos del Libro Mayor
+ */
+    public function movimientos(Request $request)
+    {
+        // ===========================
+        // 1. Filtros
+        // ===========================
+        $fechaInicio = $request->input('fecha_inicio') 
+            ? Carbon::parse($request->input('fecha_inicio'))->startOfDay() 
+            : Carbon::now()->startOfMonth();
+
+        $fechaFin = $request->input('fecha_fin') 
+            ? Carbon::parse($request->input('fecha_fin'))->endOfDay() 
+            : Carbon::now()->endOfMonth();
+
+        $cuenta = $request->input('cuenta'); // opcional
+        $mes = $request->input('mes');       // opcional
+
+        // ===========================
+        // 2. Query base
+        // ===========================
+        $query = DB::table('libro_diario_detalles as dld')
+            ->join('libro_diario as ld', 'dld.asiento_id', '=', 'ld.id')
+            ->leftJoin('plan_cuentas as pc', 'dld.cuenta_contable', '=', 'pc.codigo')
+            ->select(
+                'ld.numero',
+                'ld.fecha',
+                'dld.cuenta_contable',
+                'pc.nombre as nombre_cuenta',
+                'dld.concepto',
+                DB::raw('CAST(dld.debe AS DECIMAL(25,2)) as debe'),
+                DB::raw('CAST(dld.haber AS DECIMAL(25,2)) as haber')
+            )
+            ->where('ld.estado', 'ACTIVO')
+            ->whereBetween('ld.fecha', [$fechaInicio, $fechaFin])
+            ->orderBy('ld.fecha', 'asc')
+            ->orderBy('ld.numero', 'asc')
+            ->orderBy('dld.cuenta_contable', 'asc');
+
+        if ($cuenta) {
+            $query->where('dld.cuenta_contable', 'like', "%{$cuenta}%");
+        }
+
+        if ($mes) {
+            $query->whereMonth('ld.fecha', $mes);
+        }
+
+        // ===========================
+        // 3. Paginación
+        // ===========================
+        $movimientos = $query->paginate(50)->withQueryString();
+
+        // ===========================
+        // 4. Totales para estadisticas
+        // ===========================
+        $totales = $query->get()->reduce(function ($carry, $item) {
+            $carry['debe'] += $item->debe;
+            $carry['haber'] += $item->haber;
+            $carry['count']++;
+            return $carry;
+        }, ['debe' => 0, 'haber' => 0, 'count' => 0]);
+
+        // ===========================
+        // 5. Resumen mensual (opcional)
+        // ===========================
+        $resumenMensual = DB::table('libro_diario_detalles as dld')
+            ->join('libro_diario as ld', 'dld.asiento_id', '=', 'ld.id')
+            ->select(
+                DB::raw('MONTH(ld.fecha) as mes_numero'),
+                DB::raw('YEAR(ld.fecha) as anio'),
+                DB::raw('SUM(dld.debe) as total_debe'),
+                DB::raw('SUM(dld.haber) as total_haber')
+            )
+            ->where('ld.estado', 'ACTIVO')
+            ->whereBetween('ld.fecha', [$fechaInicio, $fechaFin])
+            ->groupBy(DB::raw('YEAR(ld.fecha)'), DB::raw('MONTH(ld.fecha)'))
+            ->orderBy('anio')
+            ->orderBy('mes_numero')
+            ->get();
+
+        // ===========================
+        // 6. Retornar vista
+        // ===========================
+        return view('contabilidad.libros.mayor.movimientos', [
+            'movimientos'    => $movimientos,
+            'fechaInicio'    => $fechaInicio->format('Y-m-d'),
+            'fechaFin'       => $fechaFin->format('Y-m-d'),
+            'cuenta'         => $cuenta,
+            'mes'            => $mes,
+            'totales'        => $totales,
+            'resumenMensual' => $resumenMensual,
+        ]);
+    }
 }
+
