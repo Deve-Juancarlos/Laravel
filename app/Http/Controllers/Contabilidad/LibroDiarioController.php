@@ -63,30 +63,29 @@ class LibroDiarioController extends Controller
     /**
      * Crear nuevo asiento contable
      */
+    // En LibroDiarioController.php
     public function create()
     {
         try {
-            // Obtener siguiente número de asiento
-            $siguienteNumero = $this->obtenerSiguienteNumeroAsiento();
-            
-            // Obtener cuentas contables para el formulario
-            $cuentasContables = $this->obtenerCuentasContablesParaFormulario();
-            
-            // Obtener últimos 5 asientos para referencia
+            // Obtener cuentas contables como colección simple (NO agrupada)
+            $cuentasContables = DB::table('plan_cuentas')
+                ->where('activo', 1)
+                ->orderBy('codigo')
+                ->get(['codigo', 'nombre']);
+
             $ultimosAsientos = $this->obtenerUltimosAsientos(5);
             
             return view('contabilidad.libros.diario.create', compact(
-                'siguienteNumero', 
-                'cuentasContables', 
+                'cuentasContables',
                 'ultimosAsientos'
             ));
-            
         } catch (\Exception $e) {
-            Log::error('Error al crear asiento: ' . $e->getMessage());
+            Log::error('Error al cargar formulario de asiento: ' . $e->getMessage());
             return redirect()->route('contador.libro-diario.index')
                 ->with('error', 'Error al cargar formulario de asiento');
         }
     }
+    
 
     /**
      * Store a newly created resource in storage.
@@ -94,9 +93,8 @@ class LibroDiarioController extends Controller
     public function store(Request $request)
     {
         try {
-            // Validar datos
+            // Validar datos SIN el campo 'numero'
             $validatedData = $request->validate([
-                'numero' => 'required|string|unique:libro_diario,numero',
                 'fecha' => 'required|date',
                 'glosa' => 'required|string|max:255',
                 'detalles' => 'required|array|min:2',
@@ -106,36 +104,35 @@ class LibroDiarioController extends Controller
                 'detalles.*.concepto' => 'required|string|max:255',
             ]);
 
-            // Verificar que el balance cuadre
             $totalDebe = collect($validatedData['detalles'])->sum('debe');
             $totalHaber = collect($validatedData['detalles'])->sum('haber');
 
             if (abs($totalDebe - $totalHaber) > 0.01) {
                 return redirect()->back()
                     ->withInput()
-                    ->with('error', 'El asiento no cuadra. Debe: S/ ' . number_format($totalDebe, 2) . 
-                           ', Haber: S/ ' . number_format($totalHaber, 2));
+                    ->with('error', 'El asiento no cuadra. Debe: S/ ' . number_format($totalDebe, 2) .
+                        ', Haber: S/ ' . number_format($totalHaber, 2));
             }
 
             DB::beginTransaction();
-            
-            // Crear asiento principal (tabla correcta: libro_diario)
-            $asiento = [
-                'numero' => $validatedData['numero'],
+
+            // 👇 Generar número único AQUÍ, no en el formulario
+            $numeroAsiento = $this->generarNumeroUnicoAsiento();
+
+            $asientoId = DB::table('libro_diario')->insertGetId([
+                'numero' => $numeroAsiento,
                 'fecha' => $validatedData['fecha'],
                 'glosa' => $validatedData['glosa'],
                 'total_debe' => $totalDebe,
                 'total_haber' => $totalHaber,
                 'balanceado' => true,
+                'estado' => 'ACTIVO',
                 'usuario_id' => auth()->id(),
                 'observaciones' => $request->observaciones,
                 'created_at' => now(),
-                'updated_at' => now()
-            ];
-            
-            $asientoId = DB::table('libro_diario')->insertGetId($asiento);
-            
-            // Crear detalles del asiento (tabla correcta: libro_diario_detalles)
+                'updated_at' => now(),
+            ]);
+
             foreach ($validatedData['detalles'] as $detalle) {
                 DB::table('libro_diario_detalles')->insert([
                     'asiento_id' => $asientoId,
@@ -145,37 +142,47 @@ class LibroDiarioController extends Controller
                     'concepto' => $detalle['concepto'],
                     'documento_referencia' => $detalle['documento_referencia'] ?? null,
                     'created_at' => now(),
-                    'updated_at' => now()
+                    'updated_at' => now(),
                 ]);
             }
-            
+
             DB::commit();
-            
-            // Log para auditoría
+
             Log::info('Asiento contable creado', [
-                'numero' => $validatedData['numero'],
+                'numero' => $numeroAsiento,
                 'total' => $totalDebe,
                 'usuario' => auth()->user()->usuario ?? 'Sistema'
             ]);
-            
+
             return redirect()->route('contador.libro-diario.show', $asientoId)
-                ->with('success', 'Asiento contable registrado correctamente');
+                ->with('success', 'Asiento contable registrado correctamente.');
 
         } catch (\Illuminate\Validation\ValidationException $e) {
-            return redirect()->back()
-                ->withErrors($e->errors())
-                ->withInput();
-                
+            return redirect()->back()->withErrors($e->errors())->withInput();
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Error al crear asiento contable: ' . $e->getMessage());
-            
             return redirect()->back()
                 ->withInput()
                 ->with('error', 'Error al registrar el asiento: ' . $e->getMessage());
         }
     }
 
+    private function generarNumeroUnicoAsiento()
+    {
+        $anio = now()->format('Y');
+        $maxIntentos = 100;
+
+        for ($i = 1; $i <= $maxIntentos; $i++) {
+            $numeroFormateado = $anio . '-' . str_pad($i, 4, '0', STR_PAD_LEFT);
+
+            if (!DB::table('libro_diario')->where('numero', $numeroFormateado)->exists()) {
+                return $numeroFormateado;
+            }
+        }
+
+        throw new \Exception("No se pudo generar un número de asiento único después de $maxIntentos intentos.");
+    }
     /**
      * Display the specified resource.
      */
@@ -473,16 +480,35 @@ class LibroDiarioController extends Controller
 
     private function obtenerSiguienteNumeroAsiento()
     {
-        $ultimoNumero = DB::table('libro_diario') // tabla correcta
-            ->whereYear('fecha', now()->year)
-            ->max('numero');
-            
-        if (!$ultimoNumero) {
-            return now()->format('Y') . '0001';
-        }
-        
-        $numero = (int) substr($ultimoNumero, 4) + 1;
-        return now()->format('Y') . str_pad($numero, 4, '0', STR_PAD_LEFT);
+        $anio = now()->format('Y');
+        $intentos = 0;
+        $maxIntentos = 10;
+
+        do {
+            $ultimoNumero = DB::table('libro_diario')
+                ->where('numero', 'like', $anio . '%')
+                ->max('numero');
+
+            if (!$ultimoNumero) {
+                $numero = 1;
+            } else {
+                $secuencia = (int) substr($ultimoNumero, 4);
+                $numero = $secuencia + 1;
+            }
+
+            $nuevoNumero = $anio . str_pad($numero, 4, '0', STR_PAD_LEFT);
+
+            // Verificar si ya existe (por si hay concurrencia)
+            $existe = DB::table('libro_diario')->where('numero', $nuevoNumero)->exists();
+
+            if (!$existe) {
+                return $nuevoNumero;
+            }
+
+            $intentos++;
+        } while ($intentos < $maxIntentos);
+
+        throw new \Exception("No se pudo generar un número de asiento único después de $maxIntentos intentos.");
     }
 
     private function obtenerUltimosAsientos($cantidad = 5)

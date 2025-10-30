@@ -42,18 +42,18 @@
     box-sizing: border-box;
 }
 
-body {
+.detalle-cuenta-view {
     font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
     background-color: var(--gray-50);
     color: var(--gray-900);
     line-height: 1.6;
 }
 
-.container-fluid {
+.detalle-cuenta-view .container-fluid {
     padding: 2rem;
 }
 
-.form-control {
+.detalle-cuenta-view .form-control {
     border: 2px solid var(--gray-200);
     border-radius: var(--border-radius-sm);
     padding: 0.625rem 0.875rem;
@@ -67,7 +67,7 @@ body {
 /* ============================================
    DETALLE HEADER (NARANJA)
    ============================================ */
-.detalle-header {
+.detalle-cuenta-view .detalle-header {
     background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
     border-radius: var(--border-radius-lg);
     padding: 2rem;
@@ -76,7 +76,7 @@ body {
     color: var(--white);
 }
 
-.detalle-header h1 {
+.detalle-cuenta-view .detalle-header h1 {
     color: var(--white);
     font-size: 2rem;
     font-weight: 700;
@@ -86,11 +86,11 @@ body {
     gap: 0.75rem;
 }
 
-.detalle-header h1 i {
+.detalle-cuenta-view .detalle-header h1 i {
     font-size: 1.75rem;
 }
 
-.detalle-header p {
+.detalle-cuenta-view .detalle-header p {
     color: rgba(255, 255, 255, 0.9);
     font-size: 1rem;
     margin: 0;
@@ -99,7 +99,7 @@ body {
 /* ============================================
    CARDS
    ============================================ */
-.card {
+.detalle-cuenta-view .card {
     background: var(--white);
     border-radius: var(--border-radius);
     box-shadow: var(--shadow);
@@ -108,38 +108,38 @@ body {
     transition: var(--transition);
 }
 
-.card:hover {
+.detalle-cuenta-view .card:hover {
     box-shadow: var(--shadow-lg);
 }
 
-.card-header {
+.detalle-cuenta-view .card-header {
     padding: 1rem 1.5rem;
     border-bottom: 2px solid var(--gray-200);
     font-weight: 600;
 }
 
-.card-header.bg-success {
+.detalle-cuenta-view .card-header.bg-success {
     background: linear-gradient(135deg, #ea580c 0%, #c2410c 100%);
     color: var(--white);
     border: none;
 }
 
-.card-header h5,
-.card-header h6 {
+.detalle-cuenta-view .card-header h5,
+.detalle-cuenta-view .card-header h6 {
     margin: 0;
     display: flex;
     align-items: center;
 }
 
-.card-body {
+.detalle-cuenta-view .card-body {
     padding: 1.5rem;
 }
 
-.card-body.p-0 {
+.detalle-cuenta-view .card-body.p-0 {
     padding: 0;
 }
 
-.card-title {
+.detalle-cuenta-view .card-title {
     font-size: 0.875rem;
     font-weight: 600;
     color: var(--gray-600);
@@ -148,32 +148,32 @@ body {
     letter-spacing: 0.5px;
 }
 
-.card-title.text-primary {
+.detalle-cuenta-view .card-title.text-primary {
     color: #f97316 !important;
 }
 
 /* ============================================
    TABLA
    ============================================ */
-.table-responsive {
+.detalle-cuenta-view .table-responsive {
     overflow-x: auto;
 }
 
-.table {
+.detalle-cuenta-view .table {
     width: 100%;
     border-collapse: collapse;
     margin: 0;
 }
 
-.table thead {
+.detalle-cuenta-view .table thead {
     background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%);
 }
 
-.table thead.table-dark {
+.detalle-cuenta-view .table thead.table-dark {
     background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
 }
 
-.table thead th {
+.detalle-cuenta-view .table thead th {
     padding: 1.25rem 1.5rem;
     font-size: 0.8125rem;
     font-weight: 700;
@@ -185,34 +185,34 @@ body {
     text-align: left;
 }
 
-.table thead.table-dark th {
+.detalle-cuenta-view .table thead.table-dark th {
     color: var(--white);
 }
 
-.table tbody td {
+.detalle-cuenta-view .table tbody td {
     padding: 1.25rem 1.5rem;
     border-bottom: 1px solid var(--gray-200);
     font-size: 1rem;
     color: var(--gray-700);
 }
 
-.table tbody tr {
+.detalle-cuenta-view .table tbody tr {
     transition: var(--transition);
 }
 
-.table tbody tr:hover {
+.detalle-cuenta-view .table tbody tr:hover {
     background: #fff7ed;
 }
 
-.table tfoot {
+.detalle-cuenta-view .table tfoot {
     background: linear-gradient(135deg, #fed7aa 0%, #fdba74 100%);
 }
 
-.table tfoot.table-info {
+.detalle-cuenta-view .table tfoot.table-info {
     background: linear-gradient(135deg, #fed7aa 0%, #fdba74 100%);
 }
 
-.table tfoot td {
+.detalle-cuenta-view .table tfoot td {
     padding: 1.5rem;
     border-top: 4px solid #ea580c;
     border-bottom: 4px solid #ea580c;
@@ -224,73 +224,73 @@ body {
 /* ============================================
    ALINEACIONES Y UTILIDADES
    ============================================ */
-.text-end {
+.detalle-cuenta-view .text-end {
     text-align: right;
 }
 
-.text-center {
+.detalle-cuenta-view .text-center {
     text-align: center;
 }
 
-.text-start {
+.detalle-cuenta-view .text-start {
     text-align: left;
 }
 
-.d-flex {
+.detalle-cuenta-view .d-flex {
     display: flex;
 }
 
-.justify-content-between {
+.detalle-cuenta-view .justify-content-between {
     justify-content: space-between;
 }
 
-.align-items-center {
+.detalle-cuenta-view .align-items-center {
     align-items: center;
 }
 
-.fw-bold {
+.detalle-cuenta-view .fw-bold {
     font-weight: 700;
 }
 
 /* ============================================
    COLORES DE TEXTO
    ============================================ */
-.text-success {
+.detalle-cuenta-view .text-success {
     color: var(--success) !important;
 }
 
-.text-danger {
+.detalle-cuenta-view .text-danger {
     color: var(--danger) !important;
 }
 
-.text-primary {
+.detalle-cuenta-view .text-primary {
     color: #f97316 !important;
 }
 
-.text-warning {
+.detalle-cuenta-view .text-warning {
     color: var(--warning) !important;
 }
 
-.text-info {
+.detalle-cuenta-view .text-info {
     color: var(--info) !important;
 }
 
-.text-secondary {
+.detalle-cuenta-view .text-secondary {
     color: var(--secondary) !important;
 }
 
-.text-muted {
+.detalle-cuenta-view .text-muted {
     color: var(--gray-500) !important;
 }
 
-.text-white {
+.detalle-cuenta-view .text-white {
     color: var(--white) !important;
 }
 
 /* ============================================
    SALDOS ESPECIALES
    ============================================ */
-.saldo-acumulado {
+.detalle-cuenta-view .saldo-acumulado {
     font-weight: 700;
     font-family: 'Courier New', monospace;
     padding: 0.25rem 0.75rem;
@@ -298,21 +298,21 @@ body {
     font-size: 0.9375rem;
 }
 
-.saldo-positivo {
+.detalle-cuenta-view .saldo-positivo {
     color: var(--success);
     background: rgba(16, 185, 129, 0.1);
 }
 
-.saldo-negativo {
+.detalle-cuenta-view .saldo-negativo {
     color: var(--danger);
     background: rgba(239, 68, 68, 0.1);
 }
 
-.movement-row {
+.detalle-cuenta-view .movement-row {
     transition: var(--transition);
 }
 
-.movement-row:hover {
+.detalle-cuenta-view .movement-row:hover {
     background: #fff7ed;
     transform: scale(1.002);
 }
@@ -320,7 +320,7 @@ body {
 /* ============================================
    BOTONES
    ============================================ */
-.btn {
+.detalle-cuenta-view .btn {
     padding: 0.625rem 1.25rem;
     border-radius: var(--border-radius-sm);
     font-weight: 600;
@@ -334,78 +334,78 @@ body {
     text-decoration: none;
 }
 
-.btn-light {
+.detalle-cuenta-view .btn-light {
     background: var(--white);
     color: #f97316;
     border: 2px solid #f97316;
 }
 
-.btn-light:hover {
+.detalle-cuenta-view .btn-light:hover {
     background: #f97316;
     color: var(--white);
     transform: translateY(-2px);
     box-shadow: var(--shadow-md);
 }
 
-.btn-primary {
+.detalle-cuenta-view .btn-primary {
     background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
     color: var(--white);
 }
 
-.btn-primary:hover {
+.detalle-cuenta-view .btn-primary:hover {
     background: linear-gradient(135deg, #ea580c 0%, #c2410c 100%);
     transform: translateY(-2px);
     box-shadow: var(--shadow-md);
 }
 
-.btn-secondary {
+.detalle-cuenta-view .btn-secondary {
     background: linear-gradient(135deg, var(--gray-600) 0%, var(--gray-700) 100%);
     color: var(--white);
 }
 
-.btn-secondary:hover {
+.detalle-cuenta-view .btn-secondary:hover {
     background: linear-gradient(135deg, var(--gray-700) 0%, var(--gray-800) 100%);
     transform: translateY(-2px);
     box-shadow: var(--shadow-md);
 }
 
-.btn-warning {
+.detalle-cuenta-view .btn-warning {
     background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
     color: var(--white);
 }
 
-.btn-warning:hover {
+.detalle-cuenta-view .btn-warning:hover {
     background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
     transform: translateY(-2px);
     box-shadow: var(--shadow-md);
 }
 
-.ms-2 {
+.detalle-cuenta-view .ms-2 {
     margin-left: 0.5rem;
 }
 
 /* ============================================
    SISTEMA DE GRID
    ============================================ */
-.row {
+.detalle-cuenta-view .row {
     display: flex;
     flex-wrap: wrap;
     margin-left: -0.75rem;
     margin-right: -0.75rem;
 }
 
-.col-md-3,
-.col-md-12 {
+.detalle-cuenta-view .col-md-3,
+.detalle-cuenta-view .col-md-12 {
     padding-left: 0.75rem;
     padding-right: 0.75rem;
 }
 
-.col-md-3 {
+.detalle-cuenta-view .col-md-3 {
     flex: 0 0 auto;
     width: 25%;
 }
 
-.col-md-12 {
+.detalle-cuenta-view .col-md-12 {
     flex: 0 0 auto;
     width: 100%;
 }
@@ -413,46 +413,46 @@ body {
 /* ============================================
    UTILIDADES DE ESPACIADO
    ============================================ */
-.mb-0 {
+.detalle-cuenta-view .mb-0 {
     margin-bottom: 0;
 }
 
-.mb-2 {
+.detalle-cuenta-view .mb-2 {
     margin-bottom: 0.5rem;
 }
 
-.mb-3 {
+.detalle-cuenta-view .mb-3 {
     margin-bottom: 1rem;
 }
 
-.mb-4 {
+.detalle-cuenta-view .mb-4 {
     margin-bottom: 1.5rem;
 }
 
-.mt-4 {
+.detalle-cuenta-view .mt-4 {
     margin-top: 1.5rem;
 }
 
-.me-2 {
+.detalle-cuenta-view .me-2 {
     margin-right: 0.5rem;
 }
 
-.me-3 {
+.detalle-cuenta-view .me-3 {
     margin-right: 1rem;
 }
 
-.p-5 {
+.detalle-cuenta-view .p-5 {
     padding: 3rem;
 }
 
 /* ============================================
    ESTADO VACÍO
    ============================================ */
-.fa-inbox {
+.detalle-cuenta-view .fa-inbox {
     font-size: 3rem;
 }
 
-.fa-3x {
+.detalle-cuenta-view .fa-3x {
     font-size: 3rem;
 }
 
@@ -468,33 +468,33 @@ body {
     }
 }
 
-.table tbody tr {
+.detalle-cuenta-view .table tbody tr {
     animation: fadeIn 0.3s ease;
 }
 
-.card {
+.detalle-cuenta-view .card {
     animation: fadeIn 0.4s ease;
 }
 
 /* ============================================
    SCROLLBAR PERSONALIZADO
    ============================================ */
-::-webkit-scrollbar {
+.detalle-cuenta-view ::-webkit-scrollbar {
     width: 8px;
     height: 8px;
 }
 
-::-webkit-scrollbar-track {
+.detalle-cuenta-view ::-webkit-scrollbar-track {
     background: var(--gray-100);
     border-radius: 4px;
 }
 
-::-webkit-scrollbar-thumb {
+.detalle-cuenta-view ::-webkit-scrollbar-thumb {
     background: var(--gray-400);
     border-radius: 4px;
 }
 
-::-webkit-scrollbar-thumb:hover {
+.detalle-cuenta-view ::-webkit-scrollbar-thumb:hover {
     background: var(--gray-500);
 }
 
@@ -502,48 +502,48 @@ body {
    RESPONSIVE
    ============================================ */
 @media (max-width: 768px) {
-    .col-md-3,
-    .col-md-12 {
+    .detalle-cuenta-view .col-md-3,
+    .detalle-cuenta-view .col-md-12 {
         width: 100%;
     }
 
-    .container-fluid {
+    .detalle-cuenta-view .container-fluid {
         padding: 1rem;
     }
 
-    .detalle-header {
+    .detalle-cuenta-view .detalle-header {
         padding: 1.5rem;
     }
 
-    .detalle-header h1 {
+    .detalle-cuenta-view .detalle-header h1 {
         font-size: 1.5rem;
     }
 
-    .d-flex {
+    .detalle-cuenta-view .d-flex {
         flex-direction: column;
     }
 
-    .text-end {
+    .detalle-cuenta-view .text-end {
         text-align: left;
         margin-top: 1rem;
     }
 
-    .table {
+    .detalle-cuenta-view .table {
         font-size: 0.875rem;
     }
 
-    .table thead th,
-    .table tbody td {
+    .detalle-cuenta-view .table thead th,
+    .detalle-cuenta-view .table tbody td {
         padding: 0.75rem;
     }
 
-    .btn {
+    .detalle-cuenta-view .btn {
         width: 100%;
         justify-content: center;
         margin-bottom: 0.5rem;
     }
 
-    .ms-2 {
+    .detalle-cuenta-view .ms-2 {
         margin-left: 0;
     }
 }

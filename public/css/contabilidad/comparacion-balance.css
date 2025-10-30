@@ -3,7 +3,7 @@
    ============================================ */
 
 /* --- VARIABLES Y BASE --- */
-:root {
+.comparacion-balance-view {
     --primary: #f97316;
     --primary-dark: #ea580c;
     --success: #10b981;
@@ -36,27 +36,27 @@
     --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-* {
+.comparacion-balance-view * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
 }
 
-body {
+.comparacion-balance-view body {
     font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
     background-color: var(--gray-50);
     color: var(--gray-900);
     line-height: 1.6;
 }
 
-.container-fluid {
+.comparacion-balance-view .container-fluid {
     padding: 2rem;
 }
 
 /* ============================================
    COMPARISON HEADER (NARANJA)
    ============================================ */
-.comparison-header {
+.comparacion-balance-view .comparison-header {
     background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
     border-radius: var(--border-radius-lg);
     padding: 2rem;
@@ -66,7 +66,7 @@ body {
     text-align: center;
 }
 
-.comparison-header h1 {
+.comparacion-balance-view .comparison-header h1 {
     color: var(--white);
     font-size: 2rem;
     font-weight: 700;
@@ -77,11 +77,11 @@ body {
     gap: 0.75rem;
 }
 
-.comparison-header h1 i {
+.comparacion-balance-view .comparison-header h1 i {
     font-size: 1.75rem;
 }
 
-.comparison-header p {
+.comparacion-balance-view .comparison-header p {
     color: rgba(255, 255, 255, 0.9);
     font-size: 1rem;
     margin: 0;
@@ -90,7 +90,7 @@ body {
 /* ============================================
    CARDS Y FILTROS
    ============================================ */
-.card {
+.comparacion-balance-view .card {
     background: var(--white);
     border-radius: var(--border-radius);
     box-shadow: var(--shadow);
@@ -98,7 +98,7 @@ body {
     margin-bottom: 1.5rem;
 }
 
-.card-header {
+.comparacion-balance-view .card-header {
     padding: 1rem 1.5rem;
     border-bottom: 2px solid var(--gray-200);
     font-weight: 600;
@@ -107,19 +107,19 @@ body {
     border-radius: var(--border-radius) var(--border-radius) 0 0;
 }
 
-.card-header h5,
-.card-header h6 {
+.comparacion-balance-view .card-header h5,
+.comparacion-balance-view .card-header h6 {
     margin: 0;
     font-size: 1rem;
     font-weight: 600;
     color: var(--white);
 }
 
-.card-body {
+.comparacion-balance-view .card-body {
     padding: 1.5rem;
 }
 
-.form-label {
+.comparacion-balance-view .form-label {
     font-size: 0.875rem;
     font-weight: 600;
     color: var(--gray-700);
@@ -127,7 +127,7 @@ body {
     display: block;
 }
 
-.form-control {
+.comparacion-balance-view .form-control {
     border: 2px solid var(--gray-200);
     border-radius: var(--border-radius-sm);
     padding: 0.625rem 0.875rem;
@@ -136,20 +136,20 @@ body {
     width: 100%;
 }
 
-.form-control:focus {
+.comparacion-balance-view .form-control:focus {
     border-color: #f97316;
     box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1);
     outline: none;
 }
 
-.form-control:read-only {
+.comparacion-balance-view .form-control:read-only {
     background-color: var(--gray-100);
 }
 
 /* ============================================
    PERIOD CARDS (NARANJA)
    ============================================ */
-.period-card {
+.comparacion-balance-view .period-card {
     background: var(--white);
     border-radius: var(--border-radius);
     overflow: hidden;
@@ -159,55 +159,55 @@ body {
     transition: var(--transition);
 }
 
-.period-card:hover {
+.comparacion-balance-view .period-card:hover {
     transform: translateY(-4px);
     box-shadow: var(--shadow-xl);
 }
 
-.period-header-actual {
+.comparacion-balance-view .period-header-actual {
     background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
     color: var(--white);
     padding: 1.25rem;
     text-align: center;
 }
 
-.period-header-actual h4 {
+.comparacion-balance-view .period-header-actual h4 {
     margin: 0;
     font-size: 1.25rem;
     font-weight: 700;
 }
 
-.period-header-actual small {
+.comparacion-balance-view .period-header-actual small {
     color: rgba(255, 255, 255, 0.9);
     font-size: 0.875rem;
 }
 
-.period-header-anterior {
+.comparacion-balance-view .period-header-anterior {
     background: linear-gradient(135deg, #ea580c 0%, #c2410c 100%);
     color: var(--white);
     padding: 1.25rem;
     text-align: center;
 }
 
-.period-header-anterior h4 {
+.comparacion-balance-view .period-header-anterior h4 {
     margin: 0;
     font-size: 1.25rem;
     font-weight: 700;
 }
 
-.period-header-anterior small {
+.comparacion-balance-view .period-header-anterior small {
     color: rgba(255, 255, 255, 0.9);
     font-size: 0.875rem;
 }
 
-.period-body {
+.comparacion-balance-view .period-body {
     padding: 1.5rem;
 }
 
 /* ============================================
    COMPARISON TABLE (NARANJA)
    ============================================ */
-.comparison-table {
+.comparacion-balance-view .comparison-table {
     background: var(--white);
     border-radius: var(--border-radius);
     overflow: hidden;
@@ -215,28 +215,28 @@ body {
     margin-bottom: 2rem;
 }
 
-.comparison-table .card-header {
+.comparacion-balance-view .comparison-table .card-header {
     background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
     color: var(--white);
     padding: 1.5rem;
     border: none;
 }
 
-.comparison-table .card-header.bg-primary {
+.comparacion-balance-view .comparison-table .card-header.bg-primary {
     background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
 }
 
-.table {
+.comparacion-balance-view .table {
     width: 100%;
     border-collapse: collapse;
     margin: 0;
 }
 
-.table thead {
+.comparacion-balance-view .table thead {
     background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%);
 }
 
-.table thead th {
+.comparacion-balance-view .table thead th {
     padding: 1rem 1.5rem;
     font-size: 0.8125rem;
     font-weight: 700;
@@ -247,40 +247,40 @@ body {
     text-align: left;
 }
 
-.table tbody td {
+.comparacion-balance-view .table tbody td {
     padding: 1rem 1.5rem;
     border-bottom: 1px solid var(--gray-200);
     font-size: 0.9375rem;
     color: var(--gray-700);
 }
 
-.table tbody tr {
+.comparacion-balance-view .table tbody tr {
     transition: var(--transition);
 }
 
-.table tbody tr:hover {
+.comparacion-balance-view .table tbody tr:hover {
     background: #fff7ed;
 }
 
-.table-hover tbody tr:hover {
+.comparacion-balance-view .table-hover tbody tr:hover {
     background: #fff7ed;
 }
 
-.table-responsive {
+.comparacion-balance-view .table-responsive {
     overflow-x: auto;
 }
 
 /* Filas de totales */
-.total-actual {
+.comparacion-balance-view .total-actual {
     background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%) !important;
     font-weight: 700;
 }
 
-.total-actual td {
+.comparacion-balance-view .total-actual td {
     border-top: 3px solid #f97316;
 }
 
-.total-anterior {
+.comparacion-balance-view .total-anterior {
     background: var(--gray-100) !important;
     font-weight: 700;
 }
@@ -288,19 +288,19 @@ body {
 /* ============================================
    VARIACIONES
    ============================================ */
-.variacion-positiva {
+.comparacion-balance-view .variacion-positiva {
     background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
     color: #065f46;
     font-weight: 600;
 }
 
-.variacion-negativa {
+.comparacion-balance-view .variacion-negativa {
     background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
     color: #991b1b;
     font-weight: 600;
 }
 
-.variacion-neutro {
+.comparacion-balance-view .variacion-neutro {
     background: var(--gray-100);
     color: var(--gray-700);
 }
@@ -308,7 +308,7 @@ body {
 /* ============================================
    CHART CONTAINER (NARANJA)
    ============================================ */
-.chart-container {
+.comparacion-balance-view .chart-container {
     background: var(--white);
     border-radius: var(--border-radius);
     padding: 2rem;
@@ -317,7 +317,7 @@ body {
     border: 2px solid var(--gray-200);
 }
 
-.chart-container h6 {
+.comparacion-balance-view .chart-container h6 {
     color: var(--gray-900);
     font-weight: 700;
     margin-bottom: 1.5rem;
@@ -326,7 +326,7 @@ body {
 /* ============================================
    BADGES
    ============================================ */
-.badge {
+.comparacion-balance-view .badge {
     display: inline-flex;
     align-items: center;
     padding: 0.5rem 1rem;
@@ -336,27 +336,27 @@ body {
     gap: 0.25rem;
 }
 
-.bg-success {
+.comparacion-balance-view .bg-success {
     background: linear-gradient(135deg, #10b981 0%, #059669 100%);
     color: var(--white);
 }
 
-.bg-warning {
+.comparacion-balance-view .bg-warning {
     background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
     color: var(--white);
 }
 
-.bg-danger {
+.comparacion-balance-view .bg-danger {
     background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
     color: var(--white);
 }
 
-.bg-info {
+.comparacion-balance-view .bg-info {
     background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
     color: var(--white);
 }
 
-.bg-primary {
+.comparacion-balance-view .bg-primary {
     background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
     color: var(--white);
 }
@@ -364,7 +364,7 @@ body {
 /* ============================================
    BOTONES
    ============================================ */
-.btn {
+.comparacion-balance-view .btn {
     padding: 0.625rem 1.25rem;
     border-radius: var(--border-radius-sm);
     font-weight: 600;
@@ -378,45 +378,45 @@ body {
     text-decoration: none;
 }
 
-.btn-primary {
+.comparacion-balance-view .btn-primary {
     background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
     color: var(--white);
 }
 
-.btn-primary:hover {
+.comparacion-balance-view .btn-primary:hover {
     background: linear-gradient(135deg, #ea580c 0%, #c2410c 100%);
     transform: translateY(-2px);
     box-shadow: var(--shadow-md);
 }
 
-.btn-secondary {
+.comparacion-balance-view .btn-secondary {
     background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
     color: var(--white);
 }
 
-.btn-secondary:hover {
+.comparacion-balance-view .btn-secondary:hover {
     background: linear-gradient(135deg, #4b5563 0%, #374151 100%);
     transform: translateY(-2px);
     box-shadow: var(--shadow-md);
 }
 
-.btn-warning {
+.comparacion-balance-view .btn-warning {
     background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
     color: var(--white);
 }
 
-.btn-warning:hover {
+.comparacion-balance-view .btn-warning:hover {
     background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
     transform: translateY(-2px);
     box-shadow: var(--shadow-md);
 }
 
-.btn-success {
+.comparacion-balance-view .btn-success {
     background: linear-gradient(135deg, #10b981 0%, #059669 100%);
     color: var(--white);
 }
 
-.btn-success:hover {
+.comparacion-balance-view .btn-success:hover {
     background: linear-gradient(135deg, #059669 0%, #047857 100%);
     transform: translateY(-2px);
     box-shadow: var(--shadow-md);
@@ -425,142 +425,142 @@ body {
 /* ============================================
    COLORES DE TEXTO
    ============================================ */
-.text-primary {
+.comparacion-balance-view .text-primary {
     color: #f97316 !important;
 }
 
-.text-success {
+.comparacion-balance-view .text-success {
     color: var(--success) !important;
 }
 
-.text-danger {
+.comparacion-balance-view .text-danger {
     color: var(--danger) !important;
 }
 
-.text-warning {
+.comparacion-balance-view .text-warning {
     color: var(--warning) !important;
 }
 
-.text-info {
+.comparacion-balance-view .text-info {
     color: var(--info) !important;
 }
 
-.text-secondary {
+.comparacion-balance-view .text-secondary {
     color: var(--secondary) !important;
 }
 
-.text-muted {
+.comparacion-balance-view .text-muted {
     color: var(--gray-500) !important;
 }
 
-.text-dark {
+.comparacion-balance-view .text-dark {
     color: var(--gray-900) !important;
 }
 
-.text-white {
+.comparacion-balance-view .text-white {
     color: var(--white) !important;
 }
 
 /* ============================================
    ALINEACIONES
    ============================================ */
-.text-end {
+.comparacion-balance-view .text-end {
     text-align: right;
 }
 
-.text-center {
+.comparacion-balance-view .text-center {
     text-align: center;
 }
 
-.text-start {
+.comparacion-balance-view .text-start {
     text-align: left;
 }
 
 /* ============================================
    BORDES
    ============================================ */
-.border {
+.comparacion-balance-view .border {
     border: 2px solid var(--gray-200) !important;
 }
 
-.border-success {
+.comparacion-balance-view .border-success {
     border: 2px solid var(--success) !important;
 }
 
-.border-danger {
+.comparacion-balance-view .border-danger {
     border: 2px solid var(--danger) !important;
 }
 
-.rounded {
+.comparacion-balance-view .rounded {
     border-radius: var(--border-radius-sm) !important;
 }
 
 /* ============================================
    RESPONSIVE GRID
    ============================================ */
-.row {
+.comparacion-balance-view .row {
     display: flex;
     flex-wrap: wrap;
     margin-left: -0.75rem;
     margin-right: -0.75rem;
 }
 
-.col-md-3,
-.col-md-6,
-.col-md-12 {
+.comparacion-balance-view .col-md-3,
+.comparacion-balance-view .col-md-6,
+.comparacion-balance-view .col-md-12 {
     padding-left: 0.75rem;
     padding-right: 0.75rem;
     margin-bottom: 1rem;
 }
 
-.col-md-3 {
+.comparacion-balance-view .col-md-3 {
     flex: 0 0 auto;
     width: 25%;
 }
 
-.col-md-6 {
+.comparacion-balance-view .col-md-6 {
     flex: 0 0 auto;
     width: 50%;
 }
 
-.col-md-12 {
+.comparacion-balance-view .col-md-12 {
     flex: 0 0 auto;
     width: 100%;
 }
 
 @media (max-width: 768px) {
-    .col-md-3,
-    .col-md-6,
-    .col-md-12 {
+    .comparacion-balance-view .col-md-3,
+    .comparacion-balance-view .col-md-6,
+    .comparacion-balance-view .col-md-12 {
         width: 100%;
     }
 
-    .container-fluid {
+    .comparacion-balance-view .container-fluid {
         padding: 1rem;
     }
 
-    .comparison-header {
+    .comparacion-balance-view .comparison-header {
         padding: 1.5rem;
     }
 
-    .comparison-header h1 {
+    .comparacion-balance-view .comparison-header h1 {
         font-size: 1.5rem;
     }
 
-    .period-card {
+    .comparacion-balance-view .period-card {
         margin-bottom: 1rem;
     }
 
-    .table {
+    .comparacion-balance-view .table {
         font-size: 0.875rem;
     }
 
-    .table thead th,
-    .table tbody td {
+    .comparacion-balance-view .table thead th,
+    .comparacion-balance-view .table tbody td {
         padding: 0.75rem;
     }
 
-    .chart-container {
+    .comparacion-balance-view .chart-container {
         padding: 1rem;
     }
 }
@@ -568,62 +568,62 @@ body {
 /* ============================================
    SPACING UTILITIES
    ============================================ */
-.mb-0 {
+.comparacion-balance-view .mb-0 {
     margin-bottom: 0 !important;
 }
 
-.mb-1 {
+.comparacion-balance-view .mb-1 {
     margin-bottom: 0.25rem !important;
 }
 
-.mb-2 {
+.comparacion-balance-view .mb-2 {
     margin-bottom: 0.5rem !important;
 }
 
-.mb-3 {
+.comparacion-balance-view .mb-3 {
     margin-bottom: 1rem !important;
 }
 
-.mb-4 {
+.comparacion-balance-view .mb-4 {
     margin-bottom: 1.5rem !important;
 }
 
-.mt-3 {
+.comparacion-balance-view .mt-3 {
     margin-top: 1rem !important;
 }
 
-.mt-4 {
+.comparacion-balance-view .mt-4 {
     margin-top: 1.5rem !important;
 }
 
-.me-2 {
+.comparacion-balance-view .me-2 {
     margin-right: 0.5rem !important;
 }
 
-.p-3 {
+.comparacion-balance-view .p-3 {
     padding: 1rem !important;
 }
 
 /* ============================================
    FLEXBOX UTILITIES
    ============================================ */
-.d-flex {
+.comparacion-balance-view .d-flex {
     display: flex;
 }
 
-.d-block {
+.comparacion-balance-view .d-block {
     display: block;
 }
 
-.align-items-center {
+.comparacion-balance-view .align-items-center {
     align-items: center;
 }
 
-.align-items-end {
+.comparacion-balance-view .align-items-end {
     align-items: flex-end;
 }
 
-.justify-content-center {
+.comparacion-balance-view .justify-content-center {
     justify-content: center;
 }
 
@@ -641,39 +641,39 @@ body {
     }
 }
 
-.table tbody tr,
-.period-card,
-.chart-container,
-.card {
+.comparacion-balance-view .table tbody tr,
+.comparacion-balance-view .period-card,
+.comparacion-balance-view .chart-container,
+.comparacion-balance-view .card {
     animation: fadeIn 0.3s ease;
 }
 
 /* ============================================
    SCROLLBAR PERSONALIZADO
    ============================================ */
-::-webkit-scrollbar {
+.comparacion-balance-view ::-webkit-scrollbar {
     width: 8px;
     height: 8px;
 }
 
-::-webkit-scrollbar-track {
+.comparacion-balance-view ::-webkit-scrollbar-track {
     background: var(--gray-100);
     border-radius: 4px;
 }
 
-::-webkit-scrollbar-thumb {
+.comparacion-balance-view ::-webkit-scrollbar-thumb {
     background: var(--gray-400);
     border-radius: 4px;
 }
 
-::-webkit-scrollbar-thumb:hover {
+.comparacion-balance-view ::-webkit-scrollbar-thumb:hover {
     background: var(--gray-500);
 }
 
 /* ============================================
    FONT AWESOME ICONS
    ============================================ */
-.fas {
+.comparacion-balance-view .fas {
     display: inline-block;
     font-style: normal;
     font-variant: normal;
@@ -684,18 +684,18 @@ body {
 /* ============================================
    ESTADOS HOVER Y FOCUS
    ============================================ */
-a {
+.comparacion-balance-view a {
     color: #f97316;
     text-decoration: none;
     transition: var(--transition);
 }
 
-a:hover {
+.comparacion-balance-view a:hover {
     color: #ea580c;
 }
 
-button:focus,
-.btn:focus {
+.comparacion-balance-view button:focus,
+.comparacion-balance-view .btn:focus {
     outline: none;
     box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.2);
 }

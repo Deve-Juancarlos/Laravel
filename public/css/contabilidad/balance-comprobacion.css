@@ -1,158 +1,537 @@
 /* ============================================
-   DIV DE ALERTA - BALANCE COMPROBACIÓN VIEW
+   BALANCE DE COMPROBACIÓN - SISTEMA CONTABLE
    ============================================ */
 
+/* --- VARIABLES Y BASE --- */
+:root {
+    --primary: #f97316;
+    --primary-dark: #ea580c;
+    --success: #10b981;
+    --danger: #ef4444;
+    --warning: #f59e0b;
+    --info: #3b82f6;
+    --secondary: #6b7280;
+    
+    --gray-50: #f9fafb;
+    --gray-100: #f3f4f6;
+    --gray-200: #e5e7eb;
+    --gray-300: #d1d5db;
+    --gray-400: #9ca3af;
+    --gray-500: #6b7280;
+    --gray-600: #4b5563;
+    --gray-700: #374151;
+    --gray-800: #1f2937;
+    --gray-900: #111827;
+    
+    --white: #ffffff;
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    
+    --border-radius: 12px;
+    --border-radius-sm: 8px;
+    --border-radius-lg: 16px;
+    --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ============================================
+   CONTENEDOR PRINCIPAL
+   ============================================ */
 .balance-comprobacion-view {
-    background: linear-gradient(135deg, #ffffff 0%, #fff7ed 100%);
-    border: 3px solid #f97316;
+    font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background-color: var(--gray-50);
+    color: var(--gray-900);
+    line-height: 1.6;
+}
+
+.balance-comprobacion-view .container-fluid {
+    padding: 2rem;
+}
+
+/* ============================================
+   BALANCE HEADER (NARANJA)
+   ============================================ */
+.balance-comprobacion-view .balance-header {
+    background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
     border-radius: var(--border-radius-lg);
     padding: 2rem;
     margin-bottom: 2rem;
     box-shadow: var(--shadow-lg);
-    display: flex;
-    gap: 1.5rem;
-    align-items: flex-start;
-    position: relative;
-    overflow: hidden;
-    animation: slideInDown 0.5s ease;
-}
-
-.balance-comprobacion-view::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 6px;
-    height: 100%;
-    background: linear-gradient(180deg, #f97316 0%, #ea580c 100%);
-}
-
-.balance-comprobacion-view .info-icon {
-    flex-shrink: 0;
-    width: 60px;
-    height: 60px;
-    background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 4px 12px rgba(249, 115, 22, 0.3);
-    animation: pulse 2s infinite;
-}
-
-.balance-comprobacion-view .info-icon i {
-    font-size: 1.75rem;
     color: var(--white);
 }
 
-.balance-comprobacion-view .info-content {
-    flex: 1;
-}
-
-.balance-comprobacion-view .info-title {
-    font-size: 1.375rem;
+.balance-comprobacion-view .balance-header h1 {
+    color: var(--white);
+    font-size: 2rem;
     font-weight: 700;
-    color: var(--gray-900);
-    margin-bottom: 0.75rem;
+    margin-bottom: 0.5rem;
     display: flex;
     align-items: center;
-    gap: 0.5rem;
-}
-
-.balance-comprobacion-view .info-text {
-    font-size: 1rem;
-    color: var(--gray-700);
-    line-height: 1.7;
-    margin-bottom: 1.25rem;
-}
-
-.balance-comprobacion-view .info-badges {
-    display: flex;
-    flex-wrap: wrap;
     gap: 0.75rem;
 }
 
-.balance-comprobacion-view .info-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.5rem 1rem;
-    border-radius: 9999px;
+.balance-comprobacion-view .balance-header h1 i {
+    font-size: 1.75rem;
+}
+
+.balance-comprobacion-view .balance-header p {
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 1rem;
+    margin: 0;
+}
+
+/* ============================================
+   CARDS Y FILTROS
+   ============================================ */
+.balance-comprobacion-view .card {
+    background: var(--white);
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow);
+    border: 1px solid var(--gray-200);
+    margin-bottom: 1.5rem;
+}
+
+.balance-comprobacion-view .card-header {
+    padding: 1rem 1.5rem;
+    border-bottom: 2px solid var(--gray-200);
+    font-weight: 600;
+}
+
+.balance-comprobacion-view .card-body {
+    padding: 1.5rem;
+}
+
+.balance-comprobacion-view .form-label {
     font-size: 0.875rem;
     font-weight: 600;
+    color: var(--gray-700);
+    margin-bottom: 0.5rem;
+    display: block;
+}
+
+.balance-comprobacion-view .form-control {
+    border: 2px solid var(--gray-200);
+    border-radius: var(--border-radius-sm);
+    padding: 0.625rem 0.875rem;
+    font-size: 0.9375rem;
+    transition: var(--transition);
+    width: 100%;
+}
+
+.balance-comprobacion-view .form-control:focus {
+    border-color: #f97316;
+    box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1);
+    outline: none;
+}
+
+/* ============================================
+   ESTADÍSTICAS
+   ============================================ */
+.balance-comprobacion-view .stat-card {
+    background: var(--white);
+    border-radius: var(--border-radius);
+    padding: 1.5rem;
+    box-shadow: var(--shadow);
+    transition: var(--transition);
+    border: 1px solid var(--gray-200);
+    text-align: center;
+}
+
+.balance-comprobacion-view .stat-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
+}
+
+.balance-comprobacion-view .stat-value {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--gray-900);
+    margin-bottom: 0.5rem;
+}
+
+.balance-comprobacion-view .stat-label {
+    font-size: 0.875rem;
+    color: var(--gray-600);
+    font-weight: 500;
+}
+
+/* ============================================
+   BADGES DE ESTADO (VERDE/NARANJA)
+   ============================================ */
+.balance-comprobacion-view .cuadra-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.75rem 1.5rem;
+    border-radius: 9999px;
+    font-size: 1.125rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.balance-comprobacion-view .cuadra-true {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
     color: var(--white);
-    box-shadow: var(--shadow-sm);
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.balance-comprobacion-view .cuadra-false {
+    background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+    color: var(--white);
+    box-shadow: 0 4px 12px rgba(249, 115, 22, 0.3);
+}
+
+/* ============================================
+   TABLA PRINCIPAL (NARANJA OSCURO)
+   ============================================ */
+.balance-comprobacion-view .balance-table {
+    background: var(--white);
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+    margin-bottom: 2rem;
+}
+
+.balance-comprobacion-view .balance-table .card-header {
+    background: linear-gradient(135deg, #ea580c 0%, #c2410c 100%);
+    color: var(--white);
+    padding: 1.75rem 1.5rem;
+    border: none;
+}
+
+.balance-comprobacion-view .balance-table .card-header h5 {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+}
+
+.balance-comprobacion-view .table-responsive {
+    overflow-x: auto;
+}
+
+.balance-comprobacion-view .table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 0;
+}
+
+.balance-comprobacion-view .table thead {
+    background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%);
+}
+
+.balance-comprobacion-view .table thead th {
+    padding: 1.25rem 1.5rem;
+    font-size: 0.8125rem;
+    font-weight: 700;
+    color: var(--gray-800);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    border-bottom: 3px solid #f97316;
+    white-space: nowrap;
+    text-align: center;
+}
+
+.balance-comprobacion-view .table thead th:first-child {
+    text-align: left;
+}
+
+.balance-comprobacion-view .table tbody td {
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid var(--gray-200);
+    font-size: 1rem;
+    color: var(--gray-700);
+    text-align: center;
+}
+
+.balance-comprobacion-view .table tbody td:first-child {
+    text-align: left;
+    font-weight: 600;
+}
+
+.balance-comprobacion-view .table tbody tr {
     transition: var(--transition);
 }
 
-.balance-comprobacion-view .info-badge:hover {
+.balance-comprobacion-view .table tbody tr:hover {
+    background: #fff7ed;
+}
+
+.balance-comprobacion-view .total-row {
+    background: linear-gradient(135deg, #fed7aa 0%, #fdba74 100%);
+    font-weight: 700;
+}
+
+.balance-comprobacion-view .total-row td {
+    border-top: 4px solid #ea580c;
+    border-bottom: 4px solid #ea580c;
+    padding: 1.5rem;
+    font-size: 1.125rem;
+    font-weight: 800;
+}
+
+/* Alineaciones */
+.balance-comprobacion-view .text-end {
+    text-align: right;
+}
+
+.balance-comprobacion-view .text-center {
+    text-align: center;
+}
+
+.balance-comprobacion-view .text-start {
+    text-align: left;
+}
+
+.balance-comprobacion-view .fw-bold {
+    font-weight: 700;
+}
+
+.balance-comprobacion-view .text-success {
+    color: var(--success);
+}
+
+.balance-comprobacion-view .text-danger {
+    color: var(--danger);
+}
+
+.balance-comprobacion-view .text-primary {
+    color: #f97316;
+}
+
+.balance-comprobacion-view .text-warning {
+    color: var(--warning);
+}
+
+.balance-comprobacion-view .text-info {
+    color: var(--info);
+}
+
+.balance-comprobacion-view .text-secondary {
+    color: var(--secondary);
+}
+
+/* ============================================
+   BOTONES
+   ============================================ */
+.balance-comprobacion-view .btn {
+    padding: 0.625rem 1.25rem;
+    border-radius: var(--border-radius-sm);
+    font-weight: 600;
+    font-size: 0.9375rem;
+    border: none;
+    cursor: pointer;
+    transition: var(--transition);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    text-decoration: none;
+}
+
+.balance-comprobacion-view .btn-primary {
+    background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+    color: var(--white);
+}
+
+.balance-comprobacion-view .btn-primary:hover {
+    background: linear-gradient(135deg, #ea580c 0%, #c2410c 100%);
     transform: translateY(-2px);
     box-shadow: var(--shadow-md);
 }
 
-.balance-comprobacion-view .badge-purple {
-    background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
-}
-
-.balance-comprobacion-view .badge-blue {
-    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-}
-
-.balance-comprobacion-view .badge-green {
+.balance-comprobacion-view .btn-success {
     background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: var(--white);
 }
 
-/* Animaciones */
-@keyframes slideInDown {
-    from {
-        opacity: 0;
-        transform: translateY(-20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+.balance-comprobacion-view .btn-success:hover {
+    background: linear-gradient(135deg, #059669 0%, #047857 100%);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
 }
 
-@keyframes pulse {
-    0%, 100% {
-        transform: scale(1);
-    }
-    50% {
-        transform: scale(1.05);
-    }
+.balance-comprobacion-view .btn-outline-primary {
+    color: #f97316;
+    border: 2px solid #f97316;
+    background: transparent;
 }
 
-/* Responsive */
+.balance-comprobacion-view .btn-outline-primary:hover {
+    background: #f97316;
+    color: var(--white);
+}
+
+.balance-comprobacion-view .btn-outline-warning {
+    color: var(--warning);
+    border: 2px solid var(--warning);
+    background: transparent;
+}
+
+.balance-comprobacion-view .btn-outline-warning:hover {
+    background: var(--warning);
+    color: var(--white);
+}
+
+/* ============================================
+   RESUMEN POR CLASES
+   ============================================ */
+.balance-comprobacion-view .border {
+    border: 2px solid var(--gray-200) !important;
+}
+
+.balance-comprobacion-view .rounded {
+    border-radius: var(--border-radius-sm);
+}
+
+.balance-comprobacion-view .p-3 {
+    padding: 1rem;
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+.balance-comprobacion-view .row {
+    display: flex;
+    flex-wrap: wrap;
+    margin-left: -0.75rem;
+    margin-right: -0.75rem;
+}
+
+.balance-comprobacion-view .col-md-2,
+.balance-comprobacion-view .col-md-3,
+.balance-comprobacion-view .col-md-4,
+.balance-comprobacion-view .col-md-12 {
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+.balance-comprobacion-view .col-md-2 {
+    flex: 0 0 auto;
+    width: 16.666667%;
+}
+
+.balance-comprobacion-view .col-md-3 {
+    flex: 0 0 auto;
+    width: 25%;
+}
+
+.balance-comprobacion-view .col-md-4 {
+    flex: 0 0 auto;
+    width: 33.333333%;
+}
+
+.balance-comprobacion-view .col-md-12 {
+    flex: 0 0 auto;
+    width: 100%;
+}
+
 @media (max-width: 768px) {
-    .balance-comprobacion-view {
-        flex-direction: column;
+    .balance-comprobacion-view .col-md-2,
+    .balance-comprobacion-view .col-md-3,
+    .balance-comprobacion-view .col-md-4,
+    .balance-comprobacion-view .col-md-12 {
+        width: 100%;
+    }
+
+    .balance-comprobacion-view .container-fluid {
+        padding: 1rem;
+    }
+
+    .balance-comprobacion-view .balance-header {
         padding: 1.5rem;
     }
 
-    .balance-comprobacion-view .info-icon {
-        width: 50px;
-        height: 50px;
-    }
-
-    .balance-comprobacion-view .info-icon i {
+    .balance-comprobacion-view .balance-header h1 {
         font-size: 1.5rem;
     }
 
-    .balance-comprobacion-view .info-title {
-        font-size: 1.125rem;
+    .balance-comprobacion-view .stat-value {
+        font-size: 1.5rem;
     }
 
-    .balance-comprobacion-view .info-text {
-        font-size: 0.9375rem;
+    .balance-comprobacion-view .table {
+        font-size: 0.875rem;
     }
 
-    .balance-comprobacion-view .info-badges {
-        flex-direction: column;
+    .balance-comprobacion-view .table thead th,
+    .balance-comprobacion-view .table tbody td {
+        padding: 0.75rem;
     }
+}
 
-    .balance-comprobacion-view .info-badge {
-        width: 100%;
-        justify-content: center;
+/* ============================================
+   UTILIDADES
+   ============================================ */
+.balance-comprobacion-view .mb-0 {
+    margin-bottom: 0;
+}
+
+.balance-comprobacion-view .mb-2 {
+    margin-bottom: 0.5rem;
+}
+
+.balance-comprobacion-view .mb-4 {
+    margin-bottom: 1.5rem;
+}
+
+.balance-comprobacion-view .mt-4 {
+    margin-top: 1.5rem;
+}
+
+.balance-comprobacion-view .me-2 {
+    margin-right: 0.5rem;
+}
+
+.balance-comprobacion-view .me-3 {
+    margin-right: 1rem;
+}
+
+.balance-comprobacion-view .align-items-end {
+    align-items: flex-end;
+}
+
+.balance-comprobacion-view .small {
+    font-size: 0.875rem;
+}
+
+/* ============================================
+   ANIMACIONES
+   ============================================ */
+@keyframes fadeInBalance {
+    from {
+        opacity: 0;
     }
+    to {
+        opacity: 1;
+    }
+}
+
+.balance-comprobacion-view .table tbody tr {
+    animation: fadeInBalance 0.3s ease;
+}
+
+/* ============================================
+   SCROLLBAR PERSONALIZADO
+   ============================================ */
+.balance-comprobacion-view ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+.balance-comprobacion-view ::-webkit-scrollbar-track {
+    background: var(--gray-100);
+    border-radius: 4px;
+}
+
+.balance-comprobacion-view ::-webkit-scrollbar-thumb {
+    background: var(--gray-400);
+    border-radius: 4px;
+}
+
+.balance-comprobacion-view ::-webkit-scrollbar-thumb:hover {
+    background: var(--gray-500);
 }

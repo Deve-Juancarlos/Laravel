@@ -15,30 +15,21 @@
     </a></li>
 </ul>
 
-{{-- CONTABILIDAD --}}
 <div class="nav-section">Contabilidad</div>
 <ul>
-    <li class="has-submenu expanded">
-        <a href="#" class="nav-link">
+    <li>
+        <a href="{{ route('contador.libro-diario.index') }}" class="nav-link has-submenu">
             <i class="fas fa-book"></i> Libros Contables
         </a>
-        <div class="nav-submenu" style="max-height: 500px;">
-            <a href="{{ route('contador.libro-diario.index') }}" class="nav-link active">
-                <i class="fas fa-file-alt"></i> Libro Diario
-            </a>
-            <a href="{{ route('contador.libro-mayor.index') }}" class="nav-link">
-                <i class="fas fa-book-open"></i> Libro Mayor
-            </a>
-            <a href="{{ route('contador.balance-comprobacion.index') }}" class="nav-link">
-                <i class="fas fa-balance-scale"></i> Balance Comprobación
-            </a>    
-            <a href="{{ route('contador.estado-resultados.index') }}" class="nav-link">
-                <i class="fas fa-chart-bar"></i> Estados Financieros
-            </a>
+        <div class="nav-submenu">
+            <a href="{{ route('contador.libro-diario.index') }}" class="nav-link"><i class="fas fa-file-alt"></i> Libro Diario</a>
+            <a href="{{ route('contador.libro-mayor.index') }}" class="nav-link"><i class="fas fa-book-open"></i> Libro Mayor</a>
+            <a href="{{route('contador.balance-comprobacion.index')}}" class="nav-link"><i class="fas fa-balance-scale"></i> Balance Comprobación</a>    
+            <a href="{{ route('contador.estado-resultados.index') }}" class="nav-link"><i class="fas fa-chart-bar"></i> Estados Financieros</a>
         </div>
     </li>
-    <li class="has-submenu">
-        <a href="#" class="nav-link">
+    <li>
+        <a href="#" class="nav-link has-submenu">
             <i class="fas fa-file-invoice"></i> Registros
         </a>
         <div class="nav-submenu">
@@ -59,8 +50,42 @@
     <li><a href="{{ route('contador.reportes.compras') }}" class="nav-link">
         <i class="fas fa-wallet"></i> Cartera
     </a></li>
+    <li><a href="{{ route('contador.facturas.create') }}" class="nav-link">
+        <i class="fas fa-clock"></i> Fact. Pendientes
+    </a></li>
+    <li><a href="{{ route('contador.facturas.index') }}" class="nav-link">
+        <i class="fas fa-exclamation-triangle"></i> Fact. Vencidas
+    </a></li>
+</ul>
+
+{{-- GESTIÓN --}}
+<div class="nav-section">Gestión</div>
+<ul>
+    <li><a href="{{ route('contador.clientes') }}" class="nav-link">
+        <i class="fas fa-users"></i> Clientes
+    </a></li>
+    <li><a href="{{ route('contador.reportes.medicamentos-controlados') }}" class="nav-link">
+        <i class="fas fa-percentage"></i> Márgenes
+    </a></li>
+    <li><a href="{{ route('contador.reportes.inventario') }}" class="nav-link">
+        <i class="fas fa-boxes"></i> Inventario
+    </a></li>
+</ul>
+
+{{-- REPORTES SUNAT --}}
+<div class="nav-section">SUNAT</div>
+<ul>
+    <li><a href="#" class="nav-link">
+        <i class="fas fa-file-invoice-dollar"></i> PLE
+    </a></li>
+    <li><a href="#" class="nav-link">
+        <i class="fas fa-percent"></i> IGV Mensual
+    </a></li>
 </ul>
 @endsection
+
+
+
 
 @section('content')
 <div class="libro-diario-view">

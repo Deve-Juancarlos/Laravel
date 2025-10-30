@@ -10,29 +10,28 @@ use Carbon\Carbon;
 
 class BalanceComprobacionController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index(Request $request)
     {
         try {
             $fechaInicio = $request->input('fecha_inicio', Carbon::now()->startOfYear()->format('Y-m-d'));
             $fechaFin = $request->input('fecha_fin', Carbon::now()->endOfYear()->format('Y-m-d'));
 
-            // Obtener movimientos por cuenta desde el inicio hasta la fecha fin
-            $balances = DB::table('t_detalle_diario as a')
-                ->whereBetween('a.FechaF', [$fechaInicio, $fechaFin])
+            // Obtener saldos por cuenta contable en el período
+            $balances = DB::table('libro_diario_detalles as d')
+                ->join('libro_diario as c', 'd.asiento_id', '=', 'c.id')
+                ->whereBetween('c.fecha', [$fechaInicio, $fechaFin])
+                ->where('c.estado', 'ACTIVO')
                 ->select([
-                    'a.Tipo as cuenta',
-                    DB::raw('SUM(CAST(a.Importe as MONEY)) as saldo_deudor'),
-                    DB::raw('SUM(CAST(a.Saldo as MONEY)) as saldo_acredor'),
+                    'd.cuenta_contable as cuenta',
+                    DB::raw('SUM(d.debe) as saldo_deudor'),
+                    DB::raw('SUM(d.haber) as saldo_acredor'),
                     DB::raw('COUNT(*) as movimientos')
                 ])
-                ->groupBy('a.Tipo')
-                ->orderBy('a.Tipo')
+                ->groupBy('d.cuenta_contable')
+                ->orderBy('d.cuenta_contable')
                 ->get();
 
-            // Clasificar cuentas en deudoras o acreedoras
+            // Clasificar en deudoras y acreedoras
             $cuentasDeudoras = [];
             $cuentasAcreedoras = [];
             $totalDeudor = 0;
@@ -40,9 +39,8 @@ class BalanceComprobacionController extends Controller
 
             foreach ($balances as $balance) {
                 $saldoNeto = $balance->saldo_deudor - $balance->saldo_acredor;
-                
+
                 if ($saldoNeto > 0) {
-                    // Cuenta deudora (Activo, Gastos)
                     $cuentasDeudoras[] = [
                         'cuenta' => $balance->cuenta,
                         'saldo' => $saldoNeto,
@@ -50,7 +48,6 @@ class BalanceComprobacionController extends Controller
                     ];
                     $totalDeudor += $saldoNeto;
                 } else {
-                    // Cuenta acreedora (Pasivo, Patrimonio, Ingresos)
                     $cuentasAcreedoras[] = [
                         'cuenta' => $balance->cuenta,
                         'saldo' => abs($saldoNeto),
@@ -60,18 +57,17 @@ class BalanceComprobacionController extends Controller
                 }
             }
 
-            // Verificar que cuadre
             $diferencia = abs($totalDeudor - $totalAcreedor);
             $cuadra = $diferencia < 0.01;
 
-            // Obtener resúmenes por clases de cuentas
+            // Resumen por clases (usando primer dígito del código)
             $resumenClases = $this->obtenerResumenPorClases($fechaInicio, $fechaFin);
 
-            // Obtener estadísticas del período
+            // Estadísticas del período
             $estadisticas = $this->obtenerEstadisticas($fechaInicio, $fechaFin);
 
             return view('contabilidad.libros.balance-comprobacion.index', compact(
-                'cuentasDeudoras', 'cuentasAcreedoras', 'totalDeudor', 'totalAcreedor', 
+                'cuentasDeudoras', 'cuentasAcreedoras', 'totalDeudor', 'totalAcreedor',
                 'diferencia', 'cuadra', 'fechaInicio', 'fechaFin', 'resumenClases', 'estadisticas'
             ));
 
@@ -80,39 +76,35 @@ class BalanceComprobacionController extends Controller
         }
     }
 
-    /**
-     * Show detailed balance for a specific account
-     */
     public function detalleCuenta($cuenta, Request $request)
     {
         try {
             $fechaInicio = $request->input('fecha_inicio', Carbon::now()->startOfYear()->format('Y-m-d'));
             $fechaFin = $request->input('fecha_fin', Carbon::now()->endOfYear()->format('Y-m-d'));
 
-            // Obtener todos los movimientos de la cuenta
-            $movimientos = DB::table('t_detalle_diario')
-                ->where('Tipo', $cuenta)
-                ->whereBetween('FechaF', [$fechaInicio, $fechaFin])
+            $movimientos = DB::table('libro_diario_detalles as d')
+                ->join('libro_diario as c', 'd.asiento_id', '=', 'c.id')
+                ->where('d.cuenta_contable', $cuenta)
+                ->whereBetween('c.fecha', [$fechaInicio, $fechaFin])
+                ->where('c.estado', 'ACTIVO')
                 ->select([
-                    'Numero as numero',
-                    'FechaF as fecha',
-                    'Descripcion as concepto',
-                    'Importe as debito',
-                    'Saldo as credito',
-                    'Nombre as auxiliar'
+                    'c.numero',
+                    'c.fecha',
+                    'd.concepto',
+                    'd.debe as debito',
+                    'd.haber as credito',
+                    DB::raw("'' as auxiliar") // opcional: podrías enlazar con terceros si aplica
                 ])
-                ->orderBy('FechaF')
-                ->orderBy('Numero')
+                ->orderBy('c.fecha')
+                ->orderBy('c.numero')
                 ->get();
 
-            // Calcular saldos acumulados
             $saldo = 0;
-            foreach ($movimientos as $movimiento) {
-                $saldo += $movimiento->debito - $movimiento->credito;
-                $movimiento->saldo_acumulado = $saldo;
+            foreach ($movimientos as $mov) {
+                $saldo += $mov->debito - $mov->credito;
+                $mov->saldo_acumulado = $saldo;
             }
 
-            // Totales
             $totales = [
                 'total_debito' => $movimientos->sum('debito'),
                 'total_credito' => $movimientos->sum('credito'),
@@ -128,9 +120,6 @@ class BalanceComprobacionController extends Controller
         }
     }
 
-    /**
-     * Get balance by account classes (Activo, Pasivo, Patrimonio, Ingresos, Gastos)
-     */
     public function porClases(Request $request)
     {
         try {
@@ -148,27 +137,20 @@ class BalanceComprobacionController extends Controller
         }
     }
 
-    /**
-     * Compare balance with previous period
-     */
     public function comparacion(Request $request)
     {
         try {
             $fechaActual = Carbon::now();
-            
-            // Período actual
             $periodoActual = [
                 'inicio' => $request->input('fecha_inicio', $fechaActual->startOfYear()->format('Y-m-d')),
                 'fin' => $request->input('fecha_fin', $fechaActual->endOfYear()->format('Y-m-d'))
             ];
-            
-            // Período anterior (año anterior)
+
             $periodoAnterior = [
                 'inicio' => Carbon::parse($periodoActual['inicio'])->subYear()->format('Y-m-d'),
                 'fin' => Carbon::parse($periodoActual['fin'])->subYear()->format('Y-m-d')
             ];
 
-            // Balances comparativos
             $balanceActual = $this->calcularBalance($periodoActual['inicio'], $periodoActual['fin']);
             $balanceAnterior = $this->calcularBalance($periodoAnterior['inicio'], $periodoAnterior['fin']);
 
@@ -181,50 +163,62 @@ class BalanceComprobacionController extends Controller
         }
     }
 
-    /**
-     * Verify balance integrity
-     */
     public function verificar(Request $request)
     {
         try {
             $fechaInicio = $request->input('fecha_inicio', Carbon::now()->startOfYear()->format('Y-m-d'));
             $fechaFin = $request->input('fecha_fin', Carbon::now()->endOfYear()->format('Y-m-d'));
 
-            // Verificar asientos desequilibrados
-            $asientosDesequilibrados = DB::table('t_detalle_diario')
-                ->select('Numero', DB::raw('SUM(CAST(Importe as MONEY)) as total_debe'), DB::raw('SUM(CAST(Saldo as MONEY)) as total_haber'))
-                ->whereBetween('FechaF', [$fechaInicio, $fechaFin])
-                ->groupBy('Numero')
-                ->havingRaw('ABS(SUM(CAST(Importe as MONEY)) - SUM(CAST(Saldo as MONEY))) > 0.01')
+            // Asientos desequilibrados
+            $asientosDesequilibrados = DB::table('libro_diario')
+                ->select(
+                    'id',
+                    'numero',
+                    'total_debe',
+                    'total_haber',
+                    DB::raw('ABS(total_debe - total_haber) as diferencia')
+                )
+                ->whereBetween('fecha', [$fechaInicio, $fechaFin])
+                ->where('estado', 'ACTIVO')
+                ->whereRaw('ABS(total_debe - total_haber) > 0.01')
                 ->get();
 
-            // Verificar totales generales
-            $totalDebe = DB::table('t_detalle_diario')
-                ->whereBetween('FechaF', [$fechaInicio, $fechaFin])
-                ->selectRaw('SUM(CAST(Importe as MONEY)) as total')
-                ->value('total');
+            // Totales generales
+            $totalDebe = DB::table('libro_diario_detalles as d')
+                ->join('libro_diario as c', 'd.asiento_id', '=', 'c.id')
+                ->whereBetween('c.fecha', [$fechaInicio, $fechaFin])
+                ->where('c.estado', 'ACTIVO')
+                ->sum('d.debe');
 
-            $totalHaber = DB::table('t_detalle_diario')
-                ->whereBetween('FechaF', [$fechaInicio, $fechaFin])
-                ->selectRaw('SUM(CAST(Saldo as MONEY)) as total')
-                ->value('total');
+            $totalHaber = DB::table('libro_diario_detalles as d')
+                ->join('libro_diario as c', 'd.asiento_id', '=', 'c.id')
+                ->whereBetween('c.fecha', [$fechaInicio, $fechaFin])
+                ->where('c.estado', 'ACTIVO')
+                ->sum('d.haber');
 
             $diferencia = abs($totalDebe - $totalHaber);
 
-            // Verificar cuentas sin movimientos
-            $cuentasSinMovimientos = $this->verificarCuentasSinMovimientos($fechaInicio, $fechaFin);
+            // Cuentas sin movimientos (opcional: puedes ajustar según necesidad)
+            $cuentasConMov = DB::table('libro_diario_detalles as d')
+                ->join('libro_diario as c', 'd.asiento_id', '=', 'c.id')
+                ->whereBetween('c.fecha', [$fechaInicio, $fechaFin])
+                ->where('c.estado', 'ACTIVO')
+                ->pluck('d.cuenta_contable')
+                ->toArray();
 
-            // Estadísticas de verificación
+            $cuentasSinMovimientos = DB::table('plan_cuentas')
+                ->where('activo', 1)
+                ->whereNotIn('codigo', $cuentasConMov)
+                ->limit(20)
+                ->get(['codigo as cuenta']);
+
             $estadisticas = [
-                'total_asientos' => DB::table('t_detalle_diario')
-                    ->whereBetween('FechaF', [$fechaInicio, $fechaFin])
-                    ->distinct('Numero')
-                    ->count('Numero'),
+                'total_asientos' => DB::table('libro_diario')
+                    ->whereBetween('fecha', [$fechaInicio, $fechaFin])
+                    ->where('estado', 'ACTIVO')
+                    ->count(),
                 'asientos_desequilibrados' => $asientosDesequilibrados->count(),
-                'cuentas_con_movimientos' => DB::table('t_detalle_diario')
-                    ->whereBetween('FechaF', [$fechaInicio, $fechaFin])
-                    ->distinct('Tipo')
-                    ->count('Tipo'),
+                'cuentas_con_movimientos' => count($cuentasConMov),
                 'total_debe' => $totalDebe,
                 'total_haber' => $totalHaber,
                 'diferencia' => $diferencia,
@@ -240,19 +234,20 @@ class BalanceComprobacionController extends Controller
         }
     }
 
-    /**
-     * Get summary by account classes
-     */
+    // Métodos privados actualizados
+
     private function obtenerResumenPorClases($fechaInicio, $fechaFin)
     {
-        $balances = DB::table('t_detalle_diario as a')
-            ->whereBetween('a.FechaF', [$fechaInicio, $fechaFin])
+        $balances = DB::table('libro_diario_detalles as d')
+            ->join('libro_diario as c', 'd.asiento_id', '=', 'c.id')
+            ->whereBetween('c.fecha', [$fechaInicio, $fechaFin])
+            ->where('c.estado', 'ACTIVO')
             ->select([
-                'a.Tipo as cuenta',
-                DB::raw('SUM(CAST(a.Importe as MONEY)) as total_debe'),
-                DB::raw('SUM(CAST(a.Saldo as MONEY)) as total_haber')
+                'd.cuenta_contable as cuenta',
+                DB::raw('SUM(d.debe) as total_debe'),
+                DB::raw('SUM(d.haber) as total_haber')
             ])
-            ->groupBy('a.Tipo')
+            ->groupBy('d.cuenta_contable')
             ->get();
 
         $resumen = [
@@ -263,24 +258,28 @@ class BalanceComprobacionController extends Controller
             'GASTOS' => ['total_debe' => 0, 'total_haber' => 0]
         ];
 
-        foreach ($balances as $balance) {
-            $primeraLetra = substr($balance->cuenta, 0, 1);
-            
-            switch ($primeraLetra) {
-                case '1':
-                    $resumen['ACTIVO']['total_debe'] += max(0, $balance->total_debe - $balance->total_haber);
+        foreach ($balances as $b) {
+            $codigo = $b->cuenta;
+            $primera = substr($codigo, 0, 1);
+            $neto = $b->total_debe - $b->total_haber;
+
+            switch ($primera) {
+                case '1': // Activo
+                    $resumen['ACTIVO']['total_debe'] += max(0, $neto);
                     break;
-                case '2':
-                    $resumen['PASIVO']['total_haber'] += max(0, $balance->total_haber - $balance->total_debe);
+                case '2': // Pasivo
+                    $resumen['PASIVO']['total_haber'] += max(0, -$neto);
                     break;
-                case '3':
-                    $resumen['PATRIMONIO']['total_haber'] += max(0, $balance->total_haber - $balance->total_debe);
+                case '3': // Patrimonio
+                    $resumen['PATRIMONIO']['total_haber'] += max(0, -$neto);
                     break;
-                case '4':
-                    $resumen['INGRESOS']['total_haber'] += max(0, $balance->total_haber - $balance->total_debe);
+                case '4': // Ingresos
+                    $resumen['INGRESOS']['total_haber'] += max(0, -$neto);
                     break;
                 case '5':
-                    $resumen['GASTOS']['total_debe'] += max(0, $balance->total_debe - $balance->total_haber);
+                case '6':
+                case '9': // Gastos
+                    $resumen['GASTOS']['total_debe'] += max(0, $neto);
                     break;
             }
         }
@@ -288,44 +287,46 @@ class BalanceComprobacionController extends Controller
         return $resumen;
     }
 
-    /**
-     * Get statistics for the period
-     */
     private function obtenerEstadisticas($fechaInicio, $fechaFin)
     {
         return [
-            'total_asientos' => DB::table('t_detalle_diario')
-                ->whereBetween('FechaF', [$fechaInicio, $fechaFin])
-                ->distinct('Numero')
-                ->count('Numero'),
-            'total_movimientos' => DB::table('t_detalle_diario')
-                ->whereBetween('FechaF', [$fechaInicio, $fechaFin])
+            'total_asientos' => DB::table('libro_diario')
+                ->whereBetween('fecha', [$fechaInicio, $fechaFin])
+                ->where('estado', 'ACTIVO')
                 ->count(),
-            'cuentas_utilizadas' => DB::table('t_detalle_diario')
-                ->whereBetween('FechaF', [$fechaInicio, $fechaFin])
-                ->distinct('Tipo')
-                ->count('Tipo'),
-            'primer_asiento' => DB::table('t_detalle_diario')
-                ->where('FechaF', '>=', $fechaInicio)
-                ->min('FechaF'),
-            'ultimo_asiento' => DB::table('t_detalle_diario')
-                ->where('FechaF', '<=', $fechaFin)
-                ->max('FechaF')
+            'total_movimientos' => DB::table('libro_diario_detalles as d')
+                ->join('libro_diario as c', 'd.asiento_id', '=', 'c.id')
+                ->whereBetween('c.fecha', [$fechaInicio, $fechaFin])
+                ->where('c.estado', 'ACTIVO')
+                ->count(),
+            'cuentas_utilizadas' => DB::table('libro_diario_detalles as d')
+                ->join('libro_diario as c', 'd.asiento_id', '=', 'c.id')
+                ->whereBetween('c.fecha', [$fechaInicio, $fechaFin])
+                ->where('c.estado', 'ACTIVO')
+                ->distinct('d.cuenta_contable')
+                ->count(),
+            'primer_asiento' => DB::table('libro_diario')
+                ->whereBetween('fecha', [$fechaInicio, $fechaFin])
+                ->where('estado', 'ACTIVO')
+                ->min('fecha'),
+            'ultimo_asiento' => DB::table('libro_diario')
+                ->whereBetween('fecha', [$fechaInicio, $fechaFin])
+                ->where('estado', 'ACTIVO')
+                ->max('fecha')
         ];
     }
 
-    /**
-     * Get accounts organized by classes
-     */
     private function obtenerCuentasPorClases($fechaInicio, $fechaFin)
     {
-        $balances = DB::table('t_detalle_diario as a')
-            ->whereBetween('a.FechaF', [$fechaInicio, $fechaFin])
+        $balances = DB::table('libro_diario_detalles as d')
+            ->join('libro_diario as c', 'd.asiento_id', '=', 'c.id')
+            ->whereBetween('c.fecha', [$fechaInicio, $fechaFin])
+            ->where('c.estado', 'ACTIVO')
             ->select([
-                'a.Tipo as cuenta',
-                DB::raw('SUM(CAST(a.Importe as MONEY)) - SUM(CAST(a.Saldo as MONEY)) as saldo')
+                'd.cuenta_contable as cuenta',
+                DB::raw('SUM(d.debe) - SUM(d.haber) as saldo')
             ])
-            ->groupBy('a.Tipo')
+            ->groupBy('d.cuenta_contable')
             ->get();
 
         $cuentasPorClase = [
@@ -336,37 +337,28 @@ class BalanceComprobacionController extends Controller
             'GASTOS' => []
         ];
 
-        foreach ($balances as $balance) {
-            $primeraLetra = substr($balance->cuenta, 0, 1);
-            
-            switch ($primeraLetra) {
+        foreach ($balances as $b) {
+            $codigo = $b->cuenta;
+            $primera = substr($codigo, 0, 1);
+            $saldo = $b->saldo;
+
+            switch ($primera) {
                 case '1':
-                    if ($balance->saldo > 0) {
-                        $cuentasPorClase['ACTIVO'][] = $balance;
-                    }
+                    if ($saldo > 0) $cuentasPorClase['ACTIVO'][] = $b;
                     break;
                 case '2':
-                    if ($balance->saldo < 0) {
-                        $balance->saldo = abs($balance->saldo);
-                        $cuentasPorClase['PASIVO'][] = $balance;
-                    }
+                    if ($saldo < 0) { $b->saldo = abs($saldo); $cuentasPorClase['PASIVO'][] = $b; }
                     break;
                 case '3':
-                    if ($balance->saldo < 0) {
-                        $balance->saldo = abs($balance->saldo);
-                        $cuentasPorClase['PATRIMONIO'][] = $balance;
-                    }
+                    if ($saldo < 0) { $b->saldo = abs($saldo); $cuentasPorClase['PATRIMONIO'][] = $b; }
                     break;
                 case '4':
-                    if ($balance->saldo < 0) {
-                        $balance->saldo = abs($balance->saldo);
-                        $cuentasPorClase['INGRESOS'][] = $balance;
-                    }
+                    if ($saldo < 0) { $b->saldo = abs($saldo); $cuentasPorClase['INGRESOS'][] = $b; }
                     break;
                 case '5':
-                    if ($balance->saldo > 0) {
-                        $cuentasPorClase['GASTOS'][] = $balance;
-                    }
+                case '6':
+                case '9':
+                    if ($saldo > 0) $cuentasPorClase['GASTOS'][] = $b;
                     break;
             }
         }
@@ -374,32 +366,23 @@ class BalanceComprobacionController extends Controller
         return $cuentasPorClase;
     }
 
-    /**
-     * Calculate balance for a specific period
-     */
     private function calcularBalance($fechaInicio, $fechaFin)
     {
-        $balances = DB::table('t_detalle_diario as a')
-            ->whereBetween('a.FechaF', [$fechaInicio, $fechaFin])
-            ->select([
-                'a.Tipo as cuenta',
-                DB::raw('SUM(CAST(a.Importe as MONEY)) as saldo_deudor'),
-                DB::raw('SUM(CAST(a.Saldo as MONEY)) as saldo_acredor')
-            ])
-            ->groupBy('a.Tipo')
-            ->get();
-
         $deudor = 0;
         $acreedor = 0;
 
-        foreach ($balances as $balance) {
-            $saldoNeto = $balance->saldo_deudor - $balance->saldo_acredor;
-            
-            if ($saldoNeto > 0) {
-                $deudor += $saldoNeto;
-            } else {
-                $acreedor += abs($saldoNeto);
-            }
+        $balances = DB::table('libro_diario_detalles as d')
+            ->join('libro_diario as c', 'd.asiento_id', '=', 'c.id')
+            ->whereBetween('c.fecha', [$fechaInicio, $fechaFin])
+            ->where('c.estado', 'ACTIVO')
+            ->selectRaw('cuenta_contable, SUM(debe) as debe, SUM(haber) as haber')
+            ->groupBy('cuenta_contable')
+            ->get();
+
+        foreach ($balances as $b) {
+            $neto = $b->debe - $b->haber;
+            if ($neto > 0) $deudor += $neto;
+            else $acreedor += abs($neto);
         }
 
         return [
@@ -408,28 +391,5 @@ class BalanceComprobacionController extends Controller
             'diferencia' => abs($deudor - $acreedor),
             'cuadra' => abs($deudor - $acreedor) < 0.01
         ];
-    }
-
-    /**
-     * Verify accounts without movements
-     */
-    private function verificarCuentasSinMovimientos($fechaInicio, $fechaFin)
-    {
-        // Obtener todas las cuentas que aparecen en el período
-        $cuentasConMovimientos = DB::table('t_detalle_diario')
-            ->whereBetween('FechaF', [$fechaInicio, $fechaFin])
-            ->distinct('Tipo')
-            ->pluck('Tipo')
-            ->toArray();
-
-        // Buscar cuentas que no aparezcan en movimientos recientes pero sí en históricos
-        $cuentasSinMovimientos = DB::table('t_detalle_diario')
-            ->where('FechaF', '<', $fechaInicio)
-            ->whereNotIn('Tipo', $cuentasConMovimientos)
-            ->distinct('Tipo')
-            ->limit(20)
-            ->get();
-
-        return $cuentasSinMovimientos;
     }
 }

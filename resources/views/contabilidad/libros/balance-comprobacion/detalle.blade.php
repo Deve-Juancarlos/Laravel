@@ -2,162 +2,164 @@
 
 @section('title', "Detalle Cuenta {$cuenta} - Balance de Comprobación")
 
-@section('styles')
-    <link href="{{ asset('css/contabilidad/ver-detalle.css') }}" rel="stylesheet">
-@endsection
+@push('styles')
+<link href="{{ asset('css/contabilidad/ver-detalle.css') }}" rel="stylesheet">
+@endpush
 
 @section('content')
-<div class="container-fluid">
-    <!-- Header -->
-    <div class="detalle-header">
-        <div class="d-flex justify-content-between align-items-center">
-            <div>
-                <h1><i class="fas fa-list me-3"></i>Detalle de Cuenta: {{ $cuenta }}</h1>
-                <p class="mb-0">Período: {{ \Carbon\Carbon::parse($fechaInicio)->format('d/m/Y') }} - {{ \Carbon\Carbon::parse($fechaFin)->format('d/m/Y') }}</p>
+<div class="detalle-cuenta-view">
+    <div class="container-fluid">
+        <!-- Header -->
+        <div class="detalle-header">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1><i class="fas fa-list me-3"></i>Detalle de Cuenta: {{ $cuenta }}</h1>
+                    <p class="mb-0">Período: {{ \Carbon\Carbon::parse($fechaInicio)->format('d/m/Y') }} - {{ \Carbon\Carbon::parse($fechaFin)->format('d/m/Y') }}</p>
+                </div>
+                <div class="text-end">
+                    <a href="{{ route('contador.balance-comprobacion.index') }}" class="btn btn-light">
+                        <i class="fas fa-arrow-left me-2"></i>Volver al Balance
+                    </a>
+                </div>
             </div>
-            <div class="text-end">
-                <a href="{{ route('contador.balance-comprobacion.index') }}" class="btn btn-light">
-                    <i class="fas fa-arrow-left me-2"></i>Volver al Balance
+        </div>
+
+        <!-- Resumen de la cuenta -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h5 class="card-title text-primary">Total Débitos</h5>
+                        <h4 class="text-success">S/ {{ number_format($totales['total_debito'], 2) }}</h4>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h5 class="card-title text-primary">Total Créditos</h5>
+                        <h4 class="text-danger">S/ {{ number_format($totales['total_credito'], 2) }}</h4>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h5 class="card-title text-primary">Saldo Final</h5>
+                        <h4 class="{{ $totales['saldo_final'] >= 0 ? 'text-success' : 'text-danger' }}">
+                            S/ {{ number_format($totales['saldo_final'], 2) }}
+                        </h4>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h5 class="card-title text-primary">Movimientos</h5>
+                        <h4>{{ number_format($movimientos->count()) }}</h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabla de movimientos -->
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-table me-2"></i>
+                    Movimientos de la Cuenta {{ $cuenta }}
+                </h5>
+            </div>
+            
+            <div class="card-body p-0">
+                @if($movimientos->count() > 0)
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Asiento</th>
+                                <th>Fecha</th>
+                                <th>Concepto</th>
+                                <th>Débito</th>
+                                <th>Crédito</th>
+                                <th>Saldo Acumulado</th>
+                                <th>Auxiliar</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($movimientos as $movimiento)
+                            <tr class="movement-row">
+                                <td><strong>{{ $movimiento->numero }}</strong></td>
+                                <td>{{ \Carbon\Carbon::parse($movimiento->fecha)->format('d/m/Y') }}</td>
+                                <td>{{ Str::limit($movimiento->concepto, 50) }}</td>
+                                <td class="text-end text-success">
+                                    {{ $movimiento->debito > 0 ? 'S/ ' . number_format($movimiento->debito, 2) : '-' }}
+                                </td>
+                                <td class="text-end text-danger">
+                                    {{ $movimiento->credito > 0 ? 'S/ ' . number_format($movimiento->credito, 2) : '-' }}
+                                </td>
+                                <td class="text-end">
+                                    <span class="saldo-acumulado {{ $movimiento->saldo_acumulado >= 0 ? 'saldo-positivo' : 'saldo-negativo' }}">
+                                        S/ {{ number_format($movimiento->saldo_acumulado, 2) }}
+                                    </span>
+                                </td>
+                                <td>{{ Str::limit($movimiento->auxiliar ?? '-', 20) }}</td>
+                            </tr>
+                            @endforeach
+                        </tbody>
+                        <tfoot class="table-info">
+                            <tr>
+                                <td colspan="3"><strong>TOTALES</strong></td>
+                                <td class="text-end"><strong>S/ {{ number_format($totales['total_debito'], 2) }}</strong></td>
+                                <td class="text-end"><strong>S/ {{ number_format($totales['total_credito'], 2) }}</strong></td>
+                                <td class="text-end"><strong>S/ {{ number_format($totales['saldo_final'], 2) }}</strong></td>
+                                <td></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+                @else
+                <div class="text-center p-5">
+                    <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                    <h4>No hay movimientos registrados</h4>
+                    <p class="text-muted">Esta cuenta no tiene movimientos en el período seleccionado.</p>
+                </div>
+                @endif
+            </div>
+        </div>
+
+        <!-- Gráfico de evolución -->
+        @if($movimientos->count() > 0)
+        <div class="row mt-4">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h6 class="mb-0">
+                            <i class="fas fa-chart-line me-2"></i>
+                            Evolución del Saldo Acumulado
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="saldoChart" height="100"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        @endif
+
+        <!-- Navegación entre cuentas -->
+        <div class="row mt-4">
+            <div class="col-md-12 text-center">
+                <a href="{{ route('contador.balance-comprobacion.index') }}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>Volver al Balance General
+                </a>
+                <a href="{{ route('contador.balance-comprobacion.verificar') }}" class="btn btn-warning ms-2">
+                    <i class="fas fa-check-circle me-2"></i>Verificar Balance
                 </a>
             </div>
         </div>
     </div>
-
-    <!-- Resumen de la cuenta -->
-    <div class="row mb-4">
-        <div class="col-md-3">
-            <div class="card text-center">
-                <div class="card-body">
-                    <h5 class="card-title text-primary">Total Débitos</h5>
-                    <h4 class="text-success">S/ {{ number_format($totales['total_debito'], 2) }}</h4>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card text-center">
-                <div class="card-body">
-                    <h5 class="card-title text-primary">Total Créditos</h5>
-                    <h4 class="text-danger">S/ {{ number_format($totales['total_credito'], 2) }}</h4>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card text-center">
-                <div class="card-body">
-                    <h5 class="card-title text-primary">Saldo Final</h5>
-                    <h4 class="{{ $totales['saldo_final'] >= 0 ? 'text-success' : 'text-danger' }}">
-                        S/ {{ number_format($totales['saldo_final'], 2) }}
-                    </h4>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card text-center">
-                <div class="card-body">
-                    <h5 class="card-title text-primary">Movimientos</h5>
-                    <h4>{{ number_format($movimientos->count()) }}</h4>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Tabla de movimientos -->
-    <div class="card">
-        <div class="card-header bg-success text-white">
-            <h5 class="mb-0">
-                <i class="fas fa-table me-2"></i>
-                Movimientos de la Cuenta {{ $cuenta }}
-            </h5>
-        </div>
-        
-        <div class="card-body p-0">
-            @if($movimientos->count() > 0)
-            <div class="table-responsive">
-                <table class="table table-hover mb-0">
-                    <thead class="table-dark">
-                        <tr>
-                            <th>Asiento</th>
-                            <th>Fecha</th>
-                            <th>Concepto</th>
-                            <th>Débito</th>
-                            <th>Crédito</th>
-                            <th>Saldo Acumulado</th>
-                            <th>Auxiliar</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach($movimientos as $movimiento)
-                        <tr class="movement-row">
-                            <td><strong>{{ $movimiento->numero }}</strong></td>
-                            <td>{{ \Carbon\Carbon::parse($movimiento->fecha)->format('d/m/Y') }}</td>
-                            <td>{{ Str::limit($movimiento->concepto, 50) }}</td>
-                            <td class="text-end text-success">
-                                {{ $movimiento->debito > 0 ? 'S/ ' . number_format($movimiento->debito, 2) : '-' }}
-                            </td>
-                            <td class="text-end text-danger">
-                                {{ $movimiento->credito > 0 ? 'S/ ' . number_format($movimiento->credito, 2) : '-' }}
-                            </td>
-                            <td class="text-end">
-                                <span class="saldo-acumulado {{ $movimiento->saldo_acumulado >= 0 ? 'saldo-positivo' : 'saldo-negativo' }}">
-                                    S/ {{ number_format($movimiento->saldo_acumulado, 2) }}
-                                </span>
-                            </td>
-                            <td>{{ Str::limit($movimiento->auxiliar ?? '-', 20) }}</td>
-                        </tr>
-                        @endforeach
-                    </tbody>
-                    <tfoot class="table-info">
-                        <tr>
-                            <td colspan="3"><strong>TOTALES</strong></td>
-                            <td class="text-end"><strong>S/ {{ number_format($totales['total_debito'], 2) }}</strong></td>
-                            <td class="text-end"><strong>S/ {{ number_format($totales['total_credito'], 2) }}</strong></td>
-                            <td class="text-end"><strong>S/ {{ number_format($totales['saldo_final'], 2) }}</strong></td>
-                            <td></td>
-                        </tr>
-                    </tfoot>
-                </table>
-            </div>
-            @else
-            <div class="text-center p-5">
-                <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
-                <h4>No hay movimientos registrados</h4>
-                <p class="text-muted">Esta cuenta no tiene movimientos en el período seleccionado.</p>
-            </div>
-            @endif
-        </div>
-    </div>
-
-    <!-- Gráfico de evolución -->
-    @if($movimientos->count() > 0)
-    <div class="row mt-4">
-        <div class="col-md-12">
-            <div class="card">
-                <div class="card-header">
-                    <h6 class="mb-0">
-                        <i class="fas fa-chart-line me-2"></i>
-                        Evolución del Saldo Acumulado
-                    </h6>
-                </div>
-                <div class="card-body">
-                    <canvas id="saldoChart" height="100"></canvas>
-                </div>
-            </div>
-        </div>
-    </div>
-    @endif
-
-    <!-- Navegación entre cuentas -->
-    <div class="row mt-4">
-        <div class="col-md-12 text-center">
-            <a href="{{ route('contador.balance-comprobacion.index') }}" class="btn btn-secondary">
-                <i class="fas fa-arrow-left me-2"></i>Volver al Balance General
-            </a>
-            <a href="{{ route('contador.balance-comprobacion.verificar') }}" class="btn btn-warning ms-2">
-                <i class="fas fa-check-circle me-2"></i>Verificar Balance
-            </a>
-        </div>
-    </div>
-</div>
+ </div>
 
 @if($movimientos->count() > 0)
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>

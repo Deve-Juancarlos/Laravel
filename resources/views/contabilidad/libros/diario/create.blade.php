@@ -7,6 +7,84 @@
     <link href="{{ asset('css/contabilidad/libro-diario-create.css') }}" rel="stylesheet">
 @endpush
 
+@section('sidebar-menu')
+{{-- MENÚ PRINCIPAL --}}
+<div class="nav-section">Dashboard</div>
+<ul>
+    <li><a href="{{ route('dashboard.contador') }}" class="nav-link">
+        <i class="fas fa-chart-pie"></i> Panel Principal
+    </a></li>
+</ul>
+
+<div class="nav-section">Contabilidad</div>
+<ul>
+    <li>
+        <a href="{{ route('contador.libro-diario.index') }}" class="nav-link has-submenu">
+            <i class="fas fa-book"></i> Libros Contables
+        </a>
+        <div class="nav-submenu">
+            <a href="{{ route('contador.libro-diario.index') }}" class="nav-link"><i class="fas fa-file-alt"></i> Libro Diario</a>
+            <a href="{{ route('contador.libro-mayor.index') }}" class="nav-link"><i class="fas fa-book-open"></i> Libro Mayor</a>
+            <a href="{{route('contador.balance-comprobacion.index')}}" class="nav-link"><i class="fas fa-balance-scale"></i> Balance Comprobación</a>    
+            <a href="{{ route('contador.estado-resultados.index') }}" class="nav-link"><i class="fas fa-chart-bar"></i> Estados Financieros</a>
+        </div>
+    </li>
+    <li>
+        <a href="#" class="nav-link has-submenu">
+            <i class="fas fa-file-invoice"></i> Registros
+        </a>
+        <div class="nav-submenu">
+            <a href="#" class="nav-link"><i class="fas fa-shopping-cart"></i> Compras</a>
+            <a href="#" class="nav-link"><i class="fas fa-cash-register"></i> Ventas</a>
+            <a href="#" class="nav-link"><i class="fas fa-university"></i> Bancos</a>
+            <a href="#" class="nav-link"><i class="fas fa-money-bill-wave"></i> Caja</a>
+        </div>
+    </li>
+</ul>
+
+{{-- VENTAS Y COBRANZAS --}}
+<div class="nav-section">Ventas & Cobranzas</div>
+<ul>
+    <li><a href="{{ route('contador.reportes.ventas') }}" class="nav-link">
+        <i class="fas fa-chart-line"></i> Análisis Ventas
+    </a></li>
+    <li><a href="{{ route('contador.reportes.compras') }}" class="nav-link">
+        <i class="fas fa-wallet"></i> Cartera
+    </a></li>
+    <li><a href="{{ route('contador.facturas.create') }}" class="nav-link">
+        <i class="fas fa-clock"></i> Fact. Pendientes
+    </a></li>
+    <li><a href="{{ route('contador.facturas.index') }}" class="nav-link">
+        <i class="fas fa-exclamation-triangle"></i> Fact. Vencidas
+    </a></li>
+</ul>
+
+{{-- GESTIÓN --}}
+<div class="nav-section">Gestión</div>
+<ul>
+    <li><a href="{{ route('contador.clientes') }}" class="nav-link">
+        <i class="fas fa-users"></i> Clientes
+    </a></li>
+    <li><a href="{{ route('contador.reportes.medicamentos-controlados') }}" class="nav-link">
+        <i class="fas fa-percentage"></i> Márgenes
+    </a></li>
+    <li><a href="{{ route('contador.reportes.inventario') }}" class="nav-link">
+        <i class="fas fa-boxes"></i> Inventario
+    </a></li>
+</ul>
+
+{{-- REPORTES SUNAT --}}
+<div class="nav-section">SUNAT</div>
+<ul>
+    <li><a href="#" class="nav-link">
+        <i class="fas fa-file-invoice-dollar"></i> PLE
+    </a></li>
+    <li><a href="#" class="nav-link">
+        <i class="fas fa-percent"></i> IGV Mensual
+    </a></li>
+</ul>
+@endsection
+
 @section('content')
 <div class="container-fluid p-0">
     {{-- Header --}}
@@ -58,19 +136,16 @@
             </div>
             <div class="card-body">
                 <div class="row g-3">
-                    <div class="col-md-4">
-                        <label class="form-label">Número de Asiento *</label>
-                        <input type="text" class="form-control" id="numero" name="numero" 
-                               value="{{ $siguienteNumero }}" required readonly>
-                    </div>
-                    <div class="col-md-4">
+                    <div class="col-md-6">
                         <label class="form-label">Fecha *</label>
                         <input type="date" class="form-control" id="fecha" name="fecha" 
-                               value="{{ date('Y-m-d') }}" required>
+                            value="{{ date('Y-m-d') }}" required>
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-md-6">
                         <label class="form-label">Usuario</label>
-                        <input type="text" class="form-control" value="Contador" readonly style="background-color: #f8f9fa;">
+                        <input type="text" class="form-control" 
+                            value="{{ auth()->user()->usuario ?? 'Contador' }}" 
+                            readonly style="background-color: #f8f9fa;">
                     </div>
                 </div>
                 
@@ -250,23 +325,25 @@
 
 @push('scripts')
 <script>
+document.addEventListener('DOMContentLoaded', function () {
     let cuentaActual = 1;
     let totalDebe = 0;
     let totalHaber = 0;
 
-    // Cuentas contables agrupadas por tipo
-    const cuentasContables = @json($cuentasContables);
-
-    // Inicializar formulario
-    document.addEventListener('DOMContentLoaded', function() {
-        agregarFilaDetalle();
-        agregarFilaDetalle();
-    });
-
-    function agregarFilaDetalle() {
+    // Función para agregar una nueva fila
+    window.agregarFilaDetalle = function () {
         const tbody = document.getElementById('detallesBody');
         const row = document.createElement('tr');
         row.id = `detalle-${cuentaActual}`;
+
+        // Generar opciones desde el select oculto
+        let opcionesHTML = '<option value="" disabled selected>Seleccionar cuenta...</option>';
+        const opciones = document.querySelectorAll('#opciones-cuentas option');
+        opciones.forEach(opt => {
+            if (opt.value) {
+                opcionesHTML += `<option value="${opt.value}">${opt.textContent}</option>`;
+            }
+        });
 
         row.innerHTML = `
             <td>
@@ -274,21 +351,18 @@
                         class="form-select form-select-sm" 
                         onchange="actualizarBalance()" 
                         required>
-                    <option value="" disabled selected>Seleccionar cuenta...</option>
-                    ${generarOpcionesCuentas()}
+                    ${opcionesHTML}
                 </select>
-
                 <div class="mt-1">
                     <button type="button" class="btn btn-sm btn-outline-success me-1"
                             onclick="seleccionarCuenta(${cuentaActual}, '1011')">
-                            Efectivo
+                        Efectivo
                     </button>
                     <button type="button" class="btn btn-sm btn-outline-primary"
                             onclick="seleccionarCuenta(${cuentaActual}, '10411')">
-                            Banco
+                        Banco
                     </button>
                 </div>
-
                 <div class="mt-1" id="badge-${cuentaActual}"></div>
             </td>
             <td>
@@ -324,119 +398,88 @@
 
         tbody.appendChild(row);
         cuentaActual++;
-    }
+    };
 
-    function seleccionarCuenta(id, codigoCuenta) {
-        // Selector EXACTO: busca el <select> dentro de la fila con el name completo
-        const select = document.querySelector(`#detalle-${id} select[name="detalles[${id}][cuenta_contable]"]`);
+    // Funciones globales
+    window.seleccionarCuenta = function (id, codigo) {
+        const select = document.querySelector(`#detalle-${id} select`);
         if (select) {
-            select.value = codigoCuenta;
-            // Disparar evento 'change' para que se actualice el balance
-            select.dispatchEvent(new Event('change', { bubbles: true }));
+            select.value = codigo;
+            select.dispatchEvent(new Event('change'));
             actualizarBadges(id);
-        } else {
-            console.error("No se encontró el select para el detalle ID:", id);
         }
-    }
+    };
 
-    function actualizarBadges(id) {
-        const row = document.getElementById(`detalle-${id}`);
-        const debe = parseFloat(row.querySelector('input[name*="[debe]"]').value) || 0;
-        const haber = parseFloat(row.querySelector('input[name*="[haber]"]').value) || 0;
-        const docRef = row.querySelector('input[name*="[documento_referencia]"]').value;
-
-        const badgeContainer = document.getElementById(`badge-${id}`);
-        badgeContainer.innerHTML = '';
-
-        if (debe > 0) {
-            badgeContainer.innerHTML = `<span class="badge bg-success">Efectivo</span>`;
-        } else if (haber > 0) {
-            let badgeText = `Banco: ${haber.toFixed(2)}`;
-            if (docRef) badgeText += ` (Cheque: ${docRef})`;
-            badgeContainer.innerHTML = `<span class="badge bg-primary">${badgeText}</span>`;
-        }
-    }
-
-    function eliminarFila(id) {
+    window.eliminarFila = function (id) {
         const row = document.getElementById(`detalle-${id}`);
         if (row) {
             row.remove();
             actualizarBalance();
         }
-    }
+    };
 
-    function generarOpcionesCuentas() {
-        let opciones = '';
-        cuentasContables.forEach(grupo => {
-            grupo.forEach(cuenta => {
-                opciones += `<option value="${cuenta.codigo}">${cuenta.codigo} - ${cuenta.nombre}</option>`;
-            });
-        });
-        return opciones;
-    }
+    window.actualizarBadges = function (id) {
+        const row = document.getElementById(`detalle-${id}`);
+        const debe = parseFloat(row.querySelector('input[name*="[debe]"]')?.value) || 0;
+        const haber = parseFloat(row.querySelector('input[name*="[haber]"]')?.value) || 0;
+        const badge = document.getElementById(`badge-${id}`);
+        badge.innerHTML = debe > 0 ? '<span class="badge bg-success">Efectivo</span>' :
+                           haber > 0 ? '<span class="badge bg-primary">Banco</span>' : '';
+    };
 
-    function actualizarBalance() {
+    window.actualizarBalance = function () {
         totalDebe = 0;
         totalHaber = 0;
-        
-        const rows = document.querySelectorAll('#detallesBody tr');
-        rows.forEach(row => {
-            const debeInput = row.querySelector('input[name*="[debe]"]');
-            const haberInput = row.querySelector('input[name*="[haber]"]');
-            
-            if (debeInput && debeInput.value) {
-                totalDebe += parseFloat(debeInput.value) || 0;
-            }
-            if (haberInput && haberInput.value) {
-                totalHaber += parseFloat(haberInput.value) || 0;
-            }
+        document.querySelectorAll('#detallesBody tr').forEach(row => {
+            const debe = parseFloat(row.querySelector('input[name*="[debe]"]')?.value) || 0;
+            const haber = parseFloat(row.querySelector('input[name*="[haber]"]')?.value) || 0;
+            totalDebe += debe;
+            totalHaber += haber;
         });
-        
+
         document.getElementById('totalDebe').textContent = 'S/ ' + totalDebe.toFixed(2);
         document.getElementById('totalHaber').textContent = 'S/ ' + totalHaber.toFixed(2);
-        
-        const diferencia = totalDebe - totalHaber;
-        document.getElementById('diferencia').textContent = 'S/ ' + Math.abs(diferencia).toFixed(2);
-        
-        const balanceStatus = document.getElementById('balanceStatus');
-        const guardarBtn = document.getElementById('guardarAsiento');
-        
-        if (Math.abs(diferencia) < 0.01) {
-            balanceStatus.className = 'badge bg-success';
-            balanceStatus.textContent = 'Balanceado ✓';
-            guardarBtn.disabled = false;
-        } else {
-            balanceStatus.className = 'badge bg-danger';
-            balanceStatus.textContent = 'No balancea ✗';
-            guardarBtn.disabled = true;
-        }
-    }
+        const diff = Math.abs(totalDebe - totalHaber);
+        document.getElementById('diferencia').textContent = 'S/ ' + diff.toFixed(2);
 
-    function aplicarPlantilla(tipo) {
+        const status = document.getElementById('balanceStatus');
+        const btn = document.getElementById('guardarAsiento');
+        if (diff < 0.01) {
+            status.className = 'badge bg-success';
+            status.textContent = 'Balanceado ✓';
+            btn.disabled = false;
+        } else {
+            status.className = 'badge bg-danger';
+            status.textContent = 'No balancea ✗';
+            btn.disabled = true;
+        }
+    };
+
+    window.aplicarPlantilla = function (tipo) {
         const templates = {
             'ventas-medicamentos': [
-                { cuenta: '10411', concepto: 'Ventas medicamentos varios', debe: 0, haber: 0 },
-                { cuenta: '7011', concepto: 'Ingreso por ventas', debe: 0, haber: 0 }
+                { cuenta: '10411', concepto: 'Ventas medicamentos varios' },
+                { cuenta: '7011', concepto: 'Ingreso por ventas' }
             ],
             'compra-stock': [
-                { cuenta: '1311', concepto: 'Medicamentos en stock', debe: 0, haber: 0 },
-                { cuenta: '40111', concepto: 'Proveedores farmacéuticos', debe: 0, haber: 0 }
+                { cuenta: '1311', concepto: 'Medicamentos en stock' },
+                { cuenta: '40111', concepto: 'Proveedores farmacéuticos' }
             ],
             'gastos-operativos': [
-                { cuenta: '90111', concepto: 'Sueldos personal almacén', debe: 0, haber: 0 },
-                { cuenta: '1011', concepto: 'Caja chica', debe: 0, haber: 0 }
+                { cuenta: '90111', concepto: 'Sueldos personal almacén' },
+                { cuenta: '1011', concepto: 'Caja chica' }
             ],
             'medicamentos-caducos': [
-                { cuenta: '6331', concepto: 'Pérdida medicamentos vencidos', debe: 0, haber: 0 },
-                { cuenta: '1311', concepto: 'Afectación stock medicamentos', debe: 0, haber: 0 }
+                { cuenta: '6331', concepto: 'Pérdida medicamentos vencidos' },
+                { cuenta: '1311', concepto: 'Afectación stock medicamentos' }
             ],
             'cobranzas': [
-                { cuenta: '1011', concepto: 'Cobro facturas clientes', debe: 0, haber: 0 },
-                { cuenta: '10411', concepto: 'Clientes diversos', debe: 0, haber: 0 }
+                { cuenta: '1011', concepto: 'Cobro facturas clientes' },
+                { cuenta: '10411', concepto: 'Clientes diversos' }
             ],
             'pagos-proveedores': [
-                { cuenta: '40111', concepto: 'Pago proveedores', debe: 0, haber: 0 },
-                { cuenta: '1011', concepto: 'Salida efectivo', debe: 0, haber: 0 }
+                { cuenta: '40111', concepto: 'Pago proveedores' },
+                { cuenta: '1011', concepto: 'Salida efectivo' }
             ]
         };
 
@@ -449,46 +492,27 @@
                 const row = document.querySelector(`#detalle-${cuentaActual - 1}`);
                 const select = row.querySelector('select');
                 const conceptoInput = row.querySelector('input[name*="[concepto]"]');
-                
                 if (select) select.value = template.cuenta;
                 if (conceptoInput) conceptoInput.value = template.concepto;
             });
         }
-
         actualizarBalance();
-    }
+    };
 
-    function guardarBorrador() {
-        alert('Función de borrador temporalmente no implementada');
-    }
-    function seleccionarCuenta(id, codigoCuenta) {
-        const select = document.querySelector(`#detalle-${id} select[name="detalles[${id}][cuenta_contable]"]`);
-        if (!select) {
-            console.error("No se encontró el select para el detalle ID:", id);
-            return;
-        }
+    window.guardarBorrador = function () {
+        alert('Función de borrador no implementada');
+    };
 
-        // Buscar si la opción ya existe
-        let option = Array.from(select.options).find(opt => opt.value === codigoCuenta);
-        
-        // Si no existe, crearla dinámicamente
-        if (!option) {
-            // Definir nombres por defecto si no están disponibles
-            let nombreCuenta = "Cuenta desconocida";
-            if (codigoCuenta === '1011') {
-                nombreCuenta = "Caja principal";
-            } else if (codigoCuenta === '10411') {
-                nombreCuenta = "Banco BBVA";
-            }
-            
-            option = new Option(`${codigoCuenta} - ${nombreCuenta}`, codigoCuenta, true, true);
-            select.appendChild(option);
-        }
-
-        // Seleccionar la opción
-        select.value = codigoCuenta;
-        select.dispatchEvent(new Event('change', { bubbles: true }));
-        actualizarBadges(id);
-    }
+    // Inicializar con 2 filas
+    agregarFilaDetalle();
+    agregarFilaDetalle();
+});
 </script>
+
+{{-- Cuentas contables cargadas directamente desde la BD --}}
+<select id="opciones-cuentas" style="display:none;">
+    @foreach($cuentasContables as $cuenta)
+        <option value="{{ $cuenta->codigo }}">{{ $cuenta->codigo }} - {{ $cuenta->nombre }}</option>
+    @endforeach
+</select>
 @endpush
