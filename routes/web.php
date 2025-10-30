@@ -16,8 +16,6 @@ use App\Http\Controllers\Admin\AuditoriaController;
 use App\Http\Controllers\Contabilidad\ReportesSunatController;
 use App\Http\Controllers\Contabilidad\LibroDiarioController;
 use App\Http\Controllers\Contabilidad\EstadoResultadosController;
-use App\Http\Controllers\Contabilidad\CashFlowController;
-use App\Http\Controllers\Contabilidad\BalanceGeneralController;
 
 //RUTAS PÚBLICAS
 Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
@@ -224,55 +222,28 @@ Route::middleware(['auth', 'check.contador'])->group(function () {
             Route::get('/exportar-cuenta/{cuenta}', [App\Http\Controllers\Contabilidad\LibroMayorController::class, 'exportarCuenta'])->name('exportar-cuenta');
         });
 
-        Route::prefix('balance-comprobacion')->name('balance-comprobacion.')->group(function () {
-            // 1. Vista principal del Balance de Comprobación
-            Route::get('/', [App\Http\Controllers\Contabilidad\BalanceComprobacionController::class, 'index'])->name('index');
-            
-            // 2. Detalle de cuenta específica
-            Route::get('/detalle/{cuenta}', [App\Http\Controllers\Contabilidad\BalanceComprobacionController::class, 'detalleCuenta'])->name('detalle');
-            
-            // 3. Balance por clases de cuentas (PCGE)
-            Route::get('/clases', [App\Http\Controllers\Contabilidad\BalanceComprobacionController::class, 'porClases'])->name('clases');
-            
-            // 4. Comparación entre períodos
-            Route::get('/comparacion', [App\Http\Controllers\Contabilidad\BalanceComprobacionController::class, 'comparacion'])->name('comparacion');
-            
-            // 5. Verificación de integridad
-            Route::get('/verificar', [App\Http\Controllers\Contabilidad\BalanceComprobacionController::class, 'verificar'])->name('verificar');
-            
-            // 6. Exportar balance en diferentes formatos
-            Route::get('/exportar', [App\Http\Controllers\Contabilidad\BalanceComprobacionController::class, 'exportar'])->name('exportar');
-        });
+         Route::prefix('balance-comprobacion')->name('balance-comprobacion.')->group(function () {
+                Route::get('/', [App\Http\Controllers\Contabilidad\BalanceComprobacionController::class, 'index'])->name('index');
+                Route::get('/detalle/{cuenta}', [App\Http\Controllers\Contabilidad\BalanceComprobacionController::class, 'detalleCuenta'])->name('detalle');
+                Route::get('/clases', [App\Http\Controllers\Contabilidad\BalanceComprobacionController::class, 'porClases'])->name('clases');
+                Route::get('/comparacion', [App\Http\Controllers\Contabilidad\BalanceComprobacionController::class, 'comparacion'])->name('comparacion');
+                Route::get('/verificar', [App\Http\Controllers\Contabilidad\BalanceComprobacionController::class, 'verificar'])->name('verificar');
+                Route::get('/exportar', [App\Http\Controllers\Contabilidad\BalanceComprobacionController::class, 'exportar'])->name('exportar');
+            });
 
         Route::prefix('estado-resultados')->name('estado-resultados.')->group(function () {
-            // 1. Estado de Resultados principal
-            Route::get('/', [EstadoResultadosController::class, 'index'])->name('index');
-            
-            // 2. Análisis por períodos (mensual/anual)
-            Route::get('/periodos', [EstadoResultadosController::class, 'porPeriodos'])->name('periodos');
-            
-            // 3. Detalle de cuenta específica
-            Route::get('/detalle/{cuenta}', [EstadoResultadosController::class, 'detalleCuenta'])->name('detalle');
-            
-            // 4. Comparativo entre períodos
-            Route::get('/comparativo', [EstadoResultadosController::class, 'comparativo'])->name('comparativo');
-            
-            // 5. Análisis farmacéutico específico
-            Route::get('/farmaceutico', [EstadoResultadosController::class, 'analisisFarmaceutico'])->name('farmaceutico');
-            
-            // 6. Estado de Flujo de Efectivo
-            Route::get('/flujo-caja', [EstadoResultadosController::class, 'cashFlow'])->name('flujo-caja');
-            
-            // 7. Balance General
-            Route::get('/balance-general', [EstadoResultadosController::class, 'balanceGeneral'])->name('balance-general');
-            
-            // 8. Exportar todos los estados
-            Route::get('/exportar', [EstadoResultadosController::class, 'exportar'])->name('exportar');
-        });    
-        
-        
+                Route::get('/', [EstadoResultadosController::class, 'index'])->name('index');
+                Route::get('/periodos', [EstadoResultadosController::class, 'porPeriodos'])->name('periodos');
+                Route::get('/detalle/{cuenta}', [EstadoResultadosController::class, 'detalleCuenta'])->name('detalle');
+                Route::get('/comparativo', [EstadoResultadosController::class, 'comparativo'])->name('comparativo');
+                Route::get('/farmaceutico', [EstadoResultadosController::class, 'analisisFarmaceutico'])->name('farmaceutico');
+                Route::get('/flujo-caja', [EstadoResultadosController::class, 'cashFlow'])->name('flujo-caja');
+                Route::get('/balance-general', [EstadoResultadosController::class, 'balanceGeneral'])->name('balance-general');
+                Route::get('/exportar', [EstadoResultadosController::class, 'exportar'])->name('exportar');
+            });
+        });
     });
-});
+
 
 
 Route::get('/acceso-denegado', function () {

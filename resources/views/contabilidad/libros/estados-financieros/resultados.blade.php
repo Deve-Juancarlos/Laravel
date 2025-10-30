@@ -5,7 +5,7 @@
     <!-- Breadcrumbs -->
     <nav aria-label="breadcrumb" class="mb-4">
         <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="{{ route('dashboard') }}"><i class="fas fa-home"></i> Dashboard</a></li>
+            <li class="breadcrumb-item"><a href="{{ route('dashboard.contador') }}"><i class="fas fa-home"></i> Dashboard</a></li>
             <li class="breadcrumb-item active"><i class="fas fa-chart-line"></i> Estado de Resultados</li>
         </ol>
     </nav>

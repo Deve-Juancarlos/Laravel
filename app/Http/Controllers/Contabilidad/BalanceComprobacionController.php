@@ -166,26 +166,27 @@ class BalanceComprobacionController extends Controller
     public function verificar(Request $request)
     {
         try {
-            $fechaInicio = $request->input('fecha_inicio', Carbon::now()->startOfYear()->format('Y-m-d'));
-            $fechaFin = $request->input('fecha_fin', Carbon::now()->endOfYear()->format('Y-m-d'));
+            $fechaInicio = $request->input('fecha_inicio', '2025-01-01');
+            $fechaFin = $request->input('fecha_fin', '2025-12-31');
 
-            // ✅ Asientos desequilibrados
-            $asientosDesequilibrados = DB::table('libro_diario as c')
+            // ==============================
+            // 1️⃣ Verificar asientos descuadrados
+            // ==============================
+            $asientosDescuadrados = DB::table('libro_diario as c')
                 ->join('libro_diario_detalles as d', 'd.asiento_id', '=', 'c.id')
-                ->select(
-                    'c.id',
-                    'c.numero',
-                    DB::raw('SUM(d.debe) as total_debe'),
+                ->select('c.id', 'c.numero', 
+                    DB::raw('SUM(d.debe) as total_debe'), 
                     DB::raw('SUM(d.haber) as total_haber'),
-                    DB::raw('ABS(SUM(d.debe) - SUM(d.haber)) as diferencia')
-                )
+                    DB::raw('ABS(SUM(d.debe) - SUM(d.haber)) as diferencia'))
                 ->whereBetween('c.fecha', [$fechaInicio, $fechaFin])
                 ->where('c.estado', 'ACTIVO')
                 ->groupBy('c.id', 'c.numero')
                 ->havingRaw('ABS(SUM(d.debe) - SUM(d.haber)) > 0.01')
                 ->get();
 
-            // ✅ Totales generales
+            // ==============================
+            // 2️⃣ Totales generales
+            // ==============================
             $totalDebe = DB::table('libro_diario_detalles as d')
                 ->join('libro_diario as c', 'd.asiento_id', '=', 'c.id')
                 ->whereBetween('c.fecha', [$fechaInicio, $fechaFin])
@@ -198,45 +199,47 @@ class BalanceComprobacionController extends Controller
                 ->where('c.estado', 'ACTIVO')
                 ->sum('d.haber');
 
-            $diferencia = abs($totalDebe - $totalHaber);
+            $diferencia = $totalDebe - $totalHaber;
 
-            // ✅ Cuentas sin movimientos
-            $cuentasConMov = DB::table('libro_diario_detalles as d')
-                ->join('libro_diario as c', 'd.asiento_id', '=', 'c.id')
-                ->whereBetween('c.fecha', [$fechaInicio, $fechaFin])
-                ->where('c.estado', 'ACTIVO')
-                ->pluck('d.cuenta_contable')
-                ->toArray();
+            // ==============================
+            // 3️⃣ Últimas facturas emitidas
+            // ==============================
+            $ultimasFacturas = DB::table('Doccab')
+                ->select(['Numero', 'Tipo', 'CodClie', 'Fecha', 'FechaV', 'Total', 'Impreso'])
+                ->where('Eliminado', 0)
+                ->orderByDesc('Fecha')
+                ->limit(5)
+                ->get()
+                ->map(function ($f) {
+                    $f->Estado = $f->Impreso ? 'Emitida' : 'Pendiente';
+                    return $f;
+                });
 
-            $cuentasSinMovimientos = DB::table('plan_cuentas')
-                ->whereNotIn('codigo', $cuentasConMov)
-                ->select('codigo as cuenta', 'nombre')
-                ->orderBy('codigo')
-                ->limit(20)
+            // ==============================
+            // 4️⃣ Top clientes (placeholder)
+            // ==============================
+            $topClientesSaldo = DB::table('clientes')
+                ->select('Razon', DB::raw('0 as saldo'))
+                ->limit(5)
                 ->get();
 
-            // ✅ Estadísticas finales
-            $estadisticas = [
-                'total_asientos' => DB::table('libro_diario')
-                    ->whereBetween('fecha', [$fechaInicio, $fechaFin])
-                    ->where('estado', 'ACTIVO')
-                    ->count(),
-                'asientos_desequilibrados' => $asientosDesequilibrados->count(),
-                'cuentas_con_movimientos' => count($cuentasConMov),
-                'total_debe' => $totalDebe,
-                'total_haber' => $totalHaber,
-                'diferencia' => $diferencia,
-                'cuadra' => $diferencia < 0.01
-            ];
-
-            return view('contabilidad.libros.balance-comprobacion.verificacion', compact(
-                'asientosDesequilibrados', 'cuentasSinMovimientos', 'estadisticas', 'fechaInicio', 'fechaFin'
+            // ==============================
+            // 5️⃣ Retornar vista con todos los datos
+            // ==============================
+            return view('contabilidad.balance-comprobacion.verificar', compact(
+                'asientosDescuadrados',
+                'totalDebe',
+                'totalHaber',
+                'diferencia',
+                'topClientesSaldo',
+                'ultimasFacturas'
             ));
 
         } catch (\Exception $e) {
-            return redirect()->back()->with('error', 'Error al verificar balance: ' . $e->getMessage());
+            return back()->with('error', 'Error en verificación: ' . $e->getMessage());
         }
     }
+
 
 
     // Métodos privados actualizados
