@@ -295,4 +295,105 @@ class EstadoResultadosController extends Controller
             'costos_variacion' => $costosAnterior > 0 ? round((($costosActual - $costosAnterior) / $costosAnterior) * 100, 2) : 0,
         ];
     }
+
+    public function comparativo(Request $request)
+    {
+        $fechaInicio1 = $request->get('fecha_inicio', now()->startOfMonth()->toDateString());
+        $fechaFin1 = $request->get('fecha_fin', now()->endOfMonth()->toDateString());
+
+        $fechaInicio2 = $request->get('anterior_inicio', Carbon::parse($fechaInicio1)->subMonth()->startOfMonth()->toDateString());
+        $fechaFin2 = $request->get('anterior_fin', Carbon::parse($fechaFin1)->subMonth()->endOfMonth()->toDateString());
+
+        // Resultados primer período (ACTUAL)
+        $ventas1 = $this->obtenerVentasNetas($fechaInicio1, $fechaFin1);
+        $costo1 = $this->obtenerCostoVentas($fechaInicio1, $fechaFin1);
+        $utilidadBruta1 = $ventas1 - $costo1;
+        
+        $gastosOperativos1 = DB::table('libro_diario_detalles as d')
+            ->join('libro_diario as c', 'd.asiento_id', '=', 'c.id')
+            ->whereBetween('c.fecha', [$fechaInicio1, $fechaFin1])
+            ->where('c.estado', 'ACTIVO')
+            ->where(function($q) {
+                $q->where('d.cuenta_contable', 'LIKE', '6%')
+                ->orWhere('d.cuenta_contable', 'LIKE', '9%');
+            })
+            ->sum('d.debe') - $costo1;
+        
+        $utilidadOperativa1 = $utilidadBruta1 - $gastosOperativos1;
+
+        // Resultados segundo período (ANTERIOR)
+        $ventas2 = $this->obtenerVentasNetas($fechaInicio2, $fechaFin2);
+        $costo2 = $this->obtenerCostoVentas($fechaInicio2, $fechaFin2);
+        $utilidadBruta2 = $ventas2 - $costo2;
+        
+        $gastosOperativos2 = DB::table('libro_diario_detalles as d')
+            ->join('libro_diario as c', 'd.asiento_id', '=', 'c.id')
+            ->whereBetween('c.fecha', [$fechaInicio2, $fechaFin2])
+            ->where('c.estado', 'ACTIVO')
+            ->where(function($q) {
+                $q->where('d.cuenta_contable', 'LIKE', '6%')
+                ->orWhere('d.cuenta_contable', 'LIKE', '9%');
+            })
+            ->sum('d.debe') - $costo2;
+        
+        $utilidadOperativa2 = $utilidadBruta2 - $gastosOperativos2;
+
+        // Comparativo (ya existente, está bien)
+        $comparativo = [
+            'actual' => [
+                'ventas' => $ventas1,
+                'costo' => $costo1,
+                'utilidad_bruta' => $utilidadBruta1
+            ],
+            'anterior' => [
+                'ventas' => $ventas2,
+                'costo' => $costo2,
+                'utilidad_bruta' => $utilidadBruta2
+            ],
+            'variacion' => [
+                'ventas' => $ventas2 > 0 ? round((($ventas1 - $ventas2) / $ventas2) * 100, 2) : 0,
+                'utilidad_bruta' => $utilidadBruta2 > 0 ? round((($utilidadBruta1 - $utilidadBruta2) / $utilidadBruta2) * 100, 2) : 0,
+            ]
+        ];
+
+        // NUEVO: Estructura $periodos con resultados completos
+        $periodos = [
+            'actual_mensual' => [
+                'inicio' => $fechaInicio1,
+                'fin' => $fechaFin1,
+                'resultados' => [
+                    'ventas_netas' => $ventas1,
+                    'costo_ventas' => $costo1,
+                    'utilidad_bruta' => $utilidadBruta1,
+                    'gastos_operativos' => $gastosOperativos1,
+                    'utilidad_operativa' => $utilidadOperativa1,
+                ]
+            ],
+            'anterior_mensual' => [
+                'inicio' => $fechaInicio2,
+                'fin' => $fechaFin2,
+                'resultados' => [
+                    'ventas_netas' => $ventas2,
+                    'costo_ventas' => $costo2,
+                    'utilidad_bruta' => $utilidadBruta2,
+                    'gastos_operativos' => $gastosOperativos2,
+                    'utilidad_operativa' => $utilidadOperativa2,
+                ]
+            ]
+        ];
+
+        // NUEVO: Variable $variaciones que usa la vista
+        $variaciones = [
+            'mensual' => [
+                'ventas' => $ventas2 > 0 ? round((($ventas1 - $ventas2) / $ventas2) * 100, 2) : 0,
+                'utilidad' => $utilidadOperativa2 > 0 ? round((($utilidadOperativa1 - $utilidadOperativa2) / $utilidadOperativa2) * 100, 2) : 0,
+            ]
+        ];
+
+        return view('contabilidad.libros.estados-financieros.resultados-comparativo', compact(
+            'comparativo', 'periodos', 'variaciones'
+        ));
+    }
+
+
 }

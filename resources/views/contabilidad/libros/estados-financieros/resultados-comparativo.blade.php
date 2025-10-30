@@ -441,11 +441,6 @@
                         <i class="fas fa-calendar-alt"></i> Ver Períodos
                     </a>
                 </div>
-                <div>
-                    <a href="{{ route('contador.estado-resultados.farmaceutico') }}" class="btn btn-success">
-                        <i class="fas fa-pills"></i> Análisis Farmacéutico
-                    </a>
-                </div>
             </div>
         </div>
     </div>
