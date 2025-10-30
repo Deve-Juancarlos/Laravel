@@ -235,6 +235,15 @@ Route::middleware(['auth', 'check.contador'])->group(function () {
                 Route::get('/exportar', [App\Http\Controllers\Contabilidad\BalanceComprobacionController::class, 'exportar'])->name('exportar');
             });
 
+        Route::prefix('honorarios')->group(function () {
+                Route::get('/', [app\Http\Controllers\Contabilidad\HonorariosController::class, 'index'])->name('libro-honorarios');
+                Route::get('/estado-cuenta/{id}', [app\Http\Controllers\Contabilidad\HonorariosController::class, 'estadoCuenta'])->name('honorarios.estado-cuenta');
+                Route::get('/categorias', [app\Http\Controllers\Contabilidad\HonorariosController::class, 'analisisCategorias'])->name('honorarios.categorias');
+                Route::get('/mensual', [app\Http\Controllers\Contabilidad\HonorariosController::class, 'resumenMensual'])->name('honorarios.mensual');
+                Route::get('/impuestos', [app\Http\Controllers\Contabilidad\HonorariosController::class, 'analisisImpuestos'])->name('honorarios.impuestos');
+                Route::get('/proyeccion', [app\Http\Controllers\Contabilidad\HonorariosController::class, 'proyeccionGastos'])->name('honorarios.proyeccion');
+            });    
+
         Route::prefix('estado-resultados')->name('estado-resultados.')->group(function () {
                 Route::get('/', [EstadoResultadosController::class, 'index'])->name('index');
                 Route::get('/periodos', [EstadoResultadosController::class, 'porPeriodos'])->name('periodos');

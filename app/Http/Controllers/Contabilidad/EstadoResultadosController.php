@@ -78,6 +78,7 @@ class EstadoResultadosController extends Controller
             $fechaInicioAnterior = Carbon::parse($fechaInicio)->subMonth()->startOfMonth()->toDateString();
             $fechaFinAnterior = Carbon::parse($fechaFin)->subMonth()->endOfMonth()->toDateString();
             $comparacion = $this->obtenerComparacionPeriodo($fechaInicioAnterior, $fechaFinAnterior, $fechaInicio, $fechaFin);
+            
 
             return view('contabilidad.libros.estados-financieros.resultados', compact(
                 'ingresos', 'gastos', 'ventasNetas', 'costoVentas', 'resultados',
@@ -395,5 +396,64 @@ class EstadoResultadosController extends Controller
         ));
     }
 
+    public function detalleCuenta($cuenta)
+    {
+        try {
+            // Fechas por defecto (inicio y fin del mes actual)
+            $fechaInicio = request()->get('fecha_inicio', now()->startOfMonth()->toDateString());
+            $fechaFin = request()->get('fecha_fin', now()->endOfMonth()->toDateString());
+            $busqueda = request()->get('busqueda', null);
 
+            // Construir la consulta de movimientos
+            $movimientosQuery = DB::table('libro_diario_detalles as d')
+                ->join('libro_diario as c', 'd.asiento_id', '=', 'c.id')
+                ->join('plan_cuentas as pc', 'd.cuenta_contable', '=', 'pc.codigo')
+                ->whereBetween('c.fecha', [$fechaInicio, $fechaFin])
+                ->where('c.estado', 'ACTIVO');
+
+            // Filtrar por cuenta si no es "all"
+            if ($cuenta !== 'all') {
+                $movimientosQuery->where('d.cuenta_contable', $cuenta);
+            }
+
+            // Filtrar por búsqueda si existe
+            if ($busqueda) {
+                $movimientosQuery->where('d.concepto', 'like', "%{$busqueda}%");
+            }
+
+            $movimientos = $movimientosQuery
+                ->select(
+                    'c.fecha',
+                    'c.numero',
+                    'd.cuenta_contable',
+                    'pc.nombre as concepto',
+                    'd.debe as debito',
+                    'd.haber as credito'
+                )
+                ->orderBy('c.fecha')
+                ->get();
+
+            // Determinar cómo mostrar la cuenta en la vista
+            $cuentaMostrar = $cuenta === 'all' ? 'Todas las Cuentas' : $cuenta;
+
+            // Solo buscar clasificación si es una cuenta específica
+            $clasificacion = null;
+            if ($cuenta !== 'all') {
+                $clasificacion = DB::table('plan_cuentas')
+                    ->where('codigo', $cuenta)
+                    ->value('tipo'); // INGRESO o GASTO
+            }
+
+            return view('contabilidad.libros.estados-financieros.resultados-detalle', compact(
+                'movimientos',
+                'cuentaMostrar',
+                'clasificacion',
+                'fechaInicio',
+                'fechaFin'
+            ));
+
+        } catch (\Exception $e) {
+            return back()->with('error', 'Error al cargar detalles de la cuenta: ' . $e->getMessage());
+        }
+    }
 }

@@ -42,6 +42,18 @@
             <a href="#" class="nav-link"><i class="fas fa-money-bill-wave"></i> Caja</a>
         </div>
     </li>
+    <li>
+        <a href="{{ route(contador.honorarios.index) }}" class="nav-link has-submenu">
+            <i class="fas fa-file-invoice"></i> Honorarios
+        </a>
+        <div class="nav-submenu">
+            <a href="#" class="nav-link"><i class="fas fa-shopping-cart"></i>categorias</a>
+            <a href="#" class="nav-link"><i class="fas fa-cash-register"></i>estado-cuenta</a>
+            <a href="#" class="nav-link"><i class="fas fa-university"></i>impuesto</a>
+            <a href="#" class="nav-link"><i class="fas fa-money-bill-wave"></i>mensual</a>
+            <a href="#" class="nav-link"><i class="fas fa-money-bill-wave"></i>proyeccion</a>
+        </div>
+    </li>
 </ul>
 
 {{-- VENTAS Y COBRANZAS --}}

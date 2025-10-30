@@ -16,7 +16,7 @@
         <div>
             <h2 class="text-primary">
                 <i class="fas fa-search me-2"></i>
-                Detalle de Cuenta - {{ $cuenta }}
+                Detalle de Cuenta -{{ $cuentaMostrar }}
             </h2>
             <p class="text-muted mb-0">Análisis detallado de movimientos contables</p>
         </div>
@@ -39,7 +39,7 @@
                     <table class="table table-borderless">
                         <tr>
                             <td><strong>Código:</strong></td>
-                            <td><span class="badge bg-primary fs-6">{{ $cuenta }}</span></td>
+                            <td><span class="badge bg-primary fs-6">{{ $cuentaMostrar }}</span></td>
                         </tr>
                         <tr>
                             <td><strong>Clasificación:</strong></td>
@@ -161,7 +161,8 @@
     <!-- Filtros -->
     <div class="card mb-4">
         <div class="card-body">
-            <form method="GET" action="{{ route('contador.estado-resultados.detalle', $cuenta) }}">
+            <form method="GET" action="{{ route('contador.estado-resultados.detalle', ['cuenta' => $cuentaMostrar === 'Todas las Cuentas' ? 'all' : $cuentaMostrar]) }}">
+
                 <div class="row">
                     <div class="col-md-3">
                         <label class="form-label">Fecha Inicio</label>
@@ -193,7 +194,7 @@
         <div class="card-header bg-secondary text-white d-flex justify-content-between align-items-center">
             <h5 class="mb-0">
                 <i class="fas fa-list me-2"></i>
-                Movimientos Detallados - Cuenta {{ $cuenta }}
+                Movimientos Detallados - Cuenta {{ $cuentaMostrar }}:
             </h5>
             <div>
                 <button class="btn btn-sm btn-light" onclick="exportToExcel()">
@@ -387,10 +388,7 @@
                 <div>
                     <a href="{{ route('contador.estado-resultados.comparativo') }}" class="btn btn-warning me-2">
                         <i class="fas fa-comparison"></i> Comparativo
-                    </a>
-                    <a href="{{ route('contador.estado-resultados.farmaceutico') }}" class="btn btn-success">
-                        <i class="fas fa-pills"></i> Análisis Farmacéutico
-                    </a>
+                    </a>            
                 </div>
             </div>
         </div>
@@ -420,6 +418,7 @@ function exportToExcel() {
     // Implementar exportación a Excel
     alert('Funcionalidad de exportación a Excel será implementada próximamente');
 }
+
 
 function printPage() {
     window.print();

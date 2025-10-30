@@ -69,7 +69,7 @@ class HonorariosController extends Controller
                 'prestadores_con_actividad' => $documentosHonorarios->unique('CodClie')->count()
             ];
 
-            return view('contabilidad.auxiliares.honorarios', compact(
+            return view('contabilidad.honorarios.index', compact(
                 'prestadores', 'documentosHonorarios', 'resumenPrestadores', 'resumenGeneral', 
                 'fechaInicio', 'fechaFin', 'proveedor'
             ));
@@ -372,10 +372,11 @@ class HonorariosController extends Controller
             // Totales por categoría
             $totalesServicios = [];
             foreach ($clasificacionServicios as $categoria => $servicios) {
+                $serviciosCollection = collect($servicios);
                 $totalesServicios[$categoria] = [
-                    'cantidad' => $servicios->count(),
-                    'total' => collect($servicios)->sum('Total'),
-                    'prestadores' => collect($servicios)->unique('CodClie')->count()
+                    'cantidad' => $serviciosCollection->count(),
+                    'total' => $serviciosCollection->sum('Total'),
+                    'prestadores' => $serviciosCollection->unique('CodClie')->count()
                 ];
             }
 
@@ -410,8 +411,8 @@ class HonorariosController extends Controller
                     'dc.Total',
                     'dc.Igv',
                     DB::raw('CASE 
-                        WHEN dc.Total <= 1500 THEN dc.Total * 0.08  -- 8% hasta S/. 1,500
-                        ELSE 1500 * 0.08 + (dc.Total - 1500) * 0.10  -- 10% sobre el exceso
+                        WHEN dc.Total <= 1500 THEN dc.Total * 0.08
+                        ELSE 1500 * 0.08 + (dc.Total - 1500) * 0.10
                     END as retencion_estimada')
                 ])
                 ->get();
@@ -464,7 +465,9 @@ class HonorariosController extends Controller
             }
 
             // Proyectar gastos futuros basado en promedio histórico
-            $promedioMensual = array_sum($gastosHistoricos) / count(array_filter($gastosHistoricos));
+            $promedioMensual = array_sum($gastosHistoricos) / count(array_filter($gastosHistoricos, function($val) {
+                return $val > 0;
+            }) ?: 1);
             $proyeccionAnual = $promedioMensual * 12;
 
             // Clasificar proyecciones por categoría
@@ -474,14 +477,20 @@ class HonorariosController extends Controller
             $alertasPresupuesto = $this->generarAlertasPresupuesto($gastosHistoricos, $anio);
 
             return view('contabilidad.auxiliares.honorarios-proyeccion', compact(
-                'gastosHistoricos', 'promedioMensual', 'proyeccionAnual', 
-                'proyeccionesCategoria', 'alertasPresupuesto', 'anio
+                'gastosHistoricos', 
+                'promedioMensual', 
+                'proyeccionAnual', 
+                'proyeccionesCategoria', 
+                'alertasPresupuesto', 
+                'anio'
             ));
 
         } catch (\Exception $e) {
             return redirect()->back()->with('error', 'Error en proyección: ' . $e->getMessage());
         }
-            }}
+    }
+
+    // ==================== MÉTODOS PRIVADOS ====================
 
     /**
      * Get honorarium documents by date range
@@ -503,8 +512,7 @@ class HonorariosController extends Controller
                 'dc.Fecha',
                 'dc.Total',
                 'dc.Moneda',
-                'dc.Igv',
-                DB::raw('COUNT(*) OVER() as total_documentos')
+                'dc.Igv'
             ])
             ->orderBy('dc.Fecha', 'desc')
             ->get();
@@ -553,7 +561,6 @@ class HonorariosController extends Controller
      */
     private function obtenerSaldoPendientePrestador($prestadorId)
     {
-        // Sumar saldos pendientes en cuentas por cobrar del prestador
         return DB::table('CtaCliente as cc')
             ->where('cc.CodClie', $prestadorId)
             ->sum('cc.Saldo') ?? 0;
@@ -587,3 +594,255 @@ class HonorariosController extends Controller
 
         return $clasificacion;
     }
+
+    /**
+     * Classify documents by service categories
+     */
+    private function clasificarCategoriasDocumentos($documentos)
+    {
+        return $documentos->groupBy(function($doc) {
+            $nombre = strtoupper($doc->producto_nombre ?? '');
+            $razon = strtoupper($doc->Razon ?? '');
+            
+            // Clasificación por nombre de producto o razón social
+            if (strpos($nombre, 'CONSULTOR') !== false || strpos($razon, 'CONSULTOR') !== false) {
+                return 'CONSULTORIA';
+            } elseif (strpos($nombre, 'CAPACIT') !== false || strpos($razon, 'CAPACIT') !== false) {
+                return 'CAPACITACION';
+            } elseif (strpos($nombre, 'ASESORIA') !== false || strpos($razon, 'ASESOR') !== false) {
+                return 'ASESORIA';
+            } elseif (strpos($nombre, 'REGENTE') !== false || strpos($razon, 'REGENTE') !== false) {
+                return 'REGENCIA';
+            } elseif (strpos($razon, 'Q.F.') !== false || strpos($razon, 'QUIMICO') !== false) {
+                return 'SERVICIOS_FARMACEUTICOS';
+            } else {
+                return 'OTROS_SERVICIOS';
+            }
+        });
+    }
+
+    /**
+     * Analyze category growth trends
+     */
+    private function analizarCrecimientoCategorias($categorias, $fechaInicio, $fechaFin)
+    {
+        $analisis = [];
+        
+        foreach ($categorias as $categoria => $documentos) {
+            // Dividir período en mitades para comparar
+            $fechaInicioDt = Carbon::parse($fechaInicio);
+            $fechaFinDt = Carbon::parse($fechaFin);
+            $fechaMitad = $fechaInicioDt->copy()->addDays($fechaInicioDt->diffInDays($fechaFinDt) / 2);
+            
+            $primeraMetad = $documentos->filter(function($doc) use ($fechaInicioDt, $fechaMitad) {
+                $fecha = Carbon::parse($doc->Fecha);
+                return $fecha->between($fechaInicioDt, $fechaMitad);
+            });
+            
+            $segundaMetad = $documentos->filter(function($doc) use ($fechaMitad, $fechaFinDt) {
+                $fecha = Carbon::parse($doc->Fecha);
+                return $fecha->between($fechaMitad, $fechaFinDt);
+            });
+            
+            $totalPrimera = $primeraMetad->sum('Total');
+            $totalSegunda = $segundaMetad->sum('Total');
+            
+            $crecimiento = $totalPrimera > 0 
+                ? (($totalSegunda - $totalPrimera) / $totalPrimera) * 100 
+                : 0;
+            
+            $analisis[$categoria] = [
+                'primera_mitad' => $totalPrimera,
+                'segunda_mitad' => $totalSegunda,
+                'crecimiento_porcentual' => round($crecimiento, 2),
+                'tendencia' => $crecimiento > 10 ? 'CRECIENTE' : ($crecimiento < -10 ? 'DECRECIENTE' : 'ESTABLE')
+            ];
+        }
+        
+        return $analisis;
+    }
+
+    /**
+     * Calculate honorarium trends
+     */
+    private function calcularTendenciasHonorarios($resumenMensual, $anio)
+    {
+        $totalesMensuales = array_values(array_map(function($mes) {
+            return $mes['total'];
+        }, $resumenMensual));
+        
+        // Filtrar meses con datos
+        $mesesConDatos = array_filter($totalesMensuales, function($val) {
+            return $val > 0;
+        });
+        
+        if (empty($mesesConDatos)) {
+            return [
+                'tendencia_general' => 'SIN_DATOS',
+                'mes_mayor_actividad' => null,
+                'mes_menor_actividad' => null,
+                'variacion_promedio' => 0,
+                'total_anual' => 0,
+                'promedio_mensual' => 0
+            ];
+        }
+        
+        // Encontrar mes con mayor y menor actividad
+        $maxTotal = max($totalesMensuales);
+        $minTotal = min(array_filter($totalesMensuales, function($val) {
+            return $val > 0;
+        }));
+        
+        $mesMayor = array_search($maxTotal, $totalesMensuales);
+        $mesMenor = array_search($minTotal, $totalesMensuales);
+        
+        // Calcular tendencia (comparar primera mitad vs segunda mitad)
+        $primeraMetad = array_sum(array_slice($totalesMensuales, 0, 6));
+        $segundaMetad = array_sum(array_slice($totalesMensuales, 6, 6));
+        
+        $variacion = $primeraMetad > 0 
+            ? (($segundaMetad - $primeraMetad) / $primeraMetad) * 100 
+            : 0;
+        
+        $tendenciaGeneral = $variacion > 10 ? 'CRECIENTE' : ($variacion < -10 ? 'DECRECIENTE' : 'ESTABLE');
+        
+        return [
+            'tendencia_general' => $tendenciaGeneral,
+            'mes_mayor_actividad' => $mesMayor !== false ? Carbon::create($anio, $mesMayor + 1, 1)->format('F') : null,
+            'mes_menor_actividad' => $mesMenor !== false ? Carbon::create($anio, $mesMenor + 1, 1)->format('F') : null,
+            'variacion_promedio' => round($variacion, 2),
+            'total_anual' => array_sum($totalesMensuales),
+            'promedio_mensual' => count($mesesConDatos) > 0 ? array_sum($totalesMensuales) / count($mesesConDatos) : 0
+        ];
+    }
+
+    /**
+     * Project expenses by category
+     */
+    private function proyectarPorCategoria($gastosHistoricos)
+    {
+        // Obtener categorías de los últimos 3 meses
+        $fechaInicio = Carbon::now()->subMonths(3)->startOfMonth()->format('Y-m-d');
+        $fechaFin = Carbon::now()->endOfMonth()->format('Y-m-d');
+        
+        $documentos = DB::table('Doccab as dc')
+            ->leftJoin('Clientes as cl', 'dc.CodClie', '=', 'cl.Codclie')
+            ->whereBetween('dc.Fecha', [$fechaInicio, $fechaFin])
+            ->where(function($query) {
+                $query->where('dc.Numero', 'like', 'HON%')
+                      ->orWhere('dc.Numero', 'like', 'CBO%')
+                      ->orWhere('dc.Numero', 'like', 'REC%');
+            })
+            ->select([
+                'dc.Total',
+                'cl.Razon'
+            ])
+            ->get();
+        
+        $categorias = $this->clasificarCategoriasDocumentos($documentos);
+        
+        $proyecciones = [];
+        foreach ($categorias as $categoria => $docs) {
+            $promedioMensual = $docs->sum('Total') / 3; // Promedio de 3 meses
+            $proyecciones[$categoria] = [
+                'promedio_mensual' => round($promedioMensual, 2),
+                'proyeccion_anual' => round($promedioMensual * 12, 2),
+                'documentos_mes' => round($docs->count() / 3, 0)
+            ];
+        }
+        
+        return $proyecciones;
+    }
+
+    /**
+     * Generate budget alerts
+     */
+    private function generarAlertasPresupuesto($gastosHistoricos, $anio)
+    {
+        $alertas = [];
+        
+        // Calcular promedio mensual
+        $mesesConGastos = array_filter($gastosHistoricos, function($val) {
+            return $val > 0;
+        });
+        
+        if (empty($mesesConGastos)) {
+            return $alertas;
+        }
+        
+        $promedioMensual = array_sum($mesesConGastos) / count($mesesConGastos);
+        $desviacionEstandar = $this->calcularDesviacionEstandar($gastosHistoricos, $promedioMensual);
+        
+        // Analizar cada mes
+        foreach ($gastosHistoricos as $mes => $gasto) {
+            if ($gasto == 0) continue;
+            
+            // Alerta si el gasto supera el promedio + 1.5 desviaciones estándar
+            if ($gasto > ($promedioMensual + (1.5 * $desviacionEstandar))) {
+                $alertas[] = [
+                    'tipo' => 'ALTO',
+                    'mes' => Carbon::create($anio, $mes, 1)->format('F'),
+                    'mensaje' => 'Gasto significativamente superior al promedio',
+                    'gasto' => $gasto,
+                    'promedio' => $promedioMensual,
+                    'diferencia' => $gasto - $promedioMensual,
+                    'color' => 'danger'
+                ];
+            }
+            
+            // Alerta si el gasto es menor al 50% del promedio
+            if ($gasto < ($promedioMensual * 0.5) && $gasto > 0) {
+                $alertas[] = [
+                    'tipo' => 'BAJO',
+                    'mes' => Carbon::create($anio, $mes, 1)->format('F'),
+                    'mensaje' => 'Gasto significativamente inferior al promedio',
+                    'gasto' => $gasto,
+                    'promedio' => $promedioMensual,
+                    'diferencia' => $promedioMensual - $gasto,
+                    'color' => 'warning'
+                ];
+            }
+        }
+        
+        // Alerta de tendencia creciente
+        $ultimosTres = array_slice($gastosHistoricos, -3, 3, true);
+        $ultimosTresValidos = array_filter($ultimosTres);
+        
+        if (count($ultimosTresValidos) >= 3) {
+            $valores = array_values($ultimosTresValidos);
+            if ($valores[2] > $valores[1] && $valores[1] > $valores[0]) {
+                $alertas[] = [
+                    'tipo' => 'TENDENCIA',
+                    'mes' => 'Últimos 3 meses',
+                    'mensaje' => 'Tendencia creciente en gastos de honorarios',
+                    'gasto' => null,
+                    'promedio' => null,
+                    'diferencia' => null,
+                    'color' => 'info'
+                ];
+            }
+        }
+        
+        return $alertas;
+    }
+
+    /**
+     * Calculate standard deviation
+     */
+    private function calcularDesviacionEstandar($valores, $promedio)
+    {
+        $valoresValidos = array_filter($valores, function($val) {
+            return $val > 0;
+        });
+        
+        if (count($valoresValidos) <= 1) {
+            return 0;
+        }
+        
+        $sumaCuadrados = array_reduce($valoresValidos, function($carry, $valor) use ($promedio) {
+            return $carry + pow($valor - $promedio, 2);
+        }, 0);
+        
+        return sqrt($sumaCuadrados / count($valoresValidos));
+    }
+}
