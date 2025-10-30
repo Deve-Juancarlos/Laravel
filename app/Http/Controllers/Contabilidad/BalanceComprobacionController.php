@@ -59,6 +59,8 @@ class BalanceComprobacionController extends Controller
 
             $diferencia = abs($totalDeudor - $totalAcreedor);
             $cuadra = $diferencia < 0.01;
+            $cuentasPorClase = $this->obtenerCuentasPorClasesVista($fechaInicio, $fechaFin);
+
 
             // Resumen por clases (usando primer dígito del código)
             $resumenClases = $this->obtenerResumenPorClases($fechaInicio, $fechaFin);
@@ -76,66 +78,152 @@ class BalanceComprobacionController extends Controller
         }
     }
 
-    public function detalleCuenta($cuenta, Request $request)
+    public function detalleCuenta(Request $request)
     {
         try {
             $fechaInicio = $request->input('fecha_inicio', Carbon::now()->startOfYear()->format('Y-m-d'));
             $fechaFin = $request->input('fecha_fin', Carbon::now()->endOfYear()->format('Y-m-d'));
 
+            // Obtener todas las cuentas utilizadas en el período
+            $balances = DB::table('libro_diario_detalles as d')
+                ->join('libro_diario as c', 'd.asiento_id', '=', 'c.id')
+                ->whereBetween('c.fecha', [$fechaInicio, $fechaFin])
+                ->where('c.estado', 'ACTIVO')
+                ->select('d.cuenta_contable')
+                ->groupBy('d.cuenta_contable')
+                ->pluck('cuenta_contable');
+
+            // Obtener movimientos de todas las cuentas utilizadas
             $movimientos = DB::table('libro_diario_detalles as d')
                 ->join('libro_diario as c', 'd.asiento_id', '=', 'c.id')
-                ->where('d.cuenta_contable', $cuenta)
+                ->whereIn('d.cuenta_contable', $balances)
                 ->whereBetween('c.fecha', [$fechaInicio, $fechaFin])
                 ->where('c.estado', 'ACTIVO')
                 ->select([
+                    'd.cuenta_contable as cuenta',
                     'c.numero',
                     'c.fecha',
                     'd.concepto',
                     'd.debe as debito',
                     'd.haber as credito',
-                    DB::raw("'' as auxiliar") // opcional: podrías enlazar con terceros si aplica
+                    DB::raw("'' as auxiliar")
                 ])
+                ->orderBy('d.cuenta_contable')
                 ->orderBy('c.fecha')
                 ->orderBy('c.numero')
                 ->get();
 
-            $saldo = 0;
+            // Calcular saldo acumulado por cuenta
+            $saldos = [];
             foreach ($movimientos as $mov) {
-                $saldo += $mov->debito - $mov->credito;
-                $mov->saldo_acumulado = $saldo;
+                if (!isset($saldos[$mov->cuenta])) $saldos[$mov->cuenta] = 0;
+                $saldos[$mov->cuenta] += $mov->debito - $mov->credito;
+                $mov->saldo_acumulado = $saldos[$mov->cuenta];
+            }
+
+            // Agregar cuentas con saldo cero que no tengan movimientos
+            foreach ($balances as $cuenta) {
+                if (!isset($saldos[$cuenta])) {
+                    $mov = new \stdClass();
+                    $mov->cuenta = $cuenta;
+                    $mov->numero = '-';
+                    $mov->fecha = '-';
+                    $mov->concepto = '-';
+                    $mov->debito = 0;
+                    $mov->credito = 0;
+                    $mov->saldo_acumulado = 0;
+                    $mov->auxiliar = '-';
+                    $movimientos->push($mov);
+                }
             }
 
             $totales = [
                 'total_debito' => $movimientos->sum('debito'),
                 'total_credito' => $movimientos->sum('credito'),
-                'saldo_final' => $saldo
+                'saldo_final' => $movimientos->sum('debito') - $movimientos->sum('credito')
             ];
 
             return view('contabilidad.libros.balance-comprobacion.detalle', compact(
-                'cuenta', 'movimientos', 'totales', 'fechaInicio', 'fechaFin'
+                'movimientos', 'totales', 'fechaInicio', 'fechaFin'
             ));
 
         } catch (\Exception $e) {
-            return redirect()->back()->with('error', 'Error al cargar el detalle de la cuenta: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Error al cargar el detalle de las cuentas: ' . $e->getMessage());
         }
+    }    
+    private function obtenerCuentasPorClasesVista(string $fechaInicio, string $fechaFin): array
+    {
+        // Consulta todos los saldos netos por cuenta en el período
+        $balances = DB::table('libro_diario_detalles as d')
+            ->join('libro_diario as c', 'd.asiento_id', '=', 'c.id')
+            ->whereBetween('c.fecha', [$fechaInicio, $fechaFin])
+            ->where('c.estado', 'ACTIVO')
+            ->select([
+                'd.cuenta_contable as cuenta',
+                DB::raw('SUM(d.debe) - SUM(d.haber) as saldo')
+            ])
+            ->groupBy('d.cuenta_contable')
+            ->orderBy('d.cuenta_contable')
+            ->get();
+
+        // Inicializa el array de clases
+        $cuentasPorClase = [
+            'ACTIVO' => [],
+            'PASIVO' => [],
+            'PATRIMONIO' => [],
+            'INGRESOS' => [],
+            'GASTOS' => []
+        ];
+
+        // Clasifica cada cuenta según el primer dígito de su código
+        foreach ($balances as $b) {
+            $codigo = $b->cuenta;
+            $primera = substr($codigo, 0, 1);
+            $saldo = $b->saldo;
+
+            switch ($primera) {
+                case '1': // ACTIVO
+                    $cuentasPorClase['ACTIVO'][] = $b;
+                    break;
+                case '2': // PASIVO
+                    $b->saldo = abs($saldo);
+                    $cuentasPorClase['PASIVO'][] = $b;
+                    break;
+                case '3': // PATRIMONIO
+                    $b->saldo = abs($saldo);
+                    $cuentasPorClase['PATRIMONIO'][] = $b;
+                    break;
+                case '4': // INGRESOS
+                    $b->saldo = abs($saldo);
+                    $cuentasPorClase['INGRESOS'][] = $b;
+                    break;
+                case '5':
+                case '6':
+                case '9': // GASTOS
+                    $cuentasPorClase['GASTOS'][] = $b;
+                    break;
+                default:
+                    // Ignorar códigos que no correspondan a clases conocidas
+                    break;
+            }
+        }
+
+        return $cuentasPorClase;
     }
 
     public function porClases(Request $request)
     {
-        try {
-            $fechaInicio = $request->input('fecha_inicio', Carbon::now()->startOfYear()->format('Y-m-d'));
-            $fechaFin = $request->input('fecha_fin', Carbon::now()->endOfYear()->format('Y-m-d'));
+        $fechaInicio = $request->input('fecha_inicio', Carbon::now()->startOfYear()->format('Y-m-d'));
+        $fechaFin = $request->input('fecha_fin', Carbon::now()->endOfYear()->format('Y-m-d'));
 
-            $cuentasPorClase = $this->obtenerCuentasPorClases($fechaInicio, $fechaFin);
+        $cuentasPorClase = $this->obtenerCuentasPorClasesVista($fechaInicio, $fechaFin);
 
-            return view('contabilidad.libros.balance-comprobacion.clases', compact(
-                'cuentasPorClase', 'fechaInicio', 'fechaFin'
-            ));
-
-        } catch (\Exception $e) {
-            return redirect()->back()->with('error', 'Error al cargar balance por clases: ' . $e->getMessage());
-        }
+        return view('contabilidad.libros.balance-comprobacion.clases', compact(
+            'cuentasPorClase', 'fechaInicio', 'fechaFin'
+        ));
     }
+
+
 
     public function comparacion(Request $request)
     {
@@ -226,7 +314,7 @@ class BalanceComprobacionController extends Controller
             // ==============================
             // 5️⃣ Retornar vista con todos los datos
             // ==============================
-            return view('contabilidad.balance-comprobacion.verificar', compact(
+            return view('contabilidad.libros.balance-comprobacion.verificar', compact(
                 'asientosDescuadrados',
                 'totalDebe',
                 'totalHaber',
@@ -234,6 +322,7 @@ class BalanceComprobacionController extends Controller
                 'topClientesSaldo',
                 'ultimasFacturas'
             ));
+
 
         } catch (\Exception $e) {
             return back()->with('error', 'Error en verificación: ' . $e->getMessage());

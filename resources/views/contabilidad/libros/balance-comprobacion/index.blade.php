@@ -282,19 +282,44 @@
         </div>
 
         <!-- Acciones -->
-        <div class="row mt-4">
-            <div class="col-md-12 text-center">
-                <a href="{{ route('contador.balance-comprobacion.detalle', ['cuenta' => 'all']) }}" class="btn btn-outline-primary me-2">
-                    <i class="fas fa-eye me-2"></i>Ver Detalle Cuentas
-                </a>
-                <a href="{{ route('contador.balance-comprobacion.verificar') }}" class="btn btn-outline-warning me-2">
-                    <i class="fas fa-check-circle me-2"></i>Verificar Integridad
-                </a>
-                <button class="btn btn-success" onclick="exportarBalance()">
-                    <i class="fas fa-download me-2"></i>Exportar Excel
-                </button>
-            </div>
-        </div>
+      
+        <!-- Botones de navegación del módulo -->
+<div class="row mt-4">
+    <div class="col-md-12 text-center">
+        <a href="{{ route('contador.balance-comprobacion.index') }}" class="btn btn-outline-primary me-2">
+            <i class="fas fa-home me-2"></i>Inicio
+        </a>
+
+        <a href="{{ route('contador.balance-comprobacion.detalle', [
+                'fecha_inicio' => $fechaInicio,
+                'fecha_fin' => $fechaFin
+            ]) }}" class="btn btn-outline-success me-2">
+            <i class="fas fa-eye me-2"></i>Detalle
+        </a>
+
+        <a href="{{ route('contador.balance-comprobacion.clases', [
+                'fecha_inicio' => $fechaInicio,
+                'fecha_fin' => $fechaFin
+            ]) }}" class="btn btn-outline-info me-2">
+            <i class="fas fa-layer-group me-2"></i>Clases
+        </a>
+
+        <a href="{{ route('contador.balance-comprobacion.comparacion', [
+                'fecha_inicio' => $fechaInicio,
+                'fecha_fin' => $fechaFin
+            ]) }}" class="btn btn-outline-secondary me-2">
+            <i class="fas fa-exchange-alt me-2"></i>Comparación
+        </a>
+
+        <a href="{{ route('contador.balance-comprobacion.verificar', [
+                'fecha_inicio' => $fechaInicio,
+                'fecha_fin' => $fechaFin
+            ]) }}" class="btn btn-outline-warning">
+            <i class="fas fa-check-circle me-2"></i>Verificar
+        </a>
+    </div>
+</div>
+
     </div>
 </div>
 @endsection

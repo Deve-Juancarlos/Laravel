@@ -203,29 +203,34 @@ Route::middleware(['auth', 'check.contador'])->group(function () {
 
 
         Route::prefix('libro-mayor')->name('libro-mayor.')->group(function () {
-            // 1. Vista principal - Resumen por cuentas
-            Route::get('/', [App\Http\Controllers\Contabilidad\LibroMayorController::class, 'index'])->name('index');
-            
-            // 2. Detalle de cuenta específica  
-            Route::get('/cuenta/{cuenta}', [App\Http\Controllers\Contabilidad\LibroMayorController::class, 'cuenta'])->name('cuenta');
-            
-            // 3. Movimientos por período
-            Route::get('/movimientos', [App\Http\Controllers\Contabilidad\LibroMayorController::class, 'movimientos'])->name('movimientos');
-            
-            // 4. Comparación de períodos
-            Route::get('/comparacion', [App\Http\Controllers\Contabilidad\LibroMayorController::class, 'comparacionPeriodos'])->name('comparacion');
-            
-            // 5. Exportar (resumen/detallado)
-            Route::get('/exportar', [App\Http\Controllers\Contabilidad\LibroMayorController::class, 'exportar'])->name('exportar');
-            
-            // 6. Exportar cuenta específica
-            Route::get('/exportar-cuenta/{cuenta}', [App\Http\Controllers\Contabilidad\LibroMayorController::class, 'exportarCuenta'])->name('exportar-cuenta');
-        });
+
+                // 1. Exportar (resumen/detallado) - ESTÁTICA
+                Route::get('/exportar', [App\Http\Controllers\Contabilidad\LibroMayorController::class, 'exportar'])->name('exportar');
+
+                // 2. Exportar cuenta específica - ESTÁTICA con restricción
+                Route::get('/exportar-cuenta/{cuenta}', [App\Http\Controllers\Contabilidad\LibroMayorController::class, 'exportarCuenta'])
+                    ->where('cuenta', '[0-9]+')
+                    ->name('exportar-cuenta');
+
+                // 3. Movimientos por período
+                Route::get('/movimientos', [App\Http\Controllers\Contabilidad\LibroMayorController::class, 'movimientos'])->name('movimientos');
+
+                // 4. Comparación de períodos
+                Route::get('/comparacion', [App\Http\Controllers\Contabilidad\LibroMayorController::class, 'comparacionPeriodos'])->name('comparacion');
+
+                // 5. Detalle de cuenta específica - DINÁMICA, solo números
+                Route::get('/cuenta/{cuenta}', [App\Http\Controllers\Contabilidad\LibroMayorController::class, 'cuenta'])
+                    ->where('cuenta', '[0-9]+')
+                    ->name('cuenta');
+
+                // 6. Vista principal - Resumen por cuentas
+                Route::get('/', [App\Http\Controllers\Contabilidad\LibroMayorController::class, 'index'])->name('index');
+            });
 
          Route::prefix('balance-comprobacion')->name('balance-comprobacion.')->group(function () {
                 Route::get('/', [App\Http\Controllers\Contabilidad\BalanceComprobacionController::class, 'index'])->name('index');
-                Route::get('/detalle/{cuenta}', [App\Http\Controllers\Contabilidad\BalanceComprobacionController::class, 'detalleCuenta'])->name('detalle');
-                Route::get('/clases', [App\Http\Controllers\Contabilidad\BalanceComprobacionController::class, 'porClases'])->name('clases');
+                Route::get('/detalle', [App\Http\Controllers\Contabilidad\BalanceComprobacionController::class, 'detalleCuenta'])->name('detalle');
+                 Route::get('/clases',[App\Http\Controllers\Contabilidad\BalanceComprobacionController::class, 'porClases'])->name('clases');
                 Route::get('/comparacion', [App\Http\Controllers\Contabilidad\BalanceComprobacionController::class, 'comparacion'])->name('comparacion');
                 Route::get('/verificar', [App\Http\Controllers\Contabilidad\BalanceComprobacionController::class, 'verificar'])->name('verificar');
                 Route::get('/exportar', [App\Http\Controllers\Contabilidad\BalanceComprobacionController::class, 'exportar'])->name('exportar');
@@ -240,6 +245,7 @@ Route::middleware(['auth', 'check.contador'])->group(function () {
                 Route::get('/flujo-caja', [EstadoResultadosController::class, 'cashFlow'])->name('flujo-caja');
                 Route::get('/balance-general', [EstadoResultadosController::class, 'balanceGeneral'])->name('balance-general');
                 Route::get('/exportar', [EstadoResultadosController::class, 'exportar'])->name('exportar');
+               
             });
         });
     });

@@ -98,7 +98,6 @@ class LibroMayorController extends Controller
             $fechaInicio = $request->input('fecha_inicio', Carbon::now()->startOfYear()->format('Y-m-d'));
             $fechaFin = $request->input('fecha_fin', Carbon::now()->format('Y-m-d'));
 
-            // Asegurar orden de fechas
             if (Carbon::parse($fechaInicio)->gt(Carbon::parse($fechaFin))) {
                 [$fechaInicio, $fechaFin] = [$fechaFin, $fechaInicio];
             }
@@ -113,7 +112,7 @@ class LibroMayorController extends Controller
                     ->with('error', 'Cuenta no encontrada');
             }
 
-            // Saldo inicial (antes de la fecha de inicio)
+            // Saldo inicial (antes del período)
             $saldoInicial = DB::table('libro_diario_detalles as dld')
                 ->join('libro_diario as ld', 'dld.asiento_id', '=', 'ld.id')
                 ->where('dld.cuenta_contable', $codigoCuenta)
@@ -155,19 +154,21 @@ class LibroMayorController extends Controller
 
             // Totales del período
             $totalesPeriodo = [
-                'debe' => round($movimientos->sum(function($m){ return (float)($m->debe ?? 0); }), 2),
-                'haber' => round($movimientos->sum(function($m){ return (float)($m->haber ?? 0); }), 2),
+                'debe' => round($movimientos->sum(fn($m) => (float)($m->debe ?? 0)), 2),
+                'haber' => round($movimientos->sum(fn($m) => (float)($m->haber ?? 0)), 2),
                 'saldo_final' => round($saldoAcumulado, 2)
             ];
 
+            $cuenta = $codigoCuenta; // Pasamos $cuenta a la vista
+
             return view('contabilidad.libros.mayor.cuenta', compact(
+                'cuenta',
                 'infoCuenta',
                 'saldoAnterior',
                 'movimientos',
                 'totalesPeriodo',
                 'fechaInicio',
-                'fechaFin',
-                'codigoCuenta'
+                'fechaFin'
             ));
 
         } catch (\Exception $e) {
@@ -176,6 +177,7 @@ class LibroMayorController extends Controller
             return redirect()->back()->with('error', 'Error al cargar la cuenta: ' . $e->getMessage());
         }
     }
+
 
     /**
      * Exportar a Excel
