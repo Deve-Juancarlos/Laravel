@@ -237,6 +237,19 @@
                             </tbody>
                         </table>
                     </div>
+                    {{-- Botones rápidos para otras vistas --}}
+                    <div class="quick-actions mb-3">
+                        <a href="{{ route('contador.libro-mayor.comparacion') }}" class="btn btn-secondary">
+                            <i class="fas fa-exchange-alt"></i> Comparación
+                        </a>
+                        <a href="{{ route('contador.libro-mayor.movimientos') }}" class="btn btn-info">
+                            <i class="fas fa-file-invoice"></i> Movimientos
+                        </a>
+                        <a href="{{ route('contador.libro-mayor.exportar') }}" class="btn btn-success">
+                            <i class="fas fa-file-excel"></i> Exportar Excel
+                        </a>
+                    </div>
+
                 </div>
 
                 {{-- Paginación --}}

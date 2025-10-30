@@ -178,6 +178,9 @@ class LibroMayorController extends Controller
         }
     }
 
+    
+
+
 
     /**
      * Exportar a Excel
@@ -507,6 +510,97 @@ class LibroMayorController extends Controller
             Log::error('Error al exportar cuenta: ' . $e->getMessage());
             Log::error($e->getTraceAsString());
             return redirect()->back()->with('error', 'Error al exportar: ' . $e->getMessage());
+        }
+    }
+
+
+    /**
+ * Comparación entre períodos
+ */
+    public function comparacionPeriodos(Request $request)
+    {
+        try {
+            // Fechas de los períodos (si no vienen por request, se toma el mes actual y el mes anterior)
+            $fechaInicioActual = $request->input('fecha_inicio_actual', Carbon::now()->startOfMonth()->format('Y-m-d'));
+            $fechaFinActual = $request->input('fecha_fin_actual', Carbon::now()->endOfMonth()->format('Y-m-d'));
+
+            $fechaInicioAnterior = $request->input('fecha_inicio_anterior', Carbon::parse($fechaInicioActual)->subMonth()->startOfMonth()->format('Y-m-d'));
+            $fechaFinAnterior = $request->input('fecha_fin_anterior', Carbon::parse($fechaFinActual)->subMonth()->endOfMonth()->format('Y-m-d'));
+
+            // Intercambiar fechas si vienen invertidas
+            if (Carbon::parse($fechaInicioActual)->gt(Carbon::parse($fechaFinActual))) {
+                [$fechaInicioActual, $fechaFinActual] = [$fechaFinActual, $fechaInicioActual];
+            }
+            if (Carbon::parse($fechaInicioAnterior)->gt(Carbon::parse($fechaFinAnterior))) {
+                [$fechaInicioAnterior, $fechaFinAnterior] = [$fechaFinAnterior, $fechaInicioAnterior];
+            }
+
+            // Obtener totales por cuenta para el período actual
+            $actual = DB::table('libro_diario_detalles as dld')
+                ->join('libro_diario as ld', 'dld.asiento_id', '=', 'ld.id')
+                ->leftJoin('plan_cuentas as pc', 'dld.cuenta_contable', '=', 'pc.codigo')
+                ->whereBetween('ld.fecha', [$fechaInicioActual, $fechaFinActual])
+                ->where('ld.estado', 'ACTIVO')
+                ->select(
+                    'dld.cuenta_contable as cuenta',
+                    'pc.nombre as nombre_cuenta',
+                    DB::raw('SUM(CAST(dld.debe AS DECIMAL(25,2))) as debe_actual'),
+                    DB::raw('SUM(CAST(dld.haber AS DECIMAL(25,2))) as haber_actual')
+                )
+                ->groupBy('dld.cuenta_contable', 'pc.nombre')
+                ->get();
+
+            // Obtener totales por cuenta para el período anterior
+            $anterior = DB::table('libro_diario_detalles as dld')
+                ->join('libro_diario as ld', 'dld.asiento_id', '=', 'ld.id')
+                ->leftJoin('plan_cuentas as pc', 'dld.cuenta_contable', '=', 'pc.codigo')
+                ->whereBetween('ld.fecha', [$fechaInicioAnterior, $fechaFinAnterior])
+                ->where('ld.estado', 'ACTIVO')
+                ->select(
+                    'dld.cuenta_contable as cuenta',
+                    'pc.nombre as nombre_cuenta',
+                    DB::raw('SUM(CAST(dld.debe AS DECIMAL(25,2))) as debe_anterior'),
+                    DB::raw('SUM(CAST(dld.haber AS DECIMAL(25,2))) as haber_anterior')
+                )
+                ->groupBy('dld.cuenta_contable', 'pc.nombre')
+                ->get();
+
+            // Unir períodos por cuenta
+            $comparacion = collect();
+
+            $cuentas = $actual->pluck('cuenta')->merge($anterior->pluck('cuenta'))->unique();
+
+            foreach ($cuentas as $cuenta) {
+                $actualRow = $actual->firstWhere('cuenta', $cuenta);
+                $anteriorRow = $anterior->firstWhere('cuenta', $cuenta);
+
+                $comparacion->push([
+                    'cuenta' => $cuenta,
+                    'nombre_cuenta' => $actualRow->nombre_cuenta ?? $anteriorRow->nombre_cuenta ?? 'Sin nombre',
+                    'debe_actual' => (float)($actualRow->debe_actual ?? 0),
+                    'haber_actual' => (float)($actualRow->haber_actual ?? 0),
+                    'debe_anterior' => (float)($anteriorRow->debe_anterior ?? 0),
+                    'haber_anterior' => (float)($anteriorRow->haber_anterior ?? 0),
+                ]);
+            }
+
+            // Ordenar por cuenta
+            $comparacion = $comparacion->sortBy('cuenta')->values();
+
+            // Preparar períodos para la vista
+            $periodoActual = ['inicio' => $fechaInicioActual, 'fin' => $fechaFinActual];
+            $periodoAnterior = ['inicio' => $fechaInicioAnterior, 'fin' => $fechaFinAnterior];
+
+            return view('contabilidad.libros.mayor.comparacion', compact(
+                'comparacion',
+                'periodoActual',
+                'periodoAnterior'
+            ));
+
+        } catch (\Exception $e) {
+            Log::error('Error en comparación de períodos: ' . $e->getMessage());
+            Log::error($e->getTraceAsString());
+            return redirect()->back()->with('error', 'Error al generar comparación de períodos: ' . $e->getMessage());
         }
     }
 
