@@ -326,7 +326,19 @@
         cuentaActual++;
     }
 
-    // Función para actualizar badges Efectivo / Banco / Cheque
+    function seleccionarCuenta(id, codigoCuenta) {
+        // Selector EXACTO: busca el <select> dentro de la fila con el name completo
+        const select = document.querySelector(`#detalle-${id} select[name="detalles[${id}][cuenta_contable]"]`);
+        if (select) {
+            select.value = codigoCuenta;
+            // Disparar evento 'change' para que se actualice el balance
+            select.dispatchEvent(new Event('change', { bubbles: true }));
+            actualizarBadges(id);
+        } else {
+            console.error("No se encontró el select para el detalle ID:", id);
+        }
+    }
+
     function actualizarBadges(id) {
         const row = document.getElementById(`detalle-${id}`);
         const debe = parseFloat(row.querySelector('input[name*="[debe]"]').value) || 0;
@@ -334,7 +346,7 @@
         const docRef = row.querySelector('input[name*="[documento_referencia]"]').value;
 
         const badgeContainer = document.getElementById(`badge-${id}`);
-        badgeContainer.innerHTML = ''; // Limpiar contenido
+        badgeContainer.innerHTML = '';
 
         if (debe > 0) {
             badgeContainer.innerHTML = `<span class="badge bg-success">Efectivo</span>`;
@@ -344,8 +356,6 @@
             badgeContainer.innerHTML = `<span class="badge bg-primary">${badgeText}</span>`;
         }
     }
-
-
 
     function eliminarFila(id) {
         const row = document.getElementById(`detalle-${id}`);
@@ -369,7 +379,6 @@
         totalDebe = 0;
         totalHaber = 0;
         
-        // Recorrer todas las filas de detalles
         const rows = document.querySelectorAll('#detallesBody tr');
         rows.forEach(row => {
             const debeInput = row.querySelector('input[name*="[debe]"]');
@@ -383,7 +392,6 @@
             }
         });
         
-        // Actualizar display
         document.getElementById('totalDebe').textContent = 'S/ ' + totalDebe.toFixed(2);
         document.getElementById('totalHaber').textContent = 'S/ ' + totalHaber.toFixed(2);
         
@@ -432,11 +440,9 @@
             ]
         };
 
-        // Limpiar detalles actuales
         document.getElementById('detallesBody').innerHTML = '';
         cuentaActual = 1;
 
-        // Agregar plantillas
         if (templates[tipo]) {
             templates[tipo].forEach(template => {
                 agregarFilaDetalle();
@@ -444,8 +450,8 @@
                 const select = row.querySelector('select');
                 const conceptoInput = row.querySelector('input[name*="[concepto]"]');
                 
-                select.value = template.cuenta;
-                conceptoInput.value = template.concepto;
+                if (select) select.value = template.cuenta;
+                if (conceptoInput) conceptoInput.value = template.concepto;
             });
         }
 
@@ -453,16 +459,36 @@
     }
 
     function guardarBorrador() {
-        alert('Función de borrador暂时未实现 (Función de borrador temporalmente no implementada)');
+        alert('Función de borrador temporalmente no implementada');
     }
-
     function seleccionarCuenta(id, codigoCuenta) {
-        const select = document.querySelector(`#detalle-${id} [name*='cuenta_contable']`);
-        if (select) {
-            select.value = codigoCuenta;
-            actualizarBalance();
-            actualizarBadges(id);
+        const select = document.querySelector(`#detalle-${id} select[name="detalles[${id}][cuenta_contable]"]`);
+        if (!select) {
+            console.error("No se encontró el select para el detalle ID:", id);
+            return;
         }
-}
+
+        // Buscar si la opción ya existe
+        let option = Array.from(select.options).find(opt => opt.value === codigoCuenta);
+        
+        // Si no existe, crearla dinámicamente
+        if (!option) {
+            // Definir nombres por defecto si no están disponibles
+            let nombreCuenta = "Cuenta desconocida";
+            if (codigoCuenta === '1011') {
+                nombreCuenta = "Caja principal";
+            } else if (codigoCuenta === '10411') {
+                nombreCuenta = "Banco BBVA";
+            }
+            
+            option = new Option(`${codigoCuenta} - ${nombreCuenta}`, codigoCuenta, true, true);
+            select.appendChild(option);
+        }
+
+        // Seleccionar la opción
+        select.value = codigoCuenta;
+        select.dispatchEvent(new Event('change', { bubbles: true }));
+        actualizarBadges(id);
+    }
 </script>
 @endpush

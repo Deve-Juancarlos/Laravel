@@ -2,9 +2,9 @@
 
 @section('title', 'Libro Mayor - SIFANO Contabilidad')
 
-@section('styles')
-    <link href="{{ asset('css/contabilidad/libro-mayor.css') }}" rel="stylesheet">
-@endsection
+@push('styles')
+<link href="{{ asset('css/contabilidad/libro-mayor.css') }}" rel="stylesheet">
+@endpush
 
 @section('sidebar-menu')
 {{-- MENÚ PRINCIPAL --}}
@@ -86,164 +86,166 @@
 @endsection
 
 @section('content')
-<div class="container-fluid">
-    <div class="main-content-wrapper">
-        {{-- Header --}}
-        <div class="page-header">
-            <div>
-                <h1><i class="fas fa-book-open me-2"></i>Libro Mayor</h1>
-                <p>Distribución de movimientos por cuentas contables - SIFANO</p>
+<div class="libro-mayor-view">
+    <div class="container-fluid">
+        <div class="main-content-wrapper">
+            {{-- Header --}}
+            <div class="page-header">
+                <div>
+                    <h1><i class="fas fa-book-open me-2"></i>Libro Mayor</h1>
+                    <p>Distribución de movimientos por cuentas contables - SIFANO</p>
 
-                {{-- Contexto de filtros --}}
-                @if(request()->filled(['fecha_inicio', 'fecha_fin']) || request('cuenta'))
-                    <div class="filter-context">
-                        <i class="fas fa-filter"></i>
-                        <span>Resultados para:</span>
-                        @if(request('fecha_inicio') && request('fecha_fin'))
-                            <span class="badge">
-                                {{ \Carbon\Carbon::parse(request('fecha_inicio'))->format('d/m/Y') }} →
-                                {{ \Carbon\Carbon::parse(request('fecha_fin'))->format('d/m/Y') }}
-                            </span>
-                        @endif
-                        @if(request('cuenta'))
-                            <span class="badge">Cuenta: {{ request('cuenta') }}</span>
-                        @endif
+                    {{-- Contexto de filtros --}}
+                    @if(request()->filled(['fecha_inicio', 'fecha_fin']) || request('cuenta'))
+                        <div class="filter-context">
+                            <i class="fas fa-filter"></i>
+                            <span>Resultados para:</span>
+                            @if(request('fecha_inicio') && request('fecha_fin'))
+                                <span class="badge">
+                                    {{ \Carbon\Carbon::parse(request('fecha_inicio'))->format('d/m/Y') }} →
+                                    {{ \Carbon\Carbon::parse(request('fecha_fin'))->format('d/m/Y') }}
+                                </span>
+                            @endif
+                            @if(request('cuenta'))
+                                <span class="badge">Cuenta: {{ request('cuenta') }}</span>
+                            @endif
+                        </div>
+                    @endif
+                </div>
+
+                {{-- Botón de retorno al dashboard --}}
+                <a href="{{ route('dashboard.contador') }}" class="btn-back-dashboard" title="Volver al panel principal">
+                    <i class="fas fa-arrow-left"></i> Dashboard
+                </a>
+            </div>
+
+            {{-- Filtros --}}
+            <div class="filters-card">
+                <form method="GET" action="{{ route('contador.libro-mayor.index') }}" id="filterForm">
+                    <div class="filter-row">
+                        <div class="filter-group">
+                            <label for="fecha_inicio">Fecha Inicio</label>
+                            <input type="date" id="fecha_inicio" name="fecha_inicio" value="{{ $fechaInicio }}">
+                        </div>
+                        <div class="filter-group">
+                            <label for="fecha_fin">Fecha Fin</label>
+                            <input type="date" id="fecha_fin" name="fecha_fin" value="{{ $fechaFin }}">
+                        </div>
+                        <div class="filter-group">
+                            <label for="cuenta">Cuenta Contable</label>
+                            <input type="text" id="cuenta" name="cuenta" value="{{ $cuenta }}" placeholder="Código o nombre...">
+                        </div>
+                        <button type="submit" class="btn-apply">
+                            <i class="fas fa-filter"></i> Aplicar
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            {{-- Estadísticas --}}
+            <div class="content-wrapper">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon"><i class="fas fa-layer-group"></i></div>
+                        <div class="stat-value">{{ number_format($totales->total_cuentas ?? 0) }}</div>
+                        <p class="stat-label">Cuentas Activas</p>
+                    </div>
+                    <div class="stat-card success">
+                        <div class="stat-icon"><i class="fas fa-arrow-down"></i></div>
+                        <div class="stat-value">S/ {{ number_format($totales->total_debe ?? 0, 2) }}</div>
+                        <p class="stat-label">Total Débito</p>
+                    </div>
+                    <div class="stat-card danger">
+                        <div class="stat-icon"><i class="fas fa-arrow-up"></i></div>
+                        <div class="stat-value">S/ {{ number_format($totales->total_haber ?? 0, 2) }}</div>
+                        <p class="stat-label">Total Crédito</p>
+                    </div>
+                    <div class="stat-card info">
+                        <div class="stat-icon"><i class="fas fa-balance-scale"></i></div>
+                        <div class="stat-value">S/ {{ number_format(($totales->total_debe ?? 0) - ($totales->total_haber ?? 0), 2) }}</div>
+                        <p class="stat-label">Diferencia</p>
+                    </div>
+                </div>
+
+                {{-- Tabla de Cuentas --}}
+                <div class="table-container">
+                    <div class="table-header">
+                        <h3 class="table-title"><i class="fas fa-list"></i> Resumen por Cuentas</h3>
+                        <a href="{{ route('contador.libro-mayor.exportar') }}?fecha_inicio={{ urlencode($fechaInicio) }}&fecha_fin={{ urlencode($fechaFin) }}&cuenta={{ urlencode($cuenta) }}"
+                        class="btn-export" title="Exportar resultados actuales a Excel">
+                            <i class="fas fa-file-excel"></i> <span>Exportar Excel</span>
+                        </a>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Cuenta</th>
+                                    <th>Nombre</th>
+                                    <th class="text-center">Mov.</th>
+                                    <th class="text-end">Débito (S/)</th>
+                                    <th class="text-end">Crédito (S/)</th>
+                                    <th class="text-end">Saldo (S/)</th>
+                                    <th class="text-center">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @forelse($cuentas as $cuentaItem)
+                                    <tr>
+                                        <td>
+                                            <a href="{{ route('contador.libro-mayor.cuenta', $cuentaItem->cuenta) }}" class="account-link">
+                                                {{ $cuentaItem->cuenta }}
+                                            </a>
+                                        </td>
+                                        <td>{{ $cuentaItem->cuenta_nombre ?? '—' }}</td>
+                                        <td class="text-center">{{ number_format($cuentaItem->movimientos) }}</td>
+                                        <td class="text-end">{{ number_format($cuentaItem->total_debe ?? 0, 2) }}</td>
+                                        <td class="text-end">{{ number_format($cuentaItem->total_haber ?? 0, 2) }}</td>
+                                        <td class="text-end">
+                                            @php
+                                                $saldo = ($cuentaItem->total_debe ?? 0) - ($cuentaItem->total_haber ?? 0);
+                                                $clase = $saldo > 0 ? 'saldo-deudor' : ($saldo < 0 ? 'saldo-acreedor' : 'saldo-saldo');
+                                                $texto = $saldo != 0 ? ($saldo > 0 ? 'Deudor' : 'Acreedor') : 'Saldo';
+                                            @endphp
+                                            <span class="{{ $clase }}">{{ number_format(abs($saldo), 2) }}</span>
+                                            @if($saldo != 0)
+                                                <small class="d-block text-muted mt-1">{{ $texto }}</small>
+                                            @endif
+                                        </td>
+                                        <td class="text-center">
+                                            <a href="{{ route('contador.libro-mayor.cuenta', $cuentaItem->cuenta) }}"
+                                            class="btn-action" title="Ver movimientos detallados">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                @empty
+                                    <tr>
+                                        <td colspan="7" class="empty-state">
+                                            <i class="fas fa-inbox"></i>
+                                            <div>No se encontraron cuentas con movimientos en el período seleccionado.</div>
+                                            @if(request('cuenta'))
+                                                <a href="{{ route('contador.libro-mayor.index') }}?fecha_inicio={{ $fechaInicio }}&fecha_fin={{ $fechaFin }}"
+                                                class="btn btn-sm btn-outline-primary mt-2">
+                                                    <i class="fas fa-list"></i> Ver todas las cuentas
+                                                </a>
+                                            @endif
+                                        </td>
+                                    </tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                {{-- Paginación --}}
+                @if(method_exists($cuentas, 'links'))
+                    <div class="pagination-wrapper">
+                        {{ $cuentas->appends(request()->query())->links() }}
                     </div>
                 @endif
             </div>
-
-            {{-- Botón de retorno al dashboard --}}
-            <a href="{{ route('dashboard.contador') }}" class="btn-back-dashboard" title="Volver al panel principal">
-                <i class="fas fa-arrow-left"></i> Dashboard
-            </a>
-        </div>
-
-        {{-- Filtros --}}
-        <div class="filters-card">
-            <form method="GET" action="{{ route('contador.libro-mayor.index') }}" id="filterForm">
-                <div class="filter-row">
-                    <div class="filter-group">
-                        <label for="fecha_inicio">Fecha Inicio</label>
-                        <input type="date" id="fecha_inicio" name="fecha_inicio" value="{{ $fechaInicio }}">
-                    </div>
-                    <div class="filter-group">
-                        <label for="fecha_fin">Fecha Fin</label>
-                        <input type="date" id="fecha_fin" name="fecha_fin" value="{{ $fechaFin }}">
-                    </div>
-                    <div class="filter-group">
-                        <label for="cuenta">Cuenta Contable</label>
-                        <input type="text" id="cuenta" name="cuenta" value="{{ $cuenta }}" placeholder="Código o nombre...">
-                    </div>
-                    <button type="submit" class="btn-apply">
-                        <i class="fas fa-filter"></i> Aplicar
-                    </button>
-                </div>
-            </form>
-        </div>
-
-        {{-- Estadísticas --}}
-        <div class="content-wrapper">
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <div class="stat-icon"><i class="fas fa-layer-group"></i></div>
-                    <div class="stat-value">{{ number_format($totales->total_cuentas ?? 0) }}</div>
-                    <p class="stat-label">Cuentas Activas</p>
-                </div>
-                <div class="stat-card success">
-                    <div class="stat-icon"><i class="fas fa-arrow-down"></i></div>
-                    <div class="stat-value">S/ {{ number_format($totales->total_debe ?? 0, 2) }}</div>
-                    <p class="stat-label">Total Débito</p>
-                </div>
-                <div class="stat-card danger">
-                    <div class="stat-icon"><i class="fas fa-arrow-up"></i></div>
-                    <div class="stat-value">S/ {{ number_format($totales->total_haber ?? 0, 2) }}</div>
-                    <p class="stat-label">Total Crédito</p>
-                </div>
-                <div class="stat-card info">
-                    <div class="stat-icon"><i class="fas fa-balance-scale"></i></div>
-                    <div class="stat-value">S/ {{ number_format(($totales->total_debe ?? 0) - ($totales->total_haber ?? 0), 2) }}</div>
-                    <p class="stat-label">Diferencia</p>
-                </div>
-            </div>
-
-            {{-- Tabla de Cuentas --}}
-            <div class="table-container">
-                <div class="table-header">
-                    <h3 class="table-title"><i class="fas fa-list"></i> Resumen por Cuentas</h3>
-                    <a href="{{ route('contador.libro-mayor.exportar') }}?fecha_inicio={{ urlencode($fechaInicio) }}&fecha_fin={{ urlencode($fechaFin) }}&cuenta={{ urlencode($cuenta) }}"
-                       class="btn-export" title="Exportar resultados actuales a Excel">
-                        <i class="fas fa-file-excel"></i> <span>Exportar Excel</span>
-                    </a>
-                </div>
-
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle mb-0">
-                        <thead>
-                            <tr>
-                                <th>Cuenta</th>
-                                <th>Nombre</th>
-                                <th class="text-center">Mov.</th>
-                                <th class="text-end">Débito (S/)</th>
-                                <th class="text-end">Crédito (S/)</th>
-                                <th class="text-end">Saldo (S/)</th>
-                                <th class="text-center">Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @forelse($cuentas as $cuentaItem)
-                                <tr>
-                                    <td>
-                                        <a href="{{ route('contador.libro-mayor.cuenta', $cuentaItem->cuenta) }}" class="account-link">
-                                            {{ $cuentaItem->cuenta }}
-                                        </a>
-                                    </td>
-                                    <td>{{ $cuentaItem->cuenta_nombre ?? '—' }}</td>
-                                    <td class="text-center">{{ number_format($cuentaItem->movimientos) }}</td>
-                                    <td class="text-end">{{ number_format($cuentaItem->total_debe ?? 0, 2) }}</td>
-                                    <td class="text-end">{{ number_format($cuentaItem->total_haber ?? 0, 2) }}</td>
-                                    <td class="text-end">
-                                        @php
-                                            $saldo = ($cuentaItem->total_debe ?? 0) - ($cuentaItem->total_haber ?? 0);
-                                            $clase = $saldo > 0 ? 'saldo-deudor' : ($saldo < 0 ? 'saldo-acreedor' : 'saldo-saldo');
-                                            $texto = $saldo != 0 ? ($saldo > 0 ? 'Deudor' : 'Acreedor') : 'Saldo';
-                                        @endphp
-                                        <span class="{{ $clase }}">{{ number_format(abs($saldo), 2) }}</span>
-                                        @if($saldo != 0)
-                                            <small class="d-block text-muted mt-1">{{ $texto }}</small>
-                                        @endif
-                                    </td>
-                                    <td class="text-center">
-                                        <a href="{{ route('contador.libro-mayor.cuenta', $cuentaItem->cuenta) }}"
-                                           class="btn-action" title="Ver movimientos detallados">
-                                            <i class="fas fa-eye"></i>
-                                        </a>
-                                    </td>
-                                </tr>
-                            @empty
-                                <tr>
-                                    <td colspan="7" class="empty-state">
-                                        <i class="fas fa-inbox"></i>
-                                        <div>No se encontraron cuentas con movimientos en el período seleccionado.</div>
-                                        @if(request('cuenta'))
-                                            <a href="{{ route('contador.libro-mayor.index') }}?fecha_inicio={{ $fechaInicio }}&fecha_fin={{ $fechaFin }}"
-                                               class="btn btn-sm btn-outline-primary mt-2">
-                                                <i class="fas fa-list"></i> Ver todas las cuentas
-                                            </a>
-                                        @endif
-                                    </td>
-                                </tr>
-                            @endforelse
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            {{-- Paginación --}}
-            @if(method_exists($cuentas, 'links'))
-                <div class="pagination-wrapper">
-                    {{ $cuentas->appends(request()->query())->links() }}
-                </div>
-            @endif
         </div>
     </div>
 </div>

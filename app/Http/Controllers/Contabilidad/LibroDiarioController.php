@@ -257,16 +257,16 @@ class LibroDiarioController extends Controller
     {
         try {
             $asiento = DB::table('libro_diario')->where('id', $id)->first();
-                
             if (!$asiento) {
                 return redirect()->route('contador.libro-diario.index')
                     ->with('error', 'Asiento no encontrado');
             }
-            
+
             $detalles = DB::table('libro_diario_detalles')->where('asiento_id', $id)->get();
             $cuentasContables = $this->obtenerCuentasContablesParaFormulario();
-            
-            return view('contabilidad.libros.diario.create', compact(
+
+            // 👇 Cambia 'create' por 'edit'
+            return view('contabilidad.libros.diario.edit', compact(
                 'asiento', 
                 'detalles', 
                 'cuentasContables'
@@ -284,9 +284,40 @@ class LibroDiarioController extends Controller
      */
     public function update(Request $request, $id)
     {
-        // Implementar lógica de actualización
-        return redirect()->route('contador.libro-diario.index')
-            ->with('success', 'Asiento actualizado correctamente');
+        try {
+            // Validación
+            $request->validate([
+                'fecha' => 'required|date',
+                'glosa' => 'required|string|max:500',
+                'observaciones' => 'nullable|string|max:1000',
+            ]);
+
+            // Verificar que el asiento exista
+            $asientoExistente = DB::table('libro_diario')->where('id', $id)->first();
+            if (!$asientoExistente) {
+                return redirect()->route('contador.libro-diario.index')
+                    ->with('error', 'Asiento no encontrado');
+            }
+
+            // Actualizar solo la cabecera
+            DB::table('libro_diario')
+                ->where('id', $id)
+                ->update([
+                    'fecha' => $request->fecha,
+                    'glosa' => $request->glosa,
+                    'observaciones' => $request->observaciones,
+                    'updated_at' => now(),
+                ]);
+
+            return redirect()->route('contador.libro-diario.show', $id)
+                ->with('success', 'Asiento actualizado correctamente.');
+
+        } catch (\Exception $e) {
+            Log::error('Error al actualizar asiento: ' . $e->getMessage());
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'Error al guardar los cambios. Intente nuevamente.');
+        }
     }
 
     /**
@@ -430,9 +461,9 @@ class LibroDiarioController extends Controller
             ->get();
     }
 
-    private function obtenerCuentasContablesParaFormulario()
+   private function obtenerCuentasContablesParaFormulario()
     {
-        return DB::table('plan_cuentas') // tabla correcta
+        return DB::table('plan_cuentas')
             ->where('activo', 1)
             ->whereIn('tipo', ['ACTIVO', 'PASIVO', 'PATRIMONIO', 'INGRESO', 'GASTO'])
             ->orderBy('codigo')
