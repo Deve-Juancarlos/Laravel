@@ -1,0 +1,218 @@
+/*
+ * Estilos para la vista de Detalle de Cuenta del Libro Mayor
+ * Extraído del <style> tag
+ */
+
+.filters-card {
+    background-color: #fff;
+    border-radius: 12px;
+}
+.filters-card .form-label {
+    font-weight: 600;
+    font-size: 0.875rem;
+    color: #495057;
+}
+ 
+/* Breadcrumb */
+.breadcrumb-section { 
+    background: #f8f9fa; 
+    padding: 1rem 2rem; 
+    border-bottom: 1px solid #dee2e6; 
+}
+.breadcrumb { 
+    margin: 0; 
+    font-size: 0.9rem; 
+}
+.breadcrumb a { 
+    color: #6c757d; 
+    text-decoration: none; 
+}
+.breadcrumb a:hover { 
+    color: #495057; 
+}
+.breadcrumb .active { 
+    color: #212529; 
+    font-weight: 500; 
+}
+
+/* Header */
+.btn-back { 
+    background: rgba(255,255,255,0.2); 
+    border: none; 
+    color: white; 
+    padding: 0.5rem 1rem; 
+    border-radius: 6px; 
+    text-decoration: none; 
+    font-size: 0.9rem; 
+    transition: all 0.3s ease; 
+    font-weight: 500;
+}
+.btn-back:hover { 
+    background: rgba(255,255,255,0.4); 
+    transform: translateY(-1px); 
+    color: white;
+}
+
+/* Resumen de la cuenta */
+.account-info { 
+    background: white; 
+    padding: 1.5rem; 
+    margin-bottom: 1rem; 
+    border-radius: 12px; 
+    box-shadow: 0 2px 6px rgba(0,0,0,0.05); 
+    display: grid; 
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); 
+    gap: 1.5rem; 
+}
+.account-field { 
+    display: flex; 
+    flex-direction: column; 
+}
+.account-label { 
+    font-size: 0.8rem; 
+    text-transform: uppercase; 
+    color: #6c757d; 
+    font-weight: 600; 
+    margin-bottom: 0.25rem; 
+    letter-spacing: 0.5px; 
+}
+.account-value { 
+    font-size: 1.1rem; 
+    font-weight: 600; 
+    color: #212529; 
+}
+.account-value.saldo { 
+    font-size: 1.4rem; 
+}
+.saldo-deudor { 
+    color: #dc3545; 
+}
+.saldo-acreedor { 
+    color: #198754;
+}
+
+/* Resumen del período */
+.summary-cards { 
+    display: grid; 
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); 
+    gap: 1rem; 
+    margin-bottom: 1rem; 
+}
+.summary-card { 
+    background: white; 
+    padding: 1.25rem; 
+    border-radius: 12px; 
+    border-left: 4px solid; 
+    display: flex; 
+    flex-direction: column; 
+    justify-content: center; 
+}
+.summary-card.debe { 
+    border-left-color: #dc3545; 
+}
+.summary-card.haber { 
+    border-left-color: #198754; 
+}
+.summary-card.total { 
+    border-left-color: #0d6efd; 
+}
+.summary-label { 
+    font-size: 0.8rem; 
+    color: #6c757d; 
+    text-transform: uppercase; 
+    margin-bottom: 0.25rem; 
+    font-weight: 600;
+}
+.summary-value { 
+    font-size: 1.5rem; 
+    font-weight: 700; 
+    color: #212529; 
+}
+
+/* Tabla de movimientos */
+.table-container { 
+    background: white; 
+    border-radius: 12px; 
+    overflow: hidden; 
+}
+.table-header { 
+    background: #fff; 
+    padding: 1rem 1.5rem; 
+    border-bottom: 1px solid #e9ecef; 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+}
+.table-title { 
+    font-size: 1.1rem; 
+    font-weight: 600; 
+    margin: 0; 
+}
+.table { 
+    width: 100%; 
+    border-collapse: collapse; 
+    font-size: 0.9rem; 
+}
+.table th, .table td { 
+    padding: 1rem 1.25rem; 
+    vertical-align: middle;
+}
+.table th { 
+    font-weight: 600; 
+    text-transform: uppercase; 
+    font-size: 0.75rem; 
+    color: #6c757d;
+}
+.table tbody tr:nth-child(even) { 
+    background-color: #f8f9fa; 
+}
+.debe-column { 
+    color: #dc3545; 
+    font-weight: 600; 
+}
+.haber-column { 
+    color: #198754; 
+    font-weight: 600; 
+}
+.saldo-column { 
+    font-weight: 600; 
+}
+.saldo-acumulado { 
+    background-color: #e9ecef !important; 
+    font-weight: 600; 
+}
+
+/* Links */
+.documento-link { 
+    color: #0d6efd; 
+    text-decoration: none; 
+    font-weight: 500; 
+    background-color: rgba(13, 110, 253, 0.1);
+    padding: 0.25rem 0.5rem;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+}
+.documento-link:hover { 
+    color: #fff; 
+    background-color: #0d6efd; 
+    text-decoration: none; 
+}
+
+/* Botones soft */
+.btn-success-soft {
+    background-color: rgba(25, 135, 84, 0.1);
+    color: #198754;
+    border: 1px solid rgba(25, 135, 84, 0.2);
+}
+.btn-success-soft:hover {
+    background-color: #198754;
+    color: #fff;
+}
+
+
+/* Responsive */
+@media (max-width: 768px) {
+    .account-info { grid-template-columns: 1fr; }
+    .summary-cards { grid-template-columns: 1fr; }
+    .page-header h1 { font-size: 1.5rem; }
+}

@@ -6,7 +6,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\LoginController;
 use App\Http\Controllers\RegisterController;
-use App\Http\Controllers\ContadorDashboardController;
+use App\Http\Controllers\contabilidad\ContadorDashboardController;
 use App\Http\Controllers\Admin\PlanillaController;
 use App\Http\Controllers\Admin\BancoController;
 use App\Http\Controllers\Admin\UsuarioController;
@@ -115,16 +115,10 @@ Route::middleware(['auth', 'check.admin'])->group(function () {
 Route::middleware(['auth', 'check.contador'])->group(function () {
     Route::get('/dashboard/contador', [ContadorDashboardController::class, 'contadorDashboard'])->name('dashboard.contador');
     Route::prefix('contador')->name('contador.')->group(function () {
-        Route::get('ventas', [App\Http\Controllers\Ventas\DashboardVentasController::class, 'index'])->name('ventas');
-        Route::get('cuentas-cobrar', [App\Http\Controllers\Ventas\CuentasCobrarController::class, 'index'])->name('cuentas-cobrar');
-        Route::get('inventario', [App\Http\Controllers\Farmacia\InventarioController::class, 'index'])->name('inventario');
-        Route::get('clientes', [App\Http\Controllers\Clientes\ClientesController::class, 'index'])->name('clientes');
-        Route::get('estado-cuenta', [App\Http\Controllers\Clientes\EstadoCuentaController::class, 'index'])->name('estado-cuenta');
-        Route::get('planillas', [App\Http\Controllers\Ventas\PlanillasController::class, 'index'])->name('planillas');
-        Route::get('analytics', [App\Http\Controllers\Reportes\AnalyticsController::class, 'index'])->name('analytics');
-        Route::get('kpis', [App\Http\Controllers\Reportes\KpiController::class, 'index'])->name('kpis');
-        Route::get('caja', [App\Http\Controllers\Contabilidad\CajaController::class, 'index'])->name('caja');
-        
+
+         Route::get('/api/dashboard/stats', [ContadorDashboardController::class, 'getStats'])->name('api.dashboard.stats');
+         Route::post('/api/dashboard/clear-cache', [ContadorDashboardController::class, 'clearCache'])->name('api.dashboard.clearCache');
+         
         // Reportes Financieros y Libros Electrónicos
         Route::get('reportes/financiero', [ReportesSunatController::class, 'index'])->name('reportes.financiero');
         Route::get('reportes/ventas', [ReportesSunatController::class, 'registroVentas'])->name('reportes.ventas');
@@ -250,7 +244,7 @@ Route::middleware(['auth', 'check.contador'])->group(function () {
             Route::get('/flujo-diario', [BancosController::class, 'flujoDiario'])->name('flujo-diario');
 
             // 5. Reporte mensual
-            Route::get('/mensual', [BancosController::class, 'mensual'])->name('mensual');
+            Route::get('/mensual', [BancosController::class, 'resumenMensual'])->name('mensual');
 
             // 6. Conciliación bancaria
             Route::get('/conciliacion', [BancosController::class, 'conciliacion'])->name('conciliacion');
@@ -259,7 +253,9 @@ Route::middleware(['auth', 'check.contador'])->group(function () {
             Route::get('/transferencias', [BancosController::class, 'transferencias'])->name('transferencias');
 
             // 8. 👉 REPORTES GENERALES (la que faltaba) 👈
-            Route::get('/reporte', [BancosController::class, 'reporte'])->name('reporte');
+            Route::get('/reporte', [BancosController::class, 'generarReporte'])->name('reporte');
+
+            
         });
         
         Route::prefix('estado-resultados')->name('estado-resultados.')->group(function () {
@@ -269,7 +265,7 @@ Route::middleware(['auth', 'check.contador'])->group(function () {
                 Route::get('/comparativo', [EstadoResultadosController::class, 'comparativo'])->name('comparativo');
                 Route::get('/flujo-caja', [EstadoResultadosController::class, 'cashFlow'])->name('flujo-caja');
                 Route::get('/balance-general', [EstadoResultadosController::class, 'balanceGeneral'])->name('balance-general');
-                Route::get('/exportar', [EstadoResultadosController::class, 'exportar'])->name('exportar');
+                Route::get('/exportar', [EstadoResultadosController::class, 'exportar'])->name('exportar');               
                
             });
         });

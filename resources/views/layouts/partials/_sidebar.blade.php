@@ -1,0 +1,85 @@
+<!-- Este es el menú lateral, organizado por nuestros módulos -->
+
+<!--
+    Usamos request()->is('ruta*') para marcar como 'active'
+    la sección actual.
+-->
+
+<div class="nav-section">Principal</div>
+<a class="nav-link {{ request()->routeIs('dashboard.contador') ? 'active' : '' }}" href="{{ route('dashboard.contador') }}">
+    <i class="fas fa-chart-pie"></i>
+    <span>Dashboard</span>
+</a>
+
+<div class="nav-section">Contabilidad</div>
+<a class="nav-link {{ request()->is('contabilidad/asientos*') ? 'active' : '' }}" href="{{ route('contador.libro-diario.index') }}">
+    <i class="fas fa-book"></i>
+    <span>Libro Diario</span>
+</a>
+
+<a class="nav-link {{ request()->is('contabilidad/asientos*') ? 'active' : '' }}" href="{{ route('contador.libro-mayor.index') }}">
+    <i class="fas fa-book"></i>
+    <span>Libro Mayor</span>
+</a>
+
+<a class="nav-link {{ request()->is('contabilidad/plan-cuentas*') ? 'active' : '' }}" href="{{ route('contador.libro-mayor.index') }}">
+    <i class="fas fa-sitemap"></i>
+    <span>Plan de Cuentas</span>
+</a>
+
+<a class="nav-link {{ request()->is('contabilidad/reportes*') ? 'active' : '' }}" href="#">
+    <i class="fas fa-file-invoice-dollar"></i>
+    <span>Reportes</span>
+</a>
+
+<div class="nav-section">Tesorería</div>
+<a class="nav-link {{ request()->is('tesoreria/bancos*') ? 'active' : '' }}" href="#">
+    <i class="fas fa-university"></i>
+    <span>Bancos</span>
+</a>
+<a class="nav-link {{ request()->is('tesoreria/caja*') ? 'active' : '' }}" href="#">
+    <i class="fas fa-cash-register"></i>
+    <span>Caja Chica</span>
+</a>
+<a class="nav-link {{ request()->is('tesoreria/cobranzas*') ? 'active' : '' }}" href="#">
+    <i class="fas fa-hand-holding-usd"></i>
+    <span>Cuentas por Cobrar</span>
+</a>
+
+<div class="nav-section">Inventario</div>
+<a class="nav-link {{ request()->is('inventario/productos*') ? 'active' : '' }}" href="#">
+    <i class="fas fa-boxes"></i>
+    <span>Productos</span>
+</a>
+<a class="nav-link {{ request()->is('inventario/stock*') ? 'active' : '' }}" href="#">
+    <i class="fas fa-warehouse"></i>
+    <span>Stock y Lotes</span>
+</a>
+<a class="nav-link {{ request()->is('inventario/laboratorios*') ? 'active' : '' }}" href="#">
+    <i class="fas fa-flask"></i>
+    <span>Laboratorios</span>
+</a>
+
+<div class="nav-section">Ventas</div>
+<a class="nav-link {{ request()->is('ventas/nueva*') ? 'active' : '' }}" href="#">
+    <i class="fas fa-cart-plus"></i>
+    <span>Nueva Venta</span>
+</a>
+<a class="nav-link {{ request()->is('ventas/listado*') ? 'active' : '' }}" href="#">
+    <i class="fas fa-receipt"></i>
+    <span>Listado de Ventas</span>
+</a>
+<a class="nav-link {{ request()->is('ventas/clientes*') ? 'active' : '' }}" href="#">
+    <i class="fas fa-users"></i>
+    <span>Clientes</span>
+</a>
+
+<div class="nav-section">Administración</div>
+<a class="nav-link {{ request()->is('admin/usuarios*') ? 'active' : '' }}" href="#">
+    <i class="fas fa-user-shield"></i>
+    <span>Usuarios y Roles</span>
+</a>
+<a class="nav-link {{ request()->is('admin/auditoria*') ? 'active' : '' }}" href="#">
+    <i class="fas fa-history"></i>
+    <span>Auditoría</span>
+</a>

@@ -10,19 +10,21 @@
             <div class="card shadow-sm">
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h3 class="mb-1">
-                                <i class="fas fa-university text-primary"></i>
-                                Libro de Bancos
-                            </h3>
-                            <p class="text-muted mb-0">Gestión y control de movimientos bancarios</p>
-                        </div>
-                        <div>
-                            <a href="{{ route('contador.bancos.flujo-diario') }}" class="btn btn-info btn-sm me-2">
-                                <i class="fas fa-chart-line"></i> Flujo Diario
+                         <div class="d-flex flex-wrap gap-2">
+                            <a href="{{ route('contador.bancos.reporte') }}" class="btn btn-outline-primary btn-sm">
+                                <i class="fas fa-list"></i> Reporte General
                             </a>
-                            <a href="{{ route('contador.bancos.reporte') }}" class="btn btn-success btn-sm">
-                                <i class="fas fa-file-excel"></i> Generar Reporte
+                            <a href="{{ route('contador.bancos.diario') }}" class="btn btn-outline-secondary btn-sm">
+                                <i class="fas fa-calendar-day"></i> Diario
+                            </a>
+                            <a href="{{ route('contador.bancos.conciliacion') }}" class="btn btn-outline-warning btn-sm">
+                                <i class="fas fa-check-double"></i> Conciliación
+                            </a>
+                            <a href="{{ route('contador.bancos.transferencias') }}" class="btn btn-outline-info btn-sm">
+                                <i class="fas fa-exchange-alt"></i> Transferencias
+                            </a>
+                            <a href="#" class="btn btn-success btn-sm">
+                                <i class="fas fa-file-excel"></i> Exportar
                             </a>
                         </div>
                     </div>

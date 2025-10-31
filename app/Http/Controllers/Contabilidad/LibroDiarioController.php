@@ -4,96 +4,60 @@ namespace App\Http\Controllers\Contabilidad;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
+use App\Services\Contabilidad\LibroDiarioService; // 1. Importamos el Servicio
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Schema;
-use Carbon\Carbon;
-use Symfony\Component\HttpFoundation\StreamedResponse;
+use Illuminate\Validation\ValidationException;
 
 class LibroDiarioController extends Controller
 {
+    protected $libroDiarioService;
+
+    // 2. Inyectamos el servicio
+    public function __construct(LibroDiarioService $libroDiarioService)
+    {
+        $this->libroDiarioService = $libroDiarioService;
+    }
+
     /**
-     * Display a listing of the resource.
-     * Dashboard del Libro Diario - RUTA: contador.libro-diario.index
+     * Muestra el dashboard del libro diario.
      */
     public function index(Request $request)
     {
         try {
-            // Obtener parámetros de filtros
-            $fechaInicio = $request->get('fecha_inicio') ?? Carbon::now()->startOfMonth()->format('Y-m-d');
-            $fechaFin = $request->get('fecha_fin') ?? Carbon::now()->endOfMonth()->format('Y-m-d');
-            $numeroAsiento = $request->get('numero_asiento');
-            $cuentaContable = $request->get('cuenta_contable');
+            // 3. El controlador solo pide los datos
+            $data = $this->libroDiarioService->getDashboardData($request);
             
-            // Obtener asientos del libro diario (tabla correcta: libro_diario)
-            $asientos = $this->obtenerAsientos($fechaInicio, $fechaFin, $numeroAsiento, $cuentaContable);
-            
-            // Calcular totales
-            $totales = $this->calcularTotales($fechaInicio, $fechaFin);
-            
-            // Obtener cuentas contables principales (tabla correcta: plan_cuentas)
-            $cuentasContables = $this->obtenerCuentasContables();
-            
-            // Obtener datos para gráficos
-            $graficoAsientosPorMes = $this->obtenerAsientosPorMes();
-            $graficoMovimientosPorCuenta = $this->obtenerMovimientosPorCuenta();
-            
-            // Obtener alertas contables
-            $alertas = $this->generarAlertasContables();
-            
-            return view('contabilidad.libros.diario.index', compact(
-                'asientos', 
-                'totales', 
-                'cuentasContables',
-                'fechaInicio',
-                'fechaFin',
-                'graficoAsientosPorMes',
-                'graficoMovimientosPorCuenta',
-                'alertas'
-            ));
+            return view('contabilidad.libros.diario.index', $data);
 
         } catch (\Exception $e) {
-            Log::error('Error en libro diario: ' . $e->getMessage());
-            \Log::error('Stack trace: ' . $e->getTraceAsString());
-            
+            Log::error('Error en LibroDiarioController@index: ' . $e->getMessage());
             return redirect()->back()->with('error', 'Error al cargar el libro diario: ' . $e->getMessage());
         }
     }
 
     /**
-     * Crear nuevo asiento contable
+     * Muestra el formulario para crear un nuevo asiento.
      */
-    // En LibroDiarioController.php
     public function create()
     {
         try {
-            // Obtener cuentas contables como colección simple (NO agrupada)
-            $cuentasContables = DB::table('plan_cuentas')
-                ->where('activo', 1)
-                ->orderBy('codigo')
-                ->get(['codigo', 'nombre']);
+            $data = $this->libroDiarioService->getCreateFormData();
+            return view('contabilidad.libros.diario.create', $data);
 
-            $ultimosAsientos = $this->obtenerUltimosAsientos(5);
-            
-            return view('contabilidad.libros.diario.create', compact(
-                'cuentasContables',
-                'ultimosAsientos'
-            ));
         } catch (\Exception $e) {
-            Log::error('Error al cargar formulario de asiento: ' . $e->getMessage());
+            Log::error('Error en LibroDiarioController@create: ' . $e->getMessage());
             return redirect()->route('contador.libro-diario.index')
-                ->with('error', 'Error al cargar formulario de asiento');
+                ->with('error', 'Error al cargar el formulario de asiento');
         }
     }
-    
 
     /**
-     * Store a newly created resource in storage.
+     * Guarda el nuevo asiento en la base de datos.
      */
     public function store(Request $request)
     {
+        // 4. La validación se queda en el controlador (o en un FormRequest)
         try {
-            // Validar datos SIN el campo 'numero'
             $validatedData = $request->validate([
                 'fecha' => 'required|date',
                 'glosa' => 'required|string|max:255',
@@ -102,65 +66,23 @@ class LibroDiarioController extends Controller
                 'detalles.*.debe' => 'nullable|numeric|min:0',
                 'detalles.*.haber' => 'nullable|numeric|min:0',
                 'detalles.*.concepto' => 'required|string|max:255',
+                'detalles.*.documento_referencia' => 'nullable|string|max:100', // Agregado
+                'observaciones' => 'nullable|string', // Agregado
             ]);
 
-            $totalDebe = collect($validatedData['detalles'])->sum('debe');
-            $totalHaber = collect($validatedData['detalles'])->sum('haber');
-
-            if (abs($totalDebe - $totalHaber) > 0.01) {
-                return redirect()->back()
-                    ->withInput()
-                    ->with('error', 'El asiento no cuadra. Debe: S/ ' . number_format($totalDebe, 2) .
-                        ', Haber: S/ ' . number_format($totalHaber, 2));
-            }
-
-            DB::beginTransaction();
-
-            // 👇 Generar número único AQUÍ, no en el formulario
-            $numeroAsiento = $this->generarNumeroUnicoAsiento();
-
-            $asientoId = DB::table('libro_diario')->insertGetId([
-                'numero' => $numeroAsiento,
-                'fecha' => $validatedData['fecha'],
-                'glosa' => $validatedData['glosa'],
-                'total_debe' => $totalDebe,
-                'total_haber' => $totalHaber,
-                'balanceado' => true,
-                'estado' => 'ACTIVO',
-                'usuario_id' => auth()->id(),
-                'observaciones' => $request->observaciones,
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]);
-
-            foreach ($validatedData['detalles'] as $detalle) {
-                DB::table('libro_diario_detalles')->insert([
-                    'asiento_id' => $asientoId,
-                    'cuenta_contable' => $detalle['cuenta_contable'],
-                    'debe' => $detalle['debe'] ?? 0,
-                    'haber' => $detalle['haber'] ?? 0,
-                    'concepto' => $detalle['concepto'],
-                    'documento_referencia' => $detalle['documento_referencia'] ?? null,
-                    'created_at' => now(),
-                    'updated_at' => now(),
-                ]);
-            }
-
-            DB::commit();
-
-            Log::info('Asiento contable creado', [
-                'numero' => $numeroAsiento,
-                'total' => $totalDebe,
-                'usuario' => auth()->user()->usuario ?? 'Sistema'
-            ]);
+            // 5. Enviamos los datos validados al servicio
+            $asientoId = $this->libroDiarioService->storeAsiento(
+                $validatedData,
+                $request->observaciones,
+                auth()->id()
+            );
 
             return redirect()->route('contador.libro-diario.show', $asientoId)
                 ->with('success', 'Asiento contable registrado correctamente.');
 
-        } catch (\Illuminate\Validation\ValidationException $e) {
+        } catch (ValidationException $e) {
             return redirect()->back()->withErrors($e->errors())->withInput();
         } catch (\Exception $e) {
-            DB::rollBack();
             Log::error('Error al crear asiento contable: ' . $e->getMessage());
             return redirect()->back()
                 ->withInput()
@@ -168,88 +90,19 @@ class LibroDiarioController extends Controller
         }
     }
 
-    private function generarNumeroUnicoAsiento()
-    {
-        $anio = now()->format('Y');
-        $maxIntentos = 100;
-
-        for ($i = 1; $i <= $maxIntentos; $i++) {
-            $numeroFormateado = $anio . '-' . str_pad($i, 4, '0', STR_PAD_LEFT);
-
-            if (!DB::table('libro_diario')->where('numero', $numeroFormateado)->exists()) {
-                return $numeroFormateado;
-            }
-        }
-
-        throw new \Exception("No se pudo generar un número de asiento único después de $maxIntentos intentos.");
-    }
     /**
-     * Display the specified resource.
+     * Muestra un asiento específico.
      */
     public function show($id)
     {
         try {
-            // Obtener asiento con información del usuario (tabla correcta: libro_diario)
-            $query = DB::table('libro_diario as a');
-
-            // Si existe la tabla accesoweb, unimos y seleccionamos columnas válidas
-            if (Schema::hasTable('accesoweb')) {
-                $query->leftJoin('accesoweb as u', 'a.usuario_id', '=', 'u.idusuario')
-                      ->select(
-                          'a.*',
-                          DB::raw('u.usuario as usuario_nombre'),
-                          DB::raw('u.tipousuario as usuario_tipo')
-                      );
-            } else {
-                // garantizar que la vista reciba las columnas esperadas aunque sean null
-                $query->select(
-                    'a.*',
-                    DB::raw('NULL as usuario_nombre'),
-                    DB::raw('NULL as usuario_tipo')
-                );
-            }
-
-            $asiento = $query->where('a.id', $id)->first();
-                
-            if (!$asiento) {
-                return redirect()->route('contador.libro-diario.index')
+            $data = $this->libroDiarioService->getAsientoDetails($id);
+            if (!$data) {
+                 return redirect()->route('contador.libro-diario.index')
                     ->with('error', 'Asiento no encontrado');
             }
-            
-            // Obtener detalles del asiento
-            $detalles = DB::table('libro_diario_detalles as d')
-                ->leftJoin('plan_cuentas as c', 'd.cuenta_contable', '=', 'c.codigo')
-                ->select(
-                    'd.*',
-                    'c.nombre as cuenta_nombre',
-                    'c.tipo as cuenta_tipo'
-                )
-                ->where('d.asiento_id', $id)
-                ->orderBy('d.id')
-                ->get();
-            
-            // Obtener asientos relacionados (anterior y siguiente)
-            $asientoAnterior = DB::table('libro_diario')
-                ->where('fecha', '<=', $asiento->fecha)
-                ->where('id', '!=', $id)
-                ->orderBy('fecha', 'desc')
-                ->orderBy('numero', 'desc')
-                ->first();
-                
-            $asientoSiguiente = DB::table('libro_diario')
-                ->where('fecha', '>=', $asiento->fecha)
-                ->where('id', '!=', $id)
-                ->orderBy('fecha', 'asc')
-                ->orderBy('numero', 'asc')
-                ->first();
-            
-              return view('contabilidad.libros.diario.show', compact(
-                'asiento', 
-                'detalles', 
-                'asientoAnterior', 
-                'asientoSiguiente'
-            ));
-            
+            return view('contabilidad.libros.diario.show', $data);
+
         } catch (\Exception $e) {
             Log::error('Error al mostrar asiento: ' . $e->getMessage());
             return redirect()->route('contador.libro-diario.index')
@@ -258,26 +111,17 @@ class LibroDiarioController extends Controller
     }
 
     /**
-     * Edit the specified resource.
+     * Muestra el formulario para editar un asiento.
      */
     public function edit($id)
     {
         try {
-            $asiento = DB::table('libro_diario')->where('id', $id)->first();
-            if (!$asiento) {
-                return redirect()->route('contador.libro-diario.index')
+            $data = $this->libroDiarioService->getEditFormData($id);
+             if (!$data['asiento']) {
+                 return redirect()->route('contador.libro-diario.index')
                     ->with('error', 'Asiento no encontrado');
             }
-
-            $detalles = DB::table('libro_diario_detalles')->where('asiento_id', $id)->get();
-            $cuentasContables = $this->obtenerCuentasContablesParaFormulario();
-
-            // 👇 Cambia 'create' por 'edit'
-            return view('contabilidad.libros.diario.edit', compact(
-                'asiento', 
-                'detalles', 
-                'cuentasContables'
-            ));
+            return view('contabilidad.libros.diario.edit', $data);
             
         } catch (\Exception $e) {
             Log::error('Error al editar asiento: ' . $e->getMessage());
@@ -287,447 +131,62 @@ class LibroDiarioController extends Controller
     }
 
     /**
-     * Update the specified resource in storage.
+     * Actualiza la cabecera de un asiento.
      */
     public function update(Request $request, $id)
     {
         try {
-            // Validación
-            $request->validate([
+            $validatedData = $request->validate([
                 'fecha' => 'required|date',
                 'glosa' => 'required|string|max:500',
                 'observaciones' => 'nullable|string|max:1000',
             ]);
 
-            // Verificar que el asiento exista
-            $asientoExistente = DB::table('libro_diario')->where('id', $id)->first();
-            if (!$asientoExistente) {
-                return redirect()->route('contador.libro-diario.index')
-                    ->with('error', 'Asiento no encontrado');
-            }
-
-            // Actualizar solo la cabecera
-            DB::table('libro_diario')
-                ->where('id', $id)
-                ->update([
-                    'fecha' => $request->fecha,
-                    'glosa' => $request->glosa,
-                    'observaciones' => $request->observaciones,
-                    'updated_at' => now(),
-                ]);
+            $this->libroDiarioService->updateAsiento($id, $validatedData);
 
             return redirect()->route('contador.libro-diario.show', $id)
                 ->with('success', 'Asiento actualizado correctamente.');
 
+        } catch (ValidationException $e) {
+             return redirect()->back()->withErrors($e->errors())->withInput();
         } catch (\Exception $e) {
             Log::error('Error al actualizar asiento: ' . $e->getMessage());
             return redirect()->back()
                 ->withInput()
-                ->with('error', 'Error al guardar los cambios. Intente nuevamente.');
+                ->with('error', 'Error al guardar los cambios: ' . $e->getMessage());
         }
     }
 
     /**
-     * Remove the specified resource from storage.
+     * Elimina un asiento y sus detalles.
      */
     public function destroy($id)
     {
         try {
-            DB::beginTransaction();
-            
-            $asiento = DB::table('libro_diario')->where('id', $id)->first();
-            if (!$asiento) {
-                return redirect()->route('contador.libro-diario.index')
-                    ->with('error', 'Asiento no encontrado');
-            }
-            
-            // Eliminar detalles primero
-            DB::table('libro_diario_detalles')->where('asiento_id', $id)->delete();
-            
-            // Eliminar asiento principal
-            DB::table('libro_diario')->where('id', $id)->delete();
-            
-            DB::commit();
-            
-            Log::info('Asiento contable eliminado', [
-                'numero' => $asiento->numero,
-                'total' => $asiento->total_debe,
-                'usuario' => auth()->user()->usuario ?? 'Sistema'
-            ]);
+            $this->libroDiarioService->deleteAsiento($id, auth()->user()->usuario ?? 'Sistema');
             
             return redirect()->route('contador.libro-diario.index')
                 ->with('success', 'Asiento eliminado correctamente');
                 
         } catch (\Exception $e) {
-            DB::rollBack();
             Log::error('Error al eliminar asiento: ' . $e->getMessage());
-            
             return redirect()->route('contador.libro-diario.index')
-                ->with('error', 'Error al eliminar el asiento');
+                ->with('error', 'Error al eliminar el asiento: ' . $e->getMessage());
         }
     }
 
-  
+    /**
+     * Exporta el libro diario a PDF o Excel.
+     */
     public function exportar(Request $request)
     {
         try {
-            $formato = $request->get('formato', 'excel');
-            $fechaInicio = $request->get('fecha_inicio');
-            $fechaFin = $request->get('fecha_fin');
-
-            // Obtener asientos (sin paginar para export)
-            $asientosPaginator = $this->obtenerAsientos($fechaInicio, $fechaFin);
-            // Si viene paginado, extraer colección; si es Collection simple, dejarla
-            $asientos = ($asientosPaginator && method_exists($asientosPaginator, 'items'))
-                ? collect($asientosPaginator->items())
-                : collect($asientosPaginator);
-
-            $totales = $this->calcularTotales($fechaInicio, $fechaFin);
-            
-            if ($formato === 'pdf') {
-                return $this->generarPDF($asientos, $totales, $fechaInicio, $fechaFin);
-            } else {
-                return $this->generarExcel($asientos, $totales, $fechaInicio, $fechaFin);
-            }
+            // 6. El servicio se encarga de generar y devolver la descarga
+            return $this->libroDiarioService->export($request);
             
         } catch (\Exception $e) {
             Log::error('Error al exportar libro diario: ' . $e->getMessage());
             return redirect()->back()->with('error', 'Error al generar el reporte');
-        }
-    }
-
-    // ==================== MÉTODOS PRIVADOS ====================
-    
-    private function obtenerAsientos($fechaInicio = null, $fechaFin = null, $numeroAsiento = null, $cuentaContable = null)
-    {
-        // Construyo la query base sobre libro_diario
-        $query = DB::table('libro_diario as a')->select('a.*');
-
-        // Si existe accesoweb, unir y traer usuario; si no, añadir columna nula para compatibilidad con la vista
-        if (Schema::hasTable('accesoweb')) {
-            $query->leftJoin('accesoweb as u', 'a.usuario_id', '=', 'u.idusuario')
-                  ->addSelect(DB::raw('u.usuario as usuario_nombre'));
-        } else {
-            $query->addSelect(DB::raw('NULL as usuario_nombre'));
-        }
-
-        // Aplicar filtro de fechas sólo si ambos valores están provistos
-        if ($fechaInicio && $fechaFin) {
-            $query->whereBetween('a.fecha', [$fechaInicio, $fechaFin]);
-        }
-
-        $query->orderBy('a.fecha', 'desc')
-              ->orderBy('a.numero', 'desc');
-            
-        if ($numeroAsiento) {
-            $query->where('a.numero', 'like', '%' . $numeroAsiento . '%');
-        }
-        
-        if ($cuentaContable) {
-            $query->whereExists(function($q) use ($cuentaContable) {
-                $q->select(DB::raw(1))
-                  ->from('libro_diario_detalles as d') // tabla correcta
-                  ->whereRaw('d.asiento_id = a.id')
-                  ->where('d.cuenta_contable', 'like', '%' . $cuentaContable . '%');
-            });
-        }
-        
-        return $query->paginate(20);
-    }
-
-    private function calcularTotales($fechaInicio = null, $fechaFin = null)
-    {
-        $query = DB::table('libro_diario');
-
-        if ($fechaInicio && $fechaFin) {
-            $query->whereBetween('fecha', [$fechaInicio, $fechaFin]);
-        }
-
-        $resultado = $query->selectRaw('
-                COUNT(*) as total_asientos,
-                SUM(total_debe) as total_debe,
-                SUM(total_haber) as total_haber,
-                AVG(total_debe) as promedio_asiento
-            ')
-            ->first();
-            
-        return [
-            'total_asientos' => $resultado->total_asientos ?? 0,
-            'total_debe' => round($resultado->total_debe ?? 0, 2),
-            'total_haber' => round($resultado->total_haber ?? 0, 2),
-            'promedio_asiento' => round($resultado->promedio_asiento ?? 0, 2),
-            'balance' => round(($resultado->total_debe ?? 0) - ($resultado->total_haber ?? 0), 2)
-        ];
-    }
-
-    private function obtenerCuentasContables()
-    {
-        return DB::table('plan_cuentas') // tabla correcta
-            ->where('activo', 1)
-            ->orderBy('codigo')
-            ->get();
-    }
-
-   private function obtenerCuentasContablesParaFormulario()
-    {
-        return DB::table('plan_cuentas')
-            ->where('activo', 1)
-            ->whereIn('tipo', ['ACTIVO', 'PASIVO', 'PATRIMONIO', 'INGRESO', 'GASTO'])
-            ->orderBy('codigo')
-            ->get()
-            ->groupBy('tipo');
-    }
-
-    private function obtenerSiguienteNumeroAsiento()
-    {
-        $anio = now()->format('Y');
-        $intentos = 0;
-        $maxIntentos = 10;
-
-        do {
-            $ultimoNumero = DB::table('libro_diario')
-                ->where('numero', 'like', $anio . '%')
-                ->max('numero');
-
-            if (!$ultimoNumero) {
-                $numero = 1;
-            } else {
-                $secuencia = (int) substr($ultimoNumero, 4);
-                $numero = $secuencia + 1;
-            }
-
-            $nuevoNumero = $anio . str_pad($numero, 4, '0', STR_PAD_LEFT);
-
-            // Verificar si ya existe (por si hay concurrencia)
-            $existe = DB::table('libro_diario')->where('numero', $nuevoNumero)->exists();
-
-            if (!$existe) {
-                return $nuevoNumero;
-            }
-
-            $intentos++;
-        } while ($intentos < $maxIntentos);
-
-        throw new \Exception("No se pudo generar un número de asiento único después de $maxIntentos intentos.");
-    }
-
-    private function obtenerUltimosAsientos($cantidad = 5)
-    {
-        return DB::table('libro_diario') // tabla correcta
-            ->orderBy('fecha', 'desc')
-            ->orderBy('numero', 'desc')
-            ->limit($cantidad)
-            ->get();
-    }
-
-    private function obtenerAsientosPorMes()
-    {
-        // Obtener conteo de asientos por mes del año actual
-        $resultado = DB::table('libro_diario')
-            ->whereYear('fecha', now()->year)
-            ->selectRaw('
-                MONTH(fecha) as mes,
-                COUNT(*) as cantidad,
-                SUM(total_debe) as total
-            ')
-            ->groupBy(DB::raw('MONTH(fecha)')) // SQL Server requiere la expresión completa
-            ->orderBy(DB::raw('MONTH(fecha)'), 'asc')
-            ->get();
-
-        $meses = [];
-        $datos = [];
-
-        // Generar etiquetas de meses y asignar cantidad de asientos por mes
-        for ($i = 1; $i <= 12; $i++) {
-            $mesNombre = Carbon::create(now()->year, $i)->locale('es')->isoFormat('MMM');
-            $meses[] = ucfirst($mesNombre);
-
-            $asientoMes = $resultado->firstWhere('mes', $i);
-            $datos[] = $asientoMes ? $asientoMes->cantidad : 0;
-        }
-
-        return [
-            'labels' => $meses,
-            'data' => $datos
-        ];
-    }
- 
-    
-
-    private function obtenerMovimientosPorCuenta()
-    {
-        // Reordeno joins para asegurar que la alias 'a' esté definida antes de usarla en whereYear
-        $resultado = DB::table('libro_diario_detalles as d') // tabla correcta
-            ->join('libro_diario as a', 'd.asiento_id', '=', 'a.id') // tabla correcta
-            ->join('plan_cuentas as c', 'd.cuenta_contable', '=', 'c.codigo') // tabla correcta
-            ->whereYear('a.fecha', now()->year)
-            ->select(
-                'c.codigo',
-                'c.nombre',
-                DB::raw('SUM(d.debe + d.haber) as total_movimientos')
-            )
-            ->groupBy('c.codigo', 'c.nombre')
-            ->orderBy('total_movimientos', 'desc')
-            ->limit(10)
-            ->get();
-            
-        return $resultado;
-    }
-
-    private function generarAlertasContables()
-    {
-        $alertas = [];
-        
-        // Asientos sin balancear
-        $asientosSinBalancear = DB::table('libro_diario') // tabla correcta
-            ->where('balanceado', false)
-            ->count();
-            
-        if ($asientosSinBalancear > 0) {
-            $alertas[] = [
-                'tipo' => 'warning',
-                'titulo' => 'Asientos sin Balancear',
-                'mensaje' => "{$asientosSinBalancear} asientos requieren revisión",
-                'icono' => 'exclamation-triangle'
-            ];
-        }
-        
-        // Asientos del día de hoy
-        $asientosHoy = DB::table('libro_diario') // tabla correcta
-            ->whereDate('fecha', today())
-            ->count();
-            
-        if ($asientosHoy == 0) {
-            $alertas[] = [
-                'tipo' => 'info',
-                'titulo' => 'Sin Asientos Hoy',
-                'mensaje' => 'No se han registrado asientos contables hoy',
-                'icono' => 'info-circle'
-            ];
-        }
-        
-        return $alertas;
-    }
-
-    /**
-     * Genera un PDF del libro diario.
-     *
-     * Requisitos (opcional):
-     *  - barryvdh/laravel-dompdf (recomendado)
-     *    composer require barryvdh/laravel-dompdf
-     *
-     * Si el paquete no está disponible, devolvemos una respuesta con la vista HTML
-     * forzada a descargar (fallback).
-     */
-    private function generarPDF($asientos, $totales, $fechaInicio, $fechaFin)
-    {
-        try {
-            $asientosCollection = $asientos instanceof \Illuminate\Support\Collection ? $asientos : collect($asientos);
-            $filename = 'libro_diario_' . ($fechaInicio ?? 'inicio') . '_a_' . ($fechaFin ?? 'fin') . '.pdf';
-
-            // Comprobación por nombre de clase en vez de ::class para evitar 'Undefined type' en el IDE
-            $dompdfFacade = 'Barryvdh\\DomPDF\\Facade\\Pdf';
-
-            if (class_exists($dompdfFacade)) {
-                // Llamada dinámica al facade (si el paquete está instalado)
-                return $dompdfFacade::loadView('contabilidad.libros.diario.export_pdf', compact('asientosCollection', 'totales', 'fechaInicio', 'fechaFin'))
-                                    ->setPaper('a4', 'landscape')
-                                    ->download($filename);
-            }
-
-            // Fallback: si no está la librería, devolver la vista HTML como descarga
-            $html = view('contabilidad.libros.diario.export_pdf', compact('asientosCollection', 'totales', 'fechaInicio', 'fechaFin'))->render();
-            return response($html, 200, [
-                'Content-Type' => 'text/html; charset=UTF-8',
-                'Content-Disposition' => "attachment; filename=\"$filename\""
-            ]);
-
-        } catch (\Exception $e) {
-            Log::error('Error generando PDF libro diario: ' . $e->getMessage());
-            return redirect()->back()->with('error', 'No se pudo generar el PDF: ' . $e->getMessage());
-        }
-    }
-
-    /**
-     * Genera un Excel/CSV del libro diario.
-     *
-     * - Si maatwebsite/excel está instalado, intentamos generar XLSX.
-     * - Si no está instalado, generamos un CSV compatible que Excel puede abrir.
-     */
-    private function generarExcel($asientos, $totales, $fechaInicio, $fechaFin)
-    {
-        try {
-            $asientosCollection = $asientos instanceof \Illuminate\Support\Collection ? $asientos : collect($asientos);
-            $fechaInicioSafe = $fechaInicio ?? 'inicio';
-            $fechaFinSafe = $fechaFin ?? 'fin';
-            $filenameCsv = "libro_diario_{$fechaInicioSafe}_a_{$fechaFinSafe}.csv";
-            $filenameXlsx = "libro_diario_{$fechaInicioSafe}_a_{$fechaFinSafe}.xlsx";
-
-            // Si está instalado maatwebsite/excel lo usamos para generar XLSX (mejor formato)
-            if (class_exists(\Maatwebsite\Excel\Facades\Excel::class)) {
-                $excelFacade = \Maatwebsite\Excel\Facades\Excel::class;
-
-                // Preparar filas: cabecera + datos
-                $rows = [];
-                $header = [
-                    'Número', 'Fecha', 'Glosa', 'Total Debe', 'Total Haber', 'Balanceado', 'Usuario ID', 'Observaciones'
-                ];
-                $rows[] = $header;
-
-                foreach ($asientosCollection as $a) {
-                    $rows[] = [
-                        (string)($a->numero ?? $a['numero'] ?? ''),
-                        (string)(isset($a->fecha) ? Carbon::parse($a->fecha)->format('Y-m-d') : ''),
-                        (string)($a->glosa ?? $a['glosa'] ?? ''),
-                        (float)($a->total_debe ?? $a['total_debe'] ?? 0),
-                        (float)($a->total_haber ?? $a['total_haber'] ?? 0),
-                        ($a->balanceado ?? $a['balanceado'] ?? '') ? 'SI' : 'NO',
-                        (string)($a->usuario_id ?? $a['usuario_id'] ?? ''),
-                        (string)($a->observaciones ?? $a['observaciones'] ?? ''),
-                    ];
-                }
-
-                // Usamos una clase anónima que implementa FromCollection
-                $export = new class(collect($rows)) implements \Maatwebsite\Excel\Concerns\FromCollection, \Maatwebsite\Excel\Concerns\WithHeadings {
-                    private $rows;
-                    public function __construct($rows) { $this->rows = $rows; }
-                    public function collection() { return $this->rows; }
-                    public function headings(): array { return []; } // ya incluimos cabecera en rows
-                };
-
-                return $excelFacade::download($export, $filenameXlsx);
-            }
-
-            // Fallback: generar CSV y retornarlo como descarga (compatible con Excel)
-            $callback = function() use ($asientosCollection) {
-                $output = fopen('php://output', 'w');
-                // Encabezados
-                fputcsv($output, ['Número', 'Fecha', 'Glosa', 'Total Debe', 'Total Haber', 'Balanceado', 'Usuario ID', 'Observaciones']);
-
-                foreach ($asientosCollection as $a) {
-                    fputcsv($output, [
-                        (string)($a->numero ?? $a['numero'] ?? ''),
-                        (string)(isset($a->fecha) ? Carbon::parse($a->fecha)->format('Y-m-d') : ''),
-                        (string)($a->glosa ?? $a['glosa'] ?? ''),
-                        (float)($a->total_debe ?? $a['total_debe'] ?? 0),
-                        (float)($a->total_haber ?? $a['total_haber'] ?? 0),
-                        ($a->balanceado ?? $a['balanceado'] ?? '') ? 'SI' : 'NO',
-                        (string)($a->usuario_id ?? $a['usuario_id'] ?? ''),
-                        (string)($a->observaciones ?? $a['observaciones'] ?? ''),
-                    ]);
-                }
-
-                fclose($output);
-            };
-
-            return response()->streamDownload($callback, $filenameCsv, [
-                'Content-Type' => 'text/csv; charset=UTF-8',
-                'Content-Disposition' => "attachment; filename=\"$filenameCsv\""
-            ]);
-
-        } catch (\Exception $e) {
-            Log::error('Error generando Excel/CSV libro diario: ' . $e->getMessage());
-            return redirect()->back()->with('error', 'No se pudo generar el Excel/CSV: ' . $e->getMessage());
         }
     }
 }

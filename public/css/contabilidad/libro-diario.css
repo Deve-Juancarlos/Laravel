@@ -1,812 +1,252 @@
-/* ============================================
-   LIBRO DIARIO INDEX - SISTEMA CONTABLE FARMACÉUTICO
-   ============================================ */
+/*
+    ESTILOS PARA: resources/views/contabilidad/libros/diario/index.blade.php
+    Estos estilos le dan el aspecto moderno a la página.
+*/
 
-/* --- VARIABLES Y BASE --- */
-:root {
-    --primary: #1e40af;
-    --primary-dark: #1e3a8a;
-    --success: #10b981;
-    --danger: #ef4444;
-    --warning: #f59e0b;
-    --info: #3b82f6;
-    --secondary: #6b7280;
-    
-    --gray-50: #f9fafb;
-    --gray-100: #f3f4f6;
-    --gray-200: #e5e7eb;
-    --gray-300: #d1d5db;
-    --gray-400: #9ca3af;
-    --gray-500: #6b7280;
-    --gray-600: #4b5563;
-    --gray-700: #374151;
-    --gray-800: #1f2937;
-    --gray-900: #111827;
-    
-    --white: #ffffff;
-    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-    --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
-    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-    --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-    
-    --border-radius: 12px;
-    --border-radius-sm: 8px;
-    --border-radius-lg: 16px;
-    --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
-body {
-    font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
-    background-color: var(--gray-50);
-    color: var(--gray-900);
-    line-height: 1.6;
-}
-
-.container-fluid {
-    padding: 2rem;
-}
-
-/* ============================================
-   PAGE HEADER MODERNO
-   ============================================ */
+/* 1. Cabecera de Página */
 .page-header-modern {
-    background: var(--primary);
-    border-radius: var(--border-radius-lg);
+    background-color: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.06);
     padding: 2rem;
     margin-bottom: 2rem;
-    box-shadow: var(--shadow-lg);
-    position: relative;
 }
-
 .page-header-content {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    position: relative;
-    z-index: 1;
 }
-
 .page-header-info h1 {
-    color: var(--white);
     font-size: 2rem;
     font-weight: 700;
-    margin-bottom: 0.5rem;
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
+    color: #2c3e50;
+    margin-bottom: 0.25rem;
 }
-
 .page-header-info h1 i {
-    font-size: 1.75rem;
+    color: #3498db;
+    margin-right: 0.5rem;
 }
-
 .page-header-info p {
-    color: rgba(255, 255, 255, 0.9);
     font-size: 1rem;
+    color: #7f8c8d;
     margin: 0;
 }
-
 .page-header-actions .btn {
-    background: var(--white);
-    color: var(--primary);
+    background-color: #3498db;
+    color: white;
     font-weight: 600;
-    padding: 0.75rem 1.5rem;
-    border-radius: var(--border-radius-sm);
-    box-shadow: var(--shadow-md);
-    transition: var(--transition);
-    border: none;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
+    border-radius: 8px;
+    padding: 0.75rem 1.25rem;
+    transition: all 0.3s ease;
 }
-
 .page-header-actions .btn:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-xl);
+    background-color: #2980b9;
+    box-shadow: 0 4px 10px rgba(52, 152, 219, 0.4);
 }
 
-.page-header-actions .btn,
-.page-header-actions a {
-    text-decoration: none;
-}
-
-.page-header-actions .btn:hover,
-.page-header-actions a:hover {
-    text-decoration: none;
-}
-
-/* ============================================
-   ALERTAS MODERNAS
-   ============================================ */
-.alert {
-    border-radius: var(--border-radius);
-    padding: 1rem 1.5rem;
-    margin-bottom: 1.5rem;
-    border: none;
-    box-shadow: var(--shadow);
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    position: relative;
-    animation: slideInDown 0.3s ease;
-}
-
-@keyframes slideInDown {
-    from {
-        opacity: 0;
-        transform: translateY(-20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-@keyframes slideInUp {
-    from {
-        opacity: 1;
-        transform: translateY(0);
-    }
-    to {
-        opacity: 0;
-        transform: translateY(-20px);
-    }
-}
-
-.alert i {
-    font-size: 1.25rem;
-}
-
-.alert-success {
-    background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
-    color: #065f46;
-    border-left: 4px solid var(--success);
-}
-
-.alert-danger {
-    background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
-    color: #991b1b;
-    border-left: 4px solid var(--danger);
-}
-
-.alert .btn-close {
-    margin-left: auto;
-    background: none;
-    border: none;
-    font-size: 1.5rem;
-    cursor: pointer;
-    opacity: 0.5;
-    transition: var(--transition);
-}
-
-.alert .btn-close:hover {
-    opacity: 1;
-}
-
-/* ============================================
-   ESTADÍSTICAS MODERNAS
-   ============================================ */
+/* 2. Tarjetas de Estadísticas (KPIs) */
 .stats-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
     gap: 1.5rem;
     margin-bottom: 2rem;
 }
-
 .stat-card {
-    background: var(--white);
-    border-radius: var(--border-radius);
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.06);
     padding: 1.5rem;
-    box-shadow: var(--shadow);
-    transition: var(--transition);
-    border: 1px solid var(--gray-200);
+    transition: all 0.3s ease;
 }
-
 .stat-card:hover {
-    transform: translateY(-4px);
-    box-shadow: var(--shadow-lg);
+    transform: translateY(-5px);
+    box-shadow: 0 6px 16px rgba(0,0,0,0.1);
 }
-
 .stat-content {
     display: flex;
     align-items: center;
-    gap: 1.25rem;
 }
-
 .stat-icon {
     width: 60px;
     height: 60px;
-    border-radius: var(--border-radius-sm);
+    border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 1.75rem;
-    flex-shrink: 0;
+    margin-right: 1.25rem;
 }
+.stat-icon.primary { background-color: rgba(52, 152, 219, 0.1); color: #3498db; }
+.stat-icon.success { background-color: rgba(46, 204, 113, 0.1); color: #2ecc71; }
+.stat-icon.danger  { background-color: rgba(231, 76, 60, 0.1); color: #e74c3c; }
+.stat-icon.info    { background-color: rgba(26, 188, 156, 0.1); color: #1abc9c; }
+.stat-icon.warning { background-color: rgba(241, 196, 15, 0.1); color: #f1c40f; }
 
-.stat-icon.primary {
-    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-    color: var(--white);
-}
-
-.stat-icon.success {
-    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-    color: var(--white);
-}
-
-.stat-icon.danger {
-    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-    color: var(--white);
-}
-
-.stat-icon.info {
-    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-    color: var(--white);
-}
-
-.stat-details {
-    flex: 1;
-}
-
-.stat-value {
+.stat-details .stat-value {
     font-size: 1.75rem;
     font-weight: 700;
-    color: var(--gray-900);
-    margin-bottom: 0.25rem;
+    color: #2c3e50;
+    line-height: 1.2;
 }
-
-.stat-label {
+.stat-details .stat-label {
     font-size: 0.875rem;
-    color: var(--gray-600);
+    color: #7f8c8d;
     font-weight: 500;
-    margin-bottom: 0.5rem;
 }
 
-.stat-trend {
-    font-size: 0.8rem;
-    font-weight: 600;
-    display: flex;
-    align-items: center;
-    gap: 0.25rem;
-}
-
-.stat-trend.up {
-    color: var(--success);
-}
-
-.stat-trend i {
-    font-size: 0.75rem;
-}
-
-/* ============================================
-   FILTROS MODERNOS
-   ============================================ */
+/* 3. Tarjeta de Filtros */
 .filters-card {
-    background: var(--white);
-    border-radius: var(--border-radius);
-    box-shadow: var(--shadow);
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.06);
     margin-bottom: 2rem;
-    overflow: hidden;
 }
-
 .filters-header {
-    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
     padding: 1.25rem 1.5rem;
-    border-bottom: 2px solid var(--primary-dark);
+    border-bottom: 1px solid #ecf0f1;
 }
-
 .filters-title {
+    margin: 0;
     font-size: 1.1rem;
     font-weight: 600;
-    color: var(--white);
-    margin: 0;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
+    color: #34495e;
 }
-
+.filters-title i {
+    margin-right: 0.5rem;
+    color: #3498db;
+}
 .filters-body {
     padding: 1.5rem;
 }
-
-.form-group {
-    margin-bottom: 0;
-}
-
-.form-label {
-    font-size: 0.875rem;
+.filters-body .form-label {
     font-weight: 600;
-    color: var(--gray-700);
+    font-size: 0.875rem;
+    color: #555;
     margin-bottom: 0.5rem;
-    display: block;
+}
+.filters-body .form-control,
+.filters-body .form-select {
+    border-radius: 8px;
+}
+.filters-body .form-control:focus,
+.filters-body .form-select:focus {
+    border-color: #3498db;
+    box-shadow: 0 0 0 0.25rem rgba(52, 152, 219, 0.25);
 }
 
-.form-control,
-.form-select {
-    border: 2px solid var(--gray-200);
-    border-radius: var(--border-radius-sm);
-    padding: 0.625rem 0.875rem;
-    font-size: 0.9375rem;
-    transition: var(--transition);
-    width: 100%;
-}
-
-/* Hacer que el contenedor del buscador ocupe todo el ancho */
-.navbar .form-control,
-.top-bar .form-control,
-header .form-control {
-    width: 100%;
-    flex: 1;
-    max-width: 800px;
-}
-
-.form-control:focus,
-.form-select:focus {
-    border-color: var(--primary);
-    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-    outline: none;
-}
-
-.btn-group {
-    display: flex;
-    gap: 0.75rem;
-}
-
-.btn,
-a.btn,
-button.btn,
-.btn:link,
-.btn:visited,
-.btn:hover,
-.btn:active {
-    padding: 0.625rem 1.25rem;
-    border-radius: var(--border-radius-sm);
-    font-weight: 500;
-    font-size: 0.9375rem;
-    border: none;
-    cursor: pointer;
-    transition: var(--transition);
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    text-decoration: none !important;
-}
-
-.btn-primary {
-    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-    color: var(--white);
-}
-
-.btn-primary:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-md);
-}
-
-.btn-secondary {
-    background: var(--gray-500);
-    color: var(--white);
-}
-
-.btn-secondary:hover {
-    background: var(--gray-600);
-    transform: translateY(-2px);
-}
-
-.btn-success {
-    background: var(--success);
-    color: var(--white);
-}
-
-.btn-danger {
-    background: var(--danger);
-    color: var(--white);
-}
-
-.btn-sm {
-    padding: 0.5rem 1rem;
-    font-size: 0.875rem;
-}
-
-/* ============================================
-   TABLA MODERNA
-   ============================================ */
+/* 4. Tarjeta de Tabla de Datos */
 .table-card {
-    background: var(--white);
-    border-radius: var(--border-radius);
-    box-shadow: var(--shadow);
-    overflow: hidden;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+    overflow: hidden; /* Para que los bordes redondeados afecten a la tabla */
 }
-
-.table-header {
-    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-    padding: 1.25rem 1.5rem;
-    border-bottom: 2px solid var(--primary-dark);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.table-title {
-    font-size: 1.1rem;
-    font-weight: 600;
-    color: var(--white);
-    margin: 0;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-
-.table-actions {
-    display: flex;
-    gap: 0.5rem;
-}
-
 .table-responsive {
     overflow-x: auto;
 }
-
 .table {
-    width: 100%;
-    border-collapse: collapse;
-    margin: 0;
+    margin-bottom: 0;
+    vertical-align: middle;
 }
-
-.table thead {
-    background: linear-gradient(135deg, var(--gray-50) 0%, var(--gray-100) 100%);
-}
-
 .table thead th {
+    background-color: #f8f9fa;
+    border-bottom: 2px solid #e9ecef;
     padding: 1rem 1.25rem;
-    font-size: 0.875rem;
     font-weight: 600;
-    color: var(--gray-700);
+    font-size: 0.875rem;
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    border-bottom: 2px solid var(--gray-200);
+    color: #495057;
 }
-
+.table tbody tr:hover {
+    background-color: #fdfdfd;
+}
 .table tbody td {
     padding: 1rem 1.25rem;
-    border-bottom: 1px solid var(--gray-200);
-    font-size: 0.9375rem;
-    color: var(--gray-700);
+    border-top: 1px solid #ecf0f1;
 }
-
-.table tbody tr {
-    transition: var(--transition);
-}
-
-.table tbody tr:hover {
-    background: var(--gray-50);
-}
-
-/* Estilos específicos de celdas */
 .asiento-numero {
-    font-weight: 700;
-    color: var(--primary);
-    font-family: 'Courier New', monospace;
+    font-weight: 600;
+    color: #3498db;
+    background: rgba(52, 152, 219, 0.1);
+    padding: 0.25rem 0.5rem;
+    border-radius: 6px;
+    font-family: 'Courier New', Courier, monospace;
 }
-
 .asiento-fecha {
-    color: var(--gray-600);
     font-weight: 500;
+    color: #34495e;
 }
-
 .asiento-glosa {
-    color: var(--gray-700);
     max-width: 300px;
-    display: block;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    cursor: help;
 }
-
-.amount {
-    font-weight: 600;
-    font-family: 'Courier New', monospace;
-    display: inline-block;
-}
-
 .amount.debe {
-    color: var(--success);
-}
-
-.amount.haber {
-    color: var(--danger);
-}
-
-/* ============================================
-   BADGES
-   ============================================ */
-.badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.375rem;
-    padding: 0.375rem 0.75rem;
-    border-radius: 9999px;
-    font-size: 0.8125rem;
     font-weight: 600;
+    color: #27ae60;
+}
+.amount.haber {
+    font-weight: 600;
+    color: #c0392b;
 }
 
-.badge-success {
-    background: #d1fae5;
-    color: #065f46;
+/* Badges de Estado */
+.badge {
+    padding: 0.5em 0.75em;
+    font-size: 0.75rem;
+    font-weight: 600;
+    border-radius: 6px;
 }
+.badge.bg-success-light { background-color: rgba(46, 204, 113, 0.1); color: #2ecc71; }
+.badge.bg-warning-light { background-color: rgba(241, 196, 15, 0.1); color: #f1c40f; }
 
-.badge-warning {
-    background: #fef3c7;
-    color: #92400e;
-}
-
-/* ============================================
-   BOTONES DE ACCIÓN
-   ============================================ */
+/* Botones de Acción en Tabla */
 .action-buttons {
     display: flex;
     gap: 0.5rem;
     justify-content: center;
 }
-
 .btn-icon {
-    width: 36px;
-    height: 36px;
+    width: 38px;
+    height: 38px;
+    border-radius: 8px;
+    font-size: 0.9rem;
     padding: 0;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    border-radius: var(--border-radius-sm);
-    transition: var(--transition);
-    border: 2px solid transparent;
 }
 
-.btn-outline-primary {
-    color: var(--primary);
-    border-color: var(--primary);
-    background: transparent;
-}
-
-.btn-outline-primary:hover {
-    background: var(--primary);
-    color: var(--white);
-    transform: translateY(-2px);
-}
-
-.btn-outline-secondary {
-    color: var(--gray-500);
-    border-color: var(--gray-300);
-    background: transparent;
-}
-
-.btn-outline-secondary:hover {
-    background: var(--gray-500);
-    color: var(--white);
-    transform: translateY(-2px);
-}
-
-/* ============================================
-   ESTADO VACÍO
-   ============================================ */
-.empty-state {
-    text-align: center;
-    padding: 4rem 2rem;
-}
-
-.empty-state-icon {
-    font-size: 4rem;
-    color: var(--gray-300);
-    margin-bottom: 1.5rem;
-}
-
-.empty-state h5 {
-    font-size: 1.5rem;
-    font-weight: 600;
-    color: var(--gray-700);
-    margin-bottom: 0.75rem;
-}
-
-.empty-state p {
-    color: var(--gray-500);
-    font-size: 1rem;
-    margin-bottom: 2rem;
-    max-width: 500px;
-    margin-left: auto;
-    margin-right: auto;
-}
-
-/* ============================================
-   PAGINACIÓN
-   ============================================ */
+/* 5. Paginación */
 .pagination-wrapper {
     padding: 1.25rem;
-    background: var(--gray-50);
-    border-top: 1px solid var(--gray-200);
+    background: #f8f9fa;
+    border-top: 1px solid #ecf0f1;
     display: flex;
     justify-content: center;
 }
 
-/* ============================================
-   RESPONSIVE
-   ============================================ */
-@media (max-width: 1024px) {
-    .stats-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
-}
-
-@media (max-width: 768px) {
-    .container-fluid {
-        padding: 1rem;
-    }
-
-    .page-header-content {
-        flex-direction: column;
-        gap: 1rem;
-        text-align: center;
-    }
-
-    .page-header-info h1 {
-        font-size: 1.5rem;
-        justify-content: center;
-    }
-
-    .stats-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .stat-card {
-        padding: 1.25rem;
-    }
-
-    .filters-body .row {
-        gap: 1rem;
-    }
-
-    .filters-body .col-md-3,
-    .filters-body .col-md-4 {
-        width: 100%;
-    }
-
-    .table-header {
-        flex-direction: column;
-        gap: 1rem;
-        align-items: flex-start;
-    }
-
-    .table-actions {
-        width: 100%;
-        justify-content: space-between;
-    }
-
-    .table {
-        font-size: 0.875rem;
-    }
-
-    .table thead th,
-    .table tbody td {
-        padding: 0.75rem;
-    }
-
-    .action-buttons {
-        flex-direction: column;
-    }
-}
-
-@media (max-width: 576px) {
-    .page-header-modern {
-        padding: 1.5rem;
-    }
-
-    .page-header-info h1 {
-        font-size: 1.25rem;
-    }
-
-    .stat-content {
-        gap: 1rem;
-    }
-
-    .stat-icon {
-        width: 50px;
-        height: 50px;
-        font-size: 1.5rem;
-    }
-
-    .stat-value {
-        font-size: 1.5rem;
-    }
-
-    .btn-group {
-        flex-direction: column;
-        width: 100%;
-    }
-
-    .btn-group .btn {
-        width: 100%;
-    }
-}
-
-/* ============================================
-   SCROLLBAR PERSONALIZADO
-   ============================================ */
-::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
-}
-
-::-webkit-scrollbar-track {
-    background: var(--gray-100);
-    border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb {
-    background: var(--gray-400);
-    border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-    background: var(--gray-500);
-}
-
-/* ============================================
-   ANIMACIONES ADICIONALES
-   ============================================ */
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-    }
-    to {
-        opacity: 1;
-    }
-}
-
-.table tbody tr {
-    animation: fadeIn 0.3s ease;
-}
-
-/* ============================================
-   UTILIDADES
-   ============================================ */
-.text-center {
+/* 6. Estado Vacío (Empty State) */
+.empty-state {
+    padding: 4rem 2rem;
     text-align: center;
 }
-
-.text-right {
-    text-align: right;
+.empty-state-icon {
+    font-size: 4rem;
+    color: #bdc3c7;
+    line-height: 1;
+    margin-bottom: 1.5rem;
 }
-
-.mt-3 {
-    margin-top: 1rem;
+.empty-state h5 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #34495e;
+    margin-bottom: 0.5rem;
 }
-
-.g-3 > * {
-    padding: 0 0.75rem;
-}
-
-/* ============================================
-   FIX GLOBAL PARA ENLACES EN BOTONES
-   ============================================ */
-a[class*="btn"],
-a.btn-primary,
-a.btn-secondary,
-a.btn-success,
-a.btn-danger,
-a.btn-warning,
-a.btn-info,
-a.btn-outline-primary,
-a.btn-outline-secondary,
-button[class*="btn"] {
-    text-decoration: none !important;
-}
-
-a[class*="btn"]:hover,
-a[class*="btn"]:focus,
-a[class*="btn"]:active,
-a[class*="btn"]:visited {
-    text-decoration: none !important;
+.empty-state p {
+    color: #7f8c8d;
+    margin-bottom: 1.5rem;
 }

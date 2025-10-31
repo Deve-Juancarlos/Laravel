@@ -1,159 +1,82 @@
-{{-- Vista create.blade.php CORREGIDA para contador.libro-diario.create --}}
+{{-- resources/views/contabilidad/libros/diario/create.blade.php --}}
 @extends('layouts.app') 
 
 @section('title', 'Nuevo Asiento - Libro Diario')
 
+<!-- 1. Título de la Cabecera -->
+@section('page-title', 'Nuevo Asiento Contable')
+
+<!-- 2. Breadcrumbs -->
+@section('breadcrumbs')
+    <li class="breadcrumb-item"><a href="{{ route('contador.libro-diario.index') }}">Libro Diario</a></li>
+    <li class="breadcrumb-item active" aria-current="page">Nuevo Asiento</li>
+@endsection
+
+<!-- 3. Estilos CSS de esta página -->
 @push('styles')
+    <!-- Usamos los mismos estilos del formulario de 'edit' para consistencia -->
+    <link href="{{ asset('css/contabilidad/asiento-form.css') }}" rel="stylesheet">
     <link href="{{ asset('css/contabilidad/libro-diario-create.css') }}" rel="stylesheet">
 @endpush
 
-@section('sidebar-menu')
-{{-- MENÚ PRINCIPAL --}}
-<div class="nav-section">Dashboard</div>
-<ul>
-    <li><a href="{{ route('dashboard.contador') }}" class="nav-link">
-        <i class="fas fa-chart-pie"></i> Panel Principal
-    </a></li>
-</ul>
-
-<div class="nav-section">Contabilidad</div>
-<ul>
-    <li>
-        <a href="{{ route('contador.libro-diario.index') }}" class="nav-link has-submenu">
-            <i class="fas fa-book"></i> Libros Contables
-        </a>
-        <div class="nav-submenu">
-            <a href="{{ route('contador.libro-diario.index') }}" class="nav-link"><i class="fas fa-file-alt"></i> Libro Diario</a>
-            <a href="{{ route('contador.libro-mayor.index') }}" class="nav-link"><i class="fas fa-book-open"></i> Libro Mayor</a>
-            <a href="{{route('contador.balance-comprobacion.index')}}" class="nav-link"><i class="fas fa-balance-scale"></i> Balance Comprobación</a>    
-            <a href="{{ route('contador.estado-resultados.index') }}" class="nav-link"><i class="fas fa-chart-bar"></i> Estados Financieros</a>
-        </div>
-    </li>
-    <li>
-        <a href="#" class="nav-link has-submenu">
-            <i class="fas fa-file-invoice"></i> Registros
-        </a>
-        <div class="nav-submenu">
-            <a href="#" class="nav-link"><i class="fas fa-shopping-cart"></i> Compras</a>
-            <a href="#" class="nav-link"><i class="fas fa-cash-register"></i> Ventas</a>
-            <a href="#" class="nav-link"><i class="fas fa-university"></i> Bancos</a>
-            <a href="#" class="nav-link"><i class="fas fa-money-bill-wave"></i> Caja</a>
-        </div>
-    </li>
-</ul>
-
-{{-- VENTAS Y COBRANZAS --}}
-<div class="nav-section">Ventas & Cobranzas</div>
-<ul>
-    <li><a href="{{ route('contador.reportes.ventas') }}" class="nav-link">
-        <i class="fas fa-chart-line"></i> Análisis Ventas
-    </a></li>
-    <li><a href="{{ route('contador.reportes.compras') }}" class="nav-link">
-        <i class="fas fa-wallet"></i> Cartera
-    </a></li>
-    <li><a href="{{ route('contador.facturas.create') }}" class="nav-link">
-        <i class="fas fa-clock"></i> Fact. Pendientes
-    </a></li>
-    <li><a href="{{ route('contador.facturas.index') }}" class="nav-link">
-        <i class="fas fa-exclamation-triangle"></i> Fact. Vencidas
-    </a></li>
-</ul>
-
-{{-- GESTIÓN --}}
-<div class="nav-section">Gestión</div>
-<ul>
-    <li><a href="{{ route('contador.clientes') }}" class="nav-link">
-        <i class="fas fa-users"></i> Clientes
-    </a></li>
-    <li><a href="{{ route('contador.reportes.medicamentos-controlados') }}" class="nav-link">
-        <i class="fas fa-percentage"></i> Márgenes
-    </a></li>
-    <li><a href="{{ route('contador.reportes.inventario') }}" class="nav-link">
-        <i class="fas fa-boxes"></i> Inventario
-    </a></li>
-</ul>
-
-{{-- REPORTES SUNAT --}}
-<div class="nav-section">SUNAT</div>
-<ul>
-    <li><a href="#" class="nav-link">
-        <i class="fas fa-file-invoice-dollar"></i> PLE
-    </a></li>
-    <li><a href="#" class="nav-link">
-        <i class="fas fa-percent"></i> IGV Mensual
-    </a></li>
-</ul>
-@endsection
-
+<!-- 4. Contenido Principal -->
 @section('content')
-<div class="container-fluid p-0">
-    {{-- Header --}}
-    <div class="d-flex justify-content-between align-items-center p-4 mb-4" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px; color: white;">
-        <div>
-            <h1 class="h3 mb-1">
-                <i class="fas fa-plus"></i> Nuevo Asiento Contable
-            </h1>
-            <p class="mb-0 opacity-75">Registrar nuevo asiento en el libro diario</p>
-        </div>
-        <div>
-            <a href="{{ route('contador.libro-diario.index') }}" class="btn btn-light">
-                <i class="fas fa-arrow-left"></i> Volver
-            </a>
-        </div>
-    </div>
-
+<div class="container-fluid">
+    
     {{-- Errores de validación --}}
     @if($errors->any())
         <div class="alert alert-danger alert-dismissible fade show" role="alert">
-            <i class="fas fa-exclamation-circle"></i>
+            <i class="fas fa-exclamation-circle me-2"></i>
             <strong>Errores de validación:</strong>
             <ul class="mb-0 mt-2">
                 @foreach($errors->all() as $error)
                     <li>{{ $error }}</li>
                 @endforeach
             </ul>
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
     @endif
 
-    {{-- Alertas --}}
-    @if(session('error'))
-        <div class="alert alert-danger alert-dismissible fade show" role="alert">
-            <i class="fas fa-exclamation-circle"></i> {{ session('error') }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
-    @endif
+    {{-- Alerta de error general (del session) --}}
+    {{-- Esta ya se maneja en el layout principal app.blade.php --}}
 
     <form id="asientoForm" action="{{ route('contador.libro-diario.store') }}" method="POST">
         @csrf
         
         {{-- Información del Asiento --}}
-        <div class="card mb-4">
-            <div class="card-header">
-                <h5 class="card-title mb-0">
+        <div class="form-card mb-4">
+            <div class="form-card-header">
+                <h5 class="form-card-title">
                     <i class="fas fa-info-circle"></i> Información del Asiento
                 </h5>
             </div>
-            <div class="card-body">
+            <div class="form-card-body">
                 <div class="row g-3">
                     <div class="col-md-6">
                         <label class="form-label">Fecha *</label>
-                        <input type="date" class="form-control" id="fecha" name="fecha" 
-                            value="{{ date('Y-m-d') }}" required>
+                        <input type="date" class="form-control @error('fecha') is-invalid @enderror" id="fecha" name="fecha" 
+                                value="{{ old('fecha', date('Y-m-d')) }}" required>
+                        @error('fecha')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
                     </div>
                     <div class="col-md-6">
                         <label class="form-label">Usuario</label>
                         <input type="text" class="form-control" 
-                            value="{{ auth()->user()->usuario ?? 'Contador' }}" 
-                            readonly style="background-color: #f8f9fa;">
+                                value="{{ auth()->user()->usuario ?? 'Contador' }}" 
+                                readonly disabled>
                     </div>
                 </div>
                 
                 <div class="row g-3 mt-2">
                     <div class="col-12">
                         <label class="form-label">Glosa / Descripción *</label>
-                        <input type="text" class="form-control" id="glosa" name="glosa" 
-                               placeholder="Describa el motivo del asiento contable" required>
+                        <input type="text" class="form-control @error('glosa') is-invalid @enderror" id="glosa" name="glosa" 
+                                value="{{ old('glosa') }}"
+                                placeholder="Describa el motivo del asiento contable" required>
+                        @error('glosa')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
                     </div>
                 </div>
                 
@@ -161,103 +84,90 @@
                     <div class="col-12">
                         <label class="form-label">Observaciones</label>
                         <textarea class="form-control" id="observaciones" name="observaciones" 
-                                  rows="3" placeholder="Observaciones adicionales (opcional)"></textarea>
+                                rows="3" placeholder="Observaciones adicionales (opcional)">{{ old('observaciones') }}</textarea>
                     </div>
                 </div>
             </div>
         </div>
 
         {{-- Plantillas predefinidas --}}
-        <div class="card mb-4">
-            <div class="card-header">
-                <h5 class="card-title mb-0">
-                    <i class="fas fa-layer-group"></i> Plantillas Farmacéuticas
+        <div class="form-card mb-4">
+            <div class="form-card-header">
+                <h5 class="form-card-title">
+                    <i class="fas fa-layer-group"></i> Plantillas de Asientos
                 </h5>
+                <p class="form-card-subtitle">Selecciona una plantilla para cargar las cuentas automáticamente.</p>
             </div>
-            <div class="card-body">
-                <div class="row g-2">
-                    <div class="col-md-4">
-                        <button type="button" class="btn btn-outline-primary w-100" onclick="aplicarPlantilla('ventas-medicamentos')">
-                            <i class="fas fa-pills"></i><br>Venta de Medicamentos
-                        </button>
-                    </div>
-                    <div class="col-md-4">
-                        <button type="button" class="btn btn-outline-primary w-100" onclick="aplicarPlantilla('compra-stock')">
-                            <i class="fas fa-boxes"></i><br>Compra de Stock
-                        </button>
-                    </div>
-                    <div class="col-md-4">
-                        <button type="button" class="btn btn-outline-primary w-100" onclick="aplicarPlantilla('gastos-operativos')">
-                            <i class="fas fa-briefcase"></i><br>Gastos Operativos
-                        </button>
-                    </div>
-                    <div class="col-md-4">
-                        <button type="button" class="btn btn-outline-warning w-100" onclick="aplicarPlantilla('medicamentos-caducos')">
-                            <i class="fas fa-exclamation-triangle"></i><br>Medicamentos Caducos
-                        </button>
-                    </div>
-                    <div class="col-md-4">
-                        <button type="button" class="btn btn-outline-success w-100" onclick="aplicarPlantilla('cobranzas')">
-                            <i class="fas fa-money-bill-wave"></i><br>Cobranzas
-                        </button>
-                    </div>
-                    <div class="col-md-4">
-                        <button type="button" class="btn btn-outline-info w-100" onclick="aplicarPlantilla('pagos-proveedores')">
-                            <i class="fas fa-store"></i><br>Pagos Proveedores
-                        </button>
-                    </div>
+            <div class="form-card-body">
+                <div class="template-grid">
+                    <button type="button" class="btn-template" onclick="aplicarPlantilla('ventas-medicamentos')">
+                        <i class="fas fa-pills"></i><span>Venta Medicamentos</span>
+                    </button>
+                    <button type="button" class="btn-template" onclick="aplicarPlantilla('compra-stock')">
+                        <i class="fas fa-boxes"></i><span>Compra de Stock</span>
+                    </button>
+                    <button type="button" class="btn-template" onclick="aplicarPlantilla('gastos-operativos')">
+                        <i class="fas fa-briefcase"></i><span>Gastos Operativos</span>
+                    </button>
+                    <button type="button" class="btn-template" onclick="aplicarPlantilla('medicamentos-caducos')">
+                        <i class="fas fa-exclamation-triangle"></i><span>Medicamentos Caducos</span>
+                    </button>
+                    <button type="button" class="btn-template" onclick="aplicarPlantilla('cobranzas')">
+                        <i class="fas fa-money-bill-wave"></i><span>Cobranzas</span>
+                    </button>
+                    <button type="button" class="btn-template" onclick="aplicarPlantilla('pagos-proveedores')">
+                        <i class="fas fa-store"></i><span>Pagos Proveedores</span>
+                    </button>
                 </div>
             </div>
         </div>
 
         {{-- Detalles del Asiento --}}
-        <div class="card mb-4">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 class="card-title mb-0">
+        <div class="table-card mb-4">
+            <div class="table-header">
+                <h5 class="table-title">
                     <i class="fas fa-list"></i> Detalles del Asiento
                 </h5>
                 <button type="button" class="btn btn-primary btn-sm" onclick="agregarFilaDetalle()">
                     <i class="fas fa-plus"></i> Agregar Línea
                 </button>
             </div>
-            <div class="card-body">
-                <div class="table-responsive">
-                    <table class="table table-bordered mb-0">
-                        <thead class="table-light">
-                            <tr>
-                                <th style="width: 20%;">Cuenta Contable</th>
-                                <th style="width: 30%;">Concepto</th>
-                                <th style="width: 15%;">Debe</th>
-                                <th style="width: 15%;">Haber</th>
-                                <th style="width: 10%;">Doc. Ref.</th>
-                                <th style="width: 10%;">Acción</th>
-                            </tr>
-                        </thead>
-                        <tbody id="detallesBody">
-                            {{-- Los detalles se agregarán aquí dinámicamente --}}
-                        </tbody>
-                    </table>
-                </div>
-                
-                {{-- Resumen del Balance --}}
-                <div class="mt-3 p-3" style="background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); border-radius: 8px; border-left: 4px solid #0d6efd;">
-                    <h6 class="mb-3">
-                        <i class="fas fa-calculator"></i> Resumen del Balance
-                    </h6>
-                    <div class="row">
-                        <div class="col-md-3">
-                            <strong>Total Debe:</strong>
-                            <div id="totalDebe" class="text-success fs-5">S/ 0.00</div>
-                        </div>
-                        <div class="col-md-3">
-                            <strong>Total Haber:</strong>
-                            <div id="totalHaber" class="text-danger fs-5">S/ 0.00</div>
-                        </div>
-                        <div class="col-md-6">
-                            <strong>Diferencia:</strong>
-                            <div id="diferencia" class="fs-5">S/ 0.00</div>
-                            <div id="balanceStatus" class="badge bg-success">Balanceado</div>
-                        </div>
+            <div class="table-responsive">
+                <table class="table table-bordered align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th style="width: 20%;">Cuenta Contable *</th>
+                            <th style="width: 30%;">Concepto *</th>
+                            <th style="width: 15%;">Debe</th>
+                            <th style="width: 15%;">Haber</th>
+                            <th style="width: 10%;">Doc. Ref.</th>
+                            <th style="width: 10%;">Acción</th>
+                        </tr>
+                    </thead>
+                    <tbody id="detallesBody">
+                        {{-- Los detalles se agregarán aquí dinámicamente --}}
+                    </tbody>
+                </table>
+            </div>
+            
+            {{-- Resumen del Balance --}}
+            <div class="balance-summary">
+                <h6 class="balance-title">
+                    <i class="fas fa-calculator"></i> Resumen del Balance
+                </h6>
+                <div class="row">
+                    <div class="col-md-3">
+                        <strong>Total Debe:</strong>
+                        <div id="totalDebe" class="text-success fs-5 fw-bold">S/ 0.00</div>
+                    </div>
+                    <div class="col-md-3">
+                        <strong>Total Haber:</strong>
+                        <div id="totalHaber" class="text-danger fs-5 fw-bold">S/ 0.00</div>
+                    </div>
+                    <div class="col-md-6">
+                        <strong>Diferencia:</strong>
+                        <div id="diferencia" class="fs-5 fw-bold">S/ 0.00</div>
+                        <div id="balanceStatus" class="badge bg-success">Balanceado</div>
                     </div>
                 </div>
             </div>
@@ -268,16 +178,16 @@
             <div class="card-body">
                 <div class="d-flex justify-content-between">
                     <div>
-                        <a href="{{ route('contador.libro-diario.index') }}" class="btn btn-secondary">
-                            <i class="fas fa-times"></i> Cancelar
+                        <a href="{{ route('contador.libro-diario.index') }}" class="btn btn-outline-secondary">
+                            <i class="fas fa-times me-2"></i> Cancelar
                         </a>
                     </div>
                     <div>
-                        <button type="button" class="btn btn-warning me-2" onclick="guardarBorrador()">
+                        {{-- <button type="button" class="btn btn-outline-warning me-2" onclick="guardarBorrador()">
                             <i class="fas fa-save"></i> Guardar Borrador
-                        </button>
-                        <button type="submit" id="guardarAsiento" class="btn btn-success" disabled>
-                            <i class="fas fa-check"></i> Guardar Asiento
+                        </button> --}}
+                        <button type="submit" id="guardarAsiento" class="btn btn-primary" disabled>
+                            <i class="fas fa-check me-2"></i> Guardar Asiento
                         </button>
                     </div>
                 </div>
@@ -286,41 +196,48 @@
     </form>
 
     {{-- Últimos asientos como referencia --}}
-    @if($ultimosAsientos->count() > 0)
-    <div class="card mt-4">
-        <div class="card-header">
-            <h5 class="card-title mb-0">
+    @if(isset($ultimosAsientos) && $ultimosAsientos->count() > 0)
+    <div class="table-card mt-4">
+        <div class="table-header">
+            <h5 class="table-title">
                 <i class="fas fa-history"></i> Últimos Asientos (Referencia)
             </h5>
         </div>
-        <div class="card-body">
-            <div class="table-responsive">
-                <table class="table table-sm">
-                    <thead class="table-light">
-                        <tr>
-                            <th>Número</th>
-                            <th>Fecha</th>
-                            <th>Glosa</th>
-                            <th>Total</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach($ultimosAsientos as $asiento)
-                        <tr>
-                            <td>{{ $asiento->numero }}</td>
-                            <td>{{ \Carbon\Carbon::parse($asiento->fecha)->format('d/m/Y') }}</td>
-                            <td>{{ Str::limit($asiento->glosa, 60) }}</td>
-                            <td>S/ {{ number_format($asiento->total_debe, 2) }}</td>
-                        </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-            </div>
+        <div class="table-responsive">
+            <table class="table table-sm align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Número</th>
+                        <th>Fecha</th>
+                        <th>Glosa</th>
+                        <th class="text-end">Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($ultimosAsientos as $asiento)
+                    <tr>
+                        <td>{{ $asiento->numero }}</td>
+                        <td>{{ \Carbon\Carbon::parse($asiento->fecha)->format('d/m/Y') }}</td>
+                        <td>{{ Str::limit($asiento->glosa, 60) }}</td>
+                        <td class="text-end">S/ {{ number_format($asiento->total_debe, 2) }}</td>
+                    </tr>
+                    @endforeach
+                </tbody>
+            </table>
         </div>
     </div>
     @endif
 </div>
 
+{{-- 
+    Select oculto con todas las cuentas contables.
+    El JS lo usará para construir las filas dinámicas.
+--}}
+<select id="opciones-cuentas" style="display:none;" multiple>
+    @foreach($cuentasContables as $cuenta)
+        <option value="{{ $cuenta->codigo }}">{{ $cuenta->codigo }} - {{ $cuenta->nombre }}</option>
+    @endforeach
+</select>
 @endsection
 
 @push('scripts')
@@ -329,21 +246,16 @@ document.addEventListener('DOMContentLoaded', function () {
     let cuentaActual = 1;
     let totalDebe = 0;
     let totalHaber = 0;
+    
+    // Almacenamos las opciones del select en memoria para más velocidad
+    const opcionesCuentasHTML = document.getElementById('opciones-cuentas').innerHTML;
 
     // Función para agregar una nueva fila
     window.agregarFilaDetalle = function () {
         const tbody = document.getElementById('detallesBody');
         const row = document.createElement('tr');
         row.id = `detalle-${cuentaActual}`;
-
-        // Generar opciones desde el select oculto
-        let opcionesHTML = '<option value="" disabled selected>Seleccionar cuenta...</option>';
-        const opciones = document.querySelectorAll('#opciones-cuentas option');
-        opciones.forEach(opt => {
-            if (opt.value) {
-                opcionesHTML += `<option value="${opt.value}">${opt.textContent}</option>`;
-            }
-        });
+        row.classList.add('detalle-fila');
 
         row.innerHTML = `
             <td>
@@ -351,44 +263,34 @@ document.addEventListener('DOMContentLoaded', function () {
                         class="form-select form-select-sm" 
                         onchange="actualizarBalance()" 
                         required>
-                    ${opcionesHTML}
+                    <option value="" disabled selected>Seleccionar cuenta...</option>
+                    ${opcionesCuentasHTML}
                 </select>
-                <div class="mt-1">
-                    <button type="button" class="btn btn-sm btn-outline-success me-1"
-                            onclick="seleccionarCuenta(${cuentaActual}, '1011')">
-                        Efectivo
-                    </button>
-                    <button type="button" class="btn btn-sm btn-outline-primary"
-                            onclick="seleccionarCuenta(${cuentaActual}, '10411')">
-                        Banco
-                    </button>
-                </div>
-                <div class="mt-1" id="badge-${cuentaActual}"></div>
             </td>
             <td>
                 <input type="text" name="detalles[${cuentaActual}][concepto]" 
                     class="form-control form-control-sm" 
-                    placeholder="Concepto" 
+                    placeholder="Concepto de la línea" 
                     required>
             </td>
             <td>
                 <input type="number" name="detalles[${cuentaActual}][debe]" 
-                    class="form-control form-control-sm text-end" 
+                    class="form-control form-control-sm text-end input-debe" 
                     step="0.01" min="0" value="0"
-                    onchange="actualizarBalance(); actualizarBadges(${cuentaActual})">
+                    onchange="actualizarBalance(); handleInput(this, 'debe')">
             </td>
             <td>
                 <input type="number" name="detalles[${cuentaActual}][haber]" 
-                    class="form-control form-control-sm text-end" 
+                    class="form-control form-control-sm text-end input-haber" 
                     step="0.01" min="0" value="0"
-                    onchange="actualizarBalance(); actualizarBadges(${cuentaActual})">
+                    onchange="actualizarBalance(); handleInput(this, 'haber')">
             </td>
             <td>
                 <input type="text" name="detalles[${cuentaActual}][documento_referencia]" 
                     class="form-control form-control-sm" 
-                    placeholder="Cheque/Nro doc">
+                    placeholder="Doc. Ref.">
             </td>
-            <td>
+            <td class="text-center">
                 <button type="button" onclick="eliminarFila(${cuentaActual})" 
                         class="btn btn-sm btn-outline-danger" title="Eliminar">
                     <i class="fas fa-trash"></i>
@@ -397,19 +299,30 @@ document.addEventListener('DOMContentLoaded', function () {
         `;
 
         tbody.appendChild(row);
+        
+        // Aplicar la glosa principal al concepto de la primera fila
+        if (cuentaActual === 1) {
+            const glosaPrincipal = document.getElementById('glosa').value;
+            if (glosaPrincipal) {
+                row.querySelector('input[name*="[concepto]"]').value = glosaPrincipal;
+            }
+        }
+        
         cuentaActual++;
+        actualizarBalance();
     };
+
+    // Función para que Debe y Haber no puedan tener valor al mismo tiempo
+    window.handleInput = function(element, tipo) {
+        const row = element.closest('tr');
+        if (tipo === 'debe' && parseFloat(element.value) > 0) {
+            row.querySelector('.input-haber').value = 0;
+        } else if (tipo === 'haber' && parseFloat(element.value) > 0) {
+            row.querySelector('.input-debe').value = 0;
+        }
+    }
 
     // Funciones globales
-    window.seleccionarCuenta = function (id, codigo) {
-        const select = document.querySelector(`#detalle-${id} select`);
-        if (select) {
-            select.value = codigo;
-            select.dispatchEvent(new Event('change'));
-            actualizarBadges(id);
-        }
-    };
-
     window.eliminarFila = function (id) {
         const row = document.getElementById(`detalle-${id}`);
         if (row) {
@@ -418,101 +331,145 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     };
 
-    window.actualizarBadges = function (id) {
-        const row = document.getElementById(`detalle-${id}`);
-        const debe = parseFloat(row.querySelector('input[name*="[debe]"]')?.value) || 0;
-        const haber = parseFloat(row.querySelector('input[name*="[haber]"]')?.value) || 0;
-        const badge = document.getElementById(`badge-${id}`);
-        badge.innerHTML = debe > 0 ? '<span class="badge bg-success">Efectivo</span>' :
-                           haber > 0 ? '<span class="badge bg-primary">Banco</span>' : '';
-    };
-
     window.actualizarBalance = function () {
         totalDebe = 0;
         totalHaber = 0;
+        let rowCount = 0;
+
         document.querySelectorAll('#detallesBody tr').forEach(row => {
             const debe = parseFloat(row.querySelector('input[name*="[debe]"]')?.value) || 0;
             const haber = parseFloat(row.querySelector('input[name*="[haber]"]')?.value) || 0;
             totalDebe += debe;
             totalHaber += haber;
+            rowCount++;
         });
 
         document.getElementById('totalDebe').textContent = 'S/ ' + totalDebe.toFixed(2);
         document.getElementById('totalHaber').textContent = 'S/ ' + totalHaber.toFixed(2);
-        const diff = Math.abs(totalDebe - totalHaber);
-        document.getElementById('diferencia').textContent = 'S/ ' + diff.toFixed(2);
+        const diff = totalDebe - totalHaber;
+        const diffAbs = Math.abs(diff);
+        document.getElementById('diferencia').textContent = 'S/ ' + diffAbs.toFixed(2);
 
         const status = document.getElementById('balanceStatus');
         const btn = document.getElementById('guardarAsiento');
-        if (diff < 0.01) {
+        
+        // El asiento debe estar balanceado (diferencia < 0.01)
+        // Debe tener al menos 2 filas
+        // El total debe y haber debe ser mayor a 0 (no un asiento vacío)
+        const isBalanced = diffAbs < 0.01;
+        const hasMinRows = rowCount >= 2;
+        const notEmpty = totalDebe > 0 && totalHaber > 0;
+
+        if (isBalanced && hasMinRows && notEmpty) {
             status.className = 'badge bg-success';
             status.textContent = 'Balanceado ✓';
             btn.disabled = false;
         } else {
             status.className = 'badge bg-danger';
-            status.textContent = 'No balancea ✗';
+            if (!isBalanced) {
+                status.textContent = 'No balancea ✗';
+            } else if (!hasMinRows) {
+                status.textContent = 'Mínimo 2 filas ✗';
+            } else if (!notEmpty) {
+                status.textContent = 'Asiento vacío ✗';
+            }
             btn.disabled = true;
         }
     };
 
     window.aplicarPlantilla = function (tipo) {
+        const glosaInput = document.getElementById('glosa');
         const templates = {
-            'ventas-medicamentos': [
-                { cuenta: '10411', concepto: 'Ventas medicamentos varios' },
-                { cuenta: '7011', concepto: 'Ingreso por ventas' }
-            ],
-            'compra-stock': [
-                { cuenta: '1311', concepto: 'Medicamentos en stock' },
-                { cuenta: '40111', concepto: 'Proveedores farmacéuticos' }
-            ],
-            'gastos-operativos': [
-                { cuenta: '90111', concepto: 'Sueldos personal almacén' },
-                { cuenta: '1011', concepto: 'Caja chica' }
-            ],
-            'medicamentos-caducos': [
-                { cuenta: '6331', concepto: 'Pérdida medicamentos vencidos' },
-                { cuenta: '1311', concepto: 'Afectación stock medicamentos' }
-            ],
-            'cobranzas': [
-                { cuenta: '1011', concepto: 'Cobro facturas clientes' },
-                { cuenta: '10411', concepto: 'Clientes diversos' }
-            ],
-            'pagos-proveedores': [
-                { cuenta: '40111', concepto: 'Pago proveedores' },
-                { cuenta: '1011', concepto: 'Salida efectivo' }
-            ]
+            'ventas-medicamentos': {
+                glosa: 'Por la venta de medicamentos del día',
+                lineas: [
+                    { cuenta: '12121', concepto: 'Facturas por cobrar', debe: 118, haber: 0 },
+                    { cuenta: '40111', concepto: 'IGV - Débito Fiscal', debe: 0, haber: 18 },
+                    { cuenta: '7011', concepto: 'Venta de mercaderías', debe: 0, haber: 100 }
+                ]
+            },
+            'compra-stock': {
+                glosa: 'Por la compra de mercadería a proveedor X',
+                lineas: [
+                    { cuenta: '6011', concepto: 'Compra de mercaderías', debe: 100, haber: 0 },
+                    { cuenta: '40111', concepto: 'IGV - Crédito Fiscal', debe: 18, haber: 0 },
+                    { cuenta: '42121', concepto: 'Facturas por pagar', debe: 0, haber: 118 }
+                ]
+            },
+            'gastos-operativos': {
+                glosa: 'Por el pago de servicios de luz',
+                lineas: [
+                    { cuenta: '6361', concepto: 'Gasto por servicio de luz', debe: 100, haber: 0 },
+                    { cuenta: '40111', concepto: 'IGV - Crédito Fiscal', debe: 18, haber: 0 },
+                    { cuenta: '1011', concepto: 'Salida de caja chica', debe: 0, haber: 118 }
+                ]
+            },
+            'medicamentos-caducos': {
+                glosa: 'Por la merma de medicamentos vencidos',
+                lineas: [
+                    { cuenta: '6331', concepto: 'Pérdida medicamentos vencidos', debe: 100, haber: 0 },
+                    { cuenta: '20111', concepto: 'Ajuste de stock de mercaderías', debe: 0, haber: 100 }
+                ]
+            },
+            'cobranzas': {
+                glosa: 'Por la cobranza de factura F001-123',
+                lineas: [
+                    { cuenta: '10411', concepto: 'Ingreso a Banco BCP', debe: 100, haber: 0 },
+                    { cuenta: '12121', concepto: 'Cancelación factura cliente', debe: 0, haber: 100 }
+                ]
+            },
+            'pagos-proveedores': {
+                glosa: 'Por el pago a proveedor X',
+                lineas: [
+                    { cuenta: '42121', concepto: 'Cancelación factura proveedor', debe: 100, haber: 0 },
+                    { cuenta: '10411', concepto: 'Salida de Banco BCP', debe: 0, haber: 100 }
+                ]
+            }
         };
 
+        const plantilla = templates[tipo];
+        if (!plantilla) return;
+
+        // Limpiar filas existentes
         document.getElementById('detallesBody').innerHTML = '';
         cuentaActual = 1;
+        
+        // Poner la glosa
+        glosaInput.value = plantilla.glosa;
 
-        if (templates[tipo]) {
-            templates[tipo].forEach(template => {
-                agregarFilaDetalle();
-                const row = document.querySelector(`#detalle-${cuentaActual - 1}`);
-                const select = row.querySelector('select');
-                const conceptoInput = row.querySelector('input[name*="[concepto]"]');
-                if (select) select.value = template.cuenta;
-                if (conceptoInput) conceptoInput.value = template.concepto;
-            });
-        }
+        // Agregar las líneas de la plantilla
+        plantilla.lineas.forEach(linea => {
+            agregarFilaDetalle();
+            const row = document.querySelector(`#detalle-${cuentaActual - 1}`);
+            const select = row.querySelector('select');
+            const conceptoInput = row.querySelector('input[name*="[concepto]"]');
+            const debeInput = row.querySelector('input[name*="[debe]"]');
+            const haberInput = row.querySelector('input[name*="[haber]"]');
+
+            if (select) select.value = linea.cuenta;
+            if (conceptoInput) conceptoInput.value = linea.concepto;
+            if (debeInput) debeInput.value = linea.debe;
+            if (haberInput) haberInput.value = linea.haber;
+        });
+        
         actualizarBalance();
     };
 
     window.guardarBorrador = function () {
-        alert('Función de borrador no implementada');
+        // Implementación futura: cambiar el 'estado' del asiento a 'BORRADOR'
+        Swal.fire('Función no implementada', 'Esta función guardará el asiento como borrador.', 'info');
     };
+
+    // Copiar Glosa principal al primer detalle
+    document.getElementById('glosa').addEventListener('change', function() {
+        const primerConcepto = document.querySelector('#detallesBody input[name*="[concepto]"]');
+        if (primerConcepto) {
+            primerConcepto.value = this.value;
+        }
+    });
 
     // Inicializar con 2 filas
     agregarFilaDetalle();
     agregarFilaDetalle();
 });
 </script>
-
-{{-- Cuentas contables cargadas directamente desde la BD --}}
-<select id="opciones-cuentas" style="display:none;">
-    @foreach($cuentasContables as $cuenta)
-        <option value="{{ $cuenta->codigo }}">{{ $cuenta->codigo }} - {{ $cuenta->nombre }}</option>
-    @endforeach
-</select>
-@endpush

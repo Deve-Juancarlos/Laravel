@@ -2,169 +2,72 @@
 
 @section('title', "Cuenta {$cuenta} - Libro Mayor")
 
-@section('styles')
-<style>
-/* --- Reset y layout --- */
-.container-fluid { padding: 0; }
-.main-content-wrapper { margin-left: 0; padding: 0; }
+@push('styles')
+    <link href="{{ asset('css/contabilidad/libro-mayor-cuenta.css') }}" rel="stylesheet">
+@endpush
 
-/* Breadcrumb */
-.breadcrumb-section { background: #f8f9fa; padding: 1rem 2rem; border-bottom: 1px solid #dee2e6; }
-.breadcrumb { margin: 0; font-size: 0.9rem; }
-.breadcrumb a { color: #6c757d; text-decoration: none; }
-.breadcrumb a:hover { color: #495057; }
-.breadcrumb .active { color: #212529; font-weight: 500; }
-
-/* Header */
-.page-header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 2rem; margin-bottom: 1rem; border-radius: 0 0 12px 12px; }
-.page-header h1 { margin: 0 0 0.5rem 0; font-size: 2rem; font-weight: 700; }
-.page-header p { margin: 0; opacity: 0.85; }
-.btn-back { background: #6c757d; border: none; color: white; padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; font-size: 0.9rem; transition: all 0.3s ease; }
-.btn-back:hover { background: #545b62; transform: translateY(-1px); }
-
-/* Resumen de la cuenta */
-.account-info { background: white; padding: 1.5rem; margin-bottom: 1rem; border-radius: 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.05); display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; }
-.account-field { display: flex; flex-direction: column; }
-.account-label { font-size: 0.8rem; text-transform: uppercase; color: #6c757d; font-weight: 600; margin-bottom: 0.25rem; letter-spacing: 0.5px; }
-.account-value { font-size: 1.1rem; font-weight: 600; color: #212529; }
-.account-value.saldo { font-size: 1.4rem; }
-.saldo-deudor { color: #dc3545; }
-.saldo-acreedor { color: #28a745; }
-
-/* Resumen del período */
-.summary-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin-bottom: 1rem; }
-.summary-card { background: white; padding: 1rem; border-radius: 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.05); border-left: 4px solid; display: flex; flex-direction: column; justify-content: center; }
-.summary-card.debe { border-left-color: #dc3545; }
-.summary-card.haber { border-left-color: #28a745; }
-.summary-card.total { border-left-color: #007bff; }
-.summary-label { font-size: 0.75rem; color: #6c757d; text-transform: uppercase; margin-bottom: 0.25rem; }
-.summary-value { font-size: 1.3rem; font-weight: 700; color: #212529; }
-
-/* Tabla de movimientos */
-.table-container { background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 6px rgba(0,0,0,0.05); }
-.table-header { background: #f8f9fa; padding: 1rem 1.5rem; border-bottom: 1px solid #e9ecef; display: flex; justify-content: space-between; align-items: center; }
-.table-title { font-size: 1rem; font-weight: 600; margin: 0; }
-.table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
-.table th, .table td { padding: 0.75rem 1rem; text-align: center; }
-.table th { background: #f1f3f5; font-weight: 600; text-transform: uppercase; font-size: 0.75rem; }
-.table tbody tr:nth-child(even) { background-color: #f8f9fa; }
-.debe-column { color: #dc3545; font-weight: 600; }
-.haber-column { color: #28a745; font-weight: 600; }
-.saldo-column { font-weight: 600; }
-.saldo-acumulado { background-color: #e9ecef !important; font-weight: 600; }
-
-/* Links */
-.documento-link { color: #007bff; text-decoration: none; font-weight: 500; }
-.documento-link:hover { color: #0056b3; text-decoration: underline; }
-
-/* Responsive */
-@media (max-width: 768px) {
-    .account-info { grid-template-columns: 1fr; }
-    .summary-cards { grid-template-columns: 1fr; }
-    .page-header h1 { font-size: 1.5rem; }
-}
-</style>
+{{-- 1. Título de la Página --}}
+@section('page-title')
+    <div>
+        <h1><i class="fas fa-calculator me-2"></i>Cuenta: {{ $cuenta }}</h1>
+        <p class="text-muted">{{ $infoCuenta->nombre ?? 'Detalle de Movimientos de Cuenta' }}</p>
+    </div>
 @endsection
 
-@section('sidebar-menu')
-{{-- MENÚ PRINCIPAL --}}
-<div class="nav-section">Dashboard</div>
-<ul>
-    <li><a href="{{ route('dashboard.contador') }}" class="nav-link">
-        <i class="fas fa-chart-pie"></i> Panel Principal
-    </a></li>
-</ul>
-
-<div class="nav-section">Contabilidad</div>
-<ul>
-    <li>
-        <a href="{{ route('contador.libro-diario.index') }}" class="nav-link has-submenu">
-            <i class="fas fa-book"></i> Libros Contables
-        </a>
-        <div class="nav-submenu">
-            <a href="{{ route('contador.libro-diario.index') }}" class="nav-link"><i class="fas fa-file-alt"></i> Libro Diario</a>
-            <a href="{{ route('contador.libro-mayor.index') }}" class="nav-link"><i class="fas fa-book-open"></i> Libro Mayor</a>
-            <a href="{{route('contador.balance-comprobacion.index')}}" class="nav-link"><i class="fas fa-balance-scale"></i> Balance Comprobación</a>    
-            <a href="{{ route('contador.estado-resultados.index') }}" class="nav-link"><i class="fas fa-chart-bar"></i> Estados Financieros</a>
-        </div>
-    </li>
-    <li>
-        <a href="#" class="nav-link has-submenu">
-            <i class="fas fa-file-invoice"></i> Registros
-        </a>
-        <div class="nav-submenu">
-            <a href="#" class="nav-link"><i class="fas fa-shopping-cart"></i> Compras</a>
-            <a href="#" class="nav-link"><i class="fas fa-cash-register"></i> Ventas</a>
-            <a href="#" class="nav-link"><i class="fas fa-university"></i> Bancos</a>
-            <a href="#" class="nav-link"><i class="fas fa-money-bill-wave"></i> Caja</a>
-        </div>
-    </li>
-</ul>
-
-{{-- VENTAS Y COBRANZAS --}}
-<div class="nav-section">Ventas & Cobranzas</div>
-<ul>
-    <li><a href="{{ route('contador.reportes.ventas') }}" class="nav-link">
-        <i class="fas fa-chart-line"></i> Análisis Ventas
-    </a></li>
-    <li><a href="{{ route('contador.reportes.compras') }}" class="nav-link">
-        <i class="fas fa-wallet"></i> Cartera
-    </a></li>
-    <li><a href="{{ route('contador.facturas.create') }}" class="nav-link">
-        <i class="fas fa-clock"></i> Fact. Pendientes
-    </a></li>
-    <li><a href="{{ route('contador.facturas.index') }}" class="nav-link">
-        <i class="fas fa-exclamation-triangle"></i> Fact. Vencidas
-    </a></li>
-</ul>
-
-{{-- GESTIÓN --}}
-<div class="nav-section">Gestión</div>
-<ul>
-    <li><a href="{{ route('contador.clientes') }}" class="nav-link">
-        <i class="fas fa-users"></i> Clientes
-    </a></li>
-    <li><a href="{{ route('contador.reportes.medicamentos-controlados') }}" class="nav-link">
-        <i class="fas fa-percentage"></i> Márgenes
-    </a></li>
-    <li><a href="{{ route('contador.reportes.inventario') }}" class="nav-link">
-        <i class="fas fa-boxes"></i> Inventario
-    </a></li>
-</ul>
-
-{{-- REPORTES SUNAT --}}
-<div class="nav-section">SUNAT</div>
-<ul>
-    <li><a href="#" class="nav-link">
-        <i class="fas fa-file-invoice-dollar"></i> PLE
-    </a></li>
-    <li><a href="#" class="nav-link">
-        <i class="fas fa-percent"></i> IGV Mensual
-    </a></li>
-</ul>
+{{-- 2. Breadcrumbs --}}
+@section('breadcrumbs')
+    <li class="breadcrumb-item"><a href="{{ route('dashboard.contador') }}">Contabilidad</a></li>
+    <li class="breadcrumb-item"><a href="{{ route('contador.libro-mayor.index') }}">Libro Mayor</a></li>
+    <li class="breadcrumb-item active" aria-current="page">{{ $cuenta }}</li>
 @endsection
 
+{{-- 3. Contenido Principal --}}
 @section('content')
 <div class="container-fluid">
     <div class="main-content-wrapper">
 
-        {{-- Breadcrumb --}}
-        <div class="breadcrumb-section">
-            <nav aria-label="breadcrumb">
-                <ol class="breadcrumb">
-                    <li class="breadcrumb-item"><a href="{{ route('dashboard.contador') }}">Dashboard</a></li>
-                    <li class="breadcrumb-item"><a href="{{ route('contador.libro-mayor.index') }}">Libro Mayor</a></li>
-                    <li class="breadcrumb-item active" aria-current="page">{{ $cuenta }}</li>
-                </ol>
-            </nav>
+        {{-- Alertas --}}
+        @if(session('success'))
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle me-2"></i>{{ session('success') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        @endif
+        @if(session('error'))
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-triangle me-2"></i>{{ session('error') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        @endif
+
+        {{-- Filtros de Fecha --}}
+        <div class="card shadow-sm filters-card mb-4">
+            <div class="card-body">
+                <form method="GET" action="{{ route('contador.libro-mayor.cuenta', $cuenta) }}">
+                    <div class="row g-3 align-items-end">
+                        <div class="col-md-4">
+                            <label class="form-label" for="fecha_inicio">Fecha Inicio</label>
+                            <input type="date" name="fecha_inicio" id="fecha_inicio" class="form-control" 
+                                   value="{{ $fechaInicio ?? '' }}">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label" for="fecha_fin">Fecha Fin</label>
+                            <input type="date" name="fecha_fin" id="fecha_fin" class="form-control" 
+                                   value="{{ $fechaFin ?? '' }}">
+                        </div>
+                        <div class="col-md-4 d-flex gap-2">
+                            <button type="submit" class="btn btn-primary w-100">
+                                <i class="fas fa-filter me-1"></i> Filtrar Período
+                            </button>
+                            <a href="{{ route('contador.libro-mayor.index') }}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i>
+                            </a>
+                        </div>
+                    </div>
+                </form>
+            </div>
         </div>
 
-        {{-- Header --}}
-        <div class="page-header">
-            <h1><i class="fas fa-calculator me-2"></i>Cuenta: {{ $cuenta }}</h1>
-            <p>{{ $infoCuenta->cuenta_nombre ?? 'Sin nombre' }}</p>
-            <a href="{{ route('contador.libro-mayor.index') }}" class="btn-back"><i class="fas fa-arrow-left me-1"></i>Volver</a>
-        </div>
 
         {{-- Información de la cuenta --}}
         <div class="account-info">
@@ -174,7 +77,8 @@
             </div>
             <div class="account-field">
                 <span class="account-label">Nombre de la Cuenta</span>
-                <span class="account-value">{{ $infoCuenta->cuenta_nombre ?? 'Sin nombre' }}</span>
+                {{-- CORRECCIÓN: Era 'cuenta_nombre', se cambió a 'nombre' --}}
+                <span class="account-value">{{ $infoCuenta->nombre ?? 'Sin nombre' }}</span>
             </div>
             <div class="account-field">
                 <span class="account-label">Período</span>
@@ -196,30 +100,33 @@
 
         {{-- Resumen del período --}}
         <div class="summary-cards">
-            <div class="summary-card debe">
-                <div class="summary-label">Total Debe</div>
+            <div class="summary-card debe shadow-sm">
+                <div class="summary-label">Total Debe (Período)</div>
                 <div class="summary-value">S/ {{ number_format($totalesPeriodo['debe'],2) }}</div>
             </div>
-            <div class="summary-card haber">
-                <div class="summary-label">Total Haber</div>
+            <div class="summary-card haber shadow-sm">
+                <div class="summary-label">Total Haber (Período)</div>
                 <div class="summary-value">S/ {{ number_format($totalesPeriodo['haber'],2) }}</div>
             </div>
-            <div class="summary-card total">
+            <div class="summary-card total shadow-sm">
                 <div class="summary-label">Saldo del Período</div>
-                <div class="summary-value {{ $totalesPeriodo['saldo_final'] >=0 ? 'saldo-acreedor' : 'saldo-deudor' }}">
-                    S/ {{ number_format($totalesPeriodo['saldo_final'],2) }}
+                <div class="summary-value {{ ($totalesPeriodo['debe'] - $totalesPeriodo['haber']) >= 0 ? 'text-success' : 'text-danger' }}">
+                    S/ {{ number_format($totalesPeriodo['debe'] - $totalesPeriodo['haber'],2) }}
                 </div>
             </div>
         </div>
 
         {{-- Tabla de movimientos --}}
-        <div class="table-container">
-            <div class="table-header">
-                <h3 class="table-title"><i class="fas fa-list me-2"></i>Movimientos</h3>
+        <div class="table-container card shadow-sm">
+            <div class="table-header card-header d-flex justify-content-between align-items-center">
+                <h5 class="table-title card-title mb-0"><i class="fas fa-list me-2"></i>Movimientos del Período</h5>
+                <a href="{{ route('contador.libro-mayor.exportar', array_merge(request()->query(), ['cuenta' => $cuenta])) }}" class="btn btn-success-soft btn-sm">
+                    <i class="fas fa-file-excel me-1"></i> Exportar Cuenta
+                </a>
             </div>
             <div class="table-responsive">
                 <table class="table table-hover mb-0">
-                    <thead>
+                    <thead class="table-light">
                         <tr>
                             <th>Fecha</th>
                             <th>N° Asiento</th>
@@ -231,14 +138,19 @@
                     </thead>
                     <tbody>
                         <tr class="saldo-acumulado {{ $saldoAnterior >= 0 ? 'saldo-acreedor' : 'saldo-deudor' }}">
-                            <td colspan="5" class="text-end"><strong>Saldo Anterior</strong></td>
+                            <td colspan="5" class="text-end"><strong>Saldo Anterior al {{ \Carbon\Carbon::parse($fechaInicio)->format('d/m/Y') }}</strong></td>
                             <td class="text-end">{{ number_format($saldoAnterior,2) }}</td>
                         </tr>
 
                         @forelse($movimientos as $mov)
                         <tr>
                             <td>{{ \Carbon\Carbon::parse($mov->fecha)->format('d/m/Y') }}</td>
-                            <td><a href="#" class="documento-link">{{ $mov->numero }}</a></td>
+                            <td>
+                                {{-- CORRECCIÓN: Enlace al asiento --}}
+                                <a href="{{ route('contador.libro-diario.show', $mov->asiento_id) }}" target="_blank" class="documento-link" title="Ver Asiento {{ $mov->numero }}">
+                                    {{ $mov->numero }}
+                                </a>
+                            </td>
                             <td>{{ Str::limit($mov->concepto ?? '-',50) }}</td>
                             <td class="text-end debe-column">{{ $mov->debe>0?number_format($mov->debe,2):'-' }}</td>
                             <td class="text-end haber-column">{{ $mov->haber>0?number_format($mov->haber,2):'-' }}</td>
@@ -248,38 +160,35 @@
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="6" class="text-center text-muted py-4">
-                                <i class="fas fa-inbox fa-2x mb-2 d-block"></i>No hay movimientos para este período
+                            <td colspan="6" class="text-center text-muted p-5">
+                                <i class="fas fa-inbox fa-3x mb-3 d-block"></i>
+                                <h5 class="mb-0">No hay movimientos para este período</h5>
                             </td>
                         </tr>
                         @endforelse
 
                         @if($movimientos->count()>0)
-                        <tr class="table-warning fw-bold">
+                        <tr class="table-light fw-bold">
                             <td colspan="3" class="text-end"><strong>Totales del Período</strong></td>
                             <td class="text-end debe-column">{{ number_format($totalesPeriodo['debe'],2) }}</td>
                             <td class="text-end haber-column">{{ number_format($totalesPeriodo['haber'],2) }}</td>
-                            <td class="text-end saldo-column">{{ number_format($totalesPeriodo['saldo_final'],2) }}</td>
+                            <td class="text-end">---</td>
+                        </tr>
+                        <tr class="table-dark fw-bold">
+                            <td colspan="5" class="text-end"><strong>Saldo Final al {{ \Carbon\Carbon::parse($fechaFin)->format('d/m/Y') }}</strong></td>
+                            <td class="text-end saldo-column {{ $totalesPeriodo['saldo_final']>=0?'saldo-acreedor':'saldo-deudor' }}">
+                                {{ number_format($totalesPeriodo['saldo_final'],2) }}
+                            </td>
                         </tr>
                         @endif
                     </tbody>
                 </table>
             </div>
         </div>
-
     </div>
 </div>
 @endsection
 
-@section('scripts')
-<script>
-document.addEventListener('DOMContentLoaded', function(){
-    document.querySelectorAll('.documento-link').forEach(link=>{
-        link.addEventListener('click', e=>{
-            e.preventDefault();
-            alert('Funcionalidad de ver asiento: ' + link.textContent.trim());
-        });
-    });
-});
-</script>
-@endsection
+@push('scripts')
+{{-- No se necesita JS específico para esta vista, pero dejamos el push por si acaso --}}
+@endpush

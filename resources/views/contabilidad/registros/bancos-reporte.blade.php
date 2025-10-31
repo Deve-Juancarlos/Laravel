@@ -21,7 +21,7 @@
     <!-- Filtros -->
     <div class="card mb-4">
         <div class="card-body">
-            <form method="GET" action="{{ route('bancos.reporte') }}" id="formReporte">
+            <form method="GET" action="{{ route('contador.bancos.reporte') }}" id="formReporte">
                 <div class="row g-3">
                     <div class="col-md-3">
                         <label class="form-label">Tipo de Reporte *</label>
@@ -42,13 +42,13 @@
                         <input type="date" name="fecha_fin" class="form-control" value="{{ request('fecha_fin', now()->format('Y-m-d')) }}" required>
                     </div>
                     <div class="col-md-3">
-                        <label class="form-label">Banco</label>
-                        <select name="banco_id" class="form-select">
-                            <option value="">Todos los bancos</option>
-                            @foreach($bancos as $banco)
-                            <option value="{{ $banco->id }}" {{ request('banco_id') == $banco->id ? 'selected' : '' }}>
-                                {{ $banco->nombre }}
-                            </option>
+                        <label class="form-label">Cuenta Bancaria</label>
+                        <select name="cuenta" class="form-select">
+                            <option value="">Todas las cuentas</option>
+                            @foreach($listaBancos as $banco)
+                                <option value="{{ $banco->Cuenta }}" {{ request('cuenta') == $banco->Cuenta ? 'selected' : '' }}>
+                                    {{ $banco->Banco }} - {{ $banco->Cuenta }}
+                                </option>
                             @endforeach
                         </select>
                     </div>
@@ -211,7 +211,7 @@
                             <tbody>
                                 @foreach($datosReporte['movimientos'] as $mov)
                                 <tr>
-                                    <td>{{ \\Carbon\\Carbon::parse($mov->fecha)->format('d/m/Y H:i') }}</td>
+                                    <td>{{ \Carbon\Carbon::parse($mov->fecha)->format('d/m/Y H:i') }}</td>
                                     <td><span class="badge bg-secondary">{{ $mov->banco->nombre }}</span></td>
                                     <td>
                                         @if($mov->tipo == 'ingreso')
@@ -315,7 +315,7 @@
                                     <div class="d-flex justify-content-between">
                                         <div>
                                             <strong>{{ $ing->concepto }}</strong><br>
-                                            <small class="text-muted">{{ \\Carbon\\Carbon::parse($ing->fecha)->format('d/m/Y') }} - {{ $ing->banco->nombre }}</small>
+                                            <small class="text-muted">{{ \Carbon\Carbon::parse($ing->fecha)->format('d/m/Y') }} - {{ $ing->banco->nombre }}</small>
                                         </div>
                                         <div class="text-end">
                                             <h5 class="text-success mb-0">{{ number_format($ing->monto, 2) }}</h5>
@@ -339,7 +339,7 @@
                                     <div class="d-flex justify-content-between">
                                         <div>
                                             <strong>{{ $egr->concepto }}</strong><br>
-                                            <small class="text-muted">{{ \\Carbon\\Carbon::parse($egr->fecha)->format('d/m/Y') }} - {{ $egr->banco->nombre }}</small>
+                                            <small class="text-muted">{{ \Carbon\Carbon::parse($egr->fecha)->format('d/m/Y') }} - {{ $egr->banco->nombre }}</small>
                                         </div>
                                         <div class="text-end">
                                             <h5 class="text-danger mb-0">{{ number_format($egr->monto, 2) }}</h5>
@@ -439,7 +439,7 @@ function exportarReporte() {
     const formData = new FormData(form);
     formData.append('exportar', 'excel');
     
-    window.location.href = '{{ route("bancos.exportar-reporte") }}?' + new URLSearchParams(formData).toString();
+    window.location.href = '{{ route("contador.bancos.reporte") }}?' + new URLSearchParams(formData).toString();
 }
 
 // Inicializar gráficas según el tipo de reporte

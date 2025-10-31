@@ -7,7 +7,7 @@
       <h2><i class="fas fa-university"></i> Reporte de Bancos - Mensual</h2>
       <nav aria-label="breadcrumb">
         <ol class="breadcrumb">
-          <li class="breadcrumb-item"><a href="{{ route('dashboard.contador') }}">Dashboard</a></li>
+          <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Dashboard</a></li>
           <li class="breadcrumb-item"><a href="{{ route('contador.bancos.index') }}">Reportes</a></li>
           <li class="breadcrumb-item active">Bancos Mensual</li>
         </ol>
@@ -26,11 +26,11 @@
           <div class="col-md-3">
             <label for="mes">Mes</label>
             <select name="mes" id="mes" class="form-control">
-              @for($m = 1; $m <= 12; $m++)
-                <option value="{{ $m }}" {{ $mes == $m ? 'selected' : '' }}>
-                  {{ DateTime::createFromFormat('!m', $m)->format('F') }}
+              @foreach($meses as $num => $nombre)
+                <option value="{{ $num }}" {{ $mes == $num ? 'selected' : '' }}>
+                  {{ $nombre }}
                 </option>
-              @endfor
+              @endforeach
             </select>
           </div>
           <div class="col-md-3">
@@ -41,19 +41,7 @@
               @endfor
             </select>
           </div>
-          <div class="col-md-4">
-            <label for="cuenta_id">Cuenta Bancaria</label>
-            <select name="cuenta_id" id="cuenta_id" class="form-control">
-              <option value="">Todas las cuentas</option>
-              @foreach($cuentas as $cuenta)
-                <option value="{{ $cuenta->id }}" {{ $cuenta_id == $cuenta->id ? 'selected' : '' }}>
-                  {{ $cuenta->banco }} - {{ $cuenta->numero_cuenta }}
-                </option>
-              @endforeach
-            </select>
-          </div>
-          <div class="col-md-2">
-            <label> </label>
+          <div class="col-md-2 align-self-end">
             <button type="submit" class="btn btn-primary btn-block">
               <i class="fas fa-search"></i> Buscar
             </button>
@@ -65,145 +53,126 @@
 
   <!-- Resumen General -->
   <div class="row mb-4">
-    <div class="col-md-3">
-      <div class="card bg-primary text-white">
-        <div class="card-body">
-          <h6>Saldo Inicial</h6>
-          <h3>${{ number_format($saldoInicial, 2) }}</h3>
-        </div>
-      </div>
-    </div>
-    <div class="col-md-3">
+    <div class="col-md-4">
       <div class="card bg-success text-white">
         <div class="card-body">
           <h6>Total Ingresos</h6>
-          <h3>${{ number_format($totalIngresos, 2) }}</h3>
+          <h3>S/ {{ number_format($totalesMes['total_ingresos'], 2) }}</h3>
         </div>
       </div>
     </div>
-    <div class="col-md-3">
+    <div class="col-md-4">
       <div class="card bg-danger text-white">
         <div class="card-body">
           <h6>Total Egresos</h6>
-          <h3>${{ number_format($totalEgresos, 2) }}</h3>
+          <h3>S/ {{ number_format($totalesMes['total_egresos'], 2) }}</h3>
         </div>
       </div>
     </div>
-    <div class="col-md-3">
+    <div class="col-md-4">
       <div class="card bg-info text-white">
         <div class="card-body">
-          <h6>Saldo Final</h6>
-          <h3>${{ number_format($saldoFinal, 2) }}</h3>
+          <h6>Saldo Neto</h6>
+          <h3>S/ {{ number_format($totalesMes['total_ingresos'] - $totalesMes['total_egresos'], 2) }}</h3>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Tabla de Movimientos por Cuenta -->
+  <!-- Resumen por Banco -->
   <div class="card">
     <div class="card-header d-flex justify-content-between align-items-center">
-      <h5><i class="fas fa-table"></i> Movimientos del Mes</h5>
+      <h5><i class="fas fa-table"></i> Resumen Mensual por Banco</h5>
       <div>
-        <button onclick="exportarExcel()" class="btn btn-success btn-sm">
-          <i class="fas fa-file-excel"></i> Excel
-        </button>
-        <button onclick="exportarPDF()" class="btn btn-danger btn-sm">
-          <i class="fas fa-file-pdf"></i> PDF
-        </button>
         <button onclick="window.print()" class="btn btn-secondary btn-sm">
           <i class="fas fa-print"></i> Imprimir
         </button>
       </div>
     </div>
     <div class="card-body">
-      @foreach($movimientosPorCuenta as $cuentaData)
-        <h5 class="mt-3">
-          <i class="fas fa-university"></i> {{ $cuentaData['cuenta']->banco }} - {{ $cuentaData['cuenta']->numero_cuenta }}
-        </h5>
+      @if($resumenMensual->isEmpty())
+        <div class="alert alert-info text-center">
+          <i class="fas fa-info-circle"></i> No hay movimientos bancarios para el período seleccionado.
+        </div>
+      @else
         <div class="table-responsive">
           <table class="table table-striped table-hover">
             <thead class="thead-dark">
               <tr>
-                <th>Fecha</th>
-                <th>Tipo</th>
-                <th>Concepto</th>
-                <th>Referencia</th>
+                <th>Banco</th>
+                <th>Moneda</th>
                 <th class="text-right">Ingresos</th>
                 <th class="text-right">Egresos</th>
-                <th class="text-right">Saldo</th>
+                <th class="text-right">Saldo del Mes</th>
+                <th class="text-center">Movimientos</th>
               </tr>
             </thead>
             <tbody>
-              <tr class="table-info">
-                <td colspan="6"><strong>Saldo Inicial</strong></td>
-                <td class="text-right"><strong>${{ number_format($cuentaData['saldo_inicial'], 2) }}</strong></td>
-              </tr>
-              @php $saldo = $cuentaData['saldo_inicial']; @endphp
-              @foreach($cuentaData['movimientos'] as $mov)
-                @php
-                  $saldo += $mov->ingreso - $mov->egreso;
-                @endphp
+              @foreach($resumenMensual as $item)
                 <tr>
-                  <td>{{ $mov->fecha->format('d/m/Y') }}</td>
-                  <td>
-                    <span class="badge badge-{{ $mov->tipo == 'ingreso' ? 'success' : 'danger' }}">
-                      {{ ucfirst($mov->tipo) }}
-                    </span>
-                  </td>
-                  <td>{{ $mov->concepto }}</td>
-                  <td>{{ $mov->referencia }}</td>
-                  <td class="text-right text-success">
-                    {{ $mov->ingreso > 0 ? '$'.number_format($mov->ingreso, 2) : '-' }}
-                  </td>
-                  <td class="text-right text-danger">
-                    {{ $mov->egreso > 0 ? '$'.number_format($mov->egreso, 2) : '-' }}
-                  </td>
+                  <td>{{ $item->Banco }}</td>
+                  <td>{{ $item->Moneda == 1 ? 'PEN' : ($item->Moneda == 2 ? 'USD' : 'Otro') }}</td>
+                  <td class="text-right text-success">S/ {{ number_format($item->ingresos_mes, 2) }}</td>
+                  <td class="text-right text-danger">S/ {{ number_format($item->egresos_mes, 2) }}</td>
                   <td class="text-right">
-                    <strong>${{ number_format($saldo, 2) }}</strong>
+                    <strong>S/ {{ number_format($item->saldo_mes, 2) }}</strong>
                   </td>
+                  <td class="text-center">{{ $item->total_movimientos }}</td>
                 </tr>
               @endforeach
-              <tr class="table-warning">
-                <td colspan="4"><strong>Totales</strong></td>
-                <td class="text-right"><strong>${{ number_format($cuentaData['total_ingresos'], 2) }}</strong></td>
-                <td class="text-right"><strong>${{ number_format($cuentaData['total_egresos'], 2) }}</strong></td>
-                <td class="text-right"><strong>${{ number_format($saldo, 2) }}</strong></td>
-              </tr>
             </tbody>
+            <tfoot>
+              <tr class="font-weight-bold">
+                <td colspan="2">TOTALES</td>
+                <td class="text-right text-success">S/ {{ number_format($totalesMes['total_ingresos'], 2) }}</td>
+                <td class="text-right text-danger">S/ {{ number_format($totalesMes['total_egresos'], 2) }}</td>
+                <td class="text-right">S/ {{ number_format($totalesMes['total_ingresos'] - $totalesMes['total_egresos'], 2) }}</td>
+                <td class="text-center">{{ $totalesMes['total_movimientos'] }}</td>
+              </tr>
+            </tfoot>
           </table>
         </div>
-        <hr>
-      @endforeach
 
-      @if($movimientosPorCuenta->isEmpty())
-        <div class="alert alert-info text-center">
-          <i class="fas fa-info-circle"></i> No hay movimientos para el período seleccionado
+        <!-- Detalle Diario (opcional) -->
+        <h5 class="mt-5"><i class="fas fa-calendar-day"></i> Detalle Diario</h5>
+        <div class="table-responsive mt-3">
+          <table class="table table-sm table-bordered">
+            <thead class="thead-light">
+              <tr>
+                <th>Día</th>
+                <th>Banco</th>
+                <th class="text-right">Ingresos</th>
+                <th class="text-right">Egresos</th>
+                <th class="text-center">Movimientos</th>
+              </tr>
+            </thead>
+            <tbody>
+              @foreach($detalleDiario as $dia)
+                <tr>
+                  <td>{{ str_pad($dia->dia, 2, '0', STR_PAD_LEFT) }}</td>
+                  <td>{{ $dia->Banco }}</td>
+                  <td class="text-right">S/ {{ number_format($dia->ingresos, 2) }}</td>
+                  <td class="text-right">S/ {{ number_format($dia->egresos, 2) }}</td>
+                  <td class="text-center">{{ $dia->movimientos }}</td>
+                </tr>
+              @endforeach
+            </tbody>
+          </table>
         </div>
       @endif
     </div>
   </div>
 </div>
 
-<script>
-function exportarExcel() {
-  const params = new URLSearchParams(window.location.search);
-  params.append('formato', 'excel');
-  window.location.href = '{{ route("contador.bancos.mensual") }}?' + params.toString();
-}
-
-function exportarPDF() {
-  const params = new URLSearchParams(window.location.search);
-  params.append('formato', 'pdf');
-  window.open('{{ route("contador.bancos.mensual") }}?' + params.toString(), '_blank');
-}
-</script>
-
 <style>
 @media print {
   .card-header button,
   .breadcrumb,
   form {
-    display: none;
+    display: none !important;
+  }
+  body {
+    font-size: 12px;
   }
 }
 </style>

@@ -1,0 +1,93 @@
+/* ESTILOS PARA: resources/views/contabilidad/libros/diario/show.blade.php
+*/
+
+/* Badges de Estado (copiado de libro-diario.css) */
+.badge.bg-success-light { background-color: rgba(46, 204, 113, 0.1); color: #2ecc71; }
+.badge.bg-warning-light { background-color: rgba(241, 196, 15, 0.1); color: #f1c40f; }
+.badge.bg-info-light { background-color: rgba(52, 152, 219, 0.1); color: #3498db; }
+.bg-warning-light { background-color: rgba(245, 158, 11, 0.1) !important; }
+.border-warning { border-color: #f59e0b !important; }
+
+
+/* Cajas de KPI Pequeñas (para el resumen) */
+.kpi-box {
+    display: flex;
+    align-items: center;
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 1rem;
+}
+.kpi-icon-sm {
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    margin-right: 1rem;
+}
+.kpi-icon-sm.bg-success-light { background-color: rgba(46, 204, 113, 0.1); }
+.kpi-icon-sm.bg-danger-light  { background-color: rgba(231, 76, 60, 0.1); }
+.kpi-icon-sm.bg-warning-light { background-color: rgba(241, 196, 15, 0.1); }
+
+.kpi-content-sm .kpi-label-sm {
+    font-size: 0.875rem;
+    color: #6c757d;
+    font-weight: 500;
+}
+.kpi-content-sm .kpi-value-sm {
+    font-size: 1.25rem;
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+/* Estilos de la Línea de Tiempo (Timeline) */
+.timeline {
+    position: relative;
+    padding-left: 20px;
+}
+.timeline::before {
+    content: '';
+    position: absolute;
+    left: 25px;
+    top: 5px;
+    bottom: 5px;
+    width: 2px;
+    background: #e9ecef;
+}
+
+.timeline-item {
+    position: relative;
+    padding-bottom: 20px;
+}
+
+.timeline-item:last-child {
+    padding-bottom: 0;
+}
+
+.timeline-marker {
+    position: absolute;
+    left: -7px;
+    top: 5px;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    border: 3px solid #fff;
+}
+
+.timeline-content {
+    padding-left: 25px;
+}
+
+.timeline-title {
+    font-weight: 600;
+    margin-bottom: 4px;
+    color: #343a40;
+}
+
+.timeline-text {
+    color: #6c757d;
+    font-size: 0.9rem;
+    margin-bottom: 4px;
+}

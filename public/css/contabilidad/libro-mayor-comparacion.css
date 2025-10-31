@@ -1,0 +1,87 @@
+/*
+ * Estilos para el reporte de Comparación de Períodos
+ */
+
+/* Tarjetas de Filtro (reutiliza estilos de libro-diario y libro-mayor) */
+.filters-card {
+    background-color: #fff;
+    border-radius: 12px;
+}
+.filters-card .form-label {
+    font-weight: 600;
+    font-size: 0.875rem;
+    color: #495057;
+}
+
+/* Estilos de la plantilla del usuario */
+.period-card {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 15px;
+    padding: 25px;
+    color: white;
+    margin-bottom: 20px;
+}
+.comparison-table {
+    border-radius: 10px;
+    overflow: hidden;
+    /* box-shadow: 0 4px 20px rgba(0,0,0,0.1); */ /* Se usa el shadow de la card principal */
+}
+.variation-positive {
+    color: #28a745;
+    font-weight: bold;
+}
+.variation-negative {
+    color: #dc3545;
+    font-weight: bold;
+}
+.variation-neutral {
+    color: #6c757d;
+    font-weight: bold;
+}
+.stat-box {
+    background: #ffffff;
+    border: 1px solid #e3e6f0;
+    border-radius: 10px;
+    padding: 20px;
+    color: #333;
+    text-align: center;
+    margin-bottom: 15px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+.stat-value {
+    font-size: 1.75em;
+    font-weight: 700;
+    margin-bottom: 5px;
+}
+.stat-label {
+    opacity: 0.9;
+    font-size: 0.9em;
+    color: #6c757d;
+}
+
+/* Estilos para las barras de progreso */
+.progress-bar-custom {
+    height: 8px;
+    border-radius: 10px;
+    background-color: #e3e6f0;
+    overflow: hidden;
+}
+.progress-fill {
+    height: 100%;
+    border-radius: 10px;
+    transition: width 0.6s ease;
+    width: 0%; /* Inicia en 0 para la animación */
+}
+
+/* Estilos de la tabla */
+.comparison-table thead.table-dark {
+    background-color: #343a40;
+    color: white;
+}
+.comparison-table tbody tr:hover {
+    background-color: #f8f9fa;
+}
+.comparison-table tfoot.table-light {
+    background-color: #f8f9fa;
+    border-top: 2px solid #dee2e6;
+}

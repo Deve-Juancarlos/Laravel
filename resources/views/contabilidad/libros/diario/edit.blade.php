@@ -3,145 +3,76 @@
 
 @section('title', 'Editar Asiento ' . $asiento->numero)
 
-@section('sidebar-menu')
-{{-- MENÚ PRINCIPAL --}}
-<div class="nav-section">Dashboard</div>
-<ul>
-    <li><a href="{{ route('dashboard.contador') }}" class="nav-link">
-        <i class="fas fa-chart-pie"></i> Panel Principal
-    </a></li>
-</ul>
-
-<div class="nav-section">Contabilidad</div>
-<ul>
-    <li>
-        <a href="{{ route('contador.libro-diario.index') }}" class="nav-link has-submenu">
-            <i class="fas fa-book"></i> Libros Contables
-        </a>
-        <div class="nav-submenu">
-            <a href="{{ route('contador.libro-diario.index') }}" class="nav-link"><i class="fas fa-file-alt"></i> Libro Diario</a>
-            <a href="{{ route('contador.libro-mayor.index') }}" class="nav-link"><i class="fas fa-book-open"></i> Libro Mayor</a>
-            <a href="{{route('contador.balance-comprobacion.index')}}" class="nav-link"><i class="fas fa-balance-scale"></i> Balance Comprobación</a>    
-            <a href="{{ route('contador.estado-resultados.index') }}" class="nav-link"><i class="fas fa-chart-bar"></i> Estados Financieros</a>
-        </div>
-    </li>
-    <li>
-        <a href="#" class="nav-link has-submenu">
-            <i class="fas fa-file-invoice"></i> Registros
-        </a>
-        <div class="nav-submenu">
-            <a href="#" class="nav-link"><i class="fas fa-shopping-cart"></i> Compras</a>
-            <a href="#" class="nav-link"><i class="fas fa-cash-register"></i> Ventas</a>
-            <a href="#" class="nav-link"><i class="fas fa-university"></i> Bancos</a>
-            <a href="#" class="nav-link"><i class="fas fa-money-bill-wave"></i> Caja</a>
-        </div>
-    </li>
-</ul>
-
-{{-- VENTAS Y COBRANZAS --}}
-<div class="nav-section">Ventas & Cobranzas</div>
-<ul>
-    <li><a href="{{ route('contador.reportes.ventas') }}" class="nav-link">
-        <i class="fas fa-chart-line"></i> Análisis Ventas
-    </a></li>
-    <li><a href="{{ route('contador.reportes.compras') }}" class="nav-link">
-        <i class="fas fa-wallet"></i> Cartera
-    </a></li>
-    <li><a href="{{ route('contador.facturas.create') }}" class="nav-link">
-        <i class="fas fa-clock"></i> Fact. Pendientes
-    </a></li>
-    <li><a href="{{ route('contador.facturas.index') }}" class="nav-link">
-        <i class="fas fa-exclamation-triangle"></i> Fact. Vencidas
-    </a></li>
-</ul>
-
-{{-- GESTIÓN --}}
-<div class="nav-section">Gestión</div>
-<ul>
-    <li><a href="{{ route('contador.clientes') }}" class="nav-link">
-        <i class="fas fa-users"></i> Clientes
-    </a></li>
-    <li><a href="{{ route('contador.reportes.medicamentos-controlados') }}" class="nav-link">
-        <i class="fas fa-percentage"></i> Márgenes
-    </a></li>
-    <li><a href="{{ route('contador.reportes.inventario') }}" class="nav-link">
-        <i class="fas fa-boxes"></i> Inventario
-    </a></li>
-</ul>
-
-{{-- REPORTES SUNAT --}}
-<div class="nav-section">SUNAT</div>
-<ul>
-    <li><a href="#" class="nav-link">
-        <i class="fas fa-file-invoice-dollar"></i> PLE
-    </a></li>
-    <li><a href="#" class="nav-link">
-        <i class="fas fa-percent"></i> IGV Mensual
-    </a></li>
-</ul>
+<!-- 1. Título de la Cabecera -->
+@section('page-title')
+    Editar Asiento #{{ $asiento->numero }}
 @endsection
 
+<!-- 2. Breadcrumbs -->
+@section('breadcrumbs')
+    <li class="breadcrumb-item"><a href="{{ route('contador.libro-diario.index') }}">Libro Diario</a></li>
+    <li class="breadcrumb-item active" aria-current="page">Editar</li>
+@endsection
 
+<!-- 3. Estilos CSS de esta página -->
+@push('styles')
+    <link href="{{ asset('css/contabilidad/asiento-form.css') }}" rel="stylesheet">
+@endpush
 
+<!-- 4. Contenido Principal -->
 @section('content')
-<div class="container-fluid p-0">
-    {{-- Header con navegación --}}
-    <div class="d-flex justify-content-between align-items-center p-4 mb-4" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px; color: white;">
-        <div>
-            <h1 class="h3 mb-1">
-                <i class="fas fa-edit"></i> Editar Asiento #{{ $asiento->numero }}
-            </h1>
-            <p class="mb-0 opacity-75">Modifica los detalles del asiento contable</p>
-        </div>
-        <div>
-            <a href="{{ route('contador.libro-diario.show', $asiento->id) }}" class="btn btn-light">
-                <i class="fas fa-eye"></i> Ver Asiento
-            </a>
-        </div>
-    </div>
-
+<div class="container-fluid">
     {{-- Formulario de Edición --}}
-    <div class="card mb-4">
-        <div class="card-header">
-            <h5 class="card-title mb-0">
+    <div class="form-card">
+        <div class="form-card-header">
+            <h5 class="form-card-title">
                 <i class="fas fa-file-alt"></i> Información General
             </h5>
+            <p class="form-card-subtitle">
+                Solo se puede modificar la cabecera (fecha, glosa, observaciones). Los detalles del asiento no son editables.
+            </p>
         </div>
-        <div class="card-body">
+        <div class="form-card-body">
             <form action="{{ route('contador.libro-diario.update', $asiento->id) }}" method="POST">
                 @csrf
                 @method('PUT')
 
                 <div class="row g-3">
                     <div class="col-md-4">
-                        <label class="form-label">Número de Asiento *</label>
-                        <input type="text" class="form-control" name="numero" value="{{ $asiento->numero }}" readonly>
+                        <label class="form-label">Número de Asiento</label>
+                        <input type="text" class="form-control" name="numero" value="{{ $asiento->numero }}" readonly disabled>
                     </div>
                     <div class="col-md-4">
                         <label class="form-label">Fecha *</label>
-                        <input type="date" class="form-control" name="fecha" value="{{ $asiento->fecha }}" required>
+                        <input type="date" class="form-control @error('fecha') is-invalid @enderror" name="fecha" value="{{ old('fecha', \Carbon\Carbon::parse($asiento->fecha)->format('Y-m-d')) }}" required>
+                        @error('fecha')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
                     </div>
                     <div class="col-md-4">
                         <label class="form-label">Usuario</label>
-                        <input type="text" class="form-control" value="{{ $asiento->usuario_nombre ?? 'Contador' }}" readonly>
+                        <input type="text" class="form-control" value="{{ $asiento->usuario_nombre ?? 'Sistema' }}" readonly disabled>
                     </div>
                 </div>
 
-                <div class="mt-4">
+                <div class="mt-3">
                     <label class="form-label">Glosa Principal *</label>
-                    <textarea class="form-control" name="glosa" rows="3" required>{{ $asiento->glosa }}</textarea>
+                    <textarea class="form-control @error('glosa') is-invalid @enderror" name="glosa" rows="3" required>{{ old('glosa', $asiento->glosa) }}</textarea>
+                    @error('glosa')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
                 </div>
 
                 <div class="mt-3">
                     <label class="form-label">Observaciones</label>
-                    <textarea class="form-control" name="observaciones" rows="2">{{ $asiento->observaciones }}</textarea>
+                    <textarea class="form-control" name="observaciones" rows="2">{{ old('observaciones', $asiento->observaciones) }}</textarea>
                 </div>
 
                 <div class="mt-4 d-flex gap-2">
                     <button type="submit" class="btn btn-primary">
                         <i class="fas fa-save"></i> Guardar Cambios
                     </button>
-                    <a href="{{ route('contador.libro-diario.show', $asiento->id) }}" class="btn btn-secondary">
+                    <a href="{{ route('contador.libro-diario.show', $asiento->id) }}" class="btn btn-outline-secondary">
                         <i class="fas fa-times"></i> Cancelar
                     </a>
                 </div>
@@ -149,83 +80,102 @@
         </div>
     </div>
 
-    {{-- Detalles del Asiento (solo lectura por ahora, podrías hacerlos editables después) --}}
-    <div class="card mb-4">
-        <div class="card-header">
-            <h5 class="card-title mb-0">
-                <i class="fas fa-list-alt"></i> Detalles del Asiento
+    {{-- Detalles del Asiento (solo lectura) --}}
+    <div class="table-card mt-4">
+         <div class="table-header">
+            <h5 class="table-title">
+                <i class="fas fa-list-alt"></i> Detalles del Asiento (Solo Lectura)
             </h5>
         </div>
-        <div class="card-body p-0">
-            <div class="table-responsive">
-                <table class="table table-hover mb-0">
-                    <thead class="table-light">
-                        <tr>
-                            <th>Cuenta</th>
-                            <th>Nombre Cuenta</th>
-                            <th>Concepto</th>
-                            <th>Debe</th>
-                            <th>Haber</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach($detalles as $detalle)
-                        <tr>
-                            <td><strong>{{ $detalle->cuenta_contable }}</strong></td>
-                            <td>{{ $detalle->cuenta_nombre ?? 'Cuenta no encontrada' }}</td>
-                            <td>{{ $detalle->concepto }}</td>
-                            <td class="text-end">{{ number_format($detalle->debe, 2) }}</td>
-                            <td class="text-end">{{ number_format($detalle->haber, 2) }}</td>
-                        </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-            </div>
+        <div class="table-responsive">
+            <table class="table align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Cuenta</th>
+                        <th>Nombre Cuenta</th>
+                        <th>Concepto</th>
+                        <th class="text-end">Debe</th>
+                        <th class="text-end">Haber</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($detalles as $detalle)
+                    <tr>
+                        <td><strong>{{ $detalle->cuenta_contable }}</strong></td>
+                        <td>{{ $detalle->cuenta_nombre ?? 'Cuenta no encontrada' }}</td>
+                        <td>{{ $detalle->concepto }}</td>
+                        <td class="text-end text-success fw-bold">{{ $detalle->debe > 0 ? 'S/ ' . number_format($detalle->debe, 2) : '-' }}</td>
+                        <td class="text-end text-danger fw-bold">{{ $detalle->haber > 0 ? 'S/ ' . number_format($detalle->haber, 2) : '-' }}</td>
+                    </tr>
+                    @endforeach
+                </tbody>
+                 <tfoot class="table-active">
+                    <tr>
+                        <td colspan="3" class="text-end"><strong>TOTALES</strong></td>
+                        <td class="text-end">
+                            <strong class="text-success">S/ {{ number_format($detalles->sum('debe'), 2) }}</strong>
+                        </td>
+                        <td class="text-end">
+                            <strong class="text-danger">S/ {{ number_format($detalles->sum('haber'), 2) }}</strong>
+                        </td>
+                    </tr>
+                </tfoot>
+            </table>
         </div>
     </div>
 
     {{-- Acciones adicionales --}}
-    <div class="card mb-4">
+    <div class="card my-4">
+        <div class="card-header">
+            <h5 class="card-title mb-0"><i class="fas fa-cogs text-primary me-2"></i> Acciones Adicionales</h6>
+        </div>
         <div class="card-body">
-            <div class="d-flex flex-wrap gap-2 justify-content-center">
-                <a href="{{ route('contador.libro-diario.index') }}" class="btn btn-secondary">
-                    <i class="fas fa-list"></i> Volver al Libro
-                </a>
-                <a href="{{ route('contador.libro-diario.show', $asiento->id) }}" class="btn btn-info">
+            <div class="d-flex flex-wrap gap-2">
+                <a href="{{ route('contador.libro-diario.show', $asiento->id) }}" class="btn btn-info text-white">
                     <i class="fas fa-eye"></i> Ver Asiento
                 </a>
-                <button onclick="eliminarAsiento()" class="btn btn-warning">
-                    <i class="fas fa-trash"></i> Eliminar
+                 <button typeA="button" onclick="eliminarAsiento()" class="btn btn-danger">
+                    <i class="fas fa-trash"></i> Eliminar Asiento
                 </button>
             </div>
+            
+            <!-- Formulario de eliminación oculto -->
+            <form id="delete-form-{{ $asiento->id }}" action="{{ route('contador.libro-diario.destroy', $asiento->id) }}" method="POST" style="display: none;">
+                @csrf
+                @method('DELETE')
+            </form>
         </div>
     </div>
 </div>
+@endsection
 
+@push('scripts')
 <script>
+// Estandarizamos la función de borrado para usar SweetAlert y el Formulario
 function eliminarAsiento() {
-    if (confirm('¿Está seguro que desea eliminar este asiento? Esta acción no se puede deshacer.')) {
-        fetch(`{{ route('contador.libro-diario.destroy', $asiento->id) }}`, {
-            method: 'DELETE',
-            headers: {
-                'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                'Content-Type': 'application/json',
+    if (typeof Swal !== 'undefined') {
+        Swal.fire({
+            title: '¿Estás seguro?',
+            text: "Esta acción eliminará el asiento #{{ $asiento->numero }} permanentemente.",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Sí, eliminar',
+            cancelButtonText: 'Cancelar'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                if(typeof showLoading === 'function') showLoading();
+                document.getElementById('delete-form-{{ $asiento->id }}').submit();
             }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                window.location.href = `{{ route('contador.libro-diario.index') }}`;
-            } else {
-                alert('Error al eliminar el asiento: ' + data.message);
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('Error al eliminar el asiento');
         });
+    } else {
+        // Fallback si SweetAlert no carga
+        if (confirm('¿Estás seguro de eliminar este asiento? Esta acción no se puede deshacer.')) {
+            if(typeof showLoading === 'function') showLoading();
+            document.getElementById('delete-form-{{ $asiento->id }}').submit();
+        }
     }
 }
 </script>
-
-@endsection
+@endpush

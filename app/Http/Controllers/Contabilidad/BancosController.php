@@ -22,7 +22,7 @@ class BancosController extends Controller
             $cuenta = $request->input('cuenta');
 
             // Usar la vista SQL v_movimientos_bancarios
-            $query = DB::table('v_movimientos_bancarios')
+            $query = DB::table('v_bancos_con_descripciones')
                 ->whereBetween('Fecha', [$fechaInicio, $fechaFin]);
 
             if ($cuenta) {
@@ -38,7 +38,7 @@ class BancosController extends Controller
             $saldosActuales = DB::table('v_saldos_bancarios_actuales')->get();
 
             // Resumen del período
-            $resumenCuentas = DB::table('v_movimientos_bancarios')
+            $resumenCuentas = DB::table('v_bancos_con_descripciones')
                 ->whereBetween('Fecha', [$fechaInicio, $fechaFin])
                 ->select([
                     'Cuenta',
@@ -52,7 +52,7 @@ class BancosController extends Controller
                 ->get();
 
             // Totales generales
-            $totalesPeriodo = DB::table('v_movimientos_bancarios')
+            $totalesPeriodo = DB::table('v_bancos_con_descripciones')
                 ->whereBetween('Fecha', [$fechaInicio, $fechaFin])
                 ->select([
                     DB::raw('SUM(ingreso) as total_ingresos'),
@@ -100,7 +100,7 @@ class BancosController extends Controller
             }
 
             // Movimientos de la cuenta
-            $movimientos = DB::table('v_movimientos_bancarios')
+            $movimientos = DB::table('v_bancos_con_descripciones')
                 ->where('Cuenta', $cuenta)
                 ->whereBetween('Fecha', [$fechaInicio, $fechaFin])
                 ->orderBy('Fecha', 'desc')
@@ -154,14 +154,14 @@ class BancosController extends Controller
             $fecha = $request->input('fecha', Carbon::now()->format('Y-m-d'));
 
             // Movimientos del día
-            $movimientosDiarios = DB::table('v_movimientos_bancarios')
+            $movimientosDiarios = DB::table('v_bancos_con_descripciones')
                 ->whereDate('Fecha', $fecha)
                 ->orderBy('Cuenta')
                 ->orderBy('Numero')
                 ->get();
 
             // Resumen por banco
-            $resumenPorBanco = DB::table('v_movimientos_bancarios')
+            $resumenPorBanco = DB::table('v_bancos_con_descripciones')
                 ->whereDate('Fecha', $fecha)
                 ->select([
                     'Banco',
@@ -336,23 +336,40 @@ class BancosController extends Controller
      * Get monthly bank summary
      * Route: /contabilidad/bancos/mensual
      */
+    /**
+ * Get monthly bank summary
+ * Route: /contabilidad/bancos/mensual
+ */
     public function resumenMensual(Request $request)
     {
         try {
-            $anio = $request->input('anio', Carbon::now()->year);
-            $mes = $request->input('mes', Carbon::now()->month);
+            $anio = (int) $request->input('anio', Carbon::now()->year);
+            
+            // ✅ Extraer SOLO el número del mes, incluso si llega como '2025-10'
+            $mesInput = $request->input('mes', Carbon::now()->month);
+            if (is_string($mesInput) && preg_match('/^(\d{4})-(\d{1,2})$/', $mesInput, $matches)) {
+                $mes = (int) $matches[2]; // Ej: de '2025-10' → 10
+            } else {
+                $mes = (int) $mesInput;
+            }
 
-            // Resumen mensual por banco usando vista
-            $resumenMensual = DB::table('v_resumen_mensual_bancario')
+            // Validar rango del mes
+            if ($mes < 1 || $mes > 12) {
+                $mes = Carbon::now()->month;
+            }
+
+            // ✅ Nombre CORRECTO de la vista: v_resumen_mensual_bancos
+            $resumenMensual = DB::table('v_resumen_mensual_bancos')
                 ->where('anio', $anio)
                 ->where('mes', $mes)
                 ->get();
 
-            // Detalle diario del mes
+            // Fechas del mes para el detalle diario
             $fechaInicio = Carbon::create($anio, $mes, 1)->startOfMonth()->format('Y-m-d');
             $fechaFin = Carbon::create($anio, $mes, 1)->endOfMonth()->format('Y-m-d');
 
-            $detalleDiario = DB::table('v_movimientos_bancarios')
+            // Detalle diario usando la vista correcta
+            $detalleDiario = DB::table('v_bancos_con_descripciones')
                 ->whereBetween('Fecha', [$fechaInicio, $fechaFin])
                 ->select([
                     DB::raw('DAY(Fecha) as dia'),
@@ -372,6 +389,7 @@ class BancosController extends Controller
                 'total_movimientos' => $resumenMensual->sum('total_movimientos')
             ];
 
+            // Lista de meses para el selector
             $meses = [
                 1 => 'Enero', 2 => 'Febrero', 3 => 'Marzo', 4 => 'Abril',
                 5 => 'Mayo', 6 => 'Junio', 7 => 'Julio', 8 => 'Agosto',
@@ -396,66 +414,149 @@ class BancosController extends Controller
      * Generate bank report
      * Route: /contabilidad/bancos/reporte
      */
+    /**
+ * Generate bank report
+ * Route: /contabilidad/bancos/reporte
+ */
     public function generarReporte(Request $request)
     {
         try {
+            $tipoReporte = $request->input('tipo_reporte', 'general');
             $fechaInicio = $request->input('fecha_inicio', Carbon::now()->startOfMonth()->format('Y-m-d'));
             $fechaFin = $request->input('fecha_fin', Carbon::now()->endOfMonth()->format('Y-m-d'));
             $cuenta = $request->input('cuenta');
-            $tipo = $request->input('tipo'); // ingreso, egreso, todos
 
-            $query = DB::table('v_movimientos_bancarios')
+            // Validar fechas
+            $fechaInicio = Carbon::parse($fechaInicio)->format('Y-m-d');
+            $fechaFin = Carbon::parse($fechaFin)->format('Y-m-d');
+
+            // Obtener movimientos base
+            $movimientos = DB::table('v_bancos_con_descripciones')
                 ->whereBetween('Fecha', [$fechaInicio, $fechaFin]);
 
             if ($cuenta) {
-                $query->where('Cuenta', $cuenta);
+                $movimientos->where('Cuenta', $cuenta);
             }
 
-            if ($tipo && $tipo != 'todos') {
-                $query->where('tipo_movimiento', strtoupper($tipo));
+            $movimientos = $movimientos->get();
+
+            // Obtener lista de bancos (solo para el filtro)
+            $listaBancos = DB::table('Bancos')->select('Cuenta', 'Banco')->orderBy('Banco')->get();
+
+            // === Construir $datosReporte según el tipo de reporte ===
+            $datosReporte = [];
+
+            switch ($tipoReporte) {
+                case 'flujo':
+                    // Top 10 ingresos
+                    $topIngresos = $movimientos
+                        ->where('Tipo', 1)
+                        ->sortByDesc('Monto')
+                        ->take(10)
+                        ->values();
+
+                    // Top 10 egresos
+                    $topEgresos = $movimientos
+                        ->where('Tipo', 2)
+                        ->sortByDesc('Monto')
+                        ->take(10)
+                        ->values();
+
+                    $datosReporte = [
+                        'top_ingresos' => $topIngresos,
+                        'top_egresos' => $topEgresos,
+                    ];
+                    break;
+
+                case 'general':
+                case 'comparativo':
+                    // Agrupar por banco
+                    $porBanco = DB::table('v_resumen_mensual_bancos')
+                        ->whereRaw("DATEFROMPARTS(anio, mes, 1) BETWEEN ? AND ?", [$fechaInicio, $fechaFin])
+                        ->when($cuenta, fn($q) => $q->where('Cuenta', $cuenta))
+                        ->get()
+                        ->groupBy('Cuenta')
+                        ->map(function ($grupo, $cuenta) use ($listaBancos) {
+                            $bancoInfo = $listaBancos->firstWhere('Cuenta', $cuenta);
+                            $totalIngresos = $grupo->sum('ingresos_mes');
+                            $totalEgresos = $grupo->sum('egresos_mes');
+                            return [
+                                'nombre' => $bancoInfo ? $bancoInfo->Banco : "Cuenta: $cuenta",
+                                'tipo' => 'Corriente',
+                                'numero_cuenta' => $cuenta,
+                                'saldo_inicial' => 0, // No se calcula sin vista de saldos iniciales
+                                'ingresos' => $totalIngresos,
+                                'egresos' => $totalEgresos,
+                                'saldo_actual' => $totalIngresos - $totalEgresos,
+                                'estado' => 'activo',
+                            ];
+                        })
+                        ->values();
+
+                    $totalIngresos = $porBanco->sum('ingresos');
+                    $totalEgresos = $porBanco->sum('egresos');
+
+                    $datosReporte = [
+                        'saldo_total' => $totalIngresos - $totalEgresos,
+                        'total_ingresos' => $totalIngresos,
+                        'total_egresos' => $totalEgresos,
+                        'flujo_neto' => $totalIngresos - $totalEgresos,
+                        'por_banco' => $porBanco,
+                    ];
+                    break;
+
+                case 'conciliacion':
+                    $totalMovs = $movimientos->count();
+                    $conciliados = $movimientos->where('Documento', 'like', '%CONCILIADO%')->count();
+                    $pendientes = $totalMovs - $conciliados;
+                    $porcentaje = $totalMovs > 0 ? ($conciliados / $totalMovs) * 100 : 0;
+
+                    $porBancoConc = $movimientos->groupBy('Cuenta')->map(function ($grupo, $cuenta) use ($listaBancos) {
+                        $total = $grupo->count();
+                        $conc = $grupo->where('Documento', 'like', '%CONCILIADO%')->count();
+                        $pend = $total - $conc;
+                        $porc = $total > 0 ? ($conc / $total) * 100 : 0;
+                        $bancoNombre = $listaBancos->firstWhere('Cuenta', $cuenta)?->Banco ?? "Cuenta: $cuenta";
+                        return [
+                            'banco' => $bancoNombre,
+                            'total' => $total,
+                            'conciliados' => $conc,
+                            'pendientes' => $pend,
+                            'porcentaje' => $porc,
+                            'diferencia' => $grupo->sum('ingreso') - $grupo->sum('egreso'),
+                        ];
+                    })->values();
+
+                    $datosReporte = [
+                        'conciliados' => $conciliados,
+                        'pendientes' => $pendientes,
+                        'porcentaje' => $porcentaje,
+                        'por_banco_conc' => $porBancoConc,
+                    ];
+                    break;
+
+                default:
+                    // Movimientos detallados (tipo 'movimientos')
+                    $datosReporte = [
+                        'movimientos' => $movimientos,
+                    ];
+                    break;
             }
 
-            $movimientosReporte = $query
-                ->orderBy('Fecha')
-                ->orderBy('Cuenta')
-                ->get();
-
-            // Resumen ejecutivo
-            $resumenEjecutivo = [
-                'periodo' => "$fechaInicio al $fechaFin",
-                'total_movimientos' => $movimientosReporte->count(),
-                'total_ingresos' => $movimientosReporte->sum('ingreso'),
-                'total_egresos' => $movimientosReporte->sum('egreso'),
-                'saldo_neto' => $movimientosReporte->sum('ingreso') - $movimientosReporte->sum('egreso'),
-                'cuentas_involucradas' => $movimientosReporte->unique('Cuenta')->count()
-            ];
-
-            // Análisis por tipo de operación
-            $porTipoOperacion = $movimientosReporte->groupBy('tipo_operacion')->map(function($grupo) {
-                return [
-                    'cantidad' => $grupo->count(),
-                    'monto' => $grupo->sum('Monto')
-                ];
-            });
-
-            $listaBancos = DB::table('Bancos')->get();
-
+            // Variables para la vista
             return view('contabilidad.registros.bancos-reporte', compact(
-                'movimientosReporte',
-                'resumenEjecutivo',
-                'porTipoOperacion',
+                'datosReporte',
+                'listaBancos',
                 'fechaInicio',
                 'fechaFin',
                 'cuenta',
-                'tipo',
-                'listaBancos'
+                'tipoReporte'
             ));
 
         } catch (\Exception $e) {
             return redirect()->back()->with('error', 'Error al generar reporte: ' . $e->getMessage());
         }
     }
-
     /**
      * Show daily cash flow from banks
      * Route: /contabilidad/bancos/flujo-diario
@@ -464,36 +565,60 @@ class BancosController extends Controller
     {
         try {
             $fecha = $request->input('fecha', Carbon::now()->format('Y-m-d'));
+            $bancoId = $request->input('banco_id');
 
-            // Usar stored procedure para flujo diario
+            // Lista de bancos para el filtro
+            $bancos = DB::table('Bancos')->orderBy('Banco')->get();
+
+            // Ejecuta SP que devuelve los saldos
             $flujoCaja = DB::select('EXEC sp_flujo_caja_bancario ?', [$fecha]);
 
             // Movimientos del día
-            $movimientosDia = DB::table('v_movimientos_bancarios')
+            $query = DB::table('v_bancos_con_descripciones')
                 ->whereDate('Fecha', $fecha)
                 ->orderBy('Cuenta')
-                ->orderBy('Numero')
-                ->get();
+                ->orderBy('Numero');
 
-            // Totales generales
+            if ($bancoId) {
+                $query->where('BancoID', $bancoId);
+            }
+
+            $movimientosDia = $query->get();
+            $movimientos = $movimientosDia;
+
+            // Totales generales (usa valores del SP)
+            $saldoInicial = collect($flujoCaja)->sum('saldo_inicial');
+            $totalIngresos = collect($flujoCaja)->sum('ingresos_dia');
+            $totalEgresos = collect($flujoCaja)->sum('egresos_dia');
+            $saldoFinal = collect($flujoCaja)->sum('saldo_final');
+
+            // Si la vista también muestra un resumen general:
             $totalesGenerales = [
-                'saldo_inicial_total' => collect($flujoCaja)->sum('saldo_inicial'),
-                'ingresos_total' => collect($flujoCaja)->sum('ingresos_dia'),
-                'egresos_total' => collect($flujoCaja)->sum('egresos_dia'),
-                'saldo_final_total' => collect($flujoCaja)->sum('saldo_final')
+                'saldo_inicial_total' => $saldoInicial,
+                'ingresos_total' => $totalIngresos,
+                'egresos_total' => $totalEgresos,
+                'saldo_final_total' => $saldoFinal,
             ];
 
             return view('contabilidad.registros.bancos-flujo-diario', compact(
+                'bancos',
                 'flujoCaja',
                 'movimientosDia',
+                'movimientos', 
                 'totalesGenerales',
-                'fecha'
+                'fecha',
+                'bancoId',
+                'saldoInicial',   // 👈 agregado
+                'totalIngresos',  // 👈 agregado
+                'totalEgresos',   // 👈 agregado
+                'saldoFinal'      // 👈 agregado
             ));
 
         } catch (\Exception $e) {
             return redirect()->back()->with('error', 'Error al cargar flujo diario: ' . $e->getMessage());
         }
     }
+
 
     /**
      * Export to Excel

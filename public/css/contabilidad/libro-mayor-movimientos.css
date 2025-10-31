@@ -1,0 +1,86 @@
+/*
+ * Estilos para la vista de Movimientos del Libro Mayor
+ */
+
+/* Tarjetas de Filtro (reutiliza estilos de libro-diario y libro-mayor) */
+.filters-card {
+    background-color: #fff;
+    border-radius: 12px;
+}
+.filters-card .form-label {
+    font-weight: 600;
+    font-size: 0.875rem;
+    color: #495057;
+}
+
+/* Estilos de la plantilla del usuario */
+.stat-card {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 12px;
+    padding: 20px;
+    color: white;
+    margin-bottom: 20px;
+    position: relative;
+    overflow: hidden;
+}
+
+.stat-card::after {
+    content: '';
+    position: absolute;
+    top: -20px;
+    right: -20px;
+    width: 100px;
+    height: 100px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+    opacity: 0.5;
+}
+
+.stat-value {
+    font-size: 2.0em; /* Ajustado para mejor responsive */
+    font-weight: 700;
+    margin-bottom: 5px;
+    z-index: 1;
+    position: relative;
+}
+.stat-label {
+    opacity: 0.9;
+    font-size: 0.9em;
+    z-index: 1;
+    position: relative;
+}
+.table-responsive {
+    border-radius: 10px;
+    /* box-shadow: 0 4px 20px rgba(0,0,0,0.1); */ /* Sombra ya está en la card */
+}
+
+/* Botón de exportar */
+.btn-export {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    border: none;
+    padding: 8px 16px; /* Ajustado para btn-sm */
+    border-radius: 8px;
+    color: white;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    font-size: 0.875rem;
+}
+.btn-export:hover {
+    transform: translateY(-2px);
+    color: white;
+    box-shadow: 0 4px 10px rgba(40, 167, 69, 0.3);
+}
+
+/* Clases de soft-colors para badges */
+.bg-primary-soft {
+    background-color: rgba(59, 130, 246, 0.1);
+    color: #3b82f6;
+}
+.bg-info-soft {
+    background-color: rgba(14, 165, 233, 0.1);
+    color: #0ea5e9;
+}
+.bg-success-soft {
+    background-color: rgba(16, 185, 129, 0.1);
+    color: #10b981;
+}

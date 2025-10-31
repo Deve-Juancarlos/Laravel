@@ -1,291 +1,221 @@
 @extends('layouts.app')
 
-@section('title', 'Libro Mayor - SIFANO Contabilidad')
+@section('title', 'Libro Mayor - SEIMCORP')
 
 @push('styles')
-<link href="{{ asset('css/contabilidad/libro-mayor.css') }}" rel="stylesheet">
+    {{-- Referencia a los estilos que crearemos --}}
+    <link href="{{ asset('css/contabilidad/libro-mayor.css') }}" rel="stylesheet">
 @endpush
 
-@section('sidebar-menu')
-{{-- MENÚ PRINCIPAL --}}
-<div class="nav-section">Dashboard</div>
-<ul>
-    <li><a href="{{ route('dashboard.contador') }}" class="nav-link active">
-        <i class="fas fa-chart-pie"></i> Panel Principal
-    </a></li>
-</ul>
+{{-- 1. Título de la Página --}}
+@section('page-title', 'Libro Mayor')
 
-{{-- CONTABILIDAD --}}
-<div class="nav-section">Contabilidad</div>
-<ul>
-    <li>
-        <a href="{{ route('contador.libro-diario.index') }}" class="nav-link has-submenu">
-            <i class="fas fa-book"></i> Libros Contables
-        </a>
-        <div class="nav-submenu">
-            <a href="{{ route('contador.libro-diario.index') }}" class="nav-link"><i class="fas fa-file-alt"></i> Libro Diario</a>
-            <a href="{{ route('contador.libro-mayor.index') }}" class="nav-link"><i class="fas fa-book-open"></i> Libro Mayor</a>
-            <a href="{{route('contador.balance-comprobacion.index')}}" class="nav-link"><i class="fas fa-balance-scale"></i> Balance Comprobación</a>    
-            <a href="{{ route('contador.estado-resultados.index') }}" class="nav-link"><i class="fas fa-chart-bar"></i> Estados Financieros</a>
-        </div>
-    </li>
-    <li>
-        <a href="#" class="nav-link has-submenu">
-            <i class="fas fa-file-invoice"></i> Registros
-        </a>
-        <div class="nav-submenu">
-            <a href="#" class="nav-link"><i class="fas fa-shopping-cart"></i> Compras</a>
-            <a href="#" class="nav-link"><i class="fas fa-cash-register"></i> Ventas</a>
-            <a href="#" class="nav-link"><i class="fas fa-university"></i> Bancos</a>
-            <a href="#" class="nav-link"><i class="fas fa-money-bill-wave"></i> Caja</a>
-        </div>
-    </li>
-</ul>
-
-{{-- VENTAS Y COBRANZAS --}}
-<div class="nav-section">Ventas & Cobranzas</div>
-<ul>
-    <li><a href="{{ route('contador.reportes.ventas') }}" class="nav-link">
-        <i class="fas fa-chart-line"></i> Análisis Ventas
-    </a></li>
-    <li><a href="{{ route('contador.reportes.compras') }}" class="nav-link">
-        <i class="fas fa-wallet"></i> Cartera
-    </a></li>
-    <li><a href="{{ route('contador.facturas.create') }}" class="nav-link">
-        <i class="fas fa-clock"></i> Fact. Pendientes
-    </a></li>
-    <li><a href="{{ route('contador.facturas.index') }}" class="nav-link">
-        <i class="fas fa-exclamation-triangle"></i> Fact. Vencidas
-    </a></li>
-</ul>
-
-{{-- GESTIÓN --}}
-<div class="nav-section">Gestión</div>
-<ul>
-    <li><a href="{{ route('contador.clientes') }}" class="nav-link">
-        <i class="fas fa-users"></i> Clientes
-    </a></li>
-    <li><a href="{{ route('contador.reportes.medicamentos-controlados') }}" class="nav-link">
-        <i class="fas fa-percentage"></i> Márgenes
-    </a></li>
-    <li><a href="{{ route('contador.reportes.inventario') }}" class="nav-link">
-        <i class="fas fa-boxes"></i> Inventario
-    </a></li>
-</ul>
-
-{{-- REPORTES SUNAT --}}
-<div class="nav-section">SUNAT</div>
-<ul>
-    <li><a href="#" class="nav-link">
-        <i class="fas fa-file-invoice-dollar"></i> PLE
-    </a></li>
-    <li><a href="#" class="nav-link">
-        <i class="fas fa-percent"></i> IGV Mensual
-    </a></li>
-</ul>
+{{-- 2. Breadcrumbs --}}
+@section('breadcrumbs')
+    <li class="breadcrumb-item"><a href="{{ route('dashboard.contador') }}">Contabilidad</a></li>
+    <li class="breadcrumb-item active" aria-current="page">Libro Mayor</li>
 @endsection
 
+{{-- 3. Contenido Principal --}}
 @section('content')
 <div class="libro-mayor-view">
-    <div class="container-fluid">
-        <div class="main-content-wrapper">
-            {{-- Header --}}
-            <div class="page-header">
-                <div>
-                    <h1><i class="fas fa-book-open me-2"></i>Libro Mayor</h1>
-                    <p>Distribución de movimientos por cuentas contables - SIFANO</p>
 
-                    {{-- Contexto de filtros --}}
-                    @if(request()->filled(['fecha_inicio', 'fecha_fin']) || request('cuenta'))
-                        <div class="filter-context">
-                            <i class="fas fa-filter"></i>
-                            <span>Resultados para:</span>
-                            @if(request('fecha_inicio') && request('fecha_fin'))
-                                <span class="badge">
-                                    {{ \Carbon\Carbon::parse(request('fecha_inicio'))->format('d/m/Y') }} →
-                                    {{ \Carbon\Carbon::parse(request('fecha_fin'))->format('d/m/Y') }}
-                                </span>
-                            @endif
-                            @if(request('cuenta'))
-                                <span class="badge">Cuenta: {{ request('cuenta') }}</span>
-                            @endif
-                        </div>
-                    @endif
-                </div>
+    {{-- Alertas (vienen del redirect) --}}
+    @if(session('success'))
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="fas fa-check-circle me-2"></i>{{ session('success') }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    @endif
+    @if(session('error'))
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="fas fa-exclamation-triangle me-2"></i>{{ session('error') }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    @endif
 
-                {{-- Botón de retorno al dashboard --}}
-                <a href="{{ route('dashboard.contador') }}" class="btn-back-dashboard" title="Volver al panel principal">
-                    <i class="fas fa-arrow-left"></i> Dashboard
-                </a>
-            </div>
-
-            {{-- Filtros --}}
-            <div class="filters-card">
-                <form method="GET" action="{{ route('contador.libro-mayor.index') }}" id="filterForm">
-                    <div class="filter-row">
-                        <div class="filter-group">
-                            <label for="fecha_inicio">Fecha Inicio</label>
-                            <input type="date" id="fecha_inicio" name="fecha_inicio" value="{{ $fechaInicio }}">
-                        </div>
-                        <div class="filter-group">
-                            <label for="fecha_fin">Fecha Fin</label>
-                            <input type="date" id="fecha_fin" name="fecha_fin" value="{{ $fechaFin }}">
-                        </div>
-                        <div class="filter-group">
-                            <label for="cuenta">Cuenta Contable</label>
-                            <input type="text" id="cuenta" name="cuenta" value="{{ $cuenta }}" placeholder="Código o nombre...">
-                        </div>
-                        <button type="submit" class="btn-apply">
-                            <i class="fas fa-filter"></i> Aplicar
+    {{-- Filtros --}}
+    <div class="card shadow-sm filters-card mb-4">
+        <div class="card-body">
+            <form method="GET" action="{{ route('contador.libro-mayor.index') }}" id="filterForm">
+                <div class="row g-3">
+                    <div class="col-md-3">
+                        <label for="fecha_inicio" class="form-label">Fecha Inicio</label>
+                        <input type="date" id="fecha_inicio" name="fecha_inicio" value="{{ $fechaInicio }}" class="form-control">
+                    </div>
+                    <div class="col-md-3">
+                        <label for="fecha_fin" class="form-label">Fecha Fin</label>
+                        <input type="date" id="fecha_fin" name="fecha_fin" value="{{ $fechaFin }}" class="form-control">
+                    </div>
+                    <div class="col-md-4">
+                        <label for="cuenta" class="form-label">Cuenta Contable</label>
+                        <input type="text" id="cuenta" name="cuenta" value="{{ $cuenta ?? '' }}" class="form-control" placeholder="Buscar por código o nombre...">
+                    </div>
+                    <div class="col-md-2 d-flex align-items-end">
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="fas fa-filter me-1"></i> Aplicar
                         </button>
                     </div>
-                </form>
-            </div>
-
-            {{-- Estadísticas --}}
-            <div class="content-wrapper">
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <div class="stat-icon"><i class="fas fa-layer-group"></i></div>
-                        <div class="stat-value">{{ number_format($totales->total_cuentas ?? 0) }}</div>
-                        <p class="stat-label">Cuentas Activas</p>
-                    </div>
-                    <div class="stat-card success">
-                        <div class="stat-icon"><i class="fas fa-arrow-down"></i></div>
-                        <div class="stat-value">S/ {{ number_format($totales->total_debe ?? 0, 2) }}</div>
-                        <p class="stat-label">Total Débito</p>
-                    </div>
-                    <div class="stat-card danger">
-                        <div class="stat-icon"><i class="fas fa-arrow-up"></i></div>
-                        <div class="stat-value">S/ {{ number_format($totales->total_haber ?? 0, 2) }}</div>
-                        <p class="stat-label">Total Crédito</p>
-                    </div>
-                    <div class="stat-card info">
-                        <div class="stat-icon"><i class="fas fa-balance-scale"></i></div>
-                        <div class="stat-value">S/ {{ number_format(($totales->total_debe ?? 0) - ($totales->total_haber ?? 0), 2) }}</div>
-                        <p class="stat-label">Diferencia</p>
-                    </div>
                 </div>
+            </form>
+        </div>
+    </div>
 
-                {{-- Tabla de Cuentas --}}
-                <div class="table-container">
-                    <div class="table-header">
-                        <h3 class="table-title"><i class="fas fa-list"></i> Resumen por Cuentas</h3>
-                        <a href="{{ route('contador.libro-mayor.exportar') }}?fecha_inicio={{ urlencode($fechaInicio) }}&fecha_fin={{ urlencode($fechaFin) }}&cuenta={{ urlencode($cuenta) }}"
-                        class="btn-export" title="Exportar resultados actuales a Excel">
-                            <i class="fas fa-file-excel"></i> <span>Exportar Excel</span>
-                        </a>
-                    </div>
-
-                    <div class="table-responsive">
-                        <table class="table table-hover align-middle mb-0">
-                            <thead>
-                                <tr>
-                                    <th>Cuenta</th>
-                                    <th>Nombre</th>
-                                    <th class="text-center">Mov.</th>
-                                    <th class="text-end">Débito (S/)</th>
-                                    <th class="text-end">Crédito (S/)</th>
-                                    <th class="text-end">Saldo (S/)</th>
-                                    <th class="text-center">Acciones</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @forelse($cuentas as $cuentaItem)
-                                    <tr>
-                                        <td>
-                                            <a href="{{ route('contador.libro-mayor.cuenta', $cuentaItem->cuenta) }}" class="account-link">
-                                                {{ $cuentaItem->cuenta }}
-                                            </a>
-                                        </td>
-                                        <td>{{ $cuentaItem->cuenta_nombre ?? '—' }}</td>
-                                        <td class="text-center">{{ number_format($cuentaItem->movimientos) }}</td>
-                                        <td class="text-end">{{ number_format($cuentaItem->total_debe ?? 0, 2) }}</td>
-                                        <td class="text-end">{{ number_format($cuentaItem->total_haber ?? 0, 2) }}</td>
-                                        <td class="text-end">
-                                            @php
-                                                $saldo = ($cuentaItem->total_debe ?? 0) - ($cuentaItem->total_haber ?? 0);
-                                                $clase = $saldo > 0 ? 'saldo-deudor' : ($saldo < 0 ? 'saldo-acreedor' : 'saldo-saldo');
-                                                $texto = $saldo != 0 ? ($saldo > 0 ? 'Deudor' : 'Acreedor') : 'Saldo';
-                                            @endphp
-                                            <span class="{{ $clase }}">{{ number_format(abs($saldo), 2) }}</span>
-                                            @if($saldo != 0)
-                                                <small class="d-block text-muted mt-1">{{ $texto }}</small>
-                                            @endif
-                                        </td>
-                                        <td class="text-center">
-                                            <a href="{{ route('contador.libro-mayor.cuenta', $cuentaItem->cuenta) }}"
-                                            class="btn-action" title="Ver movimientos detallados">
-                                                <i class="fas fa-eye"></i>
-                                            </a>
-                                        </td>
-                                    </tr>
-                                @empty
-                                    <tr>
-                                        <td colspan="7" class="empty-state">
-                                            <i class="fas fa-inbox"></i>
-                                            <div>No se encontraron cuentas con movimientos en el período seleccionado.</div>
-                                            @if(request('cuenta'))
-                                                <a href="{{ route('contador.libro-mayor.index') }}?fecha_inicio={{ $fechaInicio }}&fecha_fin={{ $fechaFin }}"
-                                                class="btn btn-sm btn-outline-primary mt-2">
-                                                    <i class="fas fa-list"></i> Ver todas las cuentas
-                                                </a>
-                                            @endif
-                                        </td>
-                                    </tr>
-                                @endforelse
-                            </tbody>
-                        </table>
-                    </div>
-                    {{-- Botones rápidos para otras vistas --}}
-                    <div class="quick-actions mb-3">
-                        <a href="{{ route('contador.libro-mayor.comparacion') }}" class="btn btn-secondary">
-                            <i class="fas fa-exchange-alt"></i> Comparación
-                        </a>
-                        <a href="{{ route('contador.libro-mayor.movimientos') }}" class="btn btn-info">
-                            <i class="fas fa-file-invoice"></i> Movimientos
-                        </a>
-                        <a href="{{ route('contador.libro-mayor.exportar') }}" class="btn btn-success">
-                            <i class="fas fa-file-excel"></i> Exportar Excel
-                        </a>
-                    </div>
-
-                </div>
-
-                {{-- Paginación --}}
-                @if(method_exists($cuentas, 'links'))
-                    <div class="pagination-wrapper">
-                        {{ $cuentas->appends(request()->query())->links() }}
-                    </div>
-                @endif
+    {{-- Estadísticas (KPIs) --}}
+    <div class="stats-grid mb-4">
+        <div class="stat-card shadow-sm">
+            <div class="stat-icon"><i class="fas fa-layer-group"></i></div>
+            <div class="stat-info">
+                <p class="stat-label">Cuentas Activas</p>
+                <div class="stat-value">{{ number_format($totales->total_cuentas ?? 0) }}</div>
             </div>
         </div>
+        <div class="stat-card shadow-sm success">
+            <div class="stat-icon"><i class="fas fa-arrow-down"></i></div>
+            <div class="stat-info">
+                <p class="stat-label">Total Débito</p>
+                <div class="stat-value">S/ {{ number_format($totales->total_debe ?? 0, 2) }}</div>
+            </div>
+        </div>
+        <div class="stat-card shadow-sm danger">
+            <div class="stat-icon"><i class="fas fa-arrow-up"></i></div>
+            <div class="stat-info">
+                <p class="stat-label">Total Crédito</p>
+                <div class="stat-value">S/ {{ number_format($totales->total_haber ?? 0, 2) }}</div>
+            </div>
+        </div>
+        <div class="stat-card shadow-sm info">
+            <div class="stat-icon"><i class="fas fa-balance-scale"></i></div>
+            <div class="stat-info">
+                <p class="stat-label">Diferencia</p>
+                <div class="stat-value">S/ {{ number_format($totales->diferencia ?? 0, 2) }}</div>
+            </div>
+        </div>
+    </div>
+
+    {{-- Tabla de Cuentas --}}
+    <div class="card shadow-sm table-container">
+        <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <h5 class="mb-0 card-title"><i class="fas fa-list me-2"></i>Resumen por Cuentas</h5>
+            
+            {{-- BOTONES AGREGADOS --}}
+            <div class="d-flex flex-wrap gap-2">
+                <!-- Grupo 1: Otros Reportes (Navegación) -->
+                <div class="btn-group">
+                    <a href="{{ route('contador.libro-mayor.comparacion', request()->query()) }}" class="btn btn-outline-secondary btn-sm">
+                        <i class="fas fa-exchange-alt me-1"></i> Comparar Períodos
+                    </a>
+                    <a href="{{ route('contador.libro-mayor.movimientos', request()->query()) }}" class="btn btn-outline-secondary btn-sm">
+                        <i class="fas fa-file-alt me-1"></i> Ver Movimientos
+                    </a>
+                </div>
+
+                <!-- Grupo 2: Exportar -->
+                <div class="btn-group">
+                    <a href="{{ route('contador.libro-mayor.exportar', array_merge(request()->query(), ['tipo' => 'resumen'])) }}"
+                       class="btn btn-success btn-sm" title="Exportar resumen actual a Excel">
+                        <i class="fas fa-file-excel me-1"></i> Exportar Resumen
+                    </a>
+                    <a href="{{ route('contador.libro-mayor.exportar', array_merge(request()->query(), ['tipo' => 'detallado'])) }}"
+                       class="btn btn-success-soft btn-sm" title="Exportar todos los movimientos a Excel">
+                        <i class="fas fa-file-csv me-1"></i> Exportar Detalle
+                    </a>
+                </div>
+            </div>
+            {{-- FIN BOTONES AGREGADOS --}}
+
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Cuenta</th>
+                        <th>Nombre</th>
+                        <th class="text-center">Mov.</th>
+                        <th class="text-end">Débito (S/)</th>
+                        <th class="text-end">Crédito (S/)</th>
+                        <th class="text-end">Saldo (S/)</th>
+                        <th class="text-center">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse($cuentas as $cuentaItem)
+                        <tr>
+                            <td>
+                                <a href="{{ route('contador.libro-mayor.cuenta', ['cuenta' => $cuentaItem->cuenta, 'fecha_inicio' => $fechaInicio, 'fecha_fin' => $fechaFin]) }}" class="account-link">
+                                    {{ $cuentaItem->cuenta }}
+                                </a>
+                            </td>
+                            <td>{{ $cuentaItem->cuenta_nombre ?? '—' }}</td>
+                            <td class="text-center">{{ number_format($cuentaItem->movimientos) }}</td>
+                            <td class="text-end text-success">{{ number_format($cuentaItem->total_debe ?? 0, 2) }}</td>
+                            <td class="text-end text-danger">{{ number_format($cuentaItem->total_haber ?? 0, 2) }}</td>
+                            <td class="text-end">
+                                @php
+                                    $clase = $cuentaItem->saldo > 0 ? 'saldo-deudor' : ($cuentaItem->saldo < 0 ? 'saldo-acreedor' : 'saldo-cero');
+                                    $texto = $cuentaItem->saldo != 0 ? ($cuentaItem->saldo > 0 ? 'Deudor' : 'Acreedor') : 'Saldo Cero';
+                                @endphp
+                                <span class="{{ $clase }}">{{ number_format(abs($cuentaItem->saldo), 2) }}</span>
+                                @if($cuentaItem->saldo != 0)
+                                    <small class="d-block text-muted mt-1">{{ $texto }}</small>
+                                @endif
+                            </td>
+                            <td class="text-center">
+                                <a href="{{ route('contador.libro-mayor.cuenta', ['cuenta' => $cuentaItem->cuenta, 'fecha_inicio' => $fechaInicio, 'fecha_fin' => $fechaFin]) }}"
+                                   class="btn btn-sm btn-outline-primary" title="Ver movimientos detallados">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="7" class="text-center p-5">
+                                <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                                <h5 class="mb-1">No se encontraron cuentas</h5>
+                                <p class="text-muted">No hay movimientos que coincidan con los filtros seleccionados.</p>
+                                <a href="{{ route('contador.libro-mayor.index') }}" class="btn btn-sm btn-primary mt-2">
+                                    <i class="fas fa-redo me-1"></i> Limpiar Filtros
+                                </a>
+                            </td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+
+        {{-- Paginación --}}
+        @if(method_exists($cuentas, 'links') && $cuentas->hasPages())
+            <div class="card-footer pagination-wrapper">
+                {{ $cuentas->appends(request()->query())->links() }}
+            </div>
+        @endif
     </div>
 </div>
 @endsection
 
-@section('scripts')
+@push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const form = document.getElementById('filterForm');
     const cuentaInput = document.querySelector('input[name="cuenta"]');
     let searchTimeout;
 
-    // Auto-submit al cambiar fechas
-    ['fecha_inicio', 'fecha_fin'].forEach(name => {
-        const input = document.querySelector(`input[name="${name}"]`);
-        if (input) {
-            input.addEventListener('change', () => form.submit());
-        }
-    });
-
-    // Búsqueda con retardo
+    // Búsqueda con retardo al escribir en "Cuenta Contable"
     if (cuentaInput) {
         cuentaInput.addEventListener('input', function() {
             clearTimeout(searchTimeout);
-            searchTimeout = setTimeout(() => form.submit(), 600);
+            searchTimeout = setTimeout(() => {
+                form.submit();
+            }, 600); // 600ms de espera antes de buscar
         });
     }
+
+    // Prevenir submit duplicado al presionar Enter en el input de cuenta
+    form.addEventListener('submit', function() {
+        clearTimeout(searchTimeout);
+    });
 });
 </script>
-@endsection
+@endpush
+

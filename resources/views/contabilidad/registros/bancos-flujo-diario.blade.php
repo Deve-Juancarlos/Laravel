@@ -6,7 +6,10 @@
     <div class="col-12">
       <div class="d-flex justify-content-between align-items-center">
         <h2><i class="fas fa-calendar-day me-2"></i>Flujo Diario de Caja</h2>
-        <div>
+        <div class="d-flex gap-2">
+          <a href="{{ route('contador.bancos.mensual', ['mes' => date('Y-m')]) }}" class="btn btn-warning">
+            <i class="fas fa-chart-line me-2"></i>Ver Flujo Mensual
+          </a>
           <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#exportarModal">
             <i class="fas fa-file-excel me-2"></i>Exportar
           </button>
@@ -21,7 +24,7 @@
   <!-- Filtros -->
   <div class="card mb-4">
     <div class="card-body">
-      <form method="GET" action="{{ route('bancos.flujo-diario') }}">
+      <form method="GET" action="{{ route('contador.bancos.flujo-diario') }}">
         <div class="row g-3">
           <div class="col-md-3">
             <label class="form-label">Fecha</label>
@@ -50,7 +53,7 @@
             <button type="submit" class="btn btn-primary me-2">
               <i class="fas fa-filter me-2"></i>Filtrar
             </button>
-            <a href="{{ route('bancos.flujo-diario') }}" class="btn btn-secondary">
+            <a href="{{ route('contador.bancos.flujo-diario') }}" class="btn btn-secondary">
               <i class="fas fa-times me-2"></i>Limpiar
             </a>
           </div>
@@ -181,7 +184,7 @@
         <h5 class="modal-title">Exportar Flujo Diario</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
-      <form method="POST" action="{{ route('bancos.exportar-flujo') }}">
+      <form method="POST" action="#">
         @csrf
         <div class="modal-body">
           <div class="mb-3">

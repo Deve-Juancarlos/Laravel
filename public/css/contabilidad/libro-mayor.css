@@ -1,732 +1,143 @@
-/* ============================================
-   LIBRO MAYOR - SISTEMA CONTABLE FARMACÉUTICO
-   ============================================ */
+/*
+ * Estilos para el Libro Mayor (index.blade.php)
+ * Estos estilos son similares a los del Libro Diario para mantener consistencia.
+ */
 
-/* --- VARIABLES Y BASE --- */
-:root {
-    --primary: #1e40af;
-    --primary-dark: #1e3a8a;
-    --success: #10b981;
-    --danger: #ef4444;
-    --warning: #f59e0b;
-    --info: #3b82f6;
-    --secondary: #6b7280;
-    
-    --gray-50: #f9fafb;
-    --gray-100: #f3f4f6;
-    --gray-200: #e5e7eb;
-    --gray-300: #d1d5db;
-    --gray-400: #9ca3af;
-    --gray-500: #6b7280;
-    --gray-600: #4b5563;
-    --gray-700: #374151;
-    --gray-800: #1f2937;
-    --gray-900: #111827;
-    
-    --white: #ffffff;
-    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-    --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
-    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-    --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-    
-    --border-radius: 12px;
-    --border-radius-sm: 8px;
-    --border-radius-lg: 16px;
-    --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-/* ============================================
-   CONTENEDOR BASE
-   ============================================ */
-.libro-mayor-view {
-    font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
-    background-color: var(--gray-50);
-    color: var(--gray-900);
-    line-height: 1.6;
-}
-
-.libro-mayor-view .container-fluid {
-    padding: 2rem;
-}
-
-.libro-mayor-view .form-control,
-.libro-mayor-view .form-select {
-    border: 2px solid var(--gray-200);
-    border-radius: var(--border-radius-sm);
-    padding: 0.625rem 0.875rem;
-    font-size: 0.9375rem;
-    transition: var(--transition);
-    width: 100%;
-}
-
-/* ============================================
-   PAGE HEADER
-   ============================================ */
-.libro-mayor-view .page-header {
-    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-    border-radius: var(--border-radius-lg);
-    padding: 2rem;
-    margin-bottom: 2rem;
-    box-shadow: var(--shadow-lg);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.libro-mayor-view .page-header h1 {
-    color: var(--white);
-    font-size: 2rem;
-    font-weight: 700;
-    margin-bottom: 0.5rem;
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-}
-
-.libro-mayor-view .page-header h1 i {
-    font-size: 1.75rem;
-}
-
-.libro-mayor-view .page-header p {
-    color: rgba(255, 255, 255, 0.9);
-    font-size: 1rem;
-    margin: 0 0 0.75rem 0;
-}
-
-.libro-mayor-view .filter-context {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    margin-top: 0.75rem;
-    color: rgba(255, 255, 255, 0.95);
-    font-size: 0.9rem;
-}
-
-.libro-mayor-view .filter-context .badge {
-    background: rgba(255, 255, 255, 0.2);
-    color: var(--white);
-    padding: 0.375rem 0.875rem;
-    border-radius: 9999px;
-    font-size: 0.8125rem;
-    font-weight: 500;
-    backdrop-filter: blur(10px);
-}
-
-.libro-mayor-view .btn-back-dashboard {
-    background: var(--white);
-    color: #dc2626;
-    font-weight: 600;
-    padding: 0.75rem 1.5rem;
-    border-radius: var(--border-radius-sm);
-    box-shadow: var(--shadow-md);
-    transition: var(--transition);
-    border: none;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    text-decoration: none;
-    font-size: 0.9375rem;
-}
-
-.libro-mayor-view .btn-back-dashboard:hover {
-    background: #fef2f2;
-    color: #b91c1c;
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-xl);
-    text-decoration: none;
-}
-
-/* ============================================
-   FILTROS
-   ============================================ */
-.libro-mayor-view .filters-card {
-    background: var(--white);
-    border-radius: var(--border-radius);
-    box-shadow: var(--shadow);
-    margin-bottom: 2rem;
-    padding: 1.5rem;
-}
-
-.libro-mayor-view .filter-row {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 1rem;
-    align-items: end;
-}
-
-.libro-mayor-view .filter-group {
-    display: flex;
-    flex-direction: column;
-}
-
-.libro-mayor-view .filter-group label {
-    font-size: 0.875rem;
-    font-weight: 600;
-    color: var(--gray-700);
-    margin-bottom: 0.5rem;
-}
-
-.libro-mayor-view .filter-group input,
-.libro-mayor-view .filter-group select {
-    border: 2px solid var(--gray-200);
-    border-radius: var(--border-radius-sm);
-    padding: 0.625rem 0.875rem;
-    font-size: 0.9375rem;
-    transition: var(--transition);
-    width: 100%;
-}
-
-.libro-mayor-view .filter-group input:focus,
-.libro-mayor-view .filter-group select:focus {
-    border-color: var(--primary);
-    box-shadow: 0 0 0 3px rgba(30, 64, 175, 0.1);
-    outline: none;
-}
-
-.libro-mayor-view .btn-apply {
-    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-    color: var(--white);
-    padding: 0.625rem 1.5rem;
-    border-radius: var(--border-radius-sm);
-    font-weight: 600;
-    font-size: 0.9375rem;
-    border: none;
-    cursor: pointer;
-    transition: var(--transition);
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    height: fit-content;
-}
-
-.libro-mayor-view .btn-apply:hover {
-    background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-md);
-}
-
-/* ============================================
-   ESTADÍSTICAS
-   ============================================ */
+/* Layout y Tarjetas KPI */
 .libro-mayor-view .stats-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
     gap: 1.5rem;
-    margin-bottom: 2rem;
 }
 
 .libro-mayor-view .stat-card {
-    background: var(--white);
-    border-radius: var(--border-radius);
-    padding: 1.5rem;
-    box-shadow: var(--shadow);
-    transition: var(--transition);
-    border: 1px solid var(--gray-200);
+    background-color: #fff;
+    border-radius: 12px;
+    padding: 1.25rem 1.5rem;
     display: flex;
     align-items: center;
     gap: 1.25rem;
+    border-left: 4px solid var(--bs-primary);
 }
 
-.libro-mayor-view .stat-card:hover {
-    transform: translateY(-4px);
-    box-shadow: var(--shadow-lg);
-}
-
-.libro-mayor-view .stat-icon {
-    width: 60px;
-    height: 60px;
-    border-radius: var(--border-radius-sm);
+.libro-mayor-view .stat-card .stat-icon {
+    font-size: 1.75rem;
+    color: var(--bs-primary);
+    background-color: var(--bs-primary-soft);
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.75rem;
     flex-shrink: 0;
-    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-    color: var(--white);
 }
 
-.libro-mayor-view .stat-card.success .stat-icon {
-    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+.libro-mayor-view .stat-card .stat-info {
+    flex-grow: 1;
 }
 
-.libro-mayor-view .stat-card.danger .stat-icon {
-    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+.libro-mayor-view .stat-card .stat-label {
+    font-size: 0.875rem;
+    color: #6c757d;
+    margin-bottom: 0.25rem;
+    text-transform: uppercase;
+    font-weight: 600;
 }
 
-.libro-mayor-view .stat-card.info .stat-icon {
-    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-}
-
-.libro-mayor-view .stat-value {
+.libro-mayor-view .stat-card .stat-value {
     font-size: 1.75rem;
     font-weight: 700;
-    color: var(--gray-900);
-    margin-bottom: 0.25rem;
+    color: #333;
+    line-height: 1.2;
 }
 
-.libro-mayor-view .stat-label {
+/* Colores de Stats */
+.libro-mayor-view .stat-card.success { border-left-color: var(--bs-success); }
+.libro-mayor-view .stat-card.success .stat-icon { color: var(--bs-success); background-color: var(--bs-success-soft); }
+
+.libro-mayor-view .stat-card.danger { border-left-color: var(--bs-danger); }
+.libro-mayor-view .stat-card.danger .stat-icon { color: var(--bs-danger); background-color: var(--bs-danger-soft); }
+
+.libro-mayor-view .stat-card.info { border-left-color: var(--bs-info); }
+.libro-mayor-view .stat-card.info .stat-icon { color: var(--bs-info); background-color: var(--bs-info-soft); }
+
+/* Filtros */
+.filters-card {
+    background-color: #fff;
+    border-radius: 12px;
+}
+.filters-card .form-label {
+    font-weight: 600;
     font-size: 0.875rem;
-    color: var(--gray-600);
-    font-weight: 500;
-    margin: 0;
+    color: #495057;
 }
 
-/* ============================================
-   TABLA
-   ============================================ */
-.libro-mayor-view .table-container {
-    background: var(--white);
-    border-radius: var(--border-radius);
-    box-shadow: var(--shadow);
-    overflow: hidden;
+/* Tabla */
+.table-container {
+    background-color: #fff;
+    border-radius: 12px;
+    overflow: hidden; /* Para que los bordes redondeados se apliquen a la tabla */
 }
 
-.libro-mayor-view .table-header {
-    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-    padding: 1.25rem 1.5rem;
-    border-bottom: 2px solid #dc2626;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.libro-mayor-view .table-title {
-    font-size: 1.1rem;
-    font-weight: 600;
-    color: var(--white);
-    margin: 0;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-
-.libro-mayor-view .btn-export {
-    background: #10b981;
-    color: #ffffff;
-    padding: 0.625rem 1.25rem;
-    border-radius: var(--border-radius-sm);
-    font-weight: 600;
-    font-size: 0.9375rem;
-    border: none;
-    cursor: pointer;
-    transition: var(--transition);
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    text-decoration: none;
-}
-
-.libro-mayor-view .btn-export:hover {
-    background: #059669;
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-md);
-    text-decoration: none;
-}
-
-.libro-mayor-view .table-responsive {
-    overflow-x: auto;
-}
-
-.libro-mayor-view .table {
-    width: 100%;
-    border-collapse: collapse;
-    margin: 0;
-}
-
-.libro-mayor-view .table thead {
-    background: linear-gradient(135deg, var(--gray-50) 0%, var(--gray-100) 100%);
-}
-
-.libro-mayor-view .table thead th {
-    padding: 1rem 1.25rem;
-    font-size: 0.875rem;
-    font-weight: 600;
-    color: var(--gray-700);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    border-bottom: 2px solid var(--gray-200);
-    white-space: nowrap;
-}
-
-.libro-mayor-view .table tbody td {
-    padding: 1rem 1.25rem;
-    border-bottom: 1px solid var(--gray-200);
-    font-size: 0.9375rem;
-    color: var(--gray-700);
-}
-
-.libro-mayor-view .table tbody tr {
-    transition: var(--transition);
-}
-
-.libro-mayor-view .table tbody tr:hover {
-    background: var(--gray-50);
-}
-
-/* Estilos específicos de celdas */
-.libro-mayor-view .account-link {
-    font-weight: 700;
-    color: var(--primary);
-    font-family: 'Courier New', monospace;
-    text-decoration: none;
-    transition: var(--transition);
-}
-
-.libro-mayor-view .account-link:hover {
-    color: var(--primary-dark);
-    text-decoration: underline;
-}
-
-.libro-mayor-view .text-center {
-    text-align: center;
-}
-
-.libro-mayor-view .text-end {
-    text-align: right;
-}
-
-.libro-mayor-view .saldo-deudor {
-    color: var(--success);
-    font-weight: 700;
-    font-family: 'Courier New', monospace;
-}
-
-.libro-mayor-view .saldo-acreedor {
-    color: var(--danger);
-    font-weight: 700;
-    font-family: 'Courier New', monospace;
-}
-
-.libro-mayor-view .saldo-saldo {
-    color: var(--gray-500);
-    font-weight: 600;
-    font-family: 'Courier New', monospace;
-}
-
-/* ============================================
-   BOTONES DE ACCIÓN
-   ============================================ */
-.libro-mayor-view .btn-action {
-    width: 36px;
-    height: 36px;
-    padding: 0;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: var(--border-radius-sm);
-    transition: var(--transition);
-    border: 2px solid var(--primary);
-    background: transparent;
-    color: var(--primary);
-    text-decoration: none;
-    cursor: pointer;
-}
-
-.libro-mayor-view .btn-action:hover {
-    background: var(--primary);
-    color: var(--white);
-    transform: translateY(-2px);
-    text-decoration: none;
-}
-
-/* ============================================
-   BADGES
-   ============================================ */
-.libro-mayor-view .badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.375rem;
-    padding: 0.375rem 0.75rem;
-    border-radius: 9999px;
-    font-size: 0.8125rem;
-    font-weight: 600;
-}
-
-.libro-mayor-view .badge-success {
-    background: #d1fae5;
-    color: #065f46;
-}
-
-.libro-mayor-view .badge-warning {
-    background: #fef3c7;
-    color: #92400e;
-}
-
-/* ============================================
-   BOTONES GENERALES
-   ============================================ */
-.libro-mayor-view .btn,
-.libro-mayor-view a.btn,
-.libro-mayor-view button.btn {
-    padding: 0.625rem 1.25rem;
-    border-radius: var(--border-radius-sm);
-    font-weight: 500;
-    font-size: 0.9375rem;
-    border: none;
-    cursor: pointer;
-    transition: var(--transition);
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    text-decoration: none !important;
-}
-
-.libro-mayor-view .btn-primary {
-    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-    color: var(--white);
-}
-
-.libro-mayor-view .btn-primary:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-md);
-}
-
-.libro-mayor-view .btn-sm {
-    padding: 0.5rem 1rem;
-    font-size: 0.875rem;
-}
-
-.libro-mayor-view .btn-outline-primary {
-    color: var(--primary);
-    border: 2px solid var(--primary);
-    background: transparent;
-}
-
-.libro-mayor-view .btn-outline-primary:hover {
-    background: var(--primary);
-    color: var(--white);
-}
-
-/* ============================================
-   ESTADO VACÍO
-   ============================================ */
-.libro-mayor-view .empty-state {
-    text-align: center;
-    padding: 4rem 2rem;
-}
-
-.libro-mayor-view .empty-state i {
-    font-size: 4rem;
-    color: var(--gray-300);
-    margin-bottom: 1.5rem;
-    display: block;
-}
-
-.libro-mayor-view .empty-state div {
-    font-size: 1.125rem;
-    color: var(--gray-500);
-    margin-bottom: 1.5rem;
-}
-
-.libro-mayor-view .empty-state .btn {
-    margin-top: 1rem;
-}
-
-/* ============================================
-   PAGINACIÓN
-   ============================================ */
-.libro-mayor-view .pagination-wrapper {
-    padding: 1.25rem;
-    background: var(--gray-50);
-    border-top: 1px solid var(--gray-200);
-    display: flex;
-    justify-content: center;
-}
-
-/* ============================================
-   RESPONSIVE
-   ============================================ */
-@media (max-width: 1024px) {
-    .libro-mayor-view .stats-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
-}
-
-@media (max-width: 768px) {
-    .libro-mayor-view .page-header {
-        flex-direction: column;
-        gap: 1rem;
-        text-align: center;
-        align-items: flex-start;
-    }
-
-    .libro-mayor-view .page-header h1 {
-        font-size: 1.5rem;
-        justify-content: center;
-        width: 100%;
-    }
-
-    .libro-mayor-view .btn-back-dashboard {
-        width: 100%;
-        justify-content: center;
-    }
-
-    .libro-mayor-view .container-fluid {
-        padding: 1rem;
-    }
-
-    .libro-mayor-view .stats-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .libro-mayor-view .stat-card {
-        padding: 1.25rem;
-    }
-
-    .libro-mayor-view .filter-row {
-        grid-template-columns: 1fr;
-    }
-
-    .libro-mayor-view .table-header {
-        flex-direction: column;
-        gap: 1rem;
-        align-items: flex-start;
-    }
-
-    .libro-mayor-view .btn-export {
-        width: 100%;
-        justify-content: center;
-    }
-
-    .libro-mayor-view .table {
-        font-size: 0.875rem;
-    }
-
-    .libro-mayor-view .table thead th,
-    .libro-mayor-view .table tbody td {
-        padding: 0.75rem;
-    }
-
-    /* Ocultar columnas menos importantes en móvil */
-    .libro-mayor-view .table thead th:nth-child(3),
-    .libro-mayor-view .table tbody td:nth-child(3) {
-        display: none;
-    }
-}
-
-@media (max-width: 576px) {
-    .libro-mayor-view .page-header {
-        padding: 1.5rem;
-    }
-
-    .libro-mayor-view .page-header h1 {
-        font-size: 1.25rem;
-    }
-
-    .libro-mayor-view .stat-card {
-        gap: 1rem;
-    }
-
-    .libro-mayor-view .stat-icon {
-        width: 50px;
-        height: 50px;
-        font-size: 1.5rem;
-    }
-
-    .libro-mayor-view .stat-value {
-        font-size: 1.5rem;
-    }
-
-    .libro-mayor-view .filters-card {
-        padding: 1rem;
-    }
-
-    .libro-mayor-view .btn-apply {
-        width: 100%;
-        justify-content: center;
-    }
-}
-
-/* ============================================
-   SCROLLBAR PERSONALIZADO
-   ============================================ */
-.libro-mayor-view ::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
-}
-
-.libro-mayor-view ::-webkit-scrollbar-track {
-    background: var(--gray-100);
-    border-radius: 4px;
-}
-
-.libro-mayor-view ::-webkit-scrollbar-thumb {
-    background: var(--gray-400);
-    border-radius: 4px;
-}
-
-.libro-mayor-view ::-webkit-scrollbar-thumb:hover {
-    background: var(--gray-500);
-}
-
-/* ============================================
-   ANIMACIONES
-   ============================================ */
-@keyframes fadeInLibroMayor {
-    from {
-        opacity: 0;
-    }
-    to {
-        opacity: 1;
-    }
-}
-
-.libro-mayor-view .table tbody tr {
-    animation: fadeInLibroMayor 0.3s ease;
-}
-
-/* ============================================
-   UTILIDADES ADICIONALES
-   ============================================ */
-.libro-mayor-view .d-block {
-    display: block;
-}
-
-.libro-mayor-view .text-muted {
-    color: var(--gray-500);
-}
-
-.libro-mayor-view .mt-1 {
-    margin-top: 0.25rem;
-}
-
-.libro-mayor-view .mt-2 {
-    margin-top: 0.5rem;
-}
-
-.libro-mayor-view .mb-0 {
+.table-container .table {
     margin-bottom: 0;
 }
 
-.libro-mayor-view .align-middle {
+.table-container th {
+    font-weight: 600;
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    color: #6c757d;
+    background-color: #f8f9fa;
     vertical-align: middle;
 }
 
-/* Fix para botones dentro de enlaces */
-.libro-mayor-view a.btn,
-.libro-mayor-view a.btn-export,
-.libro-mayor-view a.btn-action,
-.libro-mayor-view a.btn-back-dashboard,
-.libro-mayor-view a[class*="btn"] {
-    text-decoration: none !important;
+.table-container td {
+    vertical-align: middle;
 }
 
-.libro-mayor-view a.btn:hover,
-.libro-mayor-view a.btn-export:hover,
-.libro-mayor-view a.btn-action:hover,
-.libro-mayor-view a.btn-back-dashboard:hover,
-.libro-mayor-view a[class*="btn"]:hover {
-    text-decoration: none !important;
+.account-link {
+    font-weight: 600;
+    color: var(--bs-primary);
+    text-decoration: none;
+    font-size: 1.05rem;
+}
+.account-link:hover {
+    text-decoration: underline;
+    color: var(--bs-primary-dark);
 }
 
-/* ============================================
-   CONTENT WRAPPER
-   ============================================ */
-.libro-mayor-view .content-wrapper {
-    animation: fadeInLibroMayor 0.5s ease;
+.saldo-deudor {
+    font-weight: 600;
+    color: var(--bs-success); /* Deudor (Activo/Gasto) es positivo/verde */
+}
+.saldo-acreedor {
+    font-weight: 600;
+    color: var(--bs-danger); /* Acreedor (Pasivo/Ingreso) es negativo/rojo en balance */
+}
+.saldo-cero {
+    font-weight: 400;
+    color: #6c757d;
 }
 
-.libro-mayor-view .main-content-wrapper {
-    min-height: 100vh;
+/* Paginación */
+.pagination-wrapper {
+    background-color: #f8f9fa;
+    padding: 1rem 1.5rem;
+    display: flex;
+    justify-content: flex-end;
+    border-top: 1px solid #dee2e6;
 }
+
+/* Botón soft */
+.btn-success-soft {
+    background-color: var(--bs-success-soft);
+    color: var(--bs-success-dark);
+    border: 1px solid var(--bs-success-soft);
+}
+.btn-success-soft:hover {
+    background-color: var(--bs-success-dark);
+    color: #fff;
+}
+

@@ -3,285 +3,165 @@
 
 @section('title', 'Asiento ' . $asiento->numero)
 
-@section('sidebar-menu')
-{{-- MENÚ PRINCIPAL --}}
-<div class="nav-section">Dashboard</div>
-<ul>
-    <li><a href="{{ route('dashboard.contador') }}" class="nav-link">
-        <i class="fas fa-chart-pie"></i> Panel Principal
-    </a></li>
-</ul>
-
-<div class="nav-section">Contabilidad</div>
-<ul>
-    <li>
-        <a href="{{ route('contador.libro-diario.index') }}" class="nav-link has-submenu">
-            <i class="fas fa-book"></i> Libros Contables
-        </a>
-        <div class="nav-submenu">
-            <a href="{{ route('contador.libro-diario.index') }}" class="nav-link"><i class="fas fa-file-alt"></i> Libro Diario</a>
-            <a href="{{ route('contador.libro-mayor.index') }}" class="nav-link"><i class="fas fa-book-open"></i> Libro Mayor</a>
-            <a href="{{route('contador.balance-comprobacion.index')}}" class="nav-link"><i class="fas fa-balance-scale"></i> Balance Comprobación</a>    
-            <a href="{{ route('contador.estado-resultados.index') }}" class="nav-link"><i class="fas fa-chart-bar"></i> Estados Financieros</a>
-        </div>
-    </li>
-    <li>
-        <a href="#" class="nav-link has-submenu">
-            <i class="fas fa-file-invoice"></i> Registros
-        </a>
-        <div class="nav-submenu">
-            <a href="#" class="nav-link"><i class="fas fa-shopping-cart"></i> Compras</a>
-            <a href="#" class="nav-link"><i class="fas fa-cash-register"></i> Ventas</a>
-            <a href="#" class="nav-link"><i class="fas fa-university"></i> Bancos</a>
-            <a href="#" class="nav-link"><i class="fas fa-money-bill-wave"></i> Caja</a>
-        </div>
-    </li>
-</ul>
-
-{{-- VENTAS Y COBRANZAS --}}
-<div class="nav-section">Ventas & Cobranzas</div>
-<ul>
-    <li><a href="{{ route('contador.reportes.ventas') }}" class="nav-link">
-        <i class="fas fa-chart-line"></i> Análisis Ventas
-    </a></li>
-    <li><a href="{{ route('contador.reportes.compras') }}" class="nav-link">
-        <i class="fas fa-wallet"></i> Cartera
-    </a></li>
-    <li><a href="{{ route('contador.facturas.create') }}" class="nav-link">
-        <i class="fas fa-clock"></i> Fact. Pendientes
-    </a></li>
-    <li><a href="{{ route('contador.facturas.index') }}" class="nav-link">
-        <i class="fas fa-exclamation-triangle"></i> Fact. Vencidas
-    </a></li>
-</ul>
-
-{{-- GESTIÓN --}}
-<div class="nav-section">Gestión</div>
-<ul>
-    <li><a href="{{ route('contador.clientes') }}" class="nav-link">
-        <i class="fas fa-users"></i> Clientes
-    </a></li>
-    <li><a href="{{ route('contador.reportes.medicamentos-controlados') }}" class="nav-link">
-        <i class="fas fa-percentage"></i> Márgenes
-    </a></li>
-    <li><a href="{{ route('contador.reportes.inventario') }}" class="nav-link">
-        <i class="fas fa-boxes"></i> Inventario
-    </a></li>
-</ul>
-
-{{-- REPORTES SUNAT --}}
-<div class="nav-section">SUNAT</div>
-<ul>
-    <li><a href="#" class="nav-link">
-        <i class="fas fa-file-invoice-dollar"></i> PLE
-    </a></li>
-    <li><a href="#" class="nav-link">
-        <i class="fas fa-percent"></i> IGV Mensual
-    </a></li>
-</ul>
+<!-- 1. Título de la Cabecera -->
+@section('page-title')
+    Asiento #{{ $asiento->numero }}
 @endsection
 
+<!-- 2. Breadcrumbs -->
+@section('breadcrumbs')
+    <li class="breadcrumb-item"><a href="{{ route('contador.libro-diario.index') }}">Libro Diario</a></li>
+    <li class="breadcrumb-item active" aria-current="page">{{ $asiento->numero }}</li>
+@endsection
 
+<!-- 3. Estilos CSS de esta página -->
+@push('styles')
+    <link href="{{ asset('css/contabilidad/asiento-show.css') }}" rel="stylesheet">
+@endpush
 
+<!-- 4. Contenido Principal -->
 @section('content')
 
-
-
-<div class="container-fluid p-0">
-    {{-- Header con navegación --}}
-    <div class="d-flex justify-content-between align-items-center p-4 mb-4" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px; color: white;">
-        <div>
-            <h1 class="h3 mb-1">
-                <i class="fas fa-clipboard-check"></i> Asiento #{{ $asiento->numero }}
-            </h1>
-            <p class="mb-0 opacity-75">Detalles del asiento contable</p>
-        </div>
-        <div>
-            <a href="{{ route('contador.libro-diario.index') }}" class="btn btn-light">
-                <i class="fas fa-arrow-left"></i> Volver al Libro
-            </a>
-        </div>
-    </div>
-
+<div class="container-fluid">
     {{-- Navegación entre asientos --}}
-    <div class="row mb-4">
+    <div class="row mb-3">
         <div class="col-6">
             @if($asientoAnterior)
-                <a href="{{ route('contador.libro-diario.show', $asientoAnterior->id) }}" class="btn btn-outline-primary w-100">
-                    <i class="fas fa-chevron-left"></i> Asiento Anterior<br>
-                    <small>{{ $asientoAnterior->numero }} - {{ \Carbon\Carbon::parse($asientoAnterior->fecha)->format('d/m/Y') }}</small>
+                <a href="{{ route('contador.libro-diario.show', $asientoAnterior->id) }}" class="btn btn-outline-secondary w-100 p-3 text-start">
+                    <i class="fas fa-chevron-left me-2"></i>
+                    <strong>Asiento Anterior</strong><br>
+                    <small class="text-muted">{{ $asientoAnterior->numero }} - {{ \Carbon\Carbon::parse($asientoAnterior->fecha)->format('d/m/Y') }}</small>
                 </a>
             @else
-                <div class="btn btn-outline-secondary w-100" style="cursor: not-allowed;">
-                    <i class="fas fa-chevron-left"></i> Sin Asiento Anterior
+                <div class="btn btn-outline-secondary w-100 p-3 text-start disabled" style="opacity: 0.6;">
+                    <i class="fas fa-chevron-left me-2"></i>
+                    <strong>Asiento Anterior</strong><br>
+                    <small class="text-muted">Estás en el primer asiento.</small>
                 </div>
             @endif
         </div>
         <div class="col-6">
             @if($asientoSiguiente)
-                <a href="{{ route('contador.libro-diario.show', $asientoSiguiente->id) }}" class="btn btn-outline-primary w-100">
-                    <i class="fas fa-chevron-right"></i> Asiento Siguiente<br>
-                    <small>{{ $asientoSiguiente->numero }} - {{ \Carbon\Carbon::parse($asientoSiguiente->fecha)->format('d/m/Y') }}</small>
+                <a href="{{ route('contador.libro-diario.show', $asientoSiguiente->id) }}" class="btn btn-outline-secondary w-100 p-3 text-end">
+                    <strong>Asiento Siguiente</strong>
+                    <i class="fas fa-chevron-right ms-2"></i><br>
+                    <small class="text-muted">{{ $asientoSiguiente->numero }} - {{ \Carbon\Carbon::parse($asientoSiguiente->fecha)->format('d/m/Y') }}</small>
                 </a>
             @else
-                <div class="btn btn-outline-secondary w-100" style="cursor: not-allowed;">
-                    <i class="fas fa-chevron-right"></i> Sin Siguiente Asiento
+                 <div class="btn btn-outline-secondary w-100 p-3 text-end disabled" style="opacity: 0.6;">
+                    <strong>Asiento Siguiente</strong>
+                    <i class="fas fa-chevron-right ms-2"></i><br>
+                    <small class="text-muted">Estás en el último asiento.</small>
                 </div>
             @endif
         </div>
     </div>
 
-    {{-- Alertas --}}
-    @if(session('success'))
-        <div class="alert alert-success alert-dismissible fade show" role="alert">
-            <i class="fas fa-check-circle"></i> {{ session('success') }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
-    @endif
-
-    @if(session('error'))
-        <div class="alert alert-danger alert-dismissible fade show" role="alert">
-            <i class="fas fa-exclamation-circle"></i> {{ session('error') }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
-    @endif
-
+    {{-- Alertas (manejadas por el layout principal app.blade.php) --}}
+    
     {{-- Información del Asiento --}}
     <div class="row mb-4">
-        <div class="col-md-6">
+        <div class="col-md-7">
             <div class="card h-100">
-                <div class="card-header">
+                <div class="card-header d-flex justify-content-between align-items-center">
                     <h5 class="card-title mb-0">
-                        <i class="fas fa-info-circle"></i> Información General
+                        <i class="fas fa-info-circle text-primary me-2"></i> Información General
                     </h5>
+                    <a href="{{ route('contador.libro-diario.edit', $asiento->id) }}" class="btn btn-sm btn-outline-secondary">
+                        <i class="fas fa-edit me-1"></i> Editar Cabecera
+                    </a>
                 </div>
                 <div class="card-body">
                     <div class="row mb-3">
-                        <div class="col-6">
+                        <div class="col-sm-4">
                             <strong>Número:</strong>
                         </div>
-                        <div class="col-6">
+                        <div class="col-sm-8">
                             <span class="badge bg-primary fs-6">{{ $asiento->numero }}</span>
                         </div>
                     </div>
                     <div class="row mb-3">
-                        <div class="col-6">
+                        <div class="col-sm-4">
                             <strong>Fecha:</strong>
                         </div>
-                        <div class="col-6">
+                        <div class="col-sm-8">
                             {{ \Carbon\Carbon::parse($asiento->fecha)->format('d/m/Y') }}
                         </div>
                     </div>
                     <div class="row mb-3">
-                        <div class="col-6">
+                        <div class="col-sm-4">
                             <strong>Estado:</strong>
                         </div>
-                        <div class="col-6">
+                        <div class="col-sm-8">
                             @if($asiento->balanceado)
-                                <span class="badge bg-success">
-                                    <i class="fas fa-check"></i> Balanceado
+                                <span class="badge bg-success-light text-success">
+                                    <i class="fas fa-check-circle"></i> Balanceado
                                 </span>
                             @else
-                                <span class="badge bg-warning">
+                                <span class="badge bg-warning-light text-warning">
                                     <i class="fas fa-exclamation-triangle"></i> Sin Balancear
                                 </span>
                             @endif
                         </div>
                     </div>
                     <div class="row mb-3">
-                        <div class="col-6">
+                        <div class="col-sm-4">
                             <strong>Estado Sistema:</strong>
                         </div>
-                        <div class="col-6">
-                            <span class="badge bg-info">{{ $asiento->estado }}</span>
+                        <div class="col-sm-8">
+                            <span class="badge bg-info-light text-info">{{ $asiento->estado }}</span>
                         </div>
                     </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-6">
-            <div class="card h-100">
-                <div class="card-header">
-                    <h5 class="card-title mb-0">
-                        <i class="fas fa-user"></i> Información del Usuario
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <div class="row mb-3">
-                        <div class="col-6">
+                     <div class="row mb-3">
+                        <div class="col-sm-4">
                             <strong>Usuario:</strong>
                         </div>
-                        <div class="col-6">
+                        <div class="col-sm-8">
                             {{ $asiento->usuario_nombre ?? 'Sistema' }}
                         </div>
                     </div>
-                    <div class="row mb-3">
-                        <div class="col-6">
-                            <strong>Email:</strong>
-                        </div>
-                        <div class="col-6">
-                            {{ $asiento->usuario_email ?? '-' }}
-                        </div>
-                    </div>
-                    <div class="row mb-3">
-                        <div class="col-6">
-                            <strong>Creado:</strong>
-                        </div>
-                        <div class="col-6">
-                            {{ \Carbon\Carbon::parse($asiento->created_at)->format('d/m/Y H:i') }}
-                        </div>
-                    </div>
-                    <div class="row mb-3">
-                        <div class="col-6">
-                            <strong>Actualizado:</strong>
-                        </div>
-                        <div class="col-6">
-                            {{ \Carbon\Carbon::parse($asiento->updated_at)->format('d/m/Y H:i') }}
-                        </div>
-                    </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    {{-- Resumen Financiero --}}
-    <div class="card mb-4">
-        <div class="card-header">
-            <h5 class="card-title mb-0">
-                <i class="fas fa-chart-pie"></i> Resumen Financiero
-            </h5>
-        </div>
-        <div class="card-body">
-            <div class="row text-center">
-                <div class="col-md-3">
-                    <div class="p-3" style="background: rgba(16, 185, 129, 0.1); border-radius: 8px;">
-                        <div class="h4 text-success mb-1">S/ {{ number_format($asiento->total_debe, 2) }}</div>
-                        <div class="text-muted">Total Debe</div>
-                    </div>
+        <div class="col-md-5">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-chart-pie text-primary me-2"></i> Resumen Financiero
+                    </h5>
                 </div>
-                <div class="col-md-3">
-                    <div class="p-3" style="background: rgba(239, 68, 68, 0.1); border-radius: 8px;">
-                        <div class="h4 text-danger mb-1">S/ {{ number_format($asiento->total_haber, 2) }}</div>
-                        <div class="text-muted">Total Haber</div>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="p-3" style="background: rgba(59, 130, 246, 0.1); border-radius: 8px;">
-                        <div class="h4 text-primary mb-1">S/ {{ number_format(abs($asiento->total_debe - $asiento->total_haber), 2) }}</div>
-                        <div class="text-muted">Diferencia</div>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="p-3" style="background: {{ $asiento->balanceado ? 'rgba(16, 185, 129, 0.1)' : 'rgba(245, 158, 11, 0.1)' }}; border-radius: 8px;">
-                        <div class="h5 mb-1 {{ $asiento->balanceado ? 'text-success' : 'text-warning' }}">
-                            @if($asiento->balanceado)
-                                <i class="fas fa-check-circle"></i> CUADRA
-                            @else
-                                <i class="fas fa-exclamation-triangle"></i> NO CUADRA
-                            @endif
+                <div class="card-body">
+                    <div class="kpi-box">
+                        <div class="kpi-icon-sm bg-success-light">
+                            <i class="fas fa-arrow-up text-success"></i>
                         </div>
-                        <div class="text-muted">Balance</div>
+                        <div class="kpi-content-sm">
+                            <div class="kpi-label-sm">Total Debe</div>
+                            <div class="kpi-value-sm text-success">S/ {{ number_format($asiento->total_debe, 2) }}</div>
+                        </div>
+                    </div>
+                    
+                    <div class="kpi-box mt-3">
+                        <div class="kpi-icon-sm bg-danger-light">
+                            <i class="fas fa-arrow-down text-danger"></i>
+                        </div>
+                        <div class="kpi-content-sm">
+                            <div class="kpi-label-sm">Total Haber</div>
+                            <div class="kpi-value-sm text-danger">S/ {{ number_format($asiento->total_haber, 2) }}</div>
+                        </div>
+                    </div>
+
+                    <div class="kpi-box mt-3">
+                        <div class="kpi-icon-sm {{ $asiento->balanceado ? 'bg-success-light' : 'bg-warning-light' }}">
+                            <i class="fas {{ $asiento->balanceado ? 'fa-check-circle text-success' : 'fa-exclamation-triangle text-warning' }}"></i>
+                        </div>
+                        <div class="kpi-content-sm">
+                            <div class="kpi-label-sm">Balance</div>
+                            <div class="kpi-value-sm {{ $asiento->balanceado ? 'text-success' : 'text-warning' }}">
+                                S/ {{ number_format($asiento->total_debe - $asiento->total_haber, 2) }}
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -292,7 +172,7 @@
     <div class="card mb-4">
         <div class="card-header">
             <h5 class="card-title mb-0">
-                <i class="fas fa-file-alt"></i> Descripción
+                <i class="fas fa-file-alt text-primary me-2"></i> Descripción
             </h5>
         </div>
         <div class="card-body">
@@ -303,7 +183,7 @@
             @if($asiento->observaciones)
             <div>
                 <strong>Observaciones:</strong>
-                <p class="mt-2 p-3" style="background: #fff3cd; border-left: 3px solid #f59e0b; border-radius: 0 8px 8px 0;">
+                <p class="mt-2 p-3 bg-warning-light rounded border-start border-warning border-4">
                     {{ $asiento->observaciones }}
                 </p>
             </div>
@@ -311,39 +191,11 @@
         </div>
     </div>
 
-    {{-- Acciones --}}
-    <div class="card mb-4">
-        <div class="card-body">
-            <div class="d-flex flex-wrap gap-2 justify-content-center">
-                <a href="{{ route('contador.libro-diario.index') }}" class="btn btn-secondary">
-                    <i class="fas fa-list"></i> Volver al Libro
-                </a>
-                <a href="{{ route('contador.libro-diario.edit', $asiento->id) }}" class="btn btn-primary">
-                    <i class="fas fa-edit"></i> Editar Asiento
-                </a>
-                <button onclick="exportarAsientoPDF()" class="btn btn-danger">
-                    <i class="fas fa-file-pdf"></i> Exportar PDF
-                </button>
-                <button onclick="exportarAsientoExcel()" class="btn btn-success">
-                    <i class="fas fa-file-excel"></i> Exportar Excel
-                </button>
-                @if($asiento->balanceado)
-                <button onclick="duplicarAsiento()" class="btn btn-info">
-                    <i class="fas fa-copy"></i> Duplicar
-                </button>
-                @endif
-                <button onclick="eliminarAsiento()" class="btn btn-warning">
-                    <i class="fas fa-trash"></i> Eliminar
-                </button>
-            </div>
-        </div>
-    </div>
-
     {{-- Detalles del Asiento --}}
     <div class="card mb-4">
         <div class="card-header">
             <h5 class="card-title mb-0">
-                <i class="fas fa-list-alt"></i> Detalles del Asiento
+                <i class="fas fa-list-alt text-primary me-2"></i> Detalles del Asiento
             </h5>
         </div>
         <div class="card-body p-0">
@@ -354,8 +206,8 @@
                             <th style="width: 15%;">Cuenta</th>
                             <th style="width: 25%;">Nombre Cuenta</th>
                             <th style="width: 30%;">Concepto</th>
-                            <th style="width: 15%;">Debe</th>
-                            <th style="width: 15%;">Haber</th>
+                            <th class="text-end" style="width: 15%;">Debe</th>
+                            <th class="text-end" style="width: 15%;">Haber</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -387,7 +239,7 @@
                         @endforeach
                         {{-- Fila de totales --}}
                         <tr class="table-active">
-                            <td colspan="3"><strong>TOTALES</strong></td>
+                            <td colspan="3" class="text-end"><strong>TOTALES</strong></td>
                             <td class="text-end">
                                 <strong class="text-success">S/ {{ number_format($totalDebeDetalle, 2) }}</strong>
                             </td>
@@ -401,140 +253,156 @@
         </div>
     </div>
 
-    {{-- Historial de Auditoría --}}
-    <div class="card">
-        <div class="card-header">
-            <h5 class="card-title mb-0">
-                <i class="fas fa-history"></i> Historial de Auditoría
-            </h5>
+    {{-- Acciones y Auditoría --}}
+    <div class="row">
+        <!-- Acciones -->
+        <div class="col-lg-5">
+             <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0"><i class="fas fa-cogs text-primary me-2"></i> Acciones</h6>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{{ route('contador.libro-diario.edit', $asiento->id) }}" class="btn btn-primary">
+                            <i class="fas fa-edit me-2"></i> Editar Cabecera (Glosa, Fecha)
+                        </a>
+                        <button onclick="duplicarAsiento()" class="btn btn-info text-white">
+                            <i class="fas fa-copy me-2"></i> Duplicar Asiento
+                        </button>
+                        <button onclick="eliminarAsiento()" class="btn btn-danger">
+                            <i class="fas fa-trash me-2"></i> Eliminar Asiento
+                        </button>
+                    </div>
+                    <hr>
+                    <div class="d-flex gap-2">
+                        <button onclick="exportarAsientoPDF()" class="btn btn-outline-danger w-100">
+                            <i class="fas fa-file-pdf"></i> PDF
+                        </button>
+                        <button onclick="exportarAsientoExcel()" class="btn btn-outline-success w-100">
+                            <i class="fas fa-file-excel"></i> Excel
+                        </button>
+                    </div>
+                    <!-- Formulario de eliminación oculto -->
+                    <form id="delete-form-{{ $asiento->id }}" action="{{ route('contador.libro-diario.destroy', $asiento->id) }}" method="POST" style="display: none;">
+                        @csrf
+                        @method('DELETE')
+                    </form>
+                </div>
+            </div>
         </div>
-        <div class="card-body">
-            <div class="timeline">
-                <div class="timeline-item">
-                    <div class="timeline-marker bg-success"></div>
-                    <div class="timeline-content">
-                        <h6 class="timeline-title">Asiento Creado</h6>
-                        <p class="timeline-text">
-                            Por: {{ $asiento->usuario_nombre ?? 'Sistema' }}<br>
-                            Fecha: {{ \Carbon\Carbon::parse($asiento->created_at)->format('d/m/Y H:i:s') }}
-                        </p>
-                        <p class="mb-0">Asiento contable #{{ $asiento->numero }} registrado en el sistema</p>
-                    </div>
-                </div>
 
-                <div class="timeline-item">
-                    <div class="timeline-marker bg-info"></div>
-                    <div class="timeline-content">
-                        <h6 class="timeline-title">Última Actualización</h6>
-                        <p class="timeline-text">
-                            Por: {{ $asiento->usuario_nombre ?? 'Sistema' }}<br>
-                            Fecha: {{ \Carbon\Carbon::parse($asiento->updated_at)->format('d/m/Y H:i:s') }}
-                        </p>
-                        <p class="mb-0">Información del asiento actualizada</p>
-                    </div>
+        <!-- Historial de Auditoría -->
+        <div class="col-lg-7">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-history text-primary me-2"></i> Historial de Auditoría
+                    </h5>
                 </div>
+                <div class="card-body">
+                    <div class="timeline">
+                        <div class="timeline-item">
+                            <div class="timeline-marker bg-success"></div>
+                            <div class="timeline-content">
+                                <h6 class="timeline-title">Asiento Creado</h6>
+                                <p class="timeline-text">
+                                    Por: <strong>{{ $asiento->usuario_nombre ?? 'Sistema' }}</strong><br>
+                                    Fecha: {{ \Carbon\Carbon::parse($asiento->created_at)->format('d/m/Y H:i:s') }}
+                                </p>
+                            </div>
+                        </div>
 
-                @if($asiento->balanceado)
-                <div class="timeline-item">
-                    <div class="timeline-marker bg-success"></div>
-                    <div class="timeline-content">
-                        <h6 class="timeline-title">Balance Verificado</h6>
-                        <p class="timeline-text">
-                            Fecha: {{ \Carbon\Carbon::parse($asiento->updated_at)->format('d/m/Y H:i:s') }}
-                        </p>
-                        <p class="mb-0">Sistema automático verificó el balance del asiento contable</p>
+                        @if($asiento->created_at != $asiento->updated_at)
+                        <div class="timeline-item">
+                            <div class="timeline-marker bg-info"></div>
+                            <div class="timeline-content">
+                                <h6 class="timeline-title">Última Actualización</h6>
+                                <p class="timeline-text">
+                                    Fecha: {{ \Carbon\Carbon::parse($asiento->updated_at)->format('d/m/Y H:i:s') }}
+                                </p>
+                            </div>
+                        </div>
+                        @endif
+
+                        @if($asiento->balanceado)
+                        <div class="timeline-item">
+                            <div class="timeline-marker bg-success"></div>
+                            <div class="timeline-content">
+                                <h6 class="timeline-title">Balance Verificado</h6>
+                                <p class="timeline-text mb-0">
+                                    Sistema verificó el balance del asiento.
+                                </p>
+                            </div>
+                        </div>
+                        @endif
                     </div>
                 </div>
-                @endif
             </div>
         </div>
     </div>
 </div>
-
-<style>
-.timeline {
-    position: relative;
-    padding-left: 30px;
-}
-
-.timeline-item {
-    position: relative;
-    padding-bottom: 30px;
-}
-
-.timeline-item:last-child {
-    padding-bottom: 0;
-}
-
-.timeline-marker {
-    position: absolute;
-    left: -35px;
-    top: 0;
-    width: 12px;
-    height: 12px;
-    border-radius: 50%;
-}
-
-.timeline-content {
-    border-left: 2px solid #e9ecef;
-    padding-left: 20px;
-}
-
-.timeline-title {
-    margin-bottom: 8px;
-    color: #495057;
-}
-
-.timeline-text {
-    color: #6c757d;
-    margin-bottom: 8px;
-}
-</style>
-
 @endsection
 
 @push('scripts')
 <script>
-    function exportarAsientoPDF() {
-        if (confirm('¿Desea exportar este asiento a PDF?')) {
-            window.open(`{{ route('contador.libro-diario.exportar') }}?asiento_id={{ $asiento->id }}&formato=pdf`, '_blank');
+    // Usa SweetAlert para confirmar la eliminación
+    function eliminarAsiento() {
+        if (typeof Swal !== 'undefined') {
+            Swal.fire({
+                title: '¿Estás seguro?',
+                text: "Esta acción eliminará el asiento #{{ $asiento->numero }} permanentemente.",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Sí, eliminar',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    if(typeof showLoading === 'function') showLoading();
+                    document.getElementById('delete-form-{{ $asiento->id }}').submit();
+                }
+            });
+        } else {
+            if (confirm('¿Estás seguro de eliminar este asiento? Esta acción no se puede deshacer.')) {
+                if(typeof showLoading === 'function') showLoading();
+                document.getElementById('delete-form-{{ $asiento->id }}').submit();
+            }
         }
+    }
+
+    // Funciones de exportación (requieren lógica en el servicio)
+    function exportarAsientoPDF() {
+        if(typeof showLoading === 'function') showLoading();
+        // Esta ruta debe ser manejada por tu LibroDiarioController@exportar
+        window.location.href = `{{ route('contador.libro-diario.exportar') }}?asiento_id={{ $asiento->id }}&formato=pdf`;
+        // Ocultar loading después de un tiempo por si falla la descarga
+        setTimeout(() => { if(typeof hideLoading === 'function') hideLoading(); }, 3000);
     }
 
     function exportarAsientoExcel() {
-        if (confirm('¿Desea exportar este asiento a Excel?')) {
-            window.open(`{{ route('contador.libro-diario.exportar') }}?asiento_id={{ $asiento->id }}&formato=excel`, '_blank');
-        }
+        if(typeof showLoading === 'function') showLoading();
+        // Esta ruta debe ser manejada por tu LibroDiarioController@exportar
+        window.location.href = `{{ route('contador.libro-diario.exportar') }}?asiento_id={{ $asiento->id }}&formato=excel`;
+        setTimeout(() => { if(typeof hideLoading === 'function') hideLoading(); }, 3000);
     }
 
+    // Duplicar (requiere lógica en el controlador/servicio)
     function duplicarAsiento() {
-        if (confirm('¿Desea crear un nuevo asiento con los mismos datos?')) {
-            window.location.href = `{{ route('contador.libro-diario.create') }}?duplicar={{ $asiento->id }}`;
-        }
-    }
-
-    function eliminarAsiento() {
-        if (confirm('¿Está seguro que desea eliminar este asiento? Esta acción no se puede deshacer.')) {
-            fetch(`{{ route('contador.libro-diario.destroy', $asiento->id) }}`, {
-                method: 'DELETE',
-                headers: {
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                    'Content-Type': 'application/json',
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    window.location.href = `{{ route('contador.libro-diario.index') }}`;
-                } else {
-                    alert('Error al eliminar el asiento: ' + data.message);
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('Error al eliminar el asiento');
-            });
-        }
+        Swal.fire({
+            title: 'Duplicar Asiento',
+            text: "¿Desea crear un nuevo borrador de asiento basado en este?",
+            icon: 'info',
+            showCancelButton: true,
+            confirmButtonText: 'Sí, duplicar',
+            cancelButtonText: 'Cancelar'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                if(typeof showLoading === 'function') showLoading();
+                // Esta ruta debe ser manejada por tu LibroDiarioController@create
+                window.location.href = `{{ route('contador.libro-diario.create') }}?duplicar={{ $asiento->id }}`;
+            }
+        });
     }
 </script>
 @endpush
