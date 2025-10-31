@@ -129,9 +129,9 @@ class ContadorDashboardService
     {
          return Cache::remember('ventas_hoy_' . today()->format('Y-m-d'), $this->cache_ttl, function() {
              return DB::table('Doccab')
-                    ->whereDate('Fecha', today())
-                    ->where('Eliminado', 0)
-                    ->sum('Total') ?? 0;
+                     ->whereDate('Fecha', today())
+                     ->where('Eliminado', 0)
+                     ->sum('Total') ?? 0;
         });
     }
 
@@ -279,7 +279,9 @@ class ContadorDashboardService
                 MIN(cc.FechaV) as factura_mas_antigua
             ')
             ->groupBy('c.Codclie', 'c.Razon')
-            ->having('SUM(cc.Saldo)', '>', 1000) 
+            // ******** LA CORRECCIÓN DEFINITIVA ESTÁ AQUÍ ********
+            ->having(DB::raw('SUM(cc.Saldo)'), '>', 1000) // Usamos DB::raw() para SQL Server
+            // **************************************************
             ->orderBy('total_mora', 'desc')
             ->limit(10)
             ->get();
@@ -291,7 +293,7 @@ class ContadorDashboardService
                 'facturas_vencidas' => $item->facturas_vencidas,
                 'total_mora' => round($item->total_mora, 2),
                 'dias_promedio_mora' => round($item->dias_promedio_mora, 0),
-                'factura_mas_antigua' => Carbon::parse($item->factura_mas_antigua)->format('d/m/Y'),
+                'factura_mas_antigua' => $item->factura_mas_antigua ? Carbon::parse($item->factura_mas_antigua)->format('d/m/Y') : 'N/A',
                 'nivel_riesgo' => $this->determinarNivelRiesgo($item->dias_promedio_mora, $item->total_mora),
                 'dias_riesgo' => $this->calcularDiasRiesgo($item->dias_promedio_mora)
             ];
@@ -313,7 +315,7 @@ class ContadorDashboardService
                     'tipo' => 'danger', 'icono' => 'shield-alt', 'titulo' => 'Reporte DIGEMID Pendiente',
                     'mensaje' => "{$reportesDigemid} movimientos de controlados sin reportar",
                     'accion' => route('contador.reportes.financiero'), 'prioridad' => 'alta'
-                ];
+                 ];
             }
         }
         
@@ -443,14 +445,14 @@ class ContadorDashboardService
     // Helper para el método anterior
     public function calcularVentasMesPorFecha(Carbon $fecha)
     {
-         $cacheKey = 'ventas_mes_' . $fecha->format('Y-m');
-         return Cache::remember($cacheKey, $this->cache_ttl, function () use ($fecha) {
+       $cacheKey = 'ventas_mes_' . $fecha->format('Y-m');
+       return Cache::remember($cacheKey, $this->cache_ttl, function () use ($fecha) {
             return DB::table('Doccab')
                 ->whereYear('Fecha', $fecha->year)
                 ->whereMonth('Fecha', $fecha->month)
                 ->where('Eliminado', 0)
                 ->sum('Total') ?? 0;
-        });
+       });
     }
 
 
@@ -597,7 +599,7 @@ class ContadorDashboardService
                     'vencimiento' => Carbon::parse($item->vencimiento)->format('d/m/Y'),
                     'stock' => round($item->saldo, 2), 'valor_lote' => round($item->valor_lote, 2),
                     'dias' => (int)$item->dias_restantes,
-                    'riesgo' => $item->dias_restantes <= 30 ? 'alto' : ($item->dias_restantes <= 60 ? 'medio' : 'bajo')
+                    'riesgo' => $item->dias_restantes <= 30 ? 'alto' : ($item->dias_restantes <= 60 ? 'medio' : 'baja')
                 ];
             })->toArray();
     }
@@ -650,11 +652,16 @@ class ContadorDashboardService
         });
     }
 
+    // ===================================================================
+    // MÉTODOS QUE FALTABAN (COPIADOS DEL CONTROLADOR ORIGINAL)
+    // ===================================================================
+
     public function obtenerMesesLabels($cantidad = 6)
     {
         $labels = [];
         for ($i = $cantidad - 1; $i >= 0; $i--) {
             $dt = Carbon::now()->subMonths($i);
+            // Nombre de mes en español
             $labels[] = $dt->locale('es')->translatedFormat('M/Y');
         }
         return $labels;
@@ -693,3 +700,4 @@ class ContadorDashboardService
         ];
     }
 }
+

@@ -32,6 +32,11 @@
     <span>Plan de Cuentas</span>
 </a>
 
+<a class="nav-link {{ request()->is('contabilidad/estado-finansieros*') ? 'active' : '' }}" href={{ route('contador.estado-resultados.index') }}>
+    <i class="fa-sharp fa-solid fa-coins"></i>
+    <span>Estados Financieros</span>
+</a>
+
 <a class="nav-link {{ request()->is('contabilidad/reportes*') ? 'active' : '' }}" href="#">
     <i class="fas fa-file-invoice-dollar"></i>
     <span>Reportes</span>
