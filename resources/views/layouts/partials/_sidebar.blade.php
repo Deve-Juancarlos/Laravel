@@ -27,7 +27,7 @@
     <span>Balance Comparacion</span>
 </a>
 
-<a class="nav-link {{ request()->is('contabilidad/plan-cuentas*') ? 'active' : '' }}" href="{{ route('contador.libro-mayor.index') }}">
+<a class="nav-link {{ request()->is('contabilidad/plan-cuentas*') ? 'active' : '' }}" href="{{ route('contador.plan-cuentas.index') }}">
     <i class="fas fa-sitemap"></i>
     <span>Plan de Cuentas</span>
 </a>

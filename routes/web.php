@@ -17,6 +17,7 @@ use App\Http\Controllers\Contabilidad\ReportesSunatController;
 use App\Http\Controllers\Contabilidad\LibroDiarioController;
 use App\Http\Controllers\Contabilidad\EstadoResultadosController;
 use App\Http\Controllers\Contabilidad\BancosController;
+use App\Http\Controllers\Contabilidad\PlanCuentasController; // <-- 1. AÑADIDO
 
 //RUTAS PÚBLICAS
 Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
@@ -71,7 +72,7 @@ Route::middleware(['auth', 'check.admin'])->group(function () {
     //MÓDULO: REPORTES EJECUTIVOS
     Route::prefix('admin/reportes')->name('admin.reportes.')->group(function () {
         Route::get('facturas', [ReporteController::class, 'facturas'])->name('facturas');
-        Route::get('movimientos', [ReporteController::class, 'movimientos'])->name('movimientos');    
+        Route::get('movimientos', [ReporteController::class, 'movimientos'])->name('movimientos'); 
         Route::get('ventas-diarias', [ReporteController::class, 'ventasDiarias'])->name('ventas-diarias');
         Route::get('comisiones', [ReporteController::class, 'comisiones'])->name('comisiones');
         
@@ -116,9 +117,9 @@ Route::middleware(['auth', 'check.contador'])->group(function () {
     Route::get('/dashboard/contador', [ContadorDashboardController::class, 'contadorDashboard'])->name('dashboard.contador');
     Route::prefix('contador')->name('contador.')->group(function () {
 
-         Route::get('/api/dashboard/stats', [ContadorDashboardController::class, 'getStats'])->name('api.dashboard.stats');
-         Route::post('/api/dashboard/clear-cache', [ContadorDashboardController::class, 'clearCache'])->name('api.dashboard.clearCache');
-         
+        Route::get('/api/dashboard/stats', [ContadorDashboardController::class, 'getStats'])->name('api.dashboard.stats');
+        Route::post('/api/dashboard/clear-cache', [ContadorDashboardController::class, 'clearCache'])->name('api.dashboard.clearCache');
+        
         // Reportes Financieros y Libros Electrónicos
         Route::get('reportes/financiero', [ReportesSunatController::class, 'index'])->name('reportes.financiero');
         Route::get('reportes/ventas', [ReportesSunatController::class, 'registroVentas'])->name('reportes.ventas');
@@ -175,7 +176,7 @@ Route::middleware(['auth', 'check.contador'])->group(function () {
         Route::prefix('libro-diario')->name('libro-diario.')->group(function () {
             
             // Rutas principales
-            Route::get('/', [LibroDiarioController::class, 'index'])->name('index');        // contador.libro-diario.index
+            Route::get('/', [LibroDiarioController::class, 'index'])->name('index');      // contador.libro-diario.index
             Route::get('create', [LibroDiarioController::class, 'create'])->name('create'); // contador.libro-diario.create
             Route::post('store', [LibroDiarioController::class, 'store'])->name('store');   // contador.libro-diario.store
             
@@ -203,8 +204,8 @@ Route::middleware(['auth', 'check.contador'])->group(function () {
 
                 // 2. Exportar cuenta específica - ESTÁTICA con restricción
                 Route::get('/exportar-cuenta/{cuenta}', [App\Http\Controllers\Contabilidad\LibroMayorController::class, 'exportarCuenta'])
-                    ->where('cuenta', '[0-9]+')
-                    ->name('exportar-cuenta');
+                    ->where('cuenta', '[0-9\.]+') // Permite números y puntos
+                    ->name('exportarCuenta'); // Nombre corregido
 
                 // 3. Movimientos por período
                 Route::get('/movimientos', [App\Http\Controllers\Contabilidad\LibroMayorController::class, 'movimientos'])->name('movimientos');
@@ -214,7 +215,7 @@ Route::middleware(['auth', 'check.contador'])->group(function () {
 
                 // 5. Detalle de cuenta específica - DINÁMICA, solo números
                 Route::get('/cuenta/{cuenta}', [App\Http\Controllers\Contabilidad\LibroMayorController::class, 'cuenta'])
-                    ->where('cuenta', '[0-9]+')
+                    ->where('cuenta', '[0-9\.]+') // Permite números y puntos
                     ->name('cuenta');
 
                 // 6. Vista principal - Resumen por cuentas
@@ -229,6 +230,24 @@ Route::middleware(['auth', 'check.contador'])->group(function () {
                 Route::get('/verificar', [App\Http\Controllers\Contabilidad\BalanceComprobacionController::class, 'verificar'])->name('verificar');
                 Route::get('/exportar', [App\Http\Controllers\Contabilidad\BalanceComprobacionController::class, 'exportar'])->name('exportar');
             });
+
+        // 2. AÑADIDO: MÓDULO PLAN DE CUENTAS
+        Route::prefix('plan-cuentas')->name('plan-cuentas.')->group(function () {
+            Route::get('/', [PlanCuentasController::class, 'index'])->name('index');
+            Route::get('/create', [PlanCuentasController::class, 'create'])->name('create');
+            Route::post('/', [PlanCuentasController::class, 'store'])->name('store');
+            
+            // Usamos {codigo} como parámetro, permitiendo puntos.
+            Route::get('/{codigo}/edit', [PlanCuentasController::class, 'edit'])
+                ->where('codigo', '[0-9\.]+')
+                ->name('edit');
+            Route::put('/{codigo}', [PlanCuentasController::class, 'update'])
+                ->where('codigo', '[0-9\.]+')
+                ->name('update');
+            Route::delete('/{codigo}', [PlanCuentasController::class, 'destroy'])
+                ->where('codigo', '[0-9\.]+')
+                ->name('destroy');
+        });
 
         Route::prefix('bancos')->name('bancos.')->group(function () {
             // 1. Vista principal: lista de cuentas / libro de bancos
@@ -265,7 +284,7 @@ Route::middleware(['auth', 'check.contador'])->group(function () {
                 Route::get('/comparativo', [EstadoResultadosController::class, 'comparativo'])->name('comparativo');
                 Route::get('/flujo-caja', [EstadoResultadosController::class, 'cashFlow'])->name('flujo-caja');
                 Route::get('/balance-general', [EstadoResultadosController::class, 'balanceGeneral'])->name('balance-general');
-                Route::get('/exportar', [EstadoResultadosController::class, 'exportar'])->name('exportar');               
+                Route::get('/exportar', [EstadoResultadosController::class, 'exportar'])->name('exportar');                 
                
             });
         });
@@ -276,3 +295,4 @@ Route::middleware(['auth', 'check.contador'])->group(function () {
 Route::get('/acceso-denegado', function () {
     return view('errors.403');
 })->name('access.denied');
+
