@@ -16,6 +16,7 @@ use App\Http\Controllers\Admin\AuditoriaController;
 use App\Http\Controllers\Contabilidad\ReportesSunatController;
 use App\Http\Controllers\Contabilidad\LibroDiarioController;
 use App\Http\Controllers\Contabilidad\EstadoResultadosController;
+use App\Http\Controllers\Contabilidad\BancosController;
 
 //RUTAS PÚBLICAS
 Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
@@ -235,15 +236,32 @@ Route::middleware(['auth', 'check.contador'])->group(function () {
                 Route::get('/exportar', [App\Http\Controllers\Contabilidad\BalanceComprobacionController::class, 'exportar'])->name('exportar');
             });
 
-        Route::prefix('honorarios')->group(function () {
-                Route::get('/', [app\Http\Controllers\Contabilidad\HonorariosController::class, 'index'])->name('libro-honorarios');
-                Route::get('/estado-cuenta/{id}', [app\Http\Controllers\Contabilidad\HonorariosController::class, 'estadoCuenta'])->name('honorarios.estado-cuenta');
-                Route::get('/categorias', [app\Http\Controllers\Contabilidad\HonorariosController::class, 'analisisCategorias'])->name('honorarios.categorias');
-                Route::get('/mensual', [app\Http\Controllers\Contabilidad\HonorariosController::class, 'resumenMensual'])->name('honorarios.mensual');
-                Route::get('/impuestos', [app\Http\Controllers\Contabilidad\HonorariosController::class, 'analisisImpuestos'])->name('honorarios.impuestos');
-                Route::get('/proyeccion', [app\Http\Controllers\Contabilidad\HonorariosController::class, 'proyeccionGastos'])->name('honorarios.proyeccion');
-            });    
+        Route::prefix('bancos')->name('bancos.')->group(function () {
+            // 1. Vista principal: lista de cuentas / libro de bancos
+            Route::get('/', [BancosController::class, 'index'])->name('index');
 
+            // 2. Detalle de cuenta específica
+            Route::get('/detalle/{cuenta}', [BancosController::class, 'detalle'])->name('detalle');
+
+            // 3. Reporte diario (movimientos por día)
+            Route::get('/diario', [BancosController::class, 'diario'])->name('diario');
+
+            // 4. Flujo diario (movimientos del día actual)
+            Route::get('/flujo-diario', [BancosController::class, 'flujoDiario'])->name('flujo-diario');
+
+            // 5. Reporte mensual
+            Route::get('/mensual', [BancosController::class, 'mensual'])->name('mensual');
+
+            // 6. Conciliación bancaria
+            Route::get('/conciliacion', [BancosController::class, 'conciliacion'])->name('conciliacion');
+
+            // 7. Transferencias (si aplica)
+            Route::get('/transferencias', [BancosController::class, 'transferencias'])->name('transferencias');
+
+            // 8. 👉 REPORTES GENERALES (la que faltaba) 👈
+            Route::get('/reporte', [BancosController::class, 'reporte'])->name('reporte');
+        });
+        
         Route::prefix('estado-resultados')->name('estado-resultados.')->group(function () {
                 Route::get('/', [EstadoResultadosController::class, 'index'])->name('index');
                 Route::get('/periodos', [EstadoResultadosController::class, 'porPeriodos'])->name('periodos');
