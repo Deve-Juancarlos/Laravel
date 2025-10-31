@@ -20,6 +20,24 @@
 
 @section('content')
 <div class="container-fluid">
+
+    <!-- =========== NAVEGACIÓN DE REPORTES (AGREGADA) =========== -->
+    <nav class="nav nav-tabs eerr-subnav mb-4">
+        <a class="nav-link active" href="{{ route('contador.estado-resultados.index') }}">
+            <i class="fas fa-chart-line me-1"></i> Estado de Resultados
+        </a>
+        <a class="nav-link" href="{{ route('contador.estado-resultados.periodos') }}">
+            <i class="fas fa-chart-bar me-1"></i> Resultados por Períodos
+        </a>
+        <a class="nav-link" href="{{ route('contador.estado-resultados.comparativo') }}">
+            <i class="fas fa-exchange-alt me-1"></i> Comparativo EERR
+        </a>
+        <a class="nav-link" href="{{ route('contador.estado-resultados.balance-general') }}">
+            <i class="fas fa-balance-scale-right me-1"></i> Balance General
+        </a>
+    </nav>
+    <!-- ======================================================= -->
+
     <!-- Filtros -->
     <div class="card shadow-sm filters-card mb-4">
         <div class="card-body">
@@ -215,3 +233,4 @@
     </div>
 </div>
 @endsection
+

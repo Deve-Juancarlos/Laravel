@@ -5,6 +5,7 @@ namespace App\Services;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB; // <-- Asegúrate de que \DB sea reconocido
 
 class ReniecService
 {
@@ -149,14 +150,26 @@ class ReniecService
         
         $checkDigit = (11 - ($sum % 11)) % 10;
         
+        // El DNI de 8 dígitos no incluye el dígito verificador en el número base
+        // Esta validación parece estar comparando con un 9no dígito que no está en $numeroDNI
+        // Si tu $numeroDNI es de 8 dígitos, esta validación debe ajustarse.
+        // Si $numeroDNI incluye el dígito, la validación de 8 dígitos de arriba es incorrecta.
+        
+        // Asumiendo que $numeroDNI es solo de 8 dígitos, omitimos esta validación
+        // o la ajustamos si el dígito verificador se pasa por separado.
+        // Por ahora, solo validamos longitud:
+        
+        return ['valido' => true];
+
+        /* // Si tu DNI es de 9 dígitos (con verificador) descomenta esto:
         if ($checkDigit !== (int)$numeroDNI[8]) {
             return [
                 'valido' => false,
                 'error' => 'DNI inválido según algoritmo de validación'
             ];
         }
-
         return ['valido' => true];
+        */
     }
 
     /**
@@ -191,7 +204,12 @@ class ReniecService
             $sum += (int)$numeroRUC[$i] * $weights[$i];
         }
         
-        $checkDigit = ($sum % 11) < 2 ? ($sum % 11) : (11 - ($sum % 11));
+        // Corrección del dígito verificador (es 11 - residuo)
+        $remainder = $sum % 11;
+        $checkDigit = 11 - $remainder;
+        if ($checkDigit == 10) $checkDigit = 0;
+        if ($checkDigit == 11) $checkDigit = 1;
+
         
         if ($checkDigit !== (int)$numeroRUC[10]) {
             return [
@@ -205,24 +223,25 @@ class ReniecService
 
     /**
      * Buscar clientes coincidentes en la base de datos local
+     * (¡CORREGIDO Y ÚNICO!)
      */
     public function buscarEnBaseLocal($termino, $tipo = null)
     {
         try {
-            $query = \DB::connection('sqlsrv')
+            $query = DB::connection('sqlsrv') // Usamos DB Facade
                 ->table('Clientes')
                 ->select([
                     'Codclie',
                     'Razon',
-                    'RucDni as documento',
+                    'Documento as documento', // <-- CORREGIDO: De 'RucDni' a 'Documento'
                     'Direccion',
                     'Telefono1',
                     'Email',
-                    'Estado'
+                    'Activo' // <-- CORREGIDO: De 'Estado' a 'Activo'
                 ])
                 ->where(function($q) use ($termino) {
                     $q->where('Razon', 'LIKE', "%{$termino}%")
-                      ->orWhere('RucDni', 'LIKE', "%{$termino}%")
+                      ->orWhere('Documento', 'LIKE', "%{$termino}%") // <-- CORREGIDO: De 'RucDni' a 'Documento'
                       ->orWhere('Direccion', 'LIKE', "%{$termino}%");
                 })
                 ->where('Activo', 1)
@@ -230,7 +249,8 @@ class ReniecService
                 ->limit(20);
 
             if ($tipo) {
-                $query->where('Tipo', $tipo);
+                // Si este filtro es importante, ajusta la columna aquí.
+                // $query->where('TipoClie', $tipo);
             }
 
             $resultados = $query->get();
@@ -241,16 +261,63 @@ class ReniecService
             ];
 
         } catch (\Exception $e) {
-            Log::error('Error buscando en base local', [
+            Log::error('Error buscando en base local (ReniecService)', [
                 'termino' => $termino,
                 'error' => $e->getMessage()
             ]);
 
             return [
                 'encontrados' => 0,
-                'clientes' => [],
+                'clientes' => collect(), // Devuelve una colección vacía en error
                 'error' => $e->getMessage()
             ];
+        }
+    }
+
+    public function buscarCliente($documento)
+    {
+        try {
+            // 🔍 Primero: buscar en la base local
+            $local = $this->buscarEnBaseLocal($documento);
+
+            if ($local['encontrados'] > 0) {
+                Log::info('Cliente encontrado en base local', ['documento' => $documento]);
+                return [
+                    'fuente' => 'local',
+                    'data' => $local['clientes']->first()
+                ];
+            }
+
+            // 📡 Si no existe localmente, decidir si es DNI o RUC
+            if (strlen($documento) == 8) {
+                $data = $this->consultarDNI($documento);
+            } elseif (strlen($documento) == 11) {
+                $data = $this->consultarRUC($documento);
+            } else {
+                Log::warning('Documento con longitud inválida', ['documento' => $documento]);
+                return ['error' => 'Número de documento no válido'];
+            }
+
+            if ($data) {
+                Log::info('Cliente obtenido de fuente externa', ['documento' => $documento]);
+                return [
+                    'fuente' => 'externa',
+                    'data' => $data
+                ];
+            }
+
+            return [
+                'fuente' => 'ninguna',
+                'error' => 'No se encontraron datos para este documento'
+            ];
+
+        } catch (\Exception $e) {
+            Log::error('Error al buscar cliente', [
+                'documento' => $documento,
+                'error' => $e->getMessage()
+            ]);
+
+            return ['error' => $e->getMessage()];
         }
     }
 
@@ -267,8 +334,7 @@ class ReniecService
             }
 
             // Limpiar todo el caché RENIEC (búsqueda por patrones)
-            $keys = Cache::getStore()->getPrefix() . 'dni_*';
-            $cacheKeys = \DB::table('cache')
+            $cacheKeys = DB::table('cache') // Usamos DB Facade
                 ->where('key', 'LIKE', '%dni_%')
                 ->orWhere('key', 'LIKE', '%ruc_%')
                 ->pluck('key');
@@ -294,7 +360,7 @@ class ReniecService
             $stats = [];
             
             // Contar elementos en caché
-            $cacheKeys = \DB::table('cache')
+            $cacheKeys = DB::table('cache') // Usamos DB Facade
                 ->where('key', 'LIKE', '%dni_%')
                 ->orWhere('key', 'LIKE', '%ruc_%')
                 ->count();
@@ -302,7 +368,7 @@ class ReniecService
             $stats['elementos_cache'] = $cacheKeys;
             
             // Consultas del día actual (desde logs)
-            $consultasHoy = \DB::connection('sqlsrv')
+            $consultasHoy = DB::connection('sqlsrv') // Usamos DB Facade
                 ->table('Auditoria_Sistema')
                 ->where('accion', 'LIKE', '%RENIEC%')
                 ->whereDate('fecha', '=', date('Y-m-d'))

@@ -7,13 +7,22 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
+use App\Services\ReniecService;
+
 
 class ClientesController extends Controller
 {
-    public function __construct()
+
+    protected $reniecService;
+    
+    public function __construct(ReniecService $reniecService)
     {
         $this->middleware(['auth']);
+        $this->reniecService = $reniecService;
     }
+
+
+    
 
     /**
      * Lista todos los clientes con filtros, estadísticas y segmentación
@@ -695,4 +704,77 @@ class ClientesController extends Controller
         }
         return view('clientes.editar', compact('cliente'));
     }
+     public function search(Request $request)
+    {
+        $query = trim($request->input('query', ''));
+
+        if (strlen($query) < 3) {
+            return response()->json(['clientes' => [], 'mensaje' => 'Debe ingresar al menos 3 caracteres.']);
+        }
+
+        // Primero buscar localmente
+        $local = $this->reniecService->buscarEnBaseLocal($query);
+
+        if ($local['encontrados'] > 0) {
+            return response()->json([
+                'clientes' => $local['clientes'],
+                'fuente' => 'local'
+            ]);
+        }
+
+        // Si parece DNI (8 dígitos)
+        if (preg_match('/^\d{8}$/', $query)) {
+            $dni = $this->reniecService->consultarDNI($query);
+            if ($dni) {
+                return response()->json([
+                    'clientes' => [$dni],
+                    'fuente' => 'reniec'
+                ]);
+            }
+        }
+
+        // Si parece RUC (11 dígitos)
+        if (preg_match('/^\d{11}$/', $query)) {
+            $ruc = $this->reniecService->consultarRUC($query);
+            if ($ruc) {
+                return response()->json([
+                    'clientes' => [$ruc],
+                    'fuente' => 'reniec'
+                ]);
+            }
+        }
+
+        return response()->json([
+            'clientes' => [],
+            'fuente' => 'ninguno',
+            'mensaje' => 'No se encontraron resultados.'
+        ]);
+    }
+
+    public function buscarCliente(Request $request)
+    {
+        $documento = trim($request->input('query')); // debe coincidir con tu AJAX
+
+        if (!$documento) {
+            return response()->json([]);
+        }
+
+        // Llamar al servicio unificado
+        $resultado = $this->reniecService->buscarCliente($documento);
+
+        if (isset($resultado['error'])) {
+            return response()->json([]);
+        }
+
+        // Convertimos el resultado a la estructura que espera tu JS
+        $cliente = [
+            'id' => $resultado['id'] ?? null,
+            'razon_social' => $resultado['razon_social'] ?? ($resultado['nombre'] ?? 'Sin Nombre'),
+            'ruc' => $resultado['ruc'] ?? $documento,
+            'deuda_total' => $resultado['deuda_total'] ?? 0
+        ];
+
+        return response()->json([$cliente]);
+    }
+
 }

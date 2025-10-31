@@ -1,388 +1,73 @@
 @extends('layouts.app')
 
 @section('title', 'Libro de Bancos')
+@section('page-title', 'Libro de Bancos')
+
+@section('breadcrumbs')
+    <li class="breadcrumb-item"><a href="{{ route('dashboard.contador') }}">Contabilidad</a></li>
+    <li class="breadcrumb-item active" aria-current="page">Bancos</li>
+@endsection
 
 @section('content')
-<div class="container-fluid py-4">
-    <!-- Header -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card shadow-sm">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                         <div class="d-flex flex-wrap gap-2">
-                            <a href="{{ route('contador.bancos.reporte') }}" class="btn btn-outline-primary btn-sm">
-                                <i class="fas fa-list"></i> Reporte General
-                            </a>
-                            <a href="{{ route('contador.bancos.diario') }}" class="btn btn-outline-secondary btn-sm">
-                                <i class="fas fa-calendar-day"></i> Diario
-                            </a>
-                            <a href="{{ route('contador.bancos.conciliacion') }}" class="btn btn-outline-warning btn-sm">
-                                <i class="fas fa-check-double"></i> Conciliación
-                            </a>
-                            <a href="{{ route('contador.bancos.transferencias') }}" class="btn btn-outline-info btn-sm">
-                                <i class="fas fa-exchange-alt"></i> Transferencias
-                            </a>
-                            <a href="#" class="btn btn-success btn-sm">
-                                <i class="fas fa-file-excel"></i> Exportar
-                            </a>
+<div class="row mb-4">
+    <div class="col-lg-12">
+        <div class="card shadow">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary"><i class="fas fa-chart-line me-2"></i>Resumen de Saldos Bancarios</h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    @foreach($saldosActuales as $saldo)
+                    <div class="col-md-4 mb-3">
+                        <div class="kpi-card">
+                            <div class="kpi-icon bg-{{ $saldo->Saldo > 0 ? 'success' : 'danger' }}">
+                                <i class="fas fa-money-check-alt"></i>
+                            </div>
+                            <div class="kpi-content">
+                                <div class="kpi-label">{{ $saldo->Banco }}</div>
+                                <div class="kpi-value">S/ {{ number_format($saldo->Saldo, 2) }}</div>
+                                <small class="text-muted">{{ $saldo->Moneda }} - Cta: {{ $saldo->Cuenta }}</small>
+                            </div>
                         </div>
                     </div>
+                    @endforeach
                 </div>
             </div>
         </div>
     </div>
-
-    <!-- Filtros -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card shadow-sm">
-                <div class="card-header bg-light">
-                    <h5 class="mb-0">
-                        <i class="fas fa-filter"></i> Filtros de Búsqueda
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <form method="GET" action="{{ route('contador.bancos.index') }}" class="row g-3">
-                        <div class="col-md-3">
-                            <label class="form-label fw-bold">Fecha Inicio</label>
-                            <input type="date" name="fecha_inicio" class="form-control" 
-                                   value="{{ $fechaInicio }}" required>
-                        </div>
-                        <div class="col-md-3">
-                            <label class="form-label fw-bold">Fecha Fin</label>
-                            <input type="date" name="fecha_fin" class="form-control" 
-                                   value="{{ $fechaFin }}" required>
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label fw-bold">Cuenta Bancaria</label>
-                            <select name="cuenta" class="form-select">
-                                <option value="">Todas las cuentas</option>
-                                @foreach($listaBancos as $banco)
-                                    <option value="{{ $banco->Cuenta }}" 
-                                            {{ $cuenta == $banco->Cuenta ? 'selected' : '' }}>
-                                        {{ $banco->Banco }} - {{ $banco->Cuenta }}
-                                    </option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div class="col-md-2 d-flex align-items-end">
-                            <button type="submit" class="btn btn-primary w-100">
-                                <i class="fas fa-search"></i> Buscar
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Resumen de Saldos Actuales -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card shadow-sm">
-                <div class="card-header bg-primary text-white">
-                    <h5 class="mb-0">
-                        <i class="fas fa-wallet"></i> Saldos Actuales por Cuenta
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table table-hover table-sm">
-                            <thead class="table-light">
-                                <tr>
-                                    <th>Cuenta</th>
-                                    <th>Banco</th>
-                                    <th>Moneda</th>
-                                    <th class="text-end">Total Ingresos</th>
-                                    <th class="text-end">Total Egresos</th>
-                                    <th class="text-end">Saldo Actual</th>
-                                    <th class="text-center">Movimientos</th>
-                                    <th class="text-center">Acciones</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @forelse($saldosActuales as $saldo)
-                                <tr>
-                                    <td><code>{{ $saldo->Cuenta }}</code></td>
-                                    <td>{{ $saldo->Banco }}</td>
-                                    <td>
-                                        <span class="badge bg-info">
-                                            {{ $saldo->Moneda == 1 ? 'S/.' : '$' }}
-                                        </span>
-                                    </td>
-                                    <td class="text-end text-success fw-bold">
-                                        {{ number_format($saldo->total_ingresos, 2) }}
-                                    </td>
-                                    <td class="text-end text-danger fw-bold">
-                                        {{ number_format($saldo->total_egresos, 2) }}
-                                    </td>
-                                    <td class="text-end fw-bold {{ $saldo->saldo_actual >= 0 ? 'text-success' : 'text-danger' }}">
-                                        {{ number_format($saldo->saldo_actual, 2) }}
-                                    </td>
-                                    <td class="text-center">
-                                        <span class="badge bg-secondary">{{ $saldo->total_movimientos }}</span>
-                                    </td>
-                                    <td class="text-center">
-                                        <a href="{{ route('contador.bancos.detalle', $saldo->Cuenta) }}" 
-                                           class="btn btn-sm btn-outline-primary" title="Ver Detalle">
-                                            <i class="fas fa-eye"></i>
-                                        </a>
-                                    </td>
-                                </tr>
-                                @empty
-                                <tr>
-                                    <td colspan="8" class="text-center text-muted py-4">
-                                        <i class="fas fa-inbox fa-2x mb-2"></i>
-                                        <p>No hay cuentas bancarias registradas</p>
-                                    </td>
-                                </tr>
-                                @endforelse
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Resumen del Período -->
-    <div class="row mb-4">
-        <div class="col-md-3">
-            <div class="card shadow-sm border-start border-primary border-4">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h6 class="text-muted mb-1">Total Ingresos</h6>
-                            <h4 class="text-success mb-0">
-                                S/. {{ number_format($totalesPeriodo->total_ingresos ?? 0, 2) }}
-                            </h4>
-                        </div>
-                        <div class="text-success">
-                            <i class="fas fa-arrow-up fa-2x"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card shadow-sm border-start border-danger border-4">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h6 class="text-muted mb-1">Total Egresos</h6>
-                            <h4 class="text-danger mb-0">
-                                S/. {{ number_format($totalesPeriodo->total_egresos ?? 0, 2) }}
-                            </h4>
-                        </div>
-                        <div class="text-danger">
-                            <i class="fas fa-arrow-down fa-2x"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card shadow-sm border-start border-info border-4">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h6 class="text-muted mb-1">Saldo Neto</h6>
-                            <h4 class="text-info mb-0">
-                                S/. {{ number_format(($totalesPeriodo->total_ingresos ?? 0) - ($totalesPeriodo->total_egresos ?? 0), 2) }}
-                            </h4>
-                        </div>
-                        <div class="text-info">
-                            <i class="fas fa-balance-scale fa-2x"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card shadow-sm border-start border-warning border-4">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h6 class="text-muted mb-1">Total Movimientos</h6>
-                            <h4 class="text-dark mb-0">
-                                {{ number_format($totalesPeriodo->total_movimientos ?? 0) }}
-                            </h4>
-                        </div>
-                        <div class="text-warning">
-                            <i class="fas fa-exchange-alt fa-2x"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Movimientos Bancarios -->
-    <div class="row">
-        <div class="col-12">
-            <div class="card shadow-sm">
-                <div class="card-header bg-light d-flex justify-content-between align-items-center">
-                                <h5 class="mb-0">
-                        <i class="fas fa-list"></i> Movimientos Bancarios
-                        <span class="badge bg-secondary ms-2">{{ $movimientosBancarios->total() }}</span>
-                    </h5>
-                    <div>
-                        <button class="btn btn-sm btn-outline-success" onclick="window.print()">
-                            <i class="fas fa-print"></i> Imprimir
-                        </button>
-                    </div>
-                </div>
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table table-striped table-hover table-sm">
-                            <thead class="table-dark">
-                                <tr>
-                                    <th>Fecha</th>
-                                    <th>Número</th>
-                                    <th>Cuenta</th>
-                                    <th>Banco</th>
-                                    <th>Tipo</th>
-                                    <th>Clase</th>
-                                    <th>Documento</th>
-                                    <th>Referencia</th>
-                                    <th class="text-end">Ingreso</th>
-                                    <th class="text-end">Egreso</th>
-                                    <th class="text-center">Moneda</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @forelse($movimientosBancarios as $movimiento)
-                                <tr>
-                                    <td>{{ \Carbon\Carbon::parse($movimiento->Fecha)->format('d/m/Y') }}</td>
-                                    <td><code>{{ $movimiento->Numero }}</code></td>
-                                    <td>{{ $movimiento->Cuenta }}</td>
-                                    <td>{{ $movimiento->Banco }}</td>
-                                    <td>
-                                        <span class="badge {{ $movimiento->tipo_movimiento == 'INGRESO' ? 'bg-success' : 'bg-danger' }}">
-                                            {{ $movimiento->tipo_movimiento }}
-                                        </span>
-                                    </td>
-                                    <td>
-                                        <span class="badge bg-info">
-                                            {{ $movimiento->tipo_operacion }}
-                                        </span>
-                                    </td>
-                                    <td>{{ $movimiento->Documento }}</td>
-                                    <td>{{ $movimiento->Referencia }}</td>
-                                    <td class="text-end text-success fw-bold">
-                                        {{ $movimiento->ingreso > 0 ? number_format($movimiento->ingreso, 2) : '-' }}
-                                    </td>
-                                    <td class="text-end text-danger fw-bold">
-                                        {{ $movimiento->egreso > 0 ? number_format($movimiento->egreso, 2) : '-' }}
-                                    </td>
-                                    <td class="text-center">
-                                        <span class="badge {{ $movimiento->Moneda == 1 ? 'bg-primary' : 'bg-success' }}">
-                                            {{ $movimiento->Moneda == 1 ? 'PEN' : 'USD' }}
-                                        </span>
-                                    </td>
-                                </tr>
-                                @empty
-                                <tr>
-                                    <td colspan="11" class="text-center text-muted py-4">
-                                        <i class="fas fa-search fa-2x mb-2"></i>
-                                        <p>No se encontraron movimientos en el período seleccionado</p>
-                                    </td>
-                                </tr>
-                                @endforelse
-                            </tbody>
-                        </table>
-                    </div>
-
-                    <!-- Paginación -->
-                    <div class="d-flex justify-content-between align-items-center mt-3">
-                        <div class="text-muted">
-                            Mostrando {{ $movimientosBancarios->firstItem() ?? 0 }} a 
-                            {{ $movimientosBancarios->lastItem() ?? 0 }} de 
-                            {{ $movimientosBancarios->total() }} registros
-                        </div>
-                        <div>
-                            {{ $movimientosBancarios->appends(request()->query())->links() }}
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Resumen por Cuenta del Período -->
-    @if($resumenCuentas->count() > 0)
-    <div class="row mt-4">
-        <div class="col-12">
-            <div class="card shadow-sm">
-                <div class="card-header bg-secondary text-white">
-                    <h5 class="mb-0">
-                        <i class="fas fa-chart-pie"></i> Resumen por Cuenta (Período Seleccionado)
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table table-bordered table-sm">
-                            <thead class="table-light">
-                                <tr>
-                                    <th>Cuenta</th>
-                                    <th>Banco</th>
-                                    <th>Moneda</th>
-                                    <th class="text-end">Total Ingresos</th>
-                                    <th class="text-end">Total Egresos</th>
-                                    <th class="text-end">Saldo Período</th>
-                                    <th class="text-center">Movimientos</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach($resumenCuentas as $resumen)
-                                <tr>
-                                    <td><code>{{ $resumen->Cuenta }}</code></td>
-                                    <td>{{ $resumen->Banco }}</td>
-                                    <td class="text-center">
-                                        <span class="badge bg-info">
-                                            {{ $resumen->Moneda == 1 ? 'S/.' : '$' }}
-                                        </span>
-                                    </td>
-                                    <td class="text-end text-success">
-                                        {{ number_format($resumen->total_ingresos, 2) }}
-                                    </td>
-                                    <td class="text-end text-danger">
-                                        {{ number_format($resumen->total_egresos, 2) }}
-                                    </td>
-                                    <td class="text-end fw-bold {{ ($resumen->total_ingresos - $resumen->total_egresos) >= 0 ? 'text-success' : 'text-danger' }}">
-                                        {{ number_format($resumen->total_ingresos - $resumen->total_egresos, 2) }}
-                                    </td>
-                                    <td class="text-center">
-                                        <span class="badge bg-secondary">{{ $resumen->total_movimientos }}</span>
-                                    </td>
-                                </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    @endif
 </div>
 
-@push('styles')
-<style>
-    .table-hover tbody tr:hover {
-        background-color: #f8f9fa;
-        cursor: pointer;
-    }
-    
-    @media print {
-        .btn, .card-header, .pagination {
-            display: none !important;
-        }
-        .card {
-            border: 1px solid #000 !important;
-        }
-    }
-</style>
-@endpush
+<div class="row">
+    <div class="col-lg-6">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-info"><i class="fas fa-bolt me-2"></i>Funcionalidades Rápidas</h6>
+            </div>
+            <div class="card-body">
+                <div class="list-group">
+                    <a href="{{ route('contador.bancos.diarios') }}" class="list-group-item list-group-item-action"><i class="fas fa-calendar-day me-3 text-info"></i>Movimientos Diarios</a>
+                    <a href="{{ route('contador.bancos.conciliacion') }}" class="list-group-item list-group-item-action"><i class="fas fa-balance-scale me-3 text-warning"></i>Realizar Conciliación</a>
+                    <a href="{{ route('contador.bancos.transferencias') }}" class="list-group-item list-group-item-action"><i class="fas fa-exchange-alt me-3 text-primary"></i>Ver Transferencias</a>
+                    <a href="{{ route('contador.bancos.flujoDiario') }}" class="list-group-item list-group-item-action"><i class="fas fa-chart-area me-3 text-success"></i>Flujo de Caja Proyectado</a>
+                    <a href="{{ route('contador.bancos.reportes') }}" class="list-group-item list-group-item-action"><i class="fas fa-file-invoice-dollar me-3 text-danger"></i>Generar Reportes (Mensual, Detalle)</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-6">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                <h6 class="m-0 font-weight-bold text-primary">Últimos Movimientos</h6>
+                <a href="{{ route('contabilidad.bancos.detalle', ['cuenta' => 'TODAS']) }}" class="btn btn-sm btn-outline-primary"><i class="fas fa-list me-1"></i> Ver Todos</a>
+            </div>
+            <div class="card-body p-0">
+                <p class="text-center p-4 text-muted">Tabla de últimos movimientos (Implementar similar a Ventas Recientes)</p>
+            </div>
+        </div>
+    </div>
+</div>
 @endsection
+
+@push('scripts')
+@endpush

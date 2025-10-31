@@ -13,12 +13,14 @@ use App\Http\Controllers\Admin\UsuarioController;
 use App\Http\Controllers\Admin\CuentaController;
 use App\Http\Controllers\Admin\ReporteController;
 use App\Http\Controllers\Admin\AuditoriaController;
+use App\Http\Controllers\Contabilidad\BalanceGeneralController;
 use App\Http\Controllers\Contabilidad\ReportesSunatController;
 use App\Http\Controllers\Contabilidad\LibroDiarioController;
 use App\Http\Controllers\Contabilidad\EstadoResultadosController;
 use App\Http\Controllers\Contabilidad\BancosController;
-use App\Http\Controllers\Contabilidad\PlanCuentasController; // <-- 1. AÑADIDO
-
+use App\Http\Controllers\Contabilidad\PlanCuentasController; 
+use App\Http\Controllers\Contabilidad\FlujoCajaController; 
+use App\Http\Controllers\Clientes\ClientesController; 
 //RUTAS PÚBLICAS
 Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
 Route::post('/login', [LoginController::class, 'login'])->name('login.post');
@@ -276,14 +278,43 @@ Route::middleware(['auth', 'check.contador'])->group(function () {
 
             
         });
+
+        Route::prefix('flujo/cobranzas')->group(function () {
+    
+            // Ruta para la VISTA del Paso 1
+            Route::get('/paso-1', [FlujoCajaController::class, 'showPaso1'])
+                ->name('flujo.cobranzas.paso1');
+
+            // Ruta para el PROCESAMIENTO (POST) del Paso 1
+            Route::post('/paso-1', [FlujoCajaController::class, 'handlePaso1'])
+                ->name('flujo.cobranzas.handlePaso1');
+
+            // Ruta para la VISTA del Paso 2
+            Route::get('/paso-2', [FlujoCajaController::class, 'showPaso2'])
+                ->name('flujo.cobranzas.paso2');
+            Route::get('/paso-3', [FlujoCajaController::class, 'showPaso3'])
+                ->name('flujo.cobranzas.paso3');
+            Route::get('/paso-4', [FlujoCajaController::class, 'showPaso4'])
+                ->name('flujo.cobranzas.paso4');
+
+            Route::post('/procesar', [FlujoCajaController::class, 'procesar'])->name('procesar');
+
+        });
+
+        Route::get('/api/clientes/search', [FlujoCajaController::class, 'buscarCliente'])
+             ->name('api.clientes.search');
         
+
+
+        Route::get('/api/clientes/search', [ClientesController::class, 'search'])
+     ->name('api.clientes.search');
         Route::prefix('estado-resultados')->name('estado-resultados.')->group(function () {
                 Route::get('/', [EstadoResultadosController::class, 'index'])->name('index');
                 Route::get('/periodos', [EstadoResultadosController::class, 'porPeriodos'])->name('periodos');
                 Route::get('/detalle/{cuenta}', [EstadoResultadosController::class, 'detalleCuenta'])->name('detalle');
                 Route::get('/comparativo', [EstadoResultadosController::class, 'comparativo'])->name('comparativo');
                 Route::get('/flujo-caja', [EstadoResultadosController::class, 'cashFlow'])->name('flujo-caja');
-                Route::get('/balance-general', [EstadoResultadosController::class, 'balanceGeneral'])->name('balance-general');
+                Route::get('/balance-general', [BalanceGeneralController::class, 'index'])->name('balance-general');
                 Route::get('/exportar', [EstadoResultadosController::class, 'exportar'])->name('exportar');                 
                
             });

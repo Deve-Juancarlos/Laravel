@@ -23,7 +23,7 @@
     <!-- Filtros -->
     <div class="card shadow-sm filters-card mb-4">
         <div class="card-body">
-            <form method="GET" action="{{ route('contador.balance-general.index') }}">
+            <form method="GET" action="{{ route('contador.estado-resultados.balance-general') }}">
                 <div class="row g-3 align-items-end">
                     <div class="col-md-5">
                         <label class="form-label" for="fecha">Balance al:</label>
