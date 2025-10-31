@@ -1,622 +1,143 @@
-/* ============================================
-   BALANCE DE COMPROBACIÓN - SISTEMA CONTABLE
-   ============================================ */
+/*
+ * Estilos para el Balance de Comprobación
+ */
 
-/* --- VARIABLES Y BASE --- */
-:root {
-    --primary: #f97316;
-    --primary-dark: #ea580c;
-    --success: #10b981;
-    --danger: #ef4444;
-    --warning: #f59e0b;
-    --info: #3b82f6;
-    --secondary: #6b7280;
-    
-    --gray-50: #f9fafb;
-    --gray-100: #f3f4f6;
-    --gray-200: #e5e7eb;
-    --gray-300: #d1d5db;
-    --gray-400: #9ca3af;
-    --gray-500: #6b7280;
-    --gray-600: #4b5563;
-    --gray-700: #374151;
-    --gray-800: #1f2937;
-    --gray-900: #111827;
-    
-    --white: #ffffff;
-    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-    --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
-    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-    --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-    
-    --border-radius: 12px;
-    --border-radius-sm: 8px;
-    --border-radius-lg: 16px;
-    --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+.balance-comprobacion-view .filters-card {
+    background-color: #fff;
+    border-radius: 12px;
+}
+.balance-comprobacion-view .filters-card .form-label {
+    font-weight: 600;
+    font-size: 0.875rem;
+    color: #495057;
 }
 
-/* ============================================
-   CONTENEDOR PRINCIPAL
-   ============================================ */
-.balance-comprobacion-view {
-    font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
-    background-color: var(--gray-50);
-    color: var(--gray-900);
-    line-height: 1.6;
-}
-
-.balance-comprobacion-view .container-fluid {
+/* Tarjeta de estado de balance (Cuadrado/Descuadrado) */
+.stat-card {
+    background: #ffffff;
+    border-radius: 12px;
     padding: 2rem;
-}
-
-/* ============================================
-   BALANCE HEADER (NARANJA)
-   ============================================ */
-.balance-comprobacion-view .balance-header {
-    background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
-    border-radius: var(--border-radius-lg);
-    padding: 2rem;
-    margin-bottom: 2rem;
-    box-shadow: var(--shadow-lg);
-    color: var(--white);
-}
-
-.balance-comprobacion-view .balance-header h1 {
-    color: var(--white);
-    font-size: 2rem;
-    font-weight: 700;
-    margin-bottom: 0.5rem;
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-}
-
-.balance-comprobacion-view .balance-header h1 i {
-    font-size: 1.75rem;
-}
-
-.balance-comprobacion-view .balance-header p {
-    color: rgba(255, 255, 255, 0.9);
-    font-size: 1rem;
-    margin: 0;
-}
-
-/* ============================================
-   CARDS Y FILTROS
-   ============================================ */
-.balance-comprobacion-view .card {
-    background: var(--white);
-    border-radius: var(--border-radius);
-    box-shadow: var(--shadow);
-    border: 1px solid var(--gray-200);
-    margin-bottom: 1.5rem;
-}
-
-.balance-comprobacion-view .card-header {
-    padding: 1rem 1.5rem;
-    border-bottom: 2px solid var(--gray-200);
-    font-weight: 600;
-}
-
-.balance-comprobacion-view .card-body {
-    padding: 1.5rem;
-}
-
-.balance-comprobacion-view .form-label {
-    font-size: 0.875rem;
-    font-weight: 600;
-    color: var(--gray-700);
-    margin-bottom: 0.5rem;
-    display: block;
-}
-
-.balance-comprobacion-view .form-control {
-    border: 2px solid var(--gray-200);
-    border-radius: var(--border-radius-sm);
-    padding: 0.625rem 0.875rem;
-    font-size: 0.9375rem;
-    transition: var(--transition);
-    width: 100%;
-}
-
-.balance-comprobacion-view .form-control:focus {
-    border-color: #f97316;
-    box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1);
-    outline: none;
-}
-
-/* ============================================
-   ESTADÍSTICAS
-   ============================================ */
-.balance-comprobacion-view .stat-card {
-    background: var(--white);
-    border-radius: var(--border-radius);
-    padding: 1.5rem;
-    box-shadow: var(--shadow);
-    transition: var(--transition);
-    border: 1px solid var(--gray-200);
     text-align: center;
+    border: 1px solid #e0e0e0;
 }
 
-.balance-comprobacion-view .stat-card:hover {
-    transform: translateY(-4px);
-    box-shadow: var(--shadow-lg);
-}
-
-.balance-comprobacion-view .stat-value {
-    font-size: 1.75rem;
-    font-weight: 700;
-    color: var(--gray-900);
-    margin-bottom: 0.5rem;
-}
-
-.balance-comprobacion-view .stat-label {
-    font-size: 0.875rem;
-    color: var(--gray-600);
-    font-weight: 500;
-}
-
-/* ============================================
-   BADGES DE ESTADO (VERDE/NARANJA)
-   ============================================ */
-.balance-comprobacion-view .cuadra-badge {
-    display: inline-flex;
-    align-items: center;
-    padding: 0.75rem 1.5rem;
-    border-radius: 9999px;
-    font-size: 1.125rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-.balance-comprobacion-view .cuadra-true {
-    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-    color: var(--white);
-    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
-}
-
-.balance-comprobacion-view .cuadra-false {
-    background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
-    color: var(--white);
-    box-shadow: 0 4px 12px rgba(249, 115, 22, 0.3);
-}
-
-/* ============================================
-   TABLA PRINCIPAL (NARANJA OSCURO)
-   ============================================ */
-.balance-comprobacion-view .balance-table {
-    background: var(--white);
-    border-radius: var(--border-radius);
-    box-shadow: var(--shadow);
-    overflow: hidden;
-    margin-bottom: 2rem;
-}
-
-.balance-comprobacion-view .balance-table .card-header {
-    background: linear-gradient(135deg, #ea580c 0%, #c2410c 100%);
-    color: var(--white);
-    padding: 1.75rem 1.5rem;
-    border: none;
-}
-
-.balance-comprobacion-view .balance-table .card-header h5 {
-    margin: 0;
-    font-size: 1.1rem;
-    font-weight: 600;
-    display: flex;
-    align-items: center;
-}
-
-.balance-comprobacion-view .table-responsive {
-    overflow-x: auto;
-}
-
-.balance-comprobacion-view .table {
-    width: 100%;
-    border-collapse: collapse;
-    margin: 0;
-}
-
-.balance-comprobacion-view .table thead {
-    background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%);
-}
-
-.balance-comprobacion-view .table thead th {
-    padding: 1.25rem 1.5rem;
-    font-size: 0.8125rem;
-    font-weight: 700;
-    color: var(--gray-800);
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    border-bottom: 3px solid #f97316;
-    white-space: nowrap;
-    text-align: center;
-}
-
-.balance-comprobacion-view .table thead th:first-child {
-    text-align: left;
-}
-
-.balance-comprobacion-view .table tbody td {
-    padding: 1.25rem 1.5rem;
-    border-bottom: 1px solid var(--gray-200);
-    font-size: 1rem;
-    color: var(--gray-700);
-    text-align: center;
-    vertical-align: middle;
-}
-
-.balance-comprobacion-view .table tbody td:first-child {
-    text-align: left;
-    font-weight: 600;
-}
-
-.balance-comprobacion-view .table tbody tr {
-    transition: var(--transition);
-}
-
-.balance-comprobacion-view .table tbody tr:hover {
-    background: #fff7ed;
-}
-
-.balance-comprobacion-view .total-row {
-    background: linear-gradient(135deg, #fed7aa 0%, #fdba74 100%);
-    font-weight: 700;
-}
-
-.balance-comprobacion-view .total-row td {
-    border-top: 4px solid #ea580c;
-    border-bottom: 4px solid #ea580c;
-    padding: 1.5rem;
-    font-size: 1.125rem;
-    font-weight: 800;
-}
-
-/* Alineaciones */
-.balance-comprobacion-view .text-end {
-    text-align: right;
-}
-
-.balance-comprobacion-view .text-center {
-    text-align: center;
-}
-
-.balance-comprobacion-view .text-start {
-    text-align: left;
-}
-
-.balance-comprobacion-view .fw-bold {
-    font-weight: 700;
-}
-
-.balance-comprobacion-view .text-success {
-    color: var(--success) !important;
-}
-
-.balance-comprobacion-view .text-danger {
-    color: var(--danger) !important;
-}
-
-.balance-comprobacion-view .text-primary {
-    color: #f97316 !important;
-}
-
-.balance-comprobacion-view .text-warning {
-    color: var(--warning) !important;
-}
-
-.balance-comprobacion-view .text-info {
-    color: var(--info) !important;
-}
-
-.balance-comprobacion-view .text-secondary {
-    color: var(--secondary) !important;
-}
-
-.balance-comprobacion-view .text-muted {
-    color: #94a3b8 !important;
-}
-
-/* ============================================
-   BOTONES
-   ============================================ */
-.balance-comprobacion-view .btn {
-    padding: 0.625rem 1.25rem;
-    border-radius: var(--border-radius-sm);
-    font-weight: 600;
-    font-size: 0.9375rem;
-    border: none;
-    cursor: pointer;
-    transition: var(--transition);
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    text-decoration: none;
-}
-
-.balance-comprobacion-view .btn-primary {
-    background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
-    color: var(--white);
-}
-
-.balance-comprobacion-view .btn-primary:hover {
-    background: linear-gradient(135deg, #ea580c 0%, #c2410c 100%);
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-md);
-}
-
-.balance-comprobacion-view .btn-success {
-    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-    color: var(--white);
-}
-
-.balance-comprobacion-view .btn-success:hover {
-    background: linear-gradient(135deg, #059669 0%, #047857 100%);
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-md);
-}
-
-.balance-comprobacion-view .btn-outline-primary {
-    color: #f97316;
-    border: 2px solid #f97316;
-    background: transparent;
-}
-
-.balance-comprobacion-view .btn-outline-primary:hover {
-    background: #f97316;
-    color: var(--white);
-}
-
-.balance-comprobacion-view .btn-outline-success {
-    border-color: #10b981;
-    color: #10b981;
-    background: white;
-}
-
-.balance-comprobacion-view .btn-outline-success:hover {
-    background: #10b981;
-    color: white;
-}
-
-.balance-comprobacion-view .btn-outline-info {
-    border-color: #0ea5e9;
-    color: #0ea5e9;
-    background: white;
-}
-
-.balance-comprobacion-view .btn-outline-info:hover {
-    background: #0ea5e9;
-    color: white;
-}
-
-.balance-comprobacion-view .btn-outline-secondary {
-    border-color: #64748b;
-    color: #64748b;
-    background: white;
-}
-
-.balance-comprobacion-view .btn-outline-secondary:hover {
-    background: #64748b;
-    color: white;
-}
-
-.balance-comprobacion-view .btn-outline-warning {
-    color: var(--warning);
-    border: 2px solid var(--warning);
-    background: transparent;
-}
-
-.balance-comprobacion-view .btn-outline-warning:hover {
-    background: var(--warning);
-    color: var(--white);
-}
-
-/* ============================================
-   RESUMEN POR CLASES
-   ============================================ */
-.balance-comprobacion-view .resumen-clases {
-    background: white;
-    border: 1px solid #e2e8f0;
-    border-radius: 8px;
-    padding: 1.5rem;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-}
-
-.balance-comprobacion-view .resumen-clases h6 {
-    font-weight: 600;
-    color: #1e293b;
-    margin-bottom: 1.5rem;
-    font-size: 1rem;
-}
-
-.balance-comprobacion-view .clase-box {
-    background: #fafafa;
-    border: 1px solid #e5e7eb;
-    border-radius: 6px;
-    padding: 1.25rem;
-    text-align: center;
-    height: 100%;
-}
-
-.balance-comprobacion-view .clase-box h6 {
-    font-weight: 600;
-    margin-bottom: 0.75rem;
-    font-size: 0.875rem;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-.balance-comprobacion-view .clase-box .fw-bold {
+.stat-value .cuadra-badge {
     font-size: 1.25rem;
+    font-weight: 700;
+    padding: 0.75rem 1.5rem;
+    border-radius: 50px;
+}
+.cuadra-badge.cuadra-true {
+    background-color: rgba(25, 135, 84, 0.1);
+    color: #198754;
+}
+.cuadra-badge.cuadra-false {
+    background-color: rgba(220, 53, 69, 0.1);
+    color: #dc3545;
+}
+
+.stat-label {
+    margin-top: 1rem;
+    font-size: 1rem;
     font-weight: 600;
+    color: #6c757d;
 }
 
-.balance-comprobacion-view .border {
-    border: 2px solid var(--gray-200) !important;
+/* Tarjetas pequeñas de estadísticas */
+.stat-card-small {
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 1.25rem;
+    border: 1px solid #e0e0e0;
 }
-
-.balance-comprobacion-view .rounded {
-    border-radius: var(--border-radius-sm);
+.stat-value-small {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #0d6efd;
+    margin-bottom: 0.25rem;
 }
-
-.balance-comprobacion-view .p-3 {
-    padding: 1rem;
-}
-
-/* ============================================
-   BADGES
-   ============================================ */
-.balance-comprobacion-view .badge {
-    padding: 0.375rem 0.75rem;
-    border-radius: 4px;
+.stat-label-small {
+    font-size: 0.875rem;
+    color: #6c757d;
     font-weight: 500;
-    font-size: 0.8125rem;
 }
 
-/* ============================================
-   RESPONSIVE
-   ============================================ */
-.balance-comprobacion-view .row {
-    display: flex;
-    flex-wrap: wrap;
-    margin-left: -0.75rem;
-    margin-right: -0.75rem;
+/* Tabla de Balance */
+.balance-table {
+    border-radius: 12px;
+    overflow: hidden;
 }
-
-.balance-comprobacion-view .col-md-2,
-.balance-comprobacion-view .col-md-3,
-.balance-comprobacion-view .col-md-4,
-.balance-comprobacion-view .col-md-12 {
-    padding-left: 0.75rem;
-    padding-right: 0.75rem;
-    margin-bottom: 1rem;
+.balance-table .card-header {
+    background-color: #fff;
+    border-bottom: 1px solid #e0e0e0;
 }
-
-.balance-comprobacion-view .col-md-2 {
-    flex: 0 0 auto;
-    width: 16.666667%;
-}
-
-.balance-comprobacion-view .col-md-3 {
-    flex: 0 0 auto;
-    width: 25%;
-}
-
-.balance-comprobacion-view .col-md-4 {
-    flex: 0 0 auto;
-    width: 33.333333%;
-}
-
-.balance-comprobacion-view .col-md-12 {
-    flex: 0 0 auto;
-    width: 100%;
-}
-
-@media (max-width: 768px) {
-    .balance-comprobacion-view .col-md-2,
-    .balance-comprobacion-view .col-md-3,
-    .balance-comprobacion-view .col-md-4,
-    .balance-comprobacion-view .col-md-12 {
-        width: 100%;
-    }
-
-    .balance-comprobacion-view .container-fluid {
-        padding: 1rem;
-    }
-
-    .balance-comprobacion-view .balance-header {
-        padding: 1.5rem;
-    }
-
-    .balance-comprobacion-view .balance-header h1 {
-        font-size: 1.5rem;
-    }
-
-    .balance-comprobacion-view .stat-value {
-        font-size: 1.5rem;
-    }
-
-    .balance-comprobacion-view .table {
-        font-size: 0.875rem;
-    }
-
-    .balance-comprobacion-view .table thead th,
-    .balance-comprobacion-view .table tbody td {
-        padding: 0.75rem;
-    }
-}
-
-/* ============================================
-   UTILIDADES
-   ============================================ */
-.balance-comprobacion-view .mb-0 {
+.balance-table .table {
     margin-bottom: 0;
 }
+.balance-table .table th {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    color: #6c757d;
+    background-color: #f8f9fa;
+    padding: 1rem;
+}
+.balance-table .table td {
+    vertical-align: middle;
+    padding: 0.9rem 1rem;
+}
+.balance-table .total-row {
+    font-size: 1.1rem;
+}
 
-.balance-comprobacion-view .mb-2 {
+/* Resumen por Clases */
+.resumen-clases {
+    margin-top: 2rem;
+}
+.resumen-clases h5 {
+    font-weight: 600;
+    color: #343a40;
+}
+.clase-box {
+    background: #fff;
+    border-radius: 12px;
+    padding: 1.25rem;
+    border: 1px solid #e0e0e0;
+    text-align: center;
+}
+.clase-box h6 {
+    font-weight: 700;
     margin-bottom: 0.5rem;
-}
-
-.balance-comprobacion-view .mb-4 {
-    margin-bottom: 1.5rem;
-}
-
-.balance-comprobacion-view .mt-4 {
-    margin-top: 1.5rem;
-}
-
-.balance-comprobacion-view .me-2 {
-    margin-right: 0.5rem;
-}
-
-.balance-comprobacion-view .me-3 {
-    margin-right: 1rem;
-}
-
-.balance-comprobacion-view .align-items-end {
-    align-items: flex-end;
-}
-
-.balance-comprobacion-view .small {
+    text-transform: uppercase;
     font-size: 0.875rem;
 }
 
-/* ============================================
-   ANIMACIONES
-   ============================================ */
-@keyframes fadeInBalance {
-    from {
-        opacity: 0;
-    }
-    to {
-        opacity: 1;
-    }
+/* Botones Soft (para navegación) */
+.btn-info-soft {
+    background-color: rgba(13, 202, 240, 0.1);
+    color: #0dcaf0;
+    border: 1px solid rgba(13, 202, 240, 0.2);
+}
+.btn-info-soft:hover {
+    background-color: #0dcaf0;
+    color: #fff;
 }
 
-.balance-comprobacion-view .table tbody tr {
-    animation: fadeInBalance 0.3s ease;
+.btn-warning-soft {
+    background-color: rgba(255, 193, 7, 0.1);
+    color: #ffc107;
+    border: 1px solid rgba(255, 193, 7, 0.2);
+}
+.btn-warning-soft:hover {
+    background-color: #ffc107;
+    color: #000;
 }
 
-/* ============================================
-   SCROLLBAR PERSONALIZADO
-   ============================================ */
-.balance-comprobacion-view ::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
+.btn-success-soft {
+    background-color: rgba(25, 135, 84, 0.1);
+    color: #198754;
+    border: 1px solid rgba(25, 135, 84, 0.2);
 }
-
-.balance-comprobacion-view ::-webkit-scrollbar-track {
-    background: var(--gray-100);
-    border-radius: 4px;
-}
-
-.balance-comprobacion-view ::-webkit-scrollbar-thumb {
-    background: var(--gray-400);
-    border-radius: 4px;
-}
-
-.balance-comprobacion-view ::-webkit-scrollbar-thumb:hover {
-    background: var(--gray-500);
+.btn-success-soft:hover {
+    background-color: #198754;
+    color: #fff;
 }

@@ -1,701 +1,215 @@
-/* ============================================
-   COMPARACIÓN BALANCE - SISTEMA CONTABLE
-   ============================================ */
+/*
+ * Estilos para la vista de Comparación de Balance
+ */
 
-/* --- VARIABLES Y BASE --- */
 .comparacion-balance-view {
-    --primary: #f97316;
-    --primary-dark: #ea580c;
-    --success: #10b981;
-    --danger: #ef4444;
-    --warning: #f59e0b;
-    --info: #3b82f6;
-    --secondary: #6b7280;
-    
-    --gray-50: #f9fafb;
-    --gray-100: #f3f4f6;
-    --gray-200: #e5e7eb;
-    --gray-300: #d1d5db;
-    --gray-400: #9ca3af;
-    --gray-500: #6b7280;
-    --gray-600: #4b5563;
-    --gray-700: #374151;
-    --gray-800: #1f2937;
-    --gray-900: #111827;
-    
-    --white: #ffffff;
-    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-    --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
-    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-    --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-    
-    --border-radius: 12px;
-    --border-radius-sm: 8px;
-    --border-radius-lg: 16px;
-    --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.comparacion-balance-view * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
-.comparacion-balance-view body {
-    font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
-    background-color: var(--gray-50);
-    color: var(--gray-900);
-    line-height: 1.6;
-}
-
-.comparacion-balance-view .container-fluid {
-    padding: 2rem;
-}
-
-/* ============================================
-   COMPARISON HEADER (NARANJA)
-   ============================================ */
-.comparacion-balance-view .comparison-header {
-    background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
-    border-radius: var(--border-radius-lg);
-    padding: 2rem;
-    margin-bottom: 2rem;
-    box-shadow: var(--shadow-lg);
-    color: var(--white);
-    text-align: center;
-}
-
-.comparacion-balance-view .comparison-header h1 {
-    color: var(--white);
-    font-size: 2rem;
-    font-weight: 700;
-    margin-bottom: 0.5rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.75rem;
-}
-
-.comparacion-balance-view .comparison-header h1 i {
-    font-size: 1.75rem;
-}
-
-.comparacion-balance-view .comparison-header p {
-    color: rgba(255, 255, 255, 0.9);
-    font-size: 1rem;
-    margin: 0;
-}
-
-/* ============================================
-   CARDS Y FILTROS
-   ============================================ */
-.comparacion-balance-view .card {
-    background: var(--white);
-    border-radius: var(--border-radius);
-    box-shadow: var(--shadow);
-    border: 1px solid var(--gray-200);
-    margin-bottom: 1.5rem;
-}
-
-.comparacion-balance-view .card-header {
-    padding: 1rem 1.5rem;
-    border-bottom: 2px solid var(--gray-200);
-    font-weight: 600;
-    background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
-    color: var(--white);
-    border-radius: var(--border-radius) var(--border-radius) 0 0;
-}
-
-.comparacion-balance-view .card-header h5,
-.comparacion-balance-view .card-header h6 {
-    margin: 0;
-    font-size: 1rem;
-    font-weight: 600;
-    color: var(--white);
-}
-
-.comparacion-balance-view .card-body {
     padding: 1.5rem;
 }
-
-.comparacion-balance-view .form-label {
-    font-size: 0.875rem;
+ 
+.comparison-header {
+    background: white;
+    border-radius: 8px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    border-left: 4px solid #2563eb;
+}
+ 
+.comparison-header h1 {
+    font-size: 1.875rem;
     font-weight: 600;
-    color: var(--gray-700);
+    color: #1e293b;
     margin-bottom: 0.5rem;
-    display: block;
+}
+ 
+.comparison-header p {
+    color: #64748b;
+    font-size: 0.95rem;
+    margin: 0;
+}
+ 
+.card {
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
 }
 
-.comparacion-balance-view .form-control {
-    border: 2px solid var(--gray-200);
-    border-radius: var(--border-radius-sm);
-    padding: 0.625rem 0.875rem;
+.filters-card {
+    background-color: #fff;
+    border-radius: 12px;
+}
+.filters-card .form-label {
+    font-weight: 600;
+    font-size: 0.875rem;
+    color: #495057;
+}
+ 
+.card-header {
+    background: #f8fafc;
+    border-bottom: 1px solid #e2e8f0;
+    padding: 1rem 1.5rem;
+}
+ 
+.card-header h6 {
+    margin: 0;
+    font-weight: 600;
+    color: #1e293b;
     font-size: 0.9375rem;
-    transition: var(--transition);
-    width: 100%;
 }
-
-.comparacion-balance-view .form-control:focus {
-    border-color: #f97316;
-    box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1);
-    outline: none;
-}
-
-.comparacion-balance-view .form-control:read-only {
-    background-color: var(--gray-100);
-}
-
-/* ============================================
-   PERIOD CARDS (NARANJA)
-   ============================================ */
-.comparacion-balance-view .period-card {
-    background: var(--white);
-    border-radius: var(--border-radius);
-    overflow: hidden;
-    box-shadow: var(--shadow-lg);
-    margin-bottom: 1.5rem;
-    border: 2px solid var(--gray-200);
-    transition: var(--transition);
-}
-
-.comparacion-balance-view .period-card:hover {
-    transform: translateY(-4px);
-    box-shadow: var(--shadow-xl);
-}
-
-.comparacion-balance-view .period-header-actual {
-    background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
-    color: var(--white);
-    padding: 1.25rem;
-    text-align: center;
-}
-
-.comparacion-balance-view .period-header-actual h4 {
-    margin: 0;
-    font-size: 1.25rem;
-    font-weight: 700;
-}
-
-.comparacion-balance-view .period-header-actual small {
-    color: rgba(255, 255, 255, 0.9);
-    font-size: 0.875rem;
-}
-
-.comparacion-balance-view .period-header-anterior {
-    background: linear-gradient(135deg, #ea580c 0%, #c2410c 100%);
-    color: var(--white);
-    padding: 1.25rem;
-    text-align: center;
-}
-
-.comparacion-balance-view .period-header-anterior h4 {
-    margin: 0;
-    font-size: 1.25rem;
-    font-weight: 700;
-}
-
-.comparacion-balance-view .period-header-anterior small {
-    color: rgba(255, 255, 255, 0.9);
-    font-size: 0.875rem;
-}
-
-.comparacion-balance-view .period-body {
+ 
+.card-body {
     padding: 1.5rem;
 }
-
-/* ============================================
-   COMPARISON TABLE (NARANJA)
-   ============================================ */
-.comparacion-balance-view .comparison-table {
-    background: var(--white);
-    border-radius: var(--border-radius);
+ 
+.period-card {
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
     overflow: hidden;
-    box-shadow: var(--shadow-md);
-    margin-bottom: 2rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
 }
-
-.comparacion-balance-view .comparison-table .card-header {
-    background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
-    color: var(--white);
-    padding: 1.5rem;
-    border: none;
-}
-
-.comparacion-balance-view .comparison-table .card-header.bg-primary {
-    background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
-}
-
-.comparacion-balance-view .table {
-    width: 100%;
-    border-collapse: collapse;
-    margin: 0;
-}
-
-.comparacion-balance-view .table thead {
-    background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%);
-}
-
-.comparacion-balance-view .table thead th {
+ 
+.period-header-actual {
+    background: #2563eb;
+    color: white;
     padding: 1rem 1.5rem;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+ 
+.period-header-actual h4 {
+    font-size: 1rem;
+    font-weight: 600;
+    margin: 0 0 0.25rem 0;
+}
+ 
+.period-header-actual small {
     font-size: 0.8125rem;
-    font-weight: 700;
-    color: var(--gray-800);
+    opacity: 0.9;
+}
+ 
+.period-header-anterior {
+    background: #64748b;
+    color: white;
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+ 
+.period-header-anterior h4 {
+    font-size: 1rem;
+    font-weight: 600;
+    margin: 0 0 0.25rem 0;
+}
+ 
+.period-header-anterior small {
+    font-size: 0.8125rem;
+    opacity: 0.9;
+}
+ 
+.period-body {
+    padding: 1.5rem;
+}
+ 
+.period-body h6 {
+    font-size: 0.8125rem;
+    font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    border-bottom: 2px solid #f97316;
-    text-align: left;
+    margin-bottom: 0.5rem;
 }
-
-.comparacion-balance-view .table tbody td {
+ 
+.period-body h4 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin: 0;
+}
+ 
+.comparison-table {
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    margin-bottom: 2rem;
+}
+ 
+.comparison-table .card-header {
+    background: #1e293b;
+    color: white;
     padding: 1rem 1.5rem;
-    border-bottom: 1px solid var(--gray-200);
-    font-size: 0.9375rem;
-    color: var(--gray-700);
-}
-
-.comparacion-balance-view .table tbody tr {
-    transition: var(--transition);
-}
-
-.comparacion-balance-view .table tbody tr:hover {
-    background: #fff7ed;
-}
-
-.comparacion-balance-view .table-hover tbody tr:hover {
-    background: #fff7ed;
-}
-
-.comparacion-balance-view .table-responsive {
-    overflow-x: auto;
-}
-
-/* Filas de totales */
-.comparacion-balance-view .total-actual {
-    background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%) !important;
-    font-weight: 700;
-}
-
-.comparacion-balance-view .total-actual td {
-    border-top: 3px solid #f97316;
-}
-
-.comparacion-balance-view .total-anterior {
-    background: var(--gray-100) !important;
-    font-weight: 700;
-}
-
-/* ============================================
-   VARIACIONES
-   ============================================ */
-.comparacion-balance-view .variacion-positiva {
-    background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
-    color: #065f46;
-    font-weight: 600;
-}
-
-.comparacion-balance-view .variacion-negativa {
-    background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
-    color: #991b1b;
-    font-weight: 600;
-}
-
-.comparacion-balance-view .variacion-neutro {
-    background: var(--gray-100);
-    color: var(--gray-700);
-}
-
-/* ============================================
-   CHART CONTAINER (NARANJA)
-   ============================================ */
-.comparacion-balance-view .chart-container {
-    background: var(--white);
-    border-radius: var(--border-radius);
-    padding: 2rem;
-    box-shadow: var(--shadow-md);
-    margin-top: 2rem;
-    border: 2px solid var(--gray-200);
-}
-
-.comparacion-balance-view .chart-container h6 {
-    color: var(--gray-900);
-    font-weight: 700;
-    margin-bottom: 1.5rem;
-}
-
-/* ============================================
-   BADGES
-   ============================================ */
-.comparacion-balance-view .badge {
-    display: inline-flex;
-    align-items: center;
-    padding: 0.5rem 1rem;
-    border-radius: 9999px;
-    font-size: 0.875rem;
-    font-weight: 600;
-    gap: 0.25rem;
-}
-
-.comparacion-balance-view .bg-success {
-    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-    color: var(--white);
-}
-
-.comparacion-balance-view .bg-warning {
-    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-    color: var(--white);
-}
-
-.comparacion-balance-view .bg-danger {
-    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-    color: var(--white);
-}
-
-.comparacion-balance-view .bg-info {
-    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-    color: var(--white);
-}
-
-.comparacion-balance-view .bg-primary {
-    background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
-    color: var(--white);
-}
-
-/* ============================================
-   BOTONES
-   ============================================ */
-.comparacion-balance-view .btn {
-    padding: 0.625rem 1.25rem;
-    border-radius: var(--border-radius-sm);
-    font-weight: 600;
-    font-size: 0.9375rem;
     border: none;
-    cursor: pointer;
-    transition: var(--transition);
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    text-decoration: none;
 }
-
-.comparacion-balance-view .btn-primary {
-    background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
-    color: var(--white);
+ 
+.comparison-table .card-header h5 {
+    margin: 0;
+    font-weight: 600;
+    font-size: 1rem;
 }
-
-.comparacion-balance-view .btn-primary:hover {
-    background: linear-gradient(135deg, #ea580c 0%, #c2410c 100%);
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-md);
+ 
+.table {
+    margin: 0;
 }
-
-.comparacion-balance-view .btn-secondary {
-    background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
-    color: var(--white);
+ 
+.table thead th {
+    background: #f8fafc;
+    color: #475569;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.5px;
+    padding: 0.875rem 1rem;
+    border-bottom: 2px solid #e2e8f0;
 }
-
-.comparacion-balance-view .btn-secondary:hover {
-    background: linear-gradient(135deg, #4b5563 0%, #374151 100%);
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-md);
+ 
+.table tbody tr {
+    border-bottom: 1px solid #f1f5f9;
 }
-
-.comparacion-balance-view .btn-warning {
-    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-    color: var(--white);
+ 
+.table tbody tr:hover {
+    background: #f8fafc;
 }
-
-.comparacion-balance-view .btn-warning:hover {
-    background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-md);
+ 
+.table tbody td {
+    padding: 0.875rem 1rem;
+    vertical-align: middle;
+    color: #334155;
 }
-
-.comparacion-balance-view .btn-success {
-    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-    color: var(--white);
+ 
+.total-actual {
+    background: #eff6ff;
 }
-
-.comparacion-balance-view .btn-success:hover {
-    background: linear-gradient(135deg, #059669 0%, #047857 100%);
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-md);
+ 
+.total-anterior {
+    color: #64748b;
 }
-
-/* ============================================
-   COLORES DE TEXTO
-   ============================================ */
-.comparacion-balance-view .text-primary {
-    color: #f97316 !important;
+ 
+.chart-container {
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
 }
-
-.comparacion-balance-view .text-success {
-    color: var(--success) !important;
-}
-
-.comparacion-balance-view .text-danger {
-    color: var(--danger) !important;
-}
-
-.comparacion-balance-view .text-warning {
-    color: var(--warning) !important;
-}
-
-.comparacion-balance-view .text-info {
-    color: var(--info) !important;
-}
-
-.comparacion-balance-view .text-secondary {
-    color: var(--secondary) !important;
-}
-
-.comparacion-balance-view .text-muted {
-    color: var(--gray-500) !important;
-}
-
-.comparacion-balance-view .text-dark {
-    color: var(--gray-900) !important;
-}
-
-.comparacion-balance-view .text-white {
-    color: var(--white) !important;
-}
-
-/* ============================================
-   ALINEACIONES
-   ============================================ */
-.comparacion-balance-view .text-end {
-    text-align: right;
-}
-
-.comparacion-balance-view .text-center {
-    text-align: center;
-}
-
-.comparacion-balance-view .text-start {
-    text-align: left;
-}
-
-/* ============================================
-   BORDES
-   ============================================ */
-.comparacion-balance-view .border {
-    border: 2px solid var(--gray-200) !important;
-}
-
-.comparacion-balance-view .border-success {
-    border: 2px solid var(--success) !important;
-}
-
-.comparacion-balance-view .border-danger {
-    border: 2px solid var(--danger) !important;
-}
-
-.comparacion-balance-view .rounded {
-    border-radius: var(--border-radius-sm) !important;
-}
-
-/* ============================================
-   RESPONSIVE GRID
-   ============================================ */
-.comparacion-balance-view .row {
-    display: flex;
-    flex-wrap: wrap;
-    margin-left: -0.75rem;
-    margin-right: -0.75rem;
-}
-
-.comparacion-balance-view .col-md-3,
-.comparacion-balance-view .col-md-6,
-.comparacion-balance-view .col-md-12 {
-    padding-left: 0.75rem;
-    padding-right: 0.75rem;
+ 
+.chart-container h6 {
+    font-weight: 600;
+    color: #1e293b;
     margin-bottom: 1rem;
+    font-size: 0.9375rem;
 }
 
-.comparacion-balance-view .col-md-3 {
-    flex: 0 0 auto;
-    width: 25%;
+.text-success {
+    color: #10b981 !important;
 }
-
-.comparacion-balance-view .col-md-6 {
-    flex: 0 0 auto;
-    width: 50%;
+ 
+.text-danger {
+    color: #ef4444 !important;
 }
-
-.comparacion-balance-view .col-md-12 {
-    flex: 0 0 auto;
-    width: 100%;
+ 
+.text-primary {
+    color: #2563eb !important;
 }
-
-@media (max-width: 768px) {
-    .comparacion-balance-view .col-md-3,
-    .comparacion-balance-view .col-md-6,
-    .comparacion-balance-view .col-md-12 {
-        width: 100%;
-    }
-
-    .comparacion-balance-view .container-fluid {
-        padding: 1rem;
-    }
-
-    .comparacion-balance-view .comparison-header {
-        padding: 1.5rem;
-    }
-
-    .comparacion-balance-view .comparison-header h1 {
-        font-size: 1.5rem;
-    }
-
-    .comparacion-balance-view .period-card {
-        margin-bottom: 1rem;
-    }
-
-    .comparacion-balance-view .table {
-        font-size: 0.875rem;
-    }
-
-    .comparacion-balance-view .table thead th,
-    .comparacion-balance-view .table tbody td {
-        padding: 0.75rem;
-    }
-
-    .comparacion-balance-view .chart-container {
-        padding: 1rem;
-    }
-}
-
-/* ============================================
-   SPACING UTILITIES
-   ============================================ */
-.comparacion-balance-view .mb-0 {
-    margin-bottom: 0 !important;
-}
-
-.comparacion-balance-view .mb-1 {
-    margin-bottom: 0.25rem !important;
-}
-
-.comparacion-balance-view .mb-2 {
-    margin-bottom: 0.5rem !important;
-}
-
-.comparacion-balance-view .mb-3 {
-    margin-bottom: 1rem !important;
-}
-
-.comparacion-balance-view .mb-4 {
-    margin-bottom: 1.5rem !important;
-}
-
-.comparacion-balance-view .mt-3 {
-    margin-top: 1rem !important;
-}
-
-.comparacion-balance-view .mt-4 {
-    margin-top: 1.5rem !important;
-}
-
-.comparacion-balance-view .me-2 {
-    margin-right: 0.5rem !important;
-}
-
-.comparacion-balance-view .p-3 {
-    padding: 1rem !important;
-}
-
-/* ============================================
-   FLEXBOX UTILITIES
-   ============================================ */
-.comparacion-balance-view .d-flex {
-    display: flex;
-}
-
-.comparacion-balance-view .d-block {
-    display: block;
-}
-
-.comparacion-balance-view .align-items-center {
-    align-items: center;
-}
-
-.comparacion-balance-view .align-items-end {
-    align-items: flex-end;
-}
-
-.comparacion-balance-view .justify-content-center {
-    justify-content: center;
-}
-
-/* ============================================
-   ANIMACIONES
-   ============================================ */
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(10px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-.comparacion-balance-view .table tbody tr,
-.comparacion-balance-view .period-card,
-.comparacion-balance-view .chart-container,
-.comparacion-balance-view .card {
-    animation: fadeIn 0.3s ease;
-}
-
-/* ============================================
-   SCROLLBAR PERSONALIZADO
-   ============================================ */
-.comparacion-balance-view ::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
-}
-
-.comparacion-balance-view ::-webkit-scrollbar-track {
-    background: var(--gray-100);
-    border-radius: 4px;
-}
-
-.comparacion-balance-view ::-webkit-scrollbar-thumb {
-    background: var(--gray-400);
-    border-radius: 4px;
-}
-
-.comparacion-balance-view ::-webkit-scrollbar-thumb:hover {
-    background: var(--gray-500);
-}
-
-/* ============================================
-   FONT AWESOME ICONS
-   ============================================ */
-.comparacion-balance-view .fas {
-    display: inline-block;
-    font-style: normal;
-    font-variant: normal;
-    text-rendering: auto;
-    -webkit-font-smoothing: antialiased;
-}
-
-/* ============================================
-   ESTADOS HOVER Y FOCUS
-   ============================================ */
-.comparacion-balance-view a {
-    color: #f97316;
-    text-decoration: none;
-    transition: var(--transition);
-}
-
-.comparacion-balance-view a:hover {
-    color: #ea580c;
-}
-
-.comparacion-balance-view button:focus,
-.comparacion-balance-view .btn:focus {
-    outline: none;
-    box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.2);
+ 
+.text-secondary {
+    color: #64748b !important;
 }

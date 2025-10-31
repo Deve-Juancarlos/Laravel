@@ -1,549 +1,63 @@
-/* ============================================
-   DETALLE DE CUENTA - SISTEMA CONTABLE
-   ============================================ */
+/*
+ * Estilos para la vista de Detalle de Cuentas (Balance Comprobación)
+ */
 
-/* --- VARIABLES Y BASE --- */
-:root {
-    --primary: #f97316;
-    --primary-dark: #ea580c;
-    --success: #10b981;
-    --danger: #ef4444;
-    --warning: #f59e0b;
-    --info: #3b82f6;
-    --secondary: #6b7280;
-    
-    --gray-50: #f9fafb;
-    --gray-100: #f3f4f6;
-    --gray-200: #e5e7eb;
-    --gray-300: #d1d5db;
-    --gray-400: #9ca3af;
-    --gray-500: #6b7280;
-    --gray-600: #4b5563;
-    --gray-700: #374151;
-    --gray-800: #1f2937;
-    --gray-900: #111827;
-    
-    --white: #ffffff;
-    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-    --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
-    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-    --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-    
-    --border-radius: 12px;
-    --border-radius-sm: 8px;
-    --border-radius-lg: 16px;
-    --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
-.detalle-cuenta-view {
-    font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
-    background-color: var(--gray-50);
-    color: var(--gray-900);
-    line-height: 1.6;
-}
-
-.detalle-cuenta-view .container-fluid {
-    padding: 2rem;
-}
-
-.detalle-cuenta-view .form-control {
-    border: 2px solid var(--gray-200);
-    border-radius: var(--border-radius-sm);
-    padding: 0.625rem 0.875rem;
-    font-size: 0.9375rem;
-    transition: var(--transition);
-    width: 100%;
-}
-
-
-
-/* ============================================
-   DETALLE HEADER (NARANJA)
-   ============================================ */
-.detalle-cuenta-view .detalle-header {
-    background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
-    border-radius: var(--border-radius-lg);
-    padding: 2rem;
-    margin-bottom: 2rem;
-    box-shadow: var(--shadow-lg);
-    color: var(--white);
-}
-
-.detalle-cuenta-view .detalle-header h1 {
-    color: var(--white);
-    font-size: 2rem;
-    font-weight: 700;
-    margin-bottom: 0.5rem;
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-}
-
-.detalle-cuenta-view .detalle-header h1 i {
-    font-size: 1.75rem;
-}
-
-.detalle-cuenta-view .detalle-header p {
-    color: rgba(255, 255, 255, 0.9);
-    font-size: 1rem;
-    margin: 0;
-}
-
-/* ============================================
-   CARDS
-   ============================================ */
-.detalle-cuenta-view .card {
-    background: var(--white);
-    border-radius: var(--border-radius);
-    box-shadow: var(--shadow);
-    border: 1px solid var(--gray-200);
+.detalle-cuentas-view .search-input {
+    max-width: 400px; /* Incrementado el ancho */
     margin-bottom: 1.5rem;
-    transition: var(--transition);
+    border-radius: 8px;
+    padding: 0.5rem 1rem;
 }
 
-.detalle-cuenta-view .card:hover {
-    box-shadow: var(--shadow-lg);
+/* Estilo para cada tarjeta de cuenta */
+.cuenta-card {
+    border: 1px solid #dee2e6;
+    border-radius: 12px;
+    overflow: hidden; /* Para que el header redondeado funcione */
 }
 
-.detalle-cuenta-view .card-header {
-    padding: 1rem 1.5rem;
-    border-bottom: 2px solid var(--gray-200);
+.cuenta-card .card-header {
+    background: #495057 !important; /* Header oscuro */
+    color: white;
+    border-bottom: 0;
+}
+.cuenta-card .card-header h5 {
+    font-weight: 600;
+}
+.cuenta-card .card-header .btn-light {
+    font-size: 0.8rem;
     font-weight: 600;
 }
 
-.detalle-cuenta-view .card-header.bg-success {
-    background: linear-gradient(135deg, #ea580c 0%, #c2410c 100%);
-    color: var(--white);
-    border: none;
+/* Gráfico */
+.chart-container {
+    padding: 1rem;
+    background: #fdfdfd;
+    border-top: 1px solid #f0f0f0;
 }
 
-.detalle-cuenta-view .card-header h5,
-.detalle-cuenta-view .card-header h6 {
-    margin: 0;
-    display: flex;
-    align-items: center;
+/* Colores de texto en tabla */
+.table .text-success {
+    color: #198754 !important;
+    font-weight: 500;
+}
+.table .text-danger {
+    color: #dc3545 !important;
+    font-weight: 500;
+}
+.table .text-dark {
+    color: #212529 !important;
 }
 
-.detalle-cuenta-view .card-body {
-    padding: 1.5rem;
-}
-
-.detalle-cuenta-view .card-body.p-0 {
-    padding: 0;
-}
-
-.detalle-cuenta-view .card-title {
-    font-size: 0.875rem;
+/* Badge de Asiento (reutilizado de libro-mayor-movimientos) */
+.bg-primary-soft {
+    background-color: rgba(13, 110, 253, 0.1);
+    color: #0d6efd;
+    padding: 0.3em 0.6em;
+    border-radius: 6px;
     font-weight: 600;
-    color: var(--gray-600);
-    margin-bottom: 0.5rem;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
 }
-
-.detalle-cuenta-view .card-title.text-primary {
-    color: #f97316 !important;
-}
-
-/* ============================================
-   TABLA
-   ============================================ */
-.detalle-cuenta-view .table-responsive {
-    overflow-x: auto;
-}
-
-.detalle-cuenta-view .table {
-    width: 100%;
-    border-collapse: collapse;
-    margin: 0;
-}
-
-.detalle-cuenta-view .table thead {
-    background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%);
-}
-
-.detalle-cuenta-view .table thead.table-dark {
-    background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
-}
-
-.detalle-cuenta-view .table thead th {
-    padding: 1.25rem 1.5rem;
-    font-size: 0.8125rem;
-    font-weight: 700;
-    color: var(--gray-800);
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    border-bottom: 3px solid #f97316;
-    white-space: nowrap;
-    text-align: left;
-}
-
-.detalle-cuenta-view .table thead.table-dark th {
-    color: var(--white);
-}
-
-.detalle-cuenta-view .table tbody td {
-    padding: 1.25rem 1.5rem;
-    border-bottom: 1px solid var(--gray-200);
-    font-size: 1rem;
-    color: var(--gray-700);
-}
-
-.detalle-cuenta-view .table tbody tr {
-    transition: var(--transition);
-}
-
-.detalle-cuenta-view .table tbody tr:hover {
-    background: #fff7ed;
-}
-
-.detalle-cuenta-view .table tfoot {
-    background: linear-gradient(135deg, #fed7aa 0%, #fdba74 100%);
-}
-
-.detalle-cuenta-view .table tfoot.table-info {
-    background: linear-gradient(135deg, #fed7aa 0%, #fdba74 100%);
-}
-
-.detalle-cuenta-view .table tfoot td {
-    padding: 1.5rem;
-    border-top: 4px solid #ea580c;
-    border-bottom: 4px solid #ea580c;
-    font-size: 1.125rem;
-    font-weight: 800;
-    color: var(--gray-900);
-}
-
-/* ============================================
-   ALINEACIONES Y UTILIDADES
-   ============================================ */
-.detalle-cuenta-view .text-end {
-    text-align: right;
-}
-
-.detalle-cuenta-view .text-center {
-    text-align: center;
-}
-
-.detalle-cuenta-view .text-start {
-    text-align: left;
-}
-
-.detalle-cuenta-view .d-flex {
-    display: flex;
-}
-
-.detalle-cuenta-view .justify-content-between {
-    justify-content: space-between;
-}
-
-.detalle-cuenta-view .align-items-center {
-    align-items: center;
-}
-
-.detalle-cuenta-view .fw-bold {
-    font-weight: 700;
-}
-
-/* ============================================
-   COLORES DE TEXTO
-   ============================================ */
-.detalle-cuenta-view .text-success {
-    color: var(--success) !important;
-}
-
-.detalle-cuenta-view .text-danger {
-    color: var(--danger) !important;
-}
-
-.detalle-cuenta-view .text-primary {
-    color: #f97316 !important;
-}
-
-.detalle-cuenta-view .text-warning {
-    color: var(--warning) !important;
-}
-
-.detalle-cuenta-view .text-info {
-    color: var(--info) !important;
-}
-
-.detalle-cuenta-view .text-secondary {
-    color: var(--secondary) !important;
-}
-
-.detalle-cuenta-view .text-muted {
-    color: var(--gray-500) !important;
-}
-
-.detalle-cuenta-view .text-white {
-    color: var(--white) !important;
-}
-
-/* ============================================
-   SALDOS ESPECIALES
-   ============================================ */
-.detalle-cuenta-view .saldo-acumulado {
-    font-weight: 700;
-    font-family: 'Courier New', monospace;
-    padding: 0.25rem 0.75rem;
-    border-radius: 9999px;
-    font-size: 0.9375rem;
-}
-
-.detalle-cuenta-view .saldo-positivo {
-    color: var(--success);
-    background: rgba(16, 185, 129, 0.1);
-}
-
-.detalle-cuenta-view .saldo-negativo {
-    color: var(--danger);
-    background: rgba(239, 68, 68, 0.1);
-}
-
-.detalle-cuenta-view .movement-row {
-    transition: var(--transition);
-}
-
-.detalle-cuenta-view .movement-row:hover {
-    background: #fff7ed;
-    transform: scale(1.002);
-}
-
-/* ============================================
-   BOTONES
-   ============================================ */
-.detalle-cuenta-view .btn {
-    padding: 0.625rem 1.25rem;
-    border-radius: var(--border-radius-sm);
-    font-weight: 600;
-    font-size: 0.9375rem;
-    border: none;
-    cursor: pointer;
-    transition: var(--transition);
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    text-decoration: none;
-}
-
-.detalle-cuenta-view .btn-light {
-    background: var(--white);
-    color: #f97316;
-    border: 2px solid #f97316;
-}
-
-.detalle-cuenta-view .btn-light:hover {
-    background: #f97316;
-    color: var(--white);
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-md);
-}
-
-.detalle-cuenta-view .btn-primary {
-    background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
-    color: var(--white);
-}
-
-.detalle-cuenta-view .btn-primary:hover {
-    background: linear-gradient(135deg, #ea580c 0%, #c2410c 100%);
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-md);
-}
-
-.detalle-cuenta-view .btn-secondary {
-    background: linear-gradient(135deg, var(--gray-600) 0%, var(--gray-700) 100%);
-    color: var(--white);
-}
-
-.detalle-cuenta-view .btn-secondary:hover {
-    background: linear-gradient(135deg, var(--gray-700) 0%, var(--gray-800) 100%);
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-md);
-}
-
-.detalle-cuenta-view .btn-warning {
-    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-    color: var(--white);
-}
-
-.detalle-cuenta-view .btn-warning:hover {
-    background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-md);
-}
-
-.detalle-cuenta-view .ms-2 {
-    margin-left: 0.5rem;
-}
-
-/* ============================================
-   SISTEMA DE GRID
-   ============================================ */
-.detalle-cuenta-view .row {
-    display: flex;
-    flex-wrap: wrap;
-    margin-left: -0.75rem;
-    margin-right: -0.75rem;
-}
-
-.detalle-cuenta-view .col-md-3,
-.detalle-cuenta-view .col-md-12 {
-    padding-left: 0.75rem;
-    padding-right: 0.75rem;
-}
-
-.detalle-cuenta-view .col-md-3 {
-    flex: 0 0 auto;
-    width: 25%;
-}
-
-.detalle-cuenta-view .col-md-12 {
-    flex: 0 0 auto;
-    width: 100%;
-}
-
-/* ============================================
-   UTILIDADES DE ESPACIADO
-   ============================================ */
-.detalle-cuenta-view .mb-0 {
-    margin-bottom: 0;
-}
-
-.detalle-cuenta-view .mb-2 {
-    margin-bottom: 0.5rem;
-}
-
-.detalle-cuenta-view .mb-3 {
-    margin-bottom: 1rem;
-}
-
-.detalle-cuenta-view .mb-4 {
-    margin-bottom: 1.5rem;
-}
-
-.detalle-cuenta-view .mt-4 {
-    margin-top: 1.5rem;
-}
-
-.detalle-cuenta-view .me-2 {
-    margin-right: 0.5rem;
-}
-
-.detalle-cuenta-view .me-3 {
-    margin-right: 1rem;
-}
-
-.detalle-cuenta-view .p-5 {
-    padding: 3rem;
-}
-
-/* ============================================
-   ESTADO VACÍO
-   ============================================ */
-.detalle-cuenta-view .fa-inbox {
-    font-size: 3rem;
-}
-
-.detalle-cuenta-view .fa-3x {
-    font-size: 3rem;
-}
-
-/* ============================================
-   ANIMACIONES
-   ============================================ */
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-    }
-    to {
-        opacity: 1;
-    }
-}
-
-.detalle-cuenta-view .table tbody tr {
-    animation: fadeIn 0.3s ease;
-}
-
-.detalle-cuenta-view .card {
-    animation: fadeIn 0.4s ease;
-}
-
-/* ============================================
-   SCROLLBAR PERSONALIZADO
-   ============================================ */
-.detalle-cuenta-view ::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
-}
-
-.detalle-cuenta-view ::-webkit-scrollbar-track {
-    background: var(--gray-100);
-    border-radius: 4px;
-}
-
-.detalle-cuenta-view ::-webkit-scrollbar-thumb {
-    background: var(--gray-400);
-    border-radius: 4px;
-}
-
-.detalle-cuenta-view ::-webkit-scrollbar-thumb:hover {
-    background: var(--gray-500);
-}
-
-/* ============================================
-   RESPONSIVE
-   ============================================ */
-@media (max-width: 768px) {
-    .detalle-cuenta-view .col-md-3,
-    .detalle-cuenta-view .col-md-12 {
-        width: 100%;
-    }
-
-    .detalle-cuenta-view .container-fluid {
-        padding: 1rem;
-    }
-
-    .detalle-cuenta-view .detalle-header {
-        padding: 1.5rem;
-    }
-
-    .detalle-cuenta-view .detalle-header h1 {
-        font-size: 1.5rem;
-    }
-
-    .detalle-cuenta-view .d-flex {
-        flex-direction: column;
-    }
-
-    .detalle-cuenta-view .text-end {
-        text-align: left;
-        margin-top: 1rem;
-    }
-
-    .detalle-cuenta-view .table {
-        font-size: 0.875rem;
-    }
-
-    .detalle-cuenta-view .table thead th,
-    .detalle-cuenta-view .table tbody td {
-        padding: 0.75rem;
-    }
-
-    .detalle-cuenta-view .btn {
-        width: 100%;
-        justify-content: center;
-        margin-bottom: 0.5rem;
-    }
-
-    .detalle-cuenta-view .ms-2 {
-        margin-left: 0;
-    }
+.bg-primary-soft:hover {
+    background-color: #0d6efd;
+    color: #fff;
 }
