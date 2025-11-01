@@ -7,7 +7,7 @@ use App\Services\Contabilidad\FlujoCajaService;
 use App\Services\ReniecService; // 1. Importamos tu servicio
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\DB;         
+use Illuminate\Support\Facades\DB; // <-- ¡SIN ESPACIOS RAROS!
 use Illuminate\Support\Facades\Validator;
 use Carbon\Carbon;
 use Illuminate\Support\Str;
@@ -16,15 +16,12 @@ class FlujoCajaController extends Controller
 {
     protected $connection = 'sqlsrv'; // Tu conexión
     protected $flujoCajaService;
-    protected $reniecService; // 2. Propiedad para el servicio
+    protected $reniecService; // Lo necesitamos para el 'handlePaso1'
 
-    /**
-     * Inyectamos ambos servicios
-     */
     public function __construct(FlujoCajaService $flujoCajaService, ReniecService $reniecService)
     {
         $this->flujoCajaService = $flujoCajaService;
-        $this->reniecService = $reniecService; // 3. Inyectamos
+        $this->reniecService = $reniecService; 
     }
 
     /*
@@ -41,19 +38,60 @@ class FlujoCajaController extends Controller
 
     public function handlePaso1(Request $request) // Esta función recibe el POST del Paso 1
     {
-        $validator = Validator::make($request->all(), [
-            'cliente_id' => 'required|integer|exists:sqlsrv.Clientes,Codclie' 
-        ]);
+        $clienteInput = $request->input('cliente_id');
+        $clienteId = null;
 
-        if ($validator->fails()) {
-            return redirect()->route('contador.flujo.cobranzas.paso1')
-                         ->withErrors($validator)
-                         ->withInput();
+        // 1. EL USUARIO HIZO CLIC EN UN CLIENTE "NUEVO" (ej: 'NUEVO-1047...')
+        if (Str::startsWith($clienteInput, 'NUEVO-')) {
+            $documento = Str::after($clienteInput, 'NUEVO-');
+            $isRuc = strlen($documento) == 11;
+            
+            // 2. REVISAMOS QUE NO EXISTA YA (POR SI ACASO)
+            $existente = DB::connection($this->connection)->table('Clientes')
+                           ->where('Documento', $documento)->first();
+            
+            if ($existente) {
+                // Si ya existe, solo usamos su ID
+                $clienteId = $existente->Codclie;
+            } else {
+                // 3. NO EXISTE. LLAMAMOS A LA API (¡QUE AHORA SÍ FUNCIONARÁ!)
+                Log::info("Registrando nuevo cliente desde flujo: " . $documento);
+                $apiData = $isRuc ? $this->reniecService->consultarRUC($documento) : $this->reniecService->consultarDNI($documento);
+
+                if (!$apiData) { // La API (corregida) devuelve NULL si falla
+                     return redirect()->route('contador.flujo.cobranzas.paso1')
+                                  ->with('error', 'No se pudo obtener datos de RENIEC/SUNAT para ' . $documento);
+                }
+
+                // 4. ¡LO CREAMOS DIRECTAMENTE EN LA TABLA 'Clientes'!
+                $clienteId = DB::connection($this->connection)->table('Clientes')->insertGetId([
+                    'tipoDoc' => $isRuc ? 'R' : 'D',
+                    'Documento' => $documento,
+                    // Usamos los alias 'razon_social' y 'address' que definimos en ReniecService
+                    'Razon' => $apiData['razon_social'] ?? 'N/A', 
+                    'Direccion' => $apiData['address'] ?? 'N/A',
+                    'Maymin' => 0,
+                    'Fecha' => now(),
+                    'Zona' => '001', // Zona por defecto
+                    'Activo' => 1
+                ]);
+            }
+
+        } else {
+            // 5. SI ES UN CLIENTE ANTIGUO, VALIDAMOS
+            $validator = Validator::make(['cliente_id' => $clienteInput], [
+                'cliente_id' => 'required|integer|exists:sqlsrv.Clientes,Codclie' 
+            ]);
+            if ($validator->fails()) {
+                return redirect()->route('contador.flujo.cobranzas.paso1')->withErrors($validator)->withInput();
+            }
+            $clienteId = $clienteInput;
         }
 
+        // 6. Guardamos el ID (ya sea el antiguo o el NUEVO) en la sesión
         session([
             'flujo_cobranza' => [
-                'cliente_id' => $request->input('cliente_id')
+                'cliente_id' => $clienteId
             ]
         ]);
 
@@ -73,16 +111,12 @@ class FlujoCajaController extends Controller
         }
 
         $cliente = DB::connection($this->connection)->table('Clientes')
-                     ->where('Codclie', $flujoData['cliente_id'])->first();
+                           ->where('Codclie', $flujoData['cliente_id'])->first();
         
         $cuentasBancarias = DB::connection($this->connection)->table('Bancos')->get();
         $pago = $flujoData['pago'] ?? null;
-        
-        // Asumo que Vendedores son Empleados (como en tu ClientesController)
         $vendedores = DB::connection($this->connection)->table('Empleados')->get(); 
-
-        // Series de PlanC_cobranza
-        $seriesPlanilla = ['P001', 'P002', 'P003']; // Deberías sacar esto de una tabla maestra
+        $seriesPlanilla = ['P001', 'P002', 'P003']; // Pendiente: Mover a tabla maestra
 
         return view('cobranzas.flujo.paso2_registrar_pago', compact('cliente', 'cuentasBancarias', 'pago', 'vendedores', 'seriesPlanilla'));
     }
@@ -95,19 +129,17 @@ class FlujoCajaController extends Controller
         }
 
         $validator = Validator::make($request->all(), [
-            'monto_pagado'      => 'required|numeric|min:0.01',
-            'fecha_pago'        => 'required|date',
-            'metodo_pago'       => 'required|string',
-            'cuenta_destino'    => 'required|string|exists:sqlsrv.Bancos,Cuenta',
-            'referencia'        => 'nullable|string|max:50',
-            'serie_planilla'    => 'required|string|max:4',
-            'vendedor_id'       => 'required|integer|exists:sqlsrv.Empleados,Codemp',
+            'monto_pagado'   => 'required|numeric|min:0.01',
+            'fecha_pago'     => 'required|date',
+            'metodo_pago'    => 'required|string',
+            'cuenta_destino' => 'required|string|exists:sqlsrv.Bancos,Cuenta',
+            'referencia'     => 'nullable|string|max:50',
+            'serie_planilla' => 'required|string|max:4',
+            'vendedor_id'    => 'required|integer|exists:sqlsrv.Empleados,Codemp',
         ]);
 
         if ($validator->fails()) {
-            return redirect()->route('contador.flujo.cobranzas.paso2')
-                         ->withErrors($validator)
-                         ->withInput();
+            return redirect()->route('contador.flujo.cobranzas.paso2')->withErrors($validator)->withInput();
         }
 
         session([
@@ -133,17 +165,15 @@ class FlujoCajaController extends Controller
         }
 
         $cliente = DB::connection($this->connection)->table('Clientes')
-                     ->where('Codclie', $flujoData['cliente_id'])->first();
+                           ->where('Codclie', $flujoData['cliente_id'])->first();
         $pago = $flujoData['pago'];
 
-        // Buscamos deudas en 'CtaCliente'
         $facturasPendientes = DB::connection($this->connection)->table('CtaCliente')
             ->where('CodClie', $cliente->Codclie)
             ->where('Saldo', '>', 0)
-            ->orderBy('FechaV', 'asc') // Antiguas primero
+            ->orderBy('FechaV', 'asc')
             ->get()
             ->map(function ($factura) {
-                // ID única para el formulario (Documento + Tipo)
                 $factura->composite_key = $factura->Documento . '_' . $factura->Tipo;
                 $factura->FechaEmision = Carbon::parse($factura->FechaF);
                 $factura->FechaVencimiento = Carbon::parse($factura->FechaV);
@@ -185,7 +215,7 @@ class FlujoCajaController extends Controller
     public function showPaso4()
     {
         $flujoData = session('flujo_cobranza');
-        if (empty($flujoData['aplicaciones']) && empty($flujoData['adelanto'])) {
+        if (empty($flujoData['aplicaciones']) && !isset($flujoData['adelanto'])) { // Corregido: !isset
             return redirect()->route('contador.flujo.cobranzas.paso3')->with('error', 'Debe aplicar el pago.');
         }
         
@@ -248,7 +278,7 @@ class FlujoCajaController extends Controller
             // 1. Crear Cabecera de Planilla (PlanC_cobranza)
             $ultimoNum = DB::connection($this->connection)->table('PlanC_cobranza')
                             ->where('Serie', $serie)->max('Numero');
-            $nextNum = str_pad((int)$ultimoNum + 1, 8, '0', STR_PAD_LEFT);
+            $nextNum = str_pad((int)$ultimoNum + 1, 7, '0', STR_PAD_LEFT);
             $planillaNumeroCompleto = $serie . '-' . $nextNum;
 
             DB::connection($this->connection)->table('PlanC_cobranza')->insert([
@@ -343,43 +373,11 @@ class FlujoCajaController extends Controller
         }
     }
 
-
     /*
     |--------------------------------------------------------------------------
-    | MÉTODOS DE API (AJAX) - ¡CORRECCIÓN FINAL!
+    | ¡¡¡ SECCIÓN DE BÚSQUEDA ELIMINADA !!!
     |--------------------------------------------------------------------------
+    | Los métodos 'searchClientes' y 'getDeudaCliente' se eliminaron 
+    | porque ahora están centralizados en 'ClientesController'.
     */
-
-    public function searchClientes(Request $request)
-    {
-        $query = $request->input('query');
-        if (strlen($query) < 3) return response()->json([]);
-
-        // 1. Usamos tu ReniecService para buscar en la BD local
-        // El servicio ya usa 'sqlsrv', 'Clientes', 'Razon' y 'RucDni'
-        $data = $this->reniecService->buscarEnBaseLocal($query);
-        $clientes = $data['clientes']; // Esto es una Colección
-
-        // 2. Mapeamos los resultados para añadir la deuda (que el servicio no trae)
-        $results = $clientes->map(function ($cliente) {
-            return [
-                'id' => $cliente->Codclie,
-                'razon_social' => $cliente->Razon,
-                'ruc' => $cliente->documento, // Tu servicio renombra 'RucDni' a 'documento'
-                'deuda_total' => $this->getDeudaCliente($cliente->Codclie)
-            ];
-        });
-
-        return response()->json($results);
-    }
-
-    private function getDeudaCliente($cliente_id)
-    {
-        // La deuda real es la suma de saldos en CtaCliente
-        $saldo_actual = DB::connection($this->connection)->table('CtaCliente')
-            ->where('CodClie', $cliente_id)
-            ->sum('Saldo');
-
-        return round($saldo_actual, 2) ?? 0.00;
-    }
 }

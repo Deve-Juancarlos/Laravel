@@ -9,14 +9,12 @@
     ];
 @endphp
 
-
-
 <div class="d-flex justify-content-between mb-4">
     @foreach($pasos as $numero => $paso)
         @php
             $isCompleted = $numero < $paso_actual;
-            isActive = $numero == $paso_actual;
-            isPending = $numero > $paso_actual;
+            $isActive = $numero == $paso_actual;
+            $isPending = $numero > $paso_actual;
         @endphp
 
         <div class="text-center" style="flex-basis: 25%;">
@@ -28,7 +26,7 @@
             <h6 class="mt-2 mb-0 {{ $isActive ? 'text-primary fw-bold' : ($isPending ? 'text-muted' : '') }}">
                 Paso {{ $numero }}
             </h6>
-            <small class_="{{ $isActive ? 'text-primary' : 'text-muted' }}">{{ $paso['titulo'] }}</small>
+            <small class="{{ $isActive ? 'text-primary' : 'text-muted' }}">{{ $paso['titulo'] }}</small>
         </div>
 
         @if(!$loop->last)

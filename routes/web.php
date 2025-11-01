@@ -292,16 +292,26 @@ Route::middleware(['auth', 'check.contador'])->group(function () {
             // Ruta para la VISTA del Paso 2
             Route::get('/paso-2', [FlujoCajaController::class, 'showPaso2'])
                 ->name('flujo.cobranzas.paso2');
+
+            
+            Route::post('/paso-2', [FlujoCajaController::class, 'handlePaso2'])
+            ->name('flujo.cobranzas.handlePaso2');
+
             Route::get('/paso-3', [FlujoCajaController::class, 'showPaso3'])
                 ->name('flujo.cobranzas.paso3');
+
+            Route::post('/paso-3', [FlujoCajaController::class, 'handlePaso3'])
+                ->name('flujo.cobranzas.handlePaso3');
+
             Route::get('/paso-4', [FlujoCajaController::class, 'showPaso4'])
                 ->name('flujo.cobranzas.paso4');
 
-            Route::post('/procesar', [FlujoCajaController::class, 'procesar'])->name('procesar');
+            Route::post('/procesar', [FlujoCajaController::class, 'procesar'])
+                ->name('flujo.cobranzas.procesar');
 
         });
 
-        Route::get('/api/clientes/search', [FlujoCajaController::class, 'buscarCliente'])
+        Route::get('/api/clientes/search', [ClientesController::class, 'search'])
              ->name('api.clientes.search');
         
 
@@ -316,7 +326,7 @@ Route::middleware(['auth', 'check.contador'])->group(function () {
                 Route::get('/flujo-caja', [EstadoResultadosController::class, 'cashFlow'])->name('flujo-caja');
                 Route::get('/balance-general', [BalanceGeneralController::class, 'index'])->name('balance-general');
                 Route::get('/exportar', [EstadoResultadosController::class, 'exportar'])->name('exportar');                 
-               
+               Route::get('/api/clientes/search', [ClientesController::class, 'search'])->name('api.clientes.search');
             });
         });
     });

@@ -26,7 +26,7 @@
                 </h5>
             </div>
             
-            <form action="{{ route('contador.flujo.cobranzas.handlePaso3') }}" method="POST" id="formPaso3">
+            <form action="{{ route('contador.flujo.cobranzas.paso3') }}" method="POST" id="formPaso3">
                 @csrf
                 <div class="card-body">
                     <p class="text-muted">

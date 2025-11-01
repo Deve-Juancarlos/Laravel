@@ -158,10 +158,11 @@ class ContadorDashboardService
                 $join->on('dc.Numero', '=', 'cc.Documento')
                      ->on('dc.Tipo', '=', DB::raw('cc.Tipo'));
             })
-            ->select(
-                'cc.Documento', 'cc.Importe', 'cc.Saldo', 'cc.FechaF as FechaF', 'cc.FechaV as FechaV',
-                'c.Razon as Cliente', 'dc.estado as Estado'
-            )
+            ->select([
+                'cc.Documento', 'cc.Importe', 'cc.Saldo', 'cc.FechaF', 'cc.FechaV', 
+                'c.Razon as Cliente',
+                'dc.Eliminado' // <--- ¡CORREGIDO!
+            ])
             ->orderByDesc('cc.FechaF')
             ->limit($limite);
 
@@ -391,12 +392,11 @@ class ContadorDashboardService
 
     public function calcularCuentasPorCobrar()
     {
-        return Cache::remember('cuentas_cobrar', $this->cache_ttl, function () {
-            return DB::table('CtaCliente')
-                ->where('Saldo', '>', 0)
-                ->sum('Saldo') ?? 0;
-        });
+        return DB::table('CtaCliente')
+            ->where('Saldo', '>', 0)
+            ->sum('Saldo') ?? 0;
     }
+
 
     public function calcularCuentasPorCobrarVencidas()
     {

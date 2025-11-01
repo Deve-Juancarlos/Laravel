@@ -23,7 +23,7 @@
                 </h5>
             </div>
             
-            <form action="{{ route('contador.flujo.cobranzas.handlePaso2') }}" method="POST">
+            <form action="{{ route('contador.flujo.cobranzas.paso2') }}" method="POST">
                 @csrf
                 <div class="card-body">
                     <div class="alert alert-info">

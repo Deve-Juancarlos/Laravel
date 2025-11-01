@@ -37,9 +37,10 @@
     <span>Estados Financieros</span>
 </a>
 
-<a class="nav-link {{ request()->is('contabilidad/Flujos*') ? 'active' : '' }}" href={{ route('contador.flujo.cobranzas.paso1') }}>
+<a class="nav-link {{ request()->is('contador/flujo/cobranzas*') ? 'active' : '' }}" 
+   href="{{ route('contador.flujo.cobranzas.paso1') }}">
     <i class="fa-sharp fa-solid fa-coins"></i>
-    <span>Flujos-diarios</span>
+    <span>Flujos diarios</span>
 </a>
 
 <a class="nav-link {{ request()->is('contabilidad/reportes*') ? 'active' : '' }}" href="#">
