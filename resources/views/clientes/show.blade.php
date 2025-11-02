@@ -1,478 +1,406 @@
-@extends('layouts.contador')
+@extends('layouts.app')
 
-@section('title', 'Detalles del Cliente')
+@section('title', 'Detalle del Cliente')
+@section('page-title', 'Información del Cliente')
+
+@section('breadcrumbs')
+    <li class="breadcrumb-item">
+        <a href="{{ route('contador.clientes.index') }}" class="text-decoration-none">
+            <i class="fas fa-users"></i> Clientes
+        </a>
+    </li>
+    <li class="breadcrumb-item active" aria-current="page">{{ $cliente->Razon }}</li>
+@endsection
+
+@push('styles')
+<style>
+    .info-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 15px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+    }
+    .info-card h3 {
+        font-size: 1.75rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+    }
+    .info-card .badge {
+        font-size: 0.875rem;
+        padding: 0.5rem 1rem;
+    }
+    .stats-card {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        height: 100%;
+        transition: transform 0.3s ease;
+    }
+    .stats-card:hover {
+        transform: translateY(-5px);
+    }
+    .stats-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        color: white;
+        margin-bottom: 1rem;
+    }
+    .stats-label {
+        font-size: 0.875rem;
+        color: #6c757d;
+        font-weight: 600;
+        text-transform: uppercase;
+        margin-bottom: 0.5rem;
+    }
+    .stats-value {
+        font-size: 1.75rem;
+        font-weight: 700;
+        color: #2c3e50;
+    }
+    .contact-item {
+        display: flex;
+        align-items: center;
+        padding: 1rem;
+        background: #f8f9fa;
+        border-radius: 8px;
+        margin-bottom: 0.75rem;
+    }
+    .contact-item i {
+        width: 40px;
+        height: 40px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        margin-right: 1rem;
+        font-size: 1rem;
+    }
+    .contact-item .label {
+        font-size: 0.75rem;
+        color: #6c757d;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+    .contact-item .value {
+        font-size: 1rem;
+        color: #2c3e50;
+        font-weight: 500;
+    }
+    .action-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.75rem 1.5rem;
+        border-radius: 8px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+    .action-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+    .purchase-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1rem;
+        border-bottom: 1px solid #e9ecef;
+        transition: background 0.2s ease;
+    }
+    .purchase-item:hover {
+        background: #f8f9fa;
+    }
+    .purchase-item:last-child {
+        border-bottom: none;
+    }
+    .credit-progress {
+        height: 12px;
+        border-radius: 6px;
+        overflow: hidden;
+        background: #e9ecef;
+    }
+    .credit-progress-bar {
+        height: 100%;
+        border-radius: 6px;
+        transition: width 0.6s ease;
+    }
+</style>
+@endpush
 
 @section('content')
-<div class="container-fluid py-4">
-    <!-- Breadcrumb y título -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <nav aria-label="breadcrumb">
-                <ol class="breadcrumb bg-transparent mb-0">
-                    <li class="breadcrumb-item">
-                        <a href="{{ route('clientes.index') }}" class="text-decoration-none">
-                            <i class="fas fa-arrow-left"></i> Clientes
-                        </a>
-                    </li>
-                    <li class="breadcrumb-item active" aria-current="page">
-                        {{ $clientes->CodClie}}
-                    </li>
-                </ol>
-            </nav>
+
+<!-- Tarjeta de Información Principal -->
+<div class="info-card">
+    <div class="d-flex justify-content-between align-items-start">
+        <div>
+            <h3>{{ $cliente->Razon }}</h3>
+            <p class="mb-2"><i class="fas fa-id-card me-2"></i>{{ $cliente->Documento }}</p>
+            <div>
+                <span class="badge bg-light text-dark">
+                    <i class="fas fa-calendar me-1"></i>
+                    Cliente desde {{ \Carbon\Carbon::parse($cliente->Fecha)->format('d/m/Y') }}
+                </span>
+                <span class="badge {{ $cliente->Activo ? 'bg-success' : 'bg-danger' }} ms-2">
+                    <i class="fas fa-circle me-1" style="font-size: 0.5rem;"></i>
+                    {{ $cliente->Activo ? 'Activo' : 'Inactivo' }}
+                </span>
+            </div>
         </div>
-    </div>
-
-    <div class="row">
-        <!-- Información principal del cliente -->
-        <div class="col-lg-8 col-md-7">
-            <div class="card border-0 shadow-sm">
-                <div class="card-header bg-white">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <h5 class="card-title mb-0">
-                            <i class="fas fa-user text-primary me-2"></i>
-                            Información Personal
-                        </h5>
-                        <div class="btn-group">
-                            <a href="{{ route('clientes.edit', $cliente->id) }}" 
-                               class="btn btn-outline-primary btn-sm">
-                                <i class="fas fa-edit"></i> Editar
-                            </a>
-                            <button type="button" class="btn btn-outline-danger btn-sm" 
-                                    onclick="confirmarEliminacion({{ $cliente->id }})"
-                                    {{ $cliente->estado == 0 ? 'disabled' : '' }}>
-                                <i class="fas fa-trash"></i> Desactivar
-                            </button>
-                        </div>
-                    </div>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <!-- Datos básicos -->
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label class="form-label text-muted small">Tipo de Documento</label>
-                                <div class="fw-bold">
-                                    <span class="badge bg-{{ $cliente->tipo_documento == 'DNI' ? 'info' : 'success' }} fs-6">
-                                        {{ $cliente->tipo_documento }}
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label class="form-label text-muted small">Número de Documento</label>
-                                <div class="fw-bold fs-6">{{ $cliente->numero_documento }}</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    @if($cliente->tipo_documento == 'DNI')
-                    <!-- Información para personas naturales -->
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label class="form-label text-muted small">Nombres</label>
-                                <div class="fw-bold">{{ $cliente->nombres ?? '-' }}</div>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label class="form-label text-muted small">Apellido Paterno</label>
-                                <div class="fw-bold">{{ $cliente->apellido_paterno ?? '-' }}</div>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label class="form-label text-muted small">Apellido Materno</label>
-                                <div class="fw-bold">{{ $cliente->apellido_materno ?? '-' }}</div>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label class="form-label text-muted small">Fecha de Nacimiento</label>
-                                <div class="fw-bold">
-                                    {{ $cliente->fecha_nacimiento ? \Carbon\Carbon::parse($cliente->fecha_nacimiento)->format('d/m/Y') : '-' }}
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label class="form-label text-muted small">Edad</label>
-                                <div class="fw-bold">
-                                    @if($estadisticas['edad'])
-                                        {{ $estadisticas['edad'] }} años
-                                        @if($estadisticas['es_mayor_edad'])
-                                            <span class="badge bg-success ms-1">Mayor de edad</span>
-                                        @else
-                                            <span class="badge bg-warning ms-1">Menor de edad</span>
-                                        @endif
-                                    @else
-                                        -
-                                    @endif
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    @else
-                    <!-- Información para personas jurídicas -->
-                    <div class="row">
-                        <div class="col-12">
-                            <div class="mb-3">
-                                <label class="form-label text-muted small">Razón Social</label>
-                                <div class="fw-bold">{{ $cliente->razon_social ?? '-' }}</div>
-                            </div>
-                        </div>
-                    </div>
-                    @endif
-
-                    <!-- Información de dirección -->
-                    <div class="row">
-                        <div class="col-12">
-                            <div class="mb-3">
-                                <label class="form-label text-muted small">Dirección</label>
-                                <div class="fw-bold">{{ $cliente->direccion ?? 'No especificada' }}</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    @if($cliente->departamento || $cliente->provincia || $cliente->distrito)
-                    <div class="row">
-                        <div class="col-md-4">
-                            <div class="mb-3">
-                                <label class="form-label text-muted small">Departamento</label>
-                                <div class="fw-bold">{{ $cliente->departamento ?? '-' }}</div>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="mb-3">
-                                <label class="form-label text-muted small">Provincia</label>
-                                <div class="fw-bold">{{ $cliente->provincia ?? '-' }}</div>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="mb-3">
-                                <label class="form-label text-muted small">Distrito</label>
-                                <div class="fw-bold">{{ $cliente->distrito ?? '-' }}</div>
-                            </div>
-                        </div>
-                    </div>
-                    @endif
-                </div>
-            </div>
-
-            <!-- Información de cuentas asociadas -->
-            @if($estadisticas['total_cuentas'] > 0)
-            <div class="card border-0 shadow-sm mt-4">
-                <div class="card-header bg-white">
-                    <h5 class="card-title mb-0">
-                        <i class="fas fa-university text-primary me-2"></i>
-                        Cuentas Asociadas ({{ $estadisticas['total_cuentas'] }})
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table table-sm">
-                            <thead>
-                                <tr>
-                                    <th>Cuenta</th>
-                                    <th>Tipo</th>
-                                    <th>Estado</th>
-                                    <th>Saldo</th>
-                                    <th>Acciones</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach($cliente->cuentas as $cuenta)
-                                <tr>
-                                    <td>{{ $cuenta->cta }}</td>
-                                    <td>
-                                        <span class="badge bg-light text-dark">{{ $cuenta->tipo }}</span>
-                                    </td>
-                                    <td>
-                                        @if($cuenta->estado == 1)
-                                            <span class="badge bg-success">Activa</span>
-                                        @else
-                                            <span class="badge bg-danger">Inactiva</span>
-                                        @endif
-                                    </td>
-                                    <td>S/ {{ number_format($cuenta->saldo, 2) }}</td>
-                                    <td>
-                                        <a href="#" class="btn btn-outline-primary btn-sm">
-                                            <i class="fas fa-eye"></i>
-                                        </a>
-                                    </td>
-                                </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
+        <div class="d-flex gap-2">
+            <a href="{{ route('contador.clientes.editar', $cliente->Codclie) }}" 
+               class="btn btn-light action-btn">
+                <i class="fas fa-edit"></i> Editar
+            </a>
+            @if($cliente->Activo)
+            <button type="button" class="btn btn-danger action-btn" 
+                    onclick="confirmarDesactivacion()">
+                <i class="fas fa-ban"></i> Desactivar
+            </button>
             @endif
         </div>
+    </div>
+</div>
 
-        <!-- Panel lateral con información adicional -->
-        <div class="col-lg-4 col-md-5">
-            <!-- Estado del cliente -->
-            <div class="card border-0 shadow-sm mb-4">
-                <div class="card-body">
-                    <h6 class="card-title">
-                        <i class="fas fa-info-circle text-primary me-2"></i>
-                        Estado del Cliente
-                    </h6>
-                    <div class="text-center">
-                        @if($cliente->estado == 1)
-                            <div class="badge bg-success fs-6 px-3 py-2 mb-3">
-                                <i class="fas fa-check-circle me-1"></i> Activo
-                            </div>
-                            <p class="text-muted small mb-3">
-                                Cliente disponible para operaciones
-                            </p>
-                            <button type="button" class="btn btn-outline-warning btn-sm w-100" 
-                                    onclick="confirmarDesactivacion({{ $cliente->id }})">
-                                <i class="fas fa-pause"></i> Desactivar Cliente
-                            </button>
-                        @else
-                            <div class="badge bg-danger fs-6 px-3 py-2 mb-3">
-                                <i class="fas fa-times-circle me-1"></i> Inactivo
-                            </div>
-                            <p class="text-muted small mb-3">
-                                Cliente no disponible para nuevas operaciones
-                            </p>
-                            <button type="button" class="btn btn-outline-success btn-sm w-100" 
-                                    onclick="reactivarCliente({{ $cliente->id }})">
-                                <i class="fas fa-play"></i> Reactivar Cliente
-                            </button>
-                        @endif
+<!-- Estadísticas del Cliente -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="stats-card">
+            <div class="stats-icon bg-primary">
+                <i class="fas fa-shopping-cart"></i>
+            </div>
+            <div class="stats-label">Total Compras</div>
+            <div class="stats-value">{{ $estadisticas['cantidad_compras'] }}</div>
+            <small class="text-muted">Operaciones realizadas</small>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stats-card">
+            <div class="stats-icon bg-success">
+                <i class="fas fa-dollar-sign"></i>
+            </div>
+            <div class="stats-label">Ticket Promedio</div>
+            <div class="stats-value">S/ {{ number_format($estadisticas['ticket_promedio'], 2) }}</div>
+            <small class="text-muted">Por compra</small>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stats-card">
+            <div class="stats-icon bg-info">
+                <i class="fas fa-calendar-check"></i>
+            </div>
+            <div class="stats-label">Última Compra</div>
+            <div class="stats-value" style="font-size: 1.25rem;">
+                {{ $estadisticas['fecha_ultima_compra'] ? \Carbon\Carbon::parse($estadisticas['fecha_ultima_compra'])->format('d/m/Y') : 'N/A' }}
+            </div>
+            <small class="text-muted">{{ $estadisticas['dias_desde_ultima_compra'] ?? 'N/A' }} días atrás</small>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stats-card">
+            <div class="stats-icon bg-warning">
+                <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            <div class="stats-label">Deuda Total</div>
+            <div class="stats-value text-danger">S/ {{ number_format($credito['saldo_actual'], 2) }}</div>
+            <small class="text-muted">Saldo pendiente</small>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Información de Contacto y Crédito -->
+    <div class="col-lg-4">
+        <!-- Contacto -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-white border-0">
+                <h6 class="mb-0 fw-bold"><i class="fas fa-address-card text-primary me-2"></i>Información de Contacto</h6>
+            </div>
+            <div class="card-body">
+                <div class="contact-item">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <div class="flex-grow-1">
+                        <div class="label">Dirección</div>
+                        <div class="value">{{ $cliente->Direccion ?: 'No especificada' }}</div>
+                    </div>
+                </div>
+                <div class="contact-item">
+                    <i class="fas fa-phone"></i>
+                    <div class="flex-grow-1">
+                        <div class="label">Teléfono</div>
+                        <div class="value">{{ $cliente->Telefono1 ?: 'No especificado' }}</div>
+                    </div>
+                </div>
+                <div class="contact-item">
+                    <i class="fas fa-envelope"></i>
+                    <div class="flex-grow-1">
+                        <div class="label">Email</div>
+                        <div class="value">{{ $cliente->Email ?: 'No especificado' }}</div>
+                    </div>
+                </div>
+                <div class="contact-item">
+                    <i class="fas fa-user-tie"></i>
+                    <div class="flex-grow-1">
+                        <div class="label">Vendedor Asignado</div>
+                        <div class="value">{{ $cliente->Vendedor ?: 'No asignado' }}</div>
                     </div>
                 </div>
             </div>
+        </div>
 
-            <!-- Estadísticas rápidas -->
-            <div class="card border-0 shadow-sm mb-4">
-                <div class="card-body">
-                    <h6 class="card-title">
-                        <i class="fas fa-chart-bar text-primary me-2"></i>
-                        Estadísticas
-                    </h6>
-                    <div class="row text-center">
-                        <div class="col-6">
-                            <div class="border-end">
-                                <div class="h4 mb-1 text-primary">{{ $estadisticas['total_cuentas'] }}</div>
-                                <div class="small text-muted">Cuentas</div>
-                            </div>
+        <!-- Estado de Crédito -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-white border-0">
+                <h6 class="mb-0 fw-bold"><i class="fas fa-credit-card text-success me-2"></i>Estado de Crédito</h6>
+            </div>
+            <div class="card-body">
+                <div class="mb-4">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted">Límite de Crédito</span>
+                        <span class="fw-bold">S/ {{ number_format($credito['limite_credito'], 2) }}</span>
+                    </div>
+                    <div class="credit-progress">
+                        <div class="credit-progress-bar {{ $credito['porcentaje_utilizado'] > 80 ? 'bg-danger' : ($credito['porcentaje_utilizado'] > 60 ? 'bg-warning' : 'bg-success') }}" 
+                             style="width: {{ $credito['porcentaje_utilizado'] }}%;">
                         </div>
-                        <div class="col-6">
-                            <div class="h4 mb-1 text-{{ $cliente->estado == 1 ? 'success' : 'danger' }}">
-                                {{ $cliente->estado == 1 ? 'Activo' : 'Inactivo' }}
-                            </div>
-                            <div class="small text-muted">Estado</div>
+                    </div>
+                    <div class="text-center mt-2">
+                        <small class="text-muted">{{ number_format($credito['porcentaje_utilizado'], 1) }}% Utilizado</small>
+                    </div>
+                </div>
+
+                <div class="row text-center">
+                    <div class="col-6 mb-3">
+                        <div class="text-muted small">Disponible</div>
+                        <div class="h5 mb-0 text-success fw-bold">S/ {{ number_format($credito['credito_disponible'], 2) }}</div>
+                    </div>
+                    <div class="col-6 mb-3">
+                        <div class="text-muted small">Utilizado</div>
+                        <div class="h5 mb-0 text-danger fw-bold">S/ {{ number_format($credito['saldo_actual'], 2) }}</div>
+                    </div>
+                </div>
+
+                <div class="alert alert-{{ $credito['categoria_riesgo'] == 'ALTO' ? 'danger' : ($credito['categoria_riesgo'] == 'MEDIO' ? 'warning' : 'success') }} mb-0">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-{{ $credito['categoria_riesgo'] == 'ALTO' ? 'exclamation-circle' : ($credito['categoria_riesgo'] == 'MEDIO' ? 'exclamation-triangle' : 'check-circle') }} fa-2x me-3"></i>
+                        <div>
+                            <div class="fw-bold">Riesgo: {{ $credito['categoria_riesgo'] }}</div>
+                            <small>Días de crédito: {{ $credito['dias_credito'] }}</small>
                         </div>
                     </div>
                 </div>
             </div>
+        </div>
+    </div>
 
-            <!-- Información de registro -->
-            <div class="card border-0 shadow-sm">
-                <div class="card-body">
-                    <h6 class="card-title">
-                        <i class="fas fa-calendar-alt text-primary me-2"></i>
-                        Información de Registro
-                    </h6>
-                    <div class="mb-3">
-                        <label class="form-label text-muted small">Creado</label>
-                        <div class="fw-bold small">{{ $estadisticas['created_at_formatted'] }}</div>
+    <!-- Historial de Compras -->
+    <div class="col-lg-8">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white border-0">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0 fw-bold"><i class="fas fa-history text-info me-2"></i>Historial de Compras</h6>
+                    <button class="btn btn-sm btn-outline-primary">
+                        <i class="fas fa-file-export me-1"></i>Exportar
+                    </button>
+                </div>
+            </div>
+            <div class="card-body p-0">
+                <div style="max-height: 600px; overflow-y: auto;">
+                    @forelse($compras as $compra)
+                    <div class="purchase-item">
+                        <div>
+                            <div class="fw-bold text-primary">
+                                <i class="fas fa-file-invoice me-2"></i>{{ $compra->Numero }}
+                            </div>
+                            <small class="text-muted">{{ $compra->Producto }}</small>
+                        </div>
+                        <div class="text-end">
+                            <div class="fw-bold">S/ {{ number_format($compra->Total, 2) }}</div>
+                            <small class="text-muted">{{ \Carbon\Carbon::parse($compra->Fecha)->format('d/m/Y') }}</small>
+                        </div>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label text-muted small">Última Actualización</label>
-                        <div class="fw-bold small">{{ $estadisticas['updated_at_formatted'] }}</div>
+                    @empty
+                    <div class="text-center p-5">
+                        <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                        <p class="text-muted">No hay compras registradas</p>
                     </div>
-                    @if($cliente->usuario)
-                    <div class="mb-3">
-                        <label class="form-label text-muted small">Registrado por</label>
-                        <div class="fw-bold small">{{ $cliente->usuario->name ?? 'Usuario del Sistema' }}</div>
-                    </div>
-                    @endif
+                    @endforelse
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Modal de confirmación para desactivar cliente -->
+<!-- Modal de Confirmación -->
 <div class="modal fade" id="modalDesactivar" tabindex="-1">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Confirmar Desactivación</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title"><i class="fas fa-exclamation-triangle me-2"></i>Confirmar Desactivación</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <p>¿Está seguro de que desea desactivar este cliente?</p>
-                <div class="alert alert-info">
-                    <i class="fas fa-info-circle me-2"></i>
-                    El cliente será desactivado pero mantendrá sus registros históricos.
-                    Podrá reactivarlo más adelante si es necesario.
+                <div class="text-center mb-4">
+                    <i class="fas fa-user-slash fa-4x text-danger mb-3"></i>
+                    <h5>¿Está seguro de desactivar este cliente?</h5>
+                    <p class="text-muted">Esta acción impedirá realizar nuevas operaciones con <strong>{{ $cliente->Razon }}</strong></p>
                 </div>
+                @if($credito['saldo_actual'] > 0)
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <strong>Advertencia:</strong> El cliente tiene una deuda pendiente de 
+                    <strong>S/ {{ number_format($credito['saldo_actual'], 2) }}</strong>
+                </div>
+                @endif
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                <button type="button" class="btn btn-warning" id="btnConfirmarDesactivar">
-                    <i class="fas fa-pause me-1"></i> Desactivar
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-1"></i>Cancelar
                 </button>
+                <form action="{{ route('contador.clientes.update', $cliente->Codclie) }}" method="POST" style="display: inline;">
+                    @csrf
+                    @method('PUT')
+                    <input type="hidden" name="Activo" value="0">
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-ban me-1"></i>Sí, Desactivar
+                    </button>
+                </form>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Modal de confirmación para reactivar cliente -->
-<div class="modal fade" id="modalReactivar" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Confirmar Reactivación</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <p>¿Está seguro de que desea reactivar este cliente?</p>
-                <div class="alert alert-success">
-                    <i class="fas fa-check-circle me-2"></i>
-                    El cliente volverá a estar disponible para nuevas operaciones.
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                <button type="button" class="btn btn-success" id="btnConfirmarReactivar">
-                    <i class="fas fa-play me-1"></i> Reactivar
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
 @endsection
 
 @push('scripts')
 <script>
-let clienteIdActual = null;
-
-// Confirmar desactivación
-function confirmarDesactivacion(id) {
-    clienteIdActual = id;
+function confirmarDesactivacion() {
     const modal = new bootstrap.Modal(document.getElementById('modalDesactivar'));
     modal.show();
 }
 
-// Confirmar reactivación
-function reactivarCliente(id) {
-    clienteIdActual = id;
-    const modal = new bootstrap.Modal(document.getElementById('modalReactivar'));
-    modal.show();
-}
-
-// Manejar confirmación de desactivación
-document.getElementById('btnConfirmarDesactivar').addEventListener('click', function() {
-    if (!clienteIdActual) return;
-
-    const btn = this;
-    const textoOriginal = btn.innerHTML;
-    
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Desactivando...';
-    btn.disabled = true;
-
-    fetch(`/contabilidad/clientes/${clienteIdActual}`, {
-        method: 'DELETE',
-        headers: {
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-            'Content-Type': 'application/json',
-        }
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            // Cerrar modal
-            bootstrap.Modal.getInstance(document.getElementById('modalDesactivar')).hide();
-            
-            // Mostrar mensaje y recargar página
-            showAlert('success', data.message);
-            
+// Animación de las estadísticas al cargar
+document.addEventListener('DOMContentLoaded', function() {
+    const statsCards = document.querySelectorAll('.stats-card');
+    statsCards.forEach((card, index) => {
+        setTimeout(() => {
+            card.style.opacity = '0';
+            card.style.transform = 'translateY(20px)';
+            card.style.transition = 'all 0.5s ease';
             setTimeout(() => {
-                location.reload();
-            }, 1500);
-        } else {
-            showAlert('error', data.message || 'Error al desactivar el cliente');
-            btn.innerHTML = textoOriginal;
-            btn.disabled = false;
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        showAlert('error', 'Error de conexión. Intente nuevamente.');
-        btn.innerHTML = textoOriginal;
-        btn.disabled = false;
+                card.style.opacity = '1';
+                card.style.transform = 'translateY(0)';
+            }, 50);
+        }, index * 100);
     });
 });
-
-// Manejar confirmación de reactivación
-document.getElementById('btnConfirmarReactivar').addEventListener('click', function() {
-    if (!clienteIdActual) return;
-
-    const btn = this;
-    const textoOriginal = btn.innerHTML;
-    
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Reactivando...';
-    btn.disabled = true;
-
-    fetch(`/contabilidad/clientes/${clienteIdActual}/reactivar`, {
-        method: 'POST',
-        headers: {
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-            'Content-Type': 'application/json',
-        }
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            // Cerrar modal
-            bootstrap.Modal.getInstance(document.getElementById('modalReactivar')).hide();
-            
-            // Mostrar mensaje y recargar página
-            showAlert('success', data.message);
-            
-            setTimeout(() => {
-                location.reload();
-            }, 1500);
-        } else {
-            showAlert('error', data.message || 'Error al reactivar el cliente');
-            btn.innerHTML = textoOriginal;
-            btn.disabled = false;
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        showAlert('error', 'Error de conexión. Intente nuevamente.');
-        btn.innerHTML = textoOriginal;
-        btn.disabled = false;
-    });
-});
-
-// Función para mostrar alertas
-function showAlert(type, message) {
-    const alertDiv = document.createElement('div');
-    alertDiv.className = `alert alert-${type === 'success' ? 'success' : 'danger'} alert-dismissible fade show position-fixed`;
-    alertDiv.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
-    alertDiv.innerHTML = `
-        ${message}
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    `;
-    
-    document.body.appendChild(alertDiv);
-    
-    // Auto-eliminar después de 5 segundos
-    setTimeout(() => {
-        if (alertDiv.parentNode) {
-            alertDiv.remove();
-        }
-    }, 5000);
-}
 </script>
 @endpush

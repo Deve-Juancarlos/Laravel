@@ -21,6 +21,7 @@ use App\Http\Controllers\Contabilidad\BancosController;
 use App\Http\Controllers\Contabilidad\PlanCuentasController; 
 use App\Http\Controllers\Contabilidad\FlujoCajaController; 
 use App\Http\Controllers\Clientes\ClientesController; 
+use App\Http\Controllers\Contabilidad\CajaController;
 //RUTAS PÚBLICAS
 Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
 Route::post('/login', [LoginController::class, 'login'])->name('login.post');
@@ -136,18 +137,6 @@ Route::middleware(['auth', 'check.contador'])->group(function () {
         Route::get('facturas/export', [App\Http\Controllers\Ventas\FacturacionController::class, 'exportar'])->name('facturas.export');
 
         
-        // Productos e Inventario
-        Route::get('productos', [App\Http\Controllers\Farmacia\InventarioController::class, 'index'])->name('productos.index');
-        Route::get('productos/inventario', [App\Http\Controllers\Farmacia\InventarioController::class, 'index'])->name('productos.inventario');
-        Route::get('productos/vencimientos', [App\Http\Controllers\Farmacia\InventarioController::class, 'index'])->name('productos.vencimientos');
-        
-        // Reportes adicionales
-        Route::get('reportes/inventario', [ReportesSunatController::class, 'index'])->name('reportes.inventario');
-        Route::get('reportes/medicamentos-controlados', [ReportesSunatController::class, 'index'])->name('reportes.medicamentos-controlados');
-        Route::get('reportes/exportar', [ReportesSunatController::class, 'index'])->name('reportes.exportar');
-        
-        // Trazabilidad
-        Route::get('trazabilidad', [App\Http\Controllers\Farmacia\TrazabilidadController::class, 'index'])->name('trazabilidad.index');
         
         // Configuración
         Route::get('configuracion/usuarios', [App\Http\Controllers\Admin\UsuarioController::class, 'index'])->name('configuracion.usuarios');
@@ -157,23 +146,19 @@ Route::middleware(['auth', 'check.contador'])->group(function () {
         // Perfil
         Route::get('perfil', [ContadorDashboardController::class, 'index'])->name('perfil');
 
-            // Ruta para crear cliente
-        Route::get('clientes/crear', [App\Http\Controllers\Clientes\ClientesController::class, 'crearVista'])
-            ->name('clientes.crear');
-
-        // Ruta para buscar cliente (búsqueda avanzada)
-        Route::get('clientes/buscar', [App\Http\Controllers\Clientes\ClientesController::class, 'vistaBusqueda'])
-            ->name('clientes.buscar');
-
-        // Ruta para editar cliente
-        Route::get('clientes/{id}/editar', [App\Http\Controllers\Clientes\ClientesController::class, 'editarVista'])
-            ->name('clientes.editar');
-
-        // Ruta para ver detalle de cliente
-        Route::get('clientes/{id}', [App\Http\Controllers\Clientes\ClientesController::class, 'show'])
-            ->name('clientes.show');
-
-        Route::get('registro/ventas', [App\Http\Controllers\Contabilidad\RegistroVentasController::class, 'index'])->name('registro.ventas');
+        Route::prefix('clientes')->name('clientes.')->group(function () {
+            Route::get('/', [ClientesController::class, 'index'])->name('index'); // <-- LISTA DE CLIENTES
+            Route::get('/crear', [ClientesController::class, 'crearVista'])->name('crear'); // <-- VISTA FORMULARIO
+            Route::post('/store', [ClientesController::class, 'store'])->name('store'); // <-- GUARDAR CLIENTE
+            Route::get('/buscar', [ClientesController::class, 'vistaBusqueda'])->name('buscar');
+            Route::get('/{id}', [ClientesController::class, 'show'])->name('show');
+            Route::get('/{id}/editar', [ClientesController::class, 'editarVista'])->name('editar');
+            Route::put('/{id}', [ClientesController::class, 'update'])->name('update'); // <-- (Faltaba esta también)
+            
+            // API para buscar en RENIEC/SUNAT
+            Route::get('/api/consulta-documento/{documento}', [ClientesController::class, 'apiConsultaDocumento'])
+                 ->name('api.consulta');
+        });
         
         Route::prefix('libro-diario')->name('libro-diario.')->group(function () {
             
@@ -196,7 +181,15 @@ Route::middleware(['auth', 'check.contador'])->group(function () {
             Route::get('api/busqueda-avanzada', [LibroDiarioController::class, 'getBusquedaAvanzada'])->name('api.busqueda-avanzada');
         });
         
-        Route::get('caja', [App\Http\Controllers\Contabilidad\CajaController::class, 'index'])->name('caja');
+        Route::prefix('caja')->name('caja.')->group(function () {
+            Route::get('/', [CajaController::class, 'index'])->name('index');
+            Route::get('/create', [CajaController::class, 'create'])->name('create');
+            Route::post('/', [CajaController::class, 'store'])->name('store');
+            Route::get('/{id}', [CajaController::class, 'show'])->name('show');
+            Route::get('/{id}/edit', [CajaController::class, 'edit'])->name('edit');
+            Route::put('/{id}', [CajaController::class, 'update'])->name('update');
+            Route::delete('/{id}', [CajaController::class, 'destroy'])->name('destroy');
+        });
 
 
         Route::prefix('libro-mayor')->name('libro-mayor.')->group(function () {
@@ -252,31 +245,15 @@ Route::middleware(['auth', 'check.contador'])->group(function () {
         });
 
         Route::prefix('bancos')->name('bancos.')->group(function () {
-            // 1. Vista principal: lista de cuentas / libro de bancos
             Route::get('/', [BancosController::class, 'index'])->name('index');
-
-            // 2. Detalle de cuenta específica
             Route::get('/detalle/{cuenta}', [BancosController::class, 'detalle'])->name('detalle');
-
-            // 3. Reporte diario (movimientos por día)
-            Route::get('/diario', [BancosController::class, 'diario'])->name('diario');
-
-            // 4. Flujo diario (movimientos del día actual)
             Route::get('/flujo-diario', [BancosController::class, 'flujoDiario'])->name('flujo-diario');
-
-            // 5. Reporte mensual
+            Route::get('/diario', [BancosController::class, 'diario'])->name('diario');
             Route::get('/mensual', [BancosController::class, 'resumenMensual'])->name('mensual');
-
-            // 6. Conciliación bancaria
             Route::get('/conciliacion', [BancosController::class, 'conciliacion'])->name('conciliacion');
-
-            // 7. Transferencias (si aplica)
+            Route::post('/conciliacion', [BancosController::class, 'storeConciliacion'])->name('conciliacion.store');
             Route::get('/transferencias', [BancosController::class, 'transferencias'])->name('transferencias');
-
-            // 8. 👉 REPORTES GENERALES (la que faltaba) 👈
             Route::get('/reporte', [BancosController::class, 'generarReporte'])->name('reporte');
-
-            
         });
 
         Route::prefix('flujo/cobranzas')->group(function () {
@@ -311,13 +288,77 @@ Route::middleware(['auth', 'check.contador'])->group(function () {
 
         });
 
+        Route::get('cuentas-por-cobrar', [App\Http\Controllers\Contabilidad\CuentasPorCobrarController::class, 'index'])
+             ->name('cxc.index');
+
         Route::get('/api/clientes/search', [ClientesController::class, 'search'])
              ->name('api.clientes.search');
+
+
+        Route::get('/productos', [App\Http\Controllers\Contabilidad\InventarioController::class, 'index'])
+         ->name('inventario.index');
+         
+        // 2. Link "Stock y Lotes"
+        Route::get('/stock-lotes', [App\Http\Controllers\Contabilidad\InventarioController::class, 'stockLotes'])
+         ->name('inventario.stock');
+         
+        // 3. Link "Laboratorios"
+        Route::get('/laboratorios', [App\Http\Controllers\Contabilidad\InventarioController::class, 'laboratorios'])
+         ->name('inventario.laboratorios');
+
+        // --- RUTAS ADICIONALES DEL MÓDULO ---
+         
+        // Reporte de Vencimientos (¡Muy importante para compras!)
+        Route::get('/inventario/vencimientos', [App\Http\Controllers\Contabilidad\InventarioController::class, 'vencimientos'])
+         ->name('inventario.vencimientos');
+         
+        // Detalle de un producto (para ver lotes)
+        Route::get('/inventario/producto/{codPro}', [App\Http\Controllers\Contabilidad\InventarioController::class, 'show'])
+         ->name('inventario.show');
+
+
+        Route::prefix('ventas')->name('facturas.')->group(function () {
+            
+            // --- VISTAS PRINCIPALES ---
+            Route::get('/', [App\Http\Controllers\Ventas\FacturacionController::class, 'index'])
+                 ->name('index'); // contador.facturas.index
+            
+            // --- FLUJO DE NUEVA VENTA (CARRITO) ---
+            Route::get('/crear', [App\Http\Controllers\Ventas\FacturacionController::class, 'create'])
+                 ->name('create'); // contador.facturas.create
+            
+            // --- VISTA DE IMPRESIÓN ---
+            Route::get('/mostrar/{numero}/{tipo}', [App\Http\Controllers\Ventas\FacturacionController::class, 'show'])
+                 ->name('show'); // contador.facturas.show
+                 
+            // --- GUARDADO FINAL ---
+            Route::post('/guardar', [App\Http\Controllers\Ventas\FacturacionController::class, 'store'])
+                 ->name('store'); // contador.facturas.store
+            
+            // --- APIs (AJAX) para el Carrito ---
+            Route::post('/carrito/agregar', [App\Http\Controllers\Ventas\FacturacionController::class, 'carritoAgregar'])
+                 ->name('carrito.agregar');
+            
+            Route::delete('/carrito/eliminar/{itemId}', [App\Http\Controllers\Ventas\FacturacionController::class, 'carritoEliminar'])
+                 ->name('carrito.eliminar');
+                 
+            Route::post('/carrito/pago', [App\Http\Controllers\Ventas\FacturacionController::class, 'carritoActualizarPago'])
+                 ->name('carrito.pago');
+            
+            // --- APIs (AJAX) para Búsquedas ---
+            Route::get('/api/buscar-clientes', [App\Http\Controllers\Ventas\FacturacionController::class, 'buscarClientes'])
+                 ->name('api.buscarClientes');
+                 
+            Route::get('/api/buscar-productos', [App\Http\Controllers\Ventas\FacturacionController::class, 'buscarProductos'])
+                 ->name('api.buscarProductos');
+                 
+            Route::get('/api/buscar-lotes/{codPro}', [App\Http\Controllers\Ventas\FacturacionController::class, 'buscarLotes'])
+                 ->name('api.buscarLotes');
+        });
         
 
 
-        Route::get('/api/clientes/search', [ClientesController::class, 'search'])
-     ->name('api.clientes.search');
+        
         Route::prefix('estado-resultados')->name('estado-resultados.')->group(function () {
                 Route::get('/', [EstadoResultadosController::class, 'index'])->name('index');
                 Route::get('/periodos', [EstadoResultadosController::class, 'porPeriodos'])->name('periodos');

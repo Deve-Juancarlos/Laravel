@@ -4,8 +4,9 @@ namespace App\Services\Contabilidad; // 👈 Namespace ajustado a la carpeta Con
 
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Schema; // Importado para verificar la tabla
 use Carbon\Carbon;
-
+use Log;
 class BancoService
 {
     /**
@@ -89,7 +90,7 @@ class BancoService
             ->paginate(100);
 
         // Resumen mensual
-        $resumenMensual = DB::table('v_resumen_mensual_bancario')
+        $resumenMensual = DB::table('v_resumen_mensual_bancos') // Tu vista SQL v_resumen_mensual_bancos
             ->where('Cuenta', $cuenta)
             ->whereRaw("DATEFROMPARTS(anio, mes, 1) BETWEEN ? AND ?", [$fechaInicio, $fechaFin])
             ->orderBy('anio', 'desc')
@@ -122,15 +123,16 @@ class BancoService
             ->orderBy('Numero')
             ->get();
 
-        $resumenPorBanco = $movimientosDiarios->groupBy('Banco')->map(function ($grupo) {
-            return [
-                'Banco' => $grupo->first()->Banco,
-                'Moneda' => $grupo->first()->Moneda,
-                'total_ingresos' => $grupo->sum('ingreso'),
-                'total_egresos' => $grupo->sum('egreso'),
-                'total_movimientos' => $grupo->count()
-            ];
-        })->values();
+        // CORRECCIÓN (Error 1): La query de tu log es mejor. La usamos.
+        $resumenPorBanco = DB::table('v_bancos_con_descripciones')
+            ->whereDate('Fecha', $fecha)
+            ->select('Banco', 'Moneda',
+                DB::raw('SUM(ingreso) as total_ingresos'),
+                DB::raw('SUM(egreso) as total_egresos'),
+                DB::raw('COUNT(*) as total_movimientos')
+            )
+            ->groupBy('Banco', 'Moneda')
+            ->get();
 
         $totalesDiarios = [
             'fecha' => $fecha,
@@ -177,11 +179,14 @@ class BancoService
             ->whereRaw("Documento NOT LIKE '%CONCILIADO%'")
             ->get();
 
-        // Última conciliación
-        $ultimaConciliacion = DB::table('BancosConciliacion')
-            ->where('cuenta', $cuenta)
-            ->orderBy('fecha_conciliacion', 'desc')
-            ->first();
+        // CORRECCIÓN (Error 3): Verificar si la tabla existe antes de consultarla
+        $ultimaConciliacion = null;
+        if (Schema::hasTable('BancosConciliacion')) {
+            $ultimaConciliacion = DB::table('BancosConciliacion')
+                ->where('cuenta', $cuenta)
+                ->orderBy('fecha_conciliacion', 'desc')
+                ->first();
+        }
 
         $diferencias = [
             'saldo_libros' => $saldoLibros,
@@ -194,10 +199,18 @@ class BancoService
     }
 
     /**
-     * Registra una nueva conciliación bancaria llamando al Stored Procedure.
+     * Registra una nueva conciliación bancaria.
      */
     public function saveReconciliation($validatedData)
     {
+        // CORRECCIÓN (Error 3): Verificar si la tabla existe
+        if (!Schema::hasTable('BancosConciliacion')) {
+            // Si la tabla no existe, intentamos usar el SP (que la creará si se ejecutó el SQL)
+            // Si el SP tampoco existe, esto fallará y el usuario sabrá que falta el SP.
+            Log::warning('La tabla BancosConciliacion no existe, intentando llamar a sp_registrar_conciliacion.');
+        }
+
+        // Llamamos al Stored Procedure que creamos en el script SQL
          DB::select('EXEC sp_registrar_conciliacion ?, ?, ?, ?, ?', [
             $validatedData['cuenta'],
             $validatedData['fecha_conciliacion'],
@@ -235,7 +248,7 @@ class BancoService
         $fechaInicio = Carbon::create($anio, $mes, 1)->startOfMonth()->format('Y-m-d');
         $fechaFin = Carbon::create($anio, $mes, 1)->endOfMonth()->format('Y-m-d');
         
-        $resumenMensual = DB::table('v_resumen_mensual_bancos')
+        $resumenMensual = DB::table('v_resumen_mensual_bancos') // Tu vista v_resumen_mensual_bancos
             ->where('anio', $anio)
             ->where('mes', $mes)
             ->get();
@@ -267,6 +280,7 @@ class BancoService
      */
     public function getDailyCashFlow($fecha, $bancoId)
     {
+        // Usamos el Stored Procedure de la BD
         $flujoCaja = DB::select('EXEC sp_flujo_caja_bancario ?', [$fecha]);
 
         $query = DB::table('v_bancos_con_descripciones')
@@ -275,12 +289,10 @@ class BancoService
             ->orderBy('Numero');
 
         if ($bancoId) {
-            // Asumo que tu vista tiene la columna 'BancoID'
-            $query->where('BancoID', $bancoId); 
+            $query->where('Cuenta', $bancoId); // Filtramos por 'Cuenta'
         }
 
-        $movimientosDia = $query->get();
-        $movimientos = $movimientosDia;
+        $movimientos = $query->get(); // Renombramos a 'movimientos'
 
         // Totales generales (usa valores del SP)
         $totalesGenerales = [
@@ -290,7 +302,7 @@ class BancoService
             'saldo_final_total' => collect($flujoCaja)->sum('saldo_final'),
         ];
         
-        return compact('flujoCaja', 'movimientosDia', 'movimientos', 'totalesGenerales');
+        return compact('flujoCaja', 'movimientos', 'totalesGenerales');
     }
 
     /**
@@ -326,7 +338,6 @@ class BancoService
                         $bancoInfo = $listaBancos->firstWhere('Cuenta', $cuenta);
                         $totalIngresos = $grupo->sum('ingresos_mes');
                         $totalEgresos = $grupo->sum('egresos_mes');
-                        // Asumo que v_resumen_mensual_bancos usa acumulados, no saldo actual
                         return [
                             'nombre' => $bancoInfo ? $bancoInfo->Banco : "Cuenta: $cuenta",
                             'ingresos' => $totalIngresos,
@@ -369,6 +380,8 @@ class BancoService
                 break;
         }
 
+        // Devolvemos $datosReporte como un array
         return $datosReporte;
     }
 }
+

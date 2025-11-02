@@ -1,0 +1,104 @@
+/*
+ * Estilos para el Módulo de Bancos
+ */
+
+/* === Vista Index === */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.25rem;
+}
+.stat-card {
+    background-color: #fff;
+    border-radius: 12px;
+    padding: 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    border-left: 5px solid;
+}
+.stat-card.success { border-color: #198754; }
+.stat-card.danger { border-color: #dc3545; }
+.stat-card.info { border-color: #0dcaf0; }
+
+.stat-card i {
+    font-size: 2rem;
+    color: #6c757d;
+}
+.stat-card.success i { color: #198754; }
+.stat-card.danger i { color: #dc3545; }
+.stat-card.info i { color: #0dcaf0; }
+
+.stat-card .stat-info {
+    flex: 1;
+}
+.stat-card .stat-label {
+    font-size: 0.875rem;
+    color: #6c757d;
+    margin-bottom: 0.25rem;
+    text-transform: uppercase;
+    font-weight: 600;
+}
+.stat-card .stat-value {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: #212529;
+}
+
+.saldo-card a {
+    display: block;
+    padding: 0.75rem 1rem;
+    transition: background-color 0.2s ease-in-out;
+}
+.saldo-card a:hover {
+    background-color: #f8f9fa;
+}
+
+.pagination-wrapper {
+    background-color: #f8f9fa;
+    padding: 1rem 1.25rem;
+    border-top: 1px solid #dee2e6;
+}
+
+/* === Vista Detalle === */
+.bancos-detalle .stat-card {
+    grid-template-columns: repeat(4, 1fr);
+}
+
+/* === Vista Conciliación === */
+.conciliacion-section {
+    height: 100%;
+}
+.conciliacion-section .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.conciliacion-section .card-header h5 {
+    font-size: 1.1rem;
+    margin-bottom: 0;
+}
+.conciliacion-section .card-header .fs-5 {
+    font-size: 1.1rem !important;
+}
+
+/* Colores soft para badges y fondos */
+.bg-success-soft {
+    background-color: rgba(25, 135, 84, 0.1);
+    color: #198754;
+}
+.bg-danger-soft {
+    background-color: rgba(220, 53, 69, 0.1);
+    color: #dc3545;
+}
+.bg-primary-soft {
+    background-color: rgba(13, 110, 253, 0.1);
+    color: #0d6efd;
+}
+
+/* Responsive */
+@media (max-width: 992px) {
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+}

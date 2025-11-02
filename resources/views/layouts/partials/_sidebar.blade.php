@@ -43,41 +43,41 @@
     <span>Flujos diarios</span>
 </a>
 
-<a class="nav-link {{ request()->is('contabilidad/reportes*') ? 'active' : '' }}" href="#">
+<a class="nav-link {{ request()->is('contabilidad/reportes*') ? 'active' : '' }}" href="{{ route('contador.reportes.ventas') }}">
     <i class="fas fa-file-invoice-dollar"></i>
     <span>Reportes</span>
 </a>
 
 <div class="nav-section">Tesorería</div>
-<a class="nav-link {{ request()->is('tesoreria/bancos*') ? 'active' : '' }}" href="#">
+<a class="nav-link {{ request()->is('tesoreria/bancos*') ? 'active' : '' }}" href="{{ route('contador.bancos.index') }}">
     <i class="fas fa-university"></i>
     <span>Bancos</span>
 </a>
-<a class="nav-link {{ request()->is('tesoreria/caja*') ? 'active' : '' }}" href="#">
+<a class="nav-link {{ request()->is('tesoreria/caja*') ? 'active' : '' }}" href="{{ route('contador.caja.index') }}">
     <i class="fas fa-cash-register"></i>
     <span>Caja Chica</span>
 </a>
-<a class="nav-link {{ request()->is('tesoreria/cobranzas*') ? 'active' : '' }}" href="#">
+<a class="nav-link {{ request()->is('tesoreria/cobranzas*') ? 'active' : '' }}" href="{{ route('contador.cxc.index') }}">
     <i class="fas fa-hand-holding-usd"></i>
     <span>Cuentas por Cobrar</span>
 </a>
 
 <div class="nav-section">Inventario</div>
-<a class="nav-link {{ request()->is('inventario/productos*') ? 'active' : '' }}" href="#">
+<a class="nav-link {{ request()->is('inventario/productos*') ? 'active' : '' }}" href="{{ route('contador.inventario.index') }}">
     <i class="fas fa-boxes"></i>
     <span>Productos</span>
 </a>
-<a class="nav-link {{ request()->is('inventario/stock*') ? 'active' : '' }}" href="#">
+<a class="nav-link {{ request()->is('inventario/stock*') ? 'active' : '' }}" href="{{ route('contador.inventario.stock') }}">
     <i class="fas fa-warehouse"></i>
     <span>Stock y Lotes</span>
 </a>
-<a class="nav-link {{ request()->is('inventario/laboratorios*') ? 'active' : '' }}" href="#">
+<a class="nav-link {{ request()->is('inventario/laboratorios*') ? 'active' : '' }}" href="{{ route('contador.inventario.laboratorios') }}">
     <i class="fas fa-flask"></i>
     <span>Laboratorios</span>
 </a>
 
 <div class="nav-section">Ventas</div>
-<a class="nav-link {{ request()->is('ventas/nueva*') ? 'active' : '' }}" href="#">
+<a class="nav-link {{ request()->is('ventas/nueva*') ? 'active' : '' }}" href="{{ route('contador.facturas.index') }}">
     <i class="fas fa-cart-plus"></i>
     <span>Nueva Venta</span>
 </a>
@@ -85,7 +85,7 @@
     <i class="fas fa-receipt"></i>
     <span>Listado de Ventas</span>
 </a>
-<a class="nav-link {{ request()->is('ventas/clientes*') ? 'active' : '' }}" href="#">
+<a class="nav-link {{ request()->is('ventas/clientes*') ? 'active' : '' }}" href="{{ route('contador.clientes.index') }}">
     <i class="fas fa-users"></i>
     <span>Clientes</span>
 </a>

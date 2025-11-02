@@ -572,7 +572,7 @@ class RegistroVentasController extends Controller
                 ->groupBy('Moneda')
                 ->get();
 
-            return view('contabilidad.registros.bancos', compact(
+            return view('contabilidad.bancos.index', compact(
                 'analisisIgv', 'igvPorTipoCliente', 'comprasIgv', 'igvPorPagar', 
                 'resumenPorMoneda', 'fechaInicio', 'fechaFin'
             ));

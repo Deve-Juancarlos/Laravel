@@ -8,11 +8,11 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
 use App\Services\ReniecService;
-use Illuminate\Support\Facades\Log; // ¡Importante!
+use Illuminate\Support\Facades\Log;
 
 class ClientesController extends Controller
 {
-    protected $connection = 'sqlsrv'; // Definimos la conexión
+    protected $connection = 'sqlsrv';
     protected $reniecService;
     
     public function __construct(ReniecService $reniecService)
@@ -21,11 +21,6 @@ class ClientesController extends Controller
         $this->reniecService = $reniecService;
     }
 
-    /**
-     * API: BUSQUEDA UNIFICADA (Local + RENIEC)
-     * Esta es la función que usa el Flujo de Cobranza.
-     * ¡ESTÁ CORREGIDA Y COMPLETA!
-     */
     public function search(Request $request)
     {
         // El JS del Paso 1 envía 'query'
@@ -60,7 +55,6 @@ class ClientesController extends Controller
             if ($esDniValido) {
                 $apiData = $this->reniecService->consultarDNI($query);
                 if ($apiData) {
-                    // El ReniecService (corregido) ya devuelve 'razon_social' y 'numero_documento'
                     return response()->json([
                         'clientes' => [$apiData], 
                         'fuente' => 'reniec'
@@ -71,7 +65,6 @@ class ClientesController extends Controller
             if ($esRucValido) {
                 $apiData = $this->reniecService->consultarRUC($query);
                 if ($apiData) {
-                    // El ReniecService (corregido) ya devuelve 'razon_social' y 'numero_documento'
                     return response()->json([
                         'clientes' => [$apiData],
                         'fuente' => 'reniec'
@@ -88,6 +81,7 @@ class ClientesController extends Controller
 
         } catch (\Exception $e) {
             Log::error('Error fatal en ClientesController@search: ' . $e->getMessage());
+            Log::error($e->getTraceAsString());
             return response()->json(['clientes' => [], 'fuente' => 'ninguno', 'mensaje' => 'Error del servidor: ' . $e->getMessage()], 500);
         }
     }
@@ -97,7 +91,6 @@ class ClientesController extends Controller
      */
     private function getDeudaCliente($cliente_id)
     {
-        // La deuda real es la suma de saldos en CtaCliente
         $saldo_actual = DB::connection($this->connection)->table('CtaCliente')
             ->where('CodClie', $cliente_id)
             ->sum('Saldo');
@@ -114,17 +107,59 @@ class ClientesController extends Controller
     {
         $filtros = $this->obtenerFiltros($request);
         $clientes = $this->consultarClientes($filtros);
-        $estadisticas = $this->calcularEstadisticas();
+        $estadisticas = $this->calcularEstadisticas(); // <-- Esta variable SÍ existe
         $segmentacion = $this->analizarSegmentacionClientes();
 
-        return view('clientes.index', compact('clientes', 'estadisticas', 'segmentacion', 'filtros'));
+        
+        $resumenGeneral = [
+             'total_clientes' => $estadisticas['total_clientes'],
+             'clientes_activos' => $estadisticas['clientes_activos'],
+             'total_cartera' => $this->obtenerTotalCartera(),
+             'mayor_deudor' => $this->obtenerMayorDeudor()
+        ];
+        
+        // Esta variable NO existía y causaba el error
+        $saldosPorCliente = [];
+        $clienteIds = $clientes->pluck('Codclie')->filter()->unique()->values()->all();
+        if (!empty($clienteIds)) {
+             $saldos = DB::connection($this->connection)->table('CtaCliente')
+                 ->whereIn('CodClie', $clienteIds)
+                 ->select('CodClie', DB::raw('SUM(Saldo) as saldo_pendiente'))
+                 ->groupBy('CodClie')
+                 ->get()
+                 ->keyBy('CodClie');
+
+             foreach ($clientes as $clienteItem) {
+                 $saldosPorCliente[$clienteItem->Codclie] = $saldos->get($clienteItem->Codclie) ?: (object)['saldo_pendiente' => 0];
+             }
+        }
+
+        return view('clientes.index', compact(
+            'clientes', 
+            'estadisticas', // Pasamos esta también
+            'segmentacion', 
+            'filtros',
+            'resumenGeneral', 
+            'saldosPorCliente' 
+        ));
+    }
+
+    private function obtenerMayorDeudor()
+    {
+        return DB::connection($this->connection)->table('CtaCliente as cc')
+            ->leftJoin('Clientes as c', 'cc.CodClie', '=', 'c.Codclie')
+            ->where('cc.Saldo', '>', 0)
+            ->select('c.Razon', DB::raw('SUM(cc.Saldo) as SaldoTotal'))
+            ->groupBy('c.Razon')
+            ->orderBy('SaldoTotal', 'desc')
+            ->first();
     }
 
     public function show($id)
     {
         $cliente = DB::connection($this->connection)->table('Clientes')->where('Codclie', $id)->first();
         if (!$cliente) {
-            return response()->json(['error' => 'Cliente no encontrado'], 404);
+             return redirect()->route('contador.clientes.index')->with('error', 'Cliente no encontrado');
         }
 
         if (request()->expectsJson()) {
@@ -165,41 +200,52 @@ class ClientesController extends Controller
         try {
             DB::connection($this->connection)->beginTransaction();
 
-            $cliente_id = DB::connection($this->connection)->table('Clientes')->insertGetId([
-                'Razon' => $request->Razon,
-                'Documento' => $request->Documento,
-                'Direccion' => $request->Direccion,
-                'Telefono1' => $request->Telefono1,
-                'Email' => $request->Email,
-                'TipoClie' => $request->TipoClie ?? 1,
-                'Vendedor' => $request->Vendedor,
-                'Limite' => $request->Limite ?? 0,
-                'Activo' => 1,
-                'Fecha' => now(),
-                'Maymin' => 0,
-                'Zona' => '001'
-            ]);
+            $cliente_id = DB::connection($this->connection)
+                ->table('Clientes')
+                ->insertGetId([
+                    'Razon' => strtoupper($request->Razon),
+                    'Documento' => $request->Documento,
+                    'Direccion' => strtoupper($request->Direccion),
+                    'Telefono1' => $request->Telefono1,
+                    'Email' => $request->Email,
+                    'TipoClie' => $request->TipoClie ?? 1,
+                    'Vendedor' => $request->Vendedor,
+                    'Limite' => $request->Limite ?? 0,
+                    'Activo' => 1,
+                    'Fecha' => now(),
+                    'Maymin' => 0,
+                    'Zona' => '001'
+                ]);
 
             DB::connection($this->connection)->commit();
 
-            return response()->json([
-                'success' => true,
-                'mensaje' => 'Cliente creado exitosamente',
-                'cliente_id' => $cliente_id
-            ], 201);
+            return redirect()
+                ->route('contador.clientes.index')
+                ->with('success', 'Cliente ' . $request->Razon . ' creado exitosamente.');
 
         } catch (\Exception $e) {
             DB::connection($this->connection)->rollback();
-            Log::error("Error al crear cliente: " . $e->getMessage());
-            return response()->json(['error' => 'Error al crear cliente: ' . $e->getMessage()], 500);
+            \Log::error("Error al crear cliente: " . $e->getMessage());
+            
+            return redirect()
+                ->back()
+                ->with('error', 'Error al crear cliente: ' . $e->getMessage())
+                ->withInput();
         }
     }
 
     public function update(Request $request, $id)
     {
-        $cliente = DB::connection($this->connection)->table('Clientes')->where('Codclie', $id)->first();
+        $cliente = DB::connection($this->connection)
+            ->table('Clientes')
+            ->where('Codclie', $id)
+            ->first();
+        
         if (!$cliente) {
-            return response()->json(['error' => 'Cliente no encontrado'], 404);
+            return response()->json([
+                'success' => false,
+                'mensaje' => 'Cliente no encontrado'
+            ], 404);
         }
 
         $request->validate([
@@ -207,37 +253,61 @@ class ClientesController extends Controller
             'Documento' => 'required|string|max:12|unique:sqlsrv.Clientes,Documento,' . $id . ',Codclie',
             'Direccion' => 'nullable|string|max:60',
             'Telefono1' => 'nullable|string|max:10',
-            'Email' => 'nullable|email|max:100|unique:sqlsrv.Clientes,Email,' . $id . ',Codclie',
+            'Celular' => 'nullable|string|max:10',
+            'Email' => 'nullable|email|max:100',
             'TipoClie' => 'nullable|integer',
-            'Vendedor' => 'nullable|integer',
+            'Vendedor' => 'nullable|integer', // ✅ Se guardará en Clientes.Vendedor
             'Limite' => 'nullable|numeric|min:0'
         ]);
 
         try {
             DB::connection($this->connection)->beginTransaction();
 
-            DB::connection($this->connection)->table('Clientes')->where('Codclie', $id)->update([
-                'Razon' => $request->Razon,
-                'Documento' => $request->Documento,
-                'Direccion' => $request->Direccion,
-                'Telefono1' => $request->Telefono1,
-                'Email' => $request->Email,
-                'TipoClie' => $request->TipoClie ?? 1,
-                'Vendedor' => $request->Vendedor,
-                'Limite' => $request->Limite ?? 0
-            ]);
+            // ✅ Actualizar cliente
+            DB::connection($this->connection)
+                ->table('Clientes')
+                ->where('Codclie', $id)
+                ->update([
+                    'Razon' => strtoupper($request->Razon),
+                    'Documento' => $request->Documento,
+                    'Direccion' => strtoupper($request->Direccion),
+                    'Telefono1' => $request->Telefono1,
+                    'Celular' => $request->Celular,
+                    'Email' => $request->Email,
+                    'TipoClie' => $request->TipoClie ?? 1,
+                    'Vendedor' => $request->Vendedor, // Campo correcto en Clientes
+                    'Limite' => $request->Limite ?? 0,
+                ]);
 
             DB::connection($this->connection)->commit();
-
-            return response()->json([
-                'success' => true,
-                'mensaje' => 'Cliente actualizado exitosamente'
-            ]);
+            
+            // Respuesta exitosa
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'mensaje' => 'Cliente actualizado exitosamente'
+                ]);
+            }
+            
+            return redirect()
+                ->route('contador.clientes.show', $id)
+                ->with('success', 'Cliente actualizado exitosamente.');
 
         } catch (\Exception $e) {
             DB::connection($this->connection)->rollback();
-            Log::error("Error al actualizar cliente: " . $e->getMessage());
-            return response()->json(['error' => 'Error al actualizar cliente'], 500);
+            \Log::error("Error al actualizar cliente: " . $e->getMessage());
+            
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'mensaje' => 'Error al actualizar: ' . $e->getMessage()
+                ], 500);
+            }
+            
+            return redirect()
+                ->back()
+                ->with('error', 'Error al actualizar cliente: ' . $e->getMessage())
+                ->withInput();
         }
     }
 
@@ -520,6 +590,7 @@ class ClientesController extends Controller
             'Clientes.Email', 'Clientes.Limite', 'Clientes.Activo'
         ];
 
+        // Usamos la conexión sqlsrv
         $query = DB::connection($this->connection)->table('Clientes')
             ->leftJoin('Doccab', 'Clientes.Codclie', '=', 'Doccab.CodClie')
             ->where('Clientes.Activo', 1)
@@ -529,18 +600,15 @@ class ClientesController extends Controller
         if (!empty($filtros['tipo_clie'])) {
             $query->where('Clientes.TipoClie', $filtros['tipo_clie']);
         }
-
         if (!empty($filtros['busqueda'])) {
             $query->where(function($q) use ($filtros) {
                 $q->where('Clientes.Razon', 'like', '%' . $filtros['busqueda'] . '%')
                 ->orWhere('Clientes.Documento', 'like', '%' . $filtros['busqueda'] . '%');
             });
         }
-
         if (!empty($filtros['ventas_min'])) {
             $query->having('total_ventas', '>=', $filtros['ventas_min']);
         }
-
         if (!empty($filtros['ventas_max'])) {
             $query->having('total_ventas', '<=', $filtros['ventas_max']);
         }
@@ -627,6 +695,13 @@ class ClientesController extends Controller
         ]);
     }
 
+    private function obtenerTotalCartera()
+    {
+        return DB::connection($this->connection)->table('CtaCliente')
+            ->where('Saldo', '>', 0)
+            ->sum('Saldo') ?? 0;
+    }
+
     public function sugerencias(Request $request)
     {
         $term = $request->term;
@@ -646,7 +721,15 @@ class ClientesController extends Controller
     
     public function crearVista()
     {
-        return view('clientes.crear');
+        // ✅ CORRECCIÓN: Misma estructura
+        $vendedores = DB::connection($this->connection)
+            ->table('Empleados')
+            ->select('Codemp', 'Nombre', 'Tipo')
+            ->where('Tipo', 1)
+            ->orderBy('Nombre', 'asc')
+            ->get();
+                        
+        return view('clientes.crear', compact('vendedores'));
     }
 
     public function vistaBusqueda()
@@ -656,11 +739,72 @@ class ClientesController extends Controller
 
     public function editarVista($id)
     {
-        $cliente = DB::connection($this->connection)->table('Clientes')->where('Codclie', $id)->first();
+        // Obtener el cliente
+        $cliente = DB::connection($this->connection)
+            ->table('Clientes')
+            ->where('Codclie', $id)
+            ->first();
+        
         if (!$cliente) {
-            abort(404);
+            return redirect()
+                ->route('contador.clientes.index')
+                ->with('error', 'Cliente no encontrado');
         }
-        return view('clientes.editar', compact('cliente'));
+        
+        // ✅ CORRECCIÓN: Seleccionar Codemp y Nombre correctamente
+        $vendedores = DB::connection($this->connection)
+            ->table('Empleados')
+            ->select('Codemp', 'Nombre', 'Tipo', 'Direccion', 'Telefono1')
+            ->where('Tipo', 1) // Tipo 1 = Vendedor
+            ->orderBy('Nombre', 'asc')
+            ->get();
+        
+        // Log para debugging (opcional)
+        \Log::info('Vendedores cargados:', [
+            'total' => $vendedores->count(),
+            'primer_vendedor' => $vendedores->first()
+        ]);
+        
+        return view('clientes.editar', compact('cliente', 'vendedores'));
+    }
+
+    public function apiConsultaDocumento($documento)
+    {
+        $documento = trim($documento);
+        
+        $esDniValido = $this->reniecService->validarDNI($documento)['valido'];
+        $esRucValido = $this->reniecService->validarRUC($documento)['valido'];
+
+        if (!$esDniValido && !$esRucValido) {
+            return response()->json(['success' => false, 'message' => 'El documento no es un RUC o DNI válido.'], 400);
+        }
+
+        try {
+            // 1. Revisar si ya existe en la BD local
+            $local = DB::connection($this->connection)->table('Clientes')
+                       ->where('Documento', $documento)->first();
+            
+            if($local) {
+                return response()->json(['success' => false, 'message' => 'Este documento ya está registrado a nombre de: ' . $local->Razon], 409); // 409 Conflicto
+            }
+            
+            // 2. No existe, consultar API
+            $apiData = $esRucValido ? $this->reniecService->consultarRUC($documento) : $this->reniecService->consultarDNI($documento);
+
+            if ($apiData) {
+                // El ReniecService ya formatea los campos (razon_social, address, etc.)
+                return response()->json([
+                    'success' => true,
+                    'data' => $apiData
+                ]);
+            } else {
+                return response()->json(['success' => false, 'message' => 'No se encontraron datos en RENIEC/SUNAT. Puede registrarlo manualmente.'], 404);
+            }
+
+        } catch (\Exception $e) {
+            Log::error('Error en apiConsultaDocumento: ' . $e->getMessage());
+            return response()->json(['success' => false, 'message' => 'Error del servidor: ' . $e->getMessage()], 500);
+        }
     }
 
 }

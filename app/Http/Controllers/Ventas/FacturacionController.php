@@ -7,805 +7,358 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
-
+use App\Services\VentaCarritoService; // <-- ¡NUESTRO SERVICIO!
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Auth;
+use App\Helpers\NumberToWords; 
 class FacturacionController extends Controller
 {
-    /**
-     * Constructor con middleware de autenticación y autorización
-     */
-    public function __construct()
+    protected $connection = 'sqlsrv';
+    protected $carritoService;
+
+    public function __construct(VentaCarritoService $carritoService)
     {
         $this->middleware('auth');
-        
+        $this->carritoService = $carritoService;
     }
 
     /**
-     * Lista todas las facturas con filtros
+     * Muestra la lista de facturas
      */
     public function index(Request $request)
     {
-        $query = DB::table('Doccab')
-            ->leftJoin('Clientes', 'Doccab.CodClie', '=', 'Clientes.Codclie')
-            ->leftJoin('accesoweb', 'Doccab.Usuario', '=', 'accesoweb.usuario')
-            ->where('Doccab.Tipo', 1);
+        $query = DB::connection($this->connection)->table('Doccab as dc')
+            ->join('Clientes as c', 'dc.CodClie', '=', 'c.Codclie')
+            ->whereIn('dc.Tipo', [1, 2]); // Tipo 1=Factura, 2=Boleta
 
-        // Filtros de fecha
-        if ($request->filled('fecha_desde')) {
-            $query->where('Doccab.Fecha', '>=', $request->fecha_desde);
+        if ($request->filled('q')) {
+            $query->where('c.Razon', 'like', '%' . $request->q . '%')
+                  ->orWhere('dc.Numero', 'like', '%' . $request->q . '%');
         }
-        if ($request->filled('fecha_hasta')) {
-            $query->where('Doccab.Fecha', '<=', $request->fecha_hasta);
-        }
-
-        // Filtro por cliente
-        if ($request->filled('cliente')) {
-            $query->where(function($q) use ($request) {
-                $q->where('Clientes.Codclie', 'like', '%' . $request->cliente . '%')
-                  ->orWhere('Clientes.Razon', 'like', '%' . $request->cliente . '%');
-            });
-        }
-
-        // Filtro por estado (usando Eliminado ya que Estado no existe en el esquema)
-        if ($request->filled('estado')) {
-            if ($request->estado === 'ELIMINADO') {
-                $query->where('Doccab.Eliminado', true);
-            } else {
-                $query->where('Doccab.Eliminado', true);
-            }
+        if ($request->filled('estado') && $request->estado == 'anuladas') {
+            $query->where('dc.Eliminado', 1);
         } else {
-            // Por defecto, mostrar documentos eliminados (como están en la BD)
-            $query->where('Doccab.Eliminado', true);
+            $query->where('dc.Eliminado', 0); // Por defecto solo activas
         }
 
-        // Filtro por vendedor
-        if ($request->filled('vendedor')) {
-            $query->where('Doccab.Vendedor', 'like', '%' . $request->vendedor . '%');
-        }
+        $facturas = $query->select(
+                'dc.Numero', 'dc.Tipo', 'dc.Fecha', 'dc.FechaV', 'c.Razon as Cliente',
+                'dc.Total', 'dc.Moneda', 'dc.Eliminado'
+            )
+            ->orderBy('dc.Fecha', 'desc')
+            ->orderBy('dc.Numero', 'desc')
+            ->paginate(25);
 
-        // Ordenamiento
-        $orderBy = $request->get('order_by', 'Fecha');
-        $orderDirection = $request->get('order_direction', 'desc');
-        $query->orderBy("Doccab.{$orderBy}", $orderDirection);
-
-        $facturas = $query->select([
-            'Doccab.*',
-            'Clientes.Razon as Cliente',
-            'Clientes.Direccion as DireccionCli',
-            'Clientes.Documento as RucCli',
-            'accesoweb.usuario as UsuarioVenta'
-        ])->paginate($request->get('per_page', 20));
-
-        // Estadísticas rápidas
-        $estadisticas = $this->calcularEstadisticas($request);
-
-        return response()->json([
+        return view('ventas.index', [
             'facturas' => $facturas,
-            'estadisticas' => $estadisticas,
-            'filtros_activos' => $request->only([
-                'fecha_desde', 'fecha_hasta', 'cliente', 'estado', 'vendedor'
-            ])
+            'filtros' => $request->only(['q', 'estado'])
         ]);
     }
 
     /**
-     * Crear nueva factura
+     * Muestra la vista de "Nueva Venta" (Seleccionar Cliente y Añadir Items)
+     */
+    public function create(Request $request)
+    {
+        $clienteId = $request->query('cliente_id');
+        $carrito = $this->carritoService->get();
+
+        // Si se pasa un cliente_id, iniciamos/reiniciamos el carrito
+        if ($clienteId) {
+            $cliente = DB::connection($this->connection)->table('Clientes')->where('Codclie', $clienteId)->first();
+            if ($cliente) {
+                $carrito = $this->carritoService->iniciar($cliente);
+            }
+        }
+        
+        // Cargamos los vendedores (Empleados) de tu BD
+        $vendedores = DB::connection($this->connection)->table('Empleados')
+                        //->where('Tipo', 1) // Asumo Tipo 1 = Vendedor, ajusta si es necesario
+                        ->orderBy('Nombre')
+                        ->get();
+        
+        // Cargamos Tipos de Documento (Factura/Boleta) de tu tabla Tablas
+        $tiposDoc = DB::connection($this->connection)->table('Tablas')
+                        ->where('n_codtabla', 3) // Asumo 3 = Tipos de Documento
+                        ->whereIn('n_numero', [1, 2]) // 1=Factura, 2=Boleta
+                        ->get();
+
+        return view('ventas.crear', [
+            'carrito' => $carrito,
+            'vendedores' => $vendedores,
+            'tiposDoc' => $tiposDoc
+        ]);
+    }
+
+    /**
+     * PASO 4: Guardar la Venta (El POST final)
      */
     public function store(Request $request)
     {
-        $request->validate([
-            'CodClie' => 'required|exists:Clientes,Codclie',
-            'items' => 'required|array|min:1',
-            'items.*.CodPro' => 'required|exists:Productos,CodPro',
-            'items.*.Cantidad' => 'required|numeric|min:0.01',
-            'items.*.Precio' => 'required|numeric|min:0',
-            'items.*.Descuento' => 'nullable|numeric|min:0|max:100',
-            'Vendedor' => 'required',
-            'Observacion' => 'nullable|string|max:500'
-        ]);
+        $carrito = $this->carritoService->get();
+        if (!$carrito || $carrito['items']->isEmpty()) {
+            return redirect()->route('contador.facturas.create')->with('error', 'El carrito está vacío.');
+        }
 
+        DB::connection($this->connection)->beginTransaction();
         try {
-            DB::beginTransaction();
-
-            // Generar número de documento
-            $numero = $this->generarNumeroDocumento($request->Tipo ?? 1);
-
-            // Calcular totales
-            $totales = $this->calcularTotales($request->items);
-
-            // Crear cabecera
-            $cabeceraId = DB::table('Doccab')->insertGetId([
-                'Numero' => $numero,
-                'Tipo' => $request->Tipo ?? 1,
-                'CodClie' => $request->CodClie,
-                'Fecha' => now(),
-                'Subtotal' => $totales['subtotal'],
-                'Igv' => $totales['impuesto'],
-                'Total' => $totales['total'],
-                'Eliminado' => false,
-                'Vendedor' => $request->Vendedor,
-                'Usuario' => auth()->user()->usuario,
-                'Observacion' => $request->Observacion,
-                'created_at' => now()
-            ]);
-
-            // Crear detalles
-            foreach ($request->items as $item) {
-                $subtotal = $item['Cantidad'] * $item['Precio'];
-                $descuento = ($subtotal * ($item['Descuento'] ?? 0)) / 100;
-                $subtotalFinal = $subtotal - $descuento;
-
-                DB::table('Docdet')->insert([
-                    'Numero' => $numero,
-                    'CodPro' => $item['CodPro'],
-                    'Cantidad' => $item['Cantidad'],
-                    'Precio' => $item['Precio'],
-                    'Descuento' => $item['Descuento'] ?? 0,
-                    'Subtotal' => $subtotalFinal,
-                    'created_at' => now()
-                ]);
-
-                // Actualizar stock
-                $this->actualizarStock($item['CodPro'], $item['Cantidad']);
-            }
-
-            // Crear movimiento contable si está habilitado
-            if ($request->input('generar_asiento', true)) {
-                $this->crearAsientoContable($cabeceraId, $numero, $totales);
-            }
-
-            DB::commit();
-
-            return response()->json([
-                'mensaje' => 'Factura creada exitosamente',
-                'numero' => $numero,
-                'total' => $totales['total']
-            ], 201);
-
-        } catch (\Exception $e) {
-            DB::rollBack();
-            Log::error('Error al crear factura: ' . $e->getMessage());
             
-            return response()->json([
-                'error' => 'Error al crear la factura',
-                'detalle' => $e->getMessage()
-            ], 500);
+            // 1. Generar el correlativo correctamente
+            $tipoDoc = $carrito['pago']['tipo_doc'];
+            $serie = $tipoDoc == 1 ? 'F001' : 'B001';
+
+            // Obtenemos el último número para esta serie y tipo
+            $ultimoNum = DB::connection($this->connection)->table('Doccab')
+                ->where('Tipo', $tipoDoc)
+                ->where('Numero', 'like', $serie.'-%')
+                ->orderBy('Numero', 'desc')
+                ->value('Numero');
+
+            // Extraemos solo la parte numérica después del guion de la serie
+            if ($ultimoNum) {
+                $ultimoNumInt = (int)substr($ultimoNum, strpos($ultimoNum, '-') + 1);
+            } else {
+                $ultimoNumInt = 0;
+            }
+
+            // Nuevo correlativo
+            $nuevoNumInt = $ultimoNumInt + 1;
+            $nuevoNumStr = str_pad($nuevoNumInt, 8, '0', STR_PAD_LEFT);
+            $numeroDoc = $serie . '-' . $nuevoNumStr;
+
+            // 2. Crear la cabecera (Doccab)
+            DB::connection($this->connection)->table('Doccab')->insert([
+            'Numero' => $numeroDoc,
+            'Tipo' => $tipoDoc,
+            'CodClie' => $carrito['cliente']->Codclie,
+            'Fecha' => now(),
+            'Dias' => $carrito['pago']['condicion'] == 'credito' 
+                ? max(0, (int) Carbon::parse($carrito['pago']['fecha_venc'])->diffInDays(now()))
+                : 0,
+            'FechaV' => $carrito['pago']['condicion'] == 'credito' ? $carrito['pago']['fecha_venc'] : now(),
+            'Subtotal' => $carrito['totales']['subtotal'],
+            'Igv' => $carrito['totales']['igv'],
+            'Total' => $carrito['totales']['total'],
+            'Moneda' => $carrito['pago']['moneda'],
+            'Vendedor' => $carrito['pago']['vendedor_id'],
+            'Eliminado' => 0,
+            'Impreso' => 0,
+            'Usuario' => Auth::user()->usuario,
+        ]);
+
+
+            // 3. Insertar los detalles (Docdet) y REBAJAR STOCK (Saldos)
+            foreach ($carrito['items'] as $item) {
+                
+                DB::connection($this->connection)->table('Docdet')->insert([
+                    'Numero' => $numeroDoc,
+                    'Tipo' => $tipoDoc,
+                    'Codpro' => $item['codpro'],
+                    'Lote' => $item['lote'],
+                    'Vencimiento' => $item['vencimiento'],
+                    'Unimed' => $item['unimed'] ?? 1,
+                    'Cantidad' => $item['cantidad'],
+                    'Precio' => $item['precio'],
+                    'Subtotal' => ($item['cantidad'] * $item['precio']),
+                    'Costo' => $item['costo'],
+                    'Nbonif' => 0 
+                ]);
+                
+                // 3B. ¡REBAJAR EL STOCK!
+                $afectado = DB::connection($this->connection)->table('Saldos')
+                    ->where('codpro', $item['codpro'])
+                    ->where('lote', $item['lote'])
+                    ->where('saldo', '>=', $item['cantidad'])
+                    ->decrement('saldo', $item['cantidad']);
+
+                if ($afectado == 0) {
+                    throw new \Exception("Stock agotado para {$item['codpro']} Lote {$item['lote']}. Venta cancelada.");
+                }
+            }
+
+            // 4. Crear la Cuenta por Cobrar (CtaCliente)
+            DB::connection($this->connection)->table('CtaCliente')->insert([
+                'Documento' => $numeroDoc,
+                'Tipo' => $tipoDoc,
+                'CodClie' => $carrito['cliente']->Codclie,
+                'FechaF' => now(),
+                'FechaV' => $carrito['pago']['condicion'] == 'credito' ? $carrito['pago']['fecha_venc'] : now(),
+                'Importe' => $carrito['totales']['total'],
+                'Saldo' => $carrito['totales']['total'],
+            ]);
+            
+            
+            DB::connection($this->connection)->commit();
+            $this->carritoService->olvidar(); // Limpiamos el carrito
+            
+            // Redirigir a la vista 'show'
+            return redirect()->route('contador.facturas.show', ['numero' => $numeroDoc, 'tipo' => $tipoDoc])
+                            ->with('success', "Venta {$numeroDoc} registrada exitosamente.");
+
+        } catch (\Exception $e) {
+            DB::connection($this->connection)->rollBack();
+            Log::error("Error al guardar venta: " . $e->getMessage());
+            Log::error($e->getTraceAsString());
+            return redirect()->back()->with('error', 'Error crítico al guardar la venta: ' . $e->getMessage());
         }
     }
 
     /**
-     * Mostrar detalles de una factura específica
+     * Muestra la vista de la factura/boleta para imprimir (show)
      */
-    public function show($numero)
+    public function show($numero, $tipo)
     {
-        $factura = DB::table('Doccab')
-            ->leftJoin('Clientes', 'Doccab.CodClie', '=', 'Clientes.Codclie')
-            ->leftJoin('accesoweb', 'Doccab.Usuario', '=', 'accesoweb.usuario')
-            ->where('Doccab.Numero', $numero)
-            ->select([
-                'Doccab.*',
-                'Clientes.Razon as Cliente',
-                'Clientes.Direccion as DireccionCli',
-                'Clientes.Documento as RucCli',
-                'Clientes.Telefono as TelefonoCli',
-                'Clientes.Email as EmailCli',
-                'accesoweb.usuario as UsuarioVenta'
-            ])
+        $factura = DB::connection($this->connection)->table('Doccab as dc')
+            ->join('Clientes as c', 'dc.CodClie', '=', 'c.Codclie')
+            ->leftJoin('Empleados as e', 'dc.Vendedor', '=', 'e.Codemp') // <-- AÑADIDO VENDEDOR
+            ->leftJoin('Tablas as t_moneda', function($join) { // <-- AÑADIDO MONEDA
+                $join->on('t_moneda.n_numero', '=', 'dc.Moneda')
+                     ->where('t_moneda.n_codtabla', '=', 5); // Asumo 5 = Moneda
+            })
+            ->leftJoin('Tablas as t_doc', function($join) { // <-- AÑADIDO TIPO DOC
+                $join->on('t_doc.n_numero', '=', 'dc.Tipo')
+                     ->where('t_doc.n_codtabla', '=', 3); // Asumo 3 = Tipo Doc
+            })
+            ->where('dc.Numero', $numero)
+            ->where('dc.Tipo', $tipo)
+            ->select(
+                'dc.*', 
+                'c.Razon as ClienteNombre', 
+                'c.Documento as ClienteRuc', 
+                'c.Direccion as ClienteDireccion',
+                'e.Nombre as VendedorNombre', // <-- Campo de Vendedor
+                DB::raw("ISNULL(t_moneda.c_describe, 'SOLES') as MonedaNombre"), // <-- Campo de Moneda
+                DB::raw("ISNULL(t_doc.c_describe, 'DOCUMENTO') as TipoDocNombre") // <-- Campo de TipoDoc
+            )
             ->first();
+            
+        if(!$factura) abort(404, 'Documento no encontrado');
 
-        if (!$factura) {
-            return response()->json(['error' => 'Factura no encontrada'], 404);
-        }
-
-        $detalles = DB::table('Docdet')
-            ->join('Productos', 'Docdet.Codpro', '=', 'Productos.CodPro')
-            ->where('Docdet.Numero', $numero)
-            ->select([
-                'Docdet.*',
-                'Productos.Nombre as Producto',
-                'Productos.Unidad as UnidadPro',
-                'Productos.CodBar as CodBarPro'
-            ])
+        $detalles = DB::connection($this->connection)->table('Docdet as dd')
+            ->join('Productos as p', 'dd.Codpro', '=', 'p.CodPro')
+            ->where('dd.Numero', $numero)
+            ->where('dd.Tipo', $tipo)
+            ->select('dd.*', 'p.Nombre as ProductoNombre', 'p.CodBar')
             ->get();
-
-        // Calcular estadísticas adicionales
-        $estadisticas = [
-            'margen_promedio' => $this->calcularMargenPromedio($numero),
-            'dias_desde_venta' => now()->diffInDays($factura->Fecha),
-            'cumplimiento_entrega' => $this->verificarCumplimientoEntrega($numero)
+            
+        // Datos de tu Empresa (SEDIMCORP SAC)
+        $empresa = [
+            'nombre' => 'SEDIMCORP SAC',
+            'giro' => 'EMPRESA DE DISTRIBUIDORA DE FARMACOS',
+            'ruc' => '20123456789', // <-- RUC de ejemplo, cámbialo
+            'direccion' => 'AV. LOS HEROES 754 OTR. D SAN JUAN DE MIRAFLORES - LIMA - LIMA',
+            'telefono' => '(01) 555-1234',
+            'email' => 'ventas@sedimcorp.com',
+            'web' => 'www.sedimcorp.com'
         ];
-
-        return response()->json([
-            'cabecera' => $factura,
-            'detalles' => $detalles,
-            'estadisticas' => $estadisticas
-        ]);
-    }
-
-    /**
-     * Actualizar factura (solo pendientes)
-     */
-    public function update(Request $request, $numero)
-    {
-        $factura = DB::table('Doccab')->where('Numero', $numero)->first();
         
-        if (!$factura) {
-            return response()->json(['error' => 'Factura no encontrada'], 404);
-        }
-
-        if ($factura->Eliminado) {
-            return response()->json(['error' => 'No se puede editar una factura eliminada'], 400);
-        }
-
-        $request->validate([
-            'items' => 'required|array|min:1',
-            'items.*.CodPro' => 'required|exists:Productos,CodPro',
-            'items.*.Cantidad' => 'required|numeric|min:0.01',
-            'items.*.Precio' => 'required|numeric|min:0',
-            'items.*.Descuento' => 'nullable|numeric|min:0|max:100'
-        ]);
-
-        try {
-            DB::beginTransaction();
-
-            // Eliminar detalles existentes
-            DB::table('Docdet')->where('Numero', $numero)->delete();
-
-            // Calcular nuevos totales
-            $totales = $this->calcularTotales($request->items);
-
-            // Actualizar cabecera
-            DB::table('Doccab')
-                ->where('Numero', $numero)
-                ->update([
-                    'Subtotal' => $totales['subtotal'],
-                    'Igv' => $totales['impuesto'],
-                    'Total' => $totales['total'],
-                    'updated_at' => now()
-                ]);
-
-            // Crear nuevos detalles
-            foreach ($request->items as $item) {
-                $subtotal = $item['Cantidad'] * $item['Precio'];
-                $descuento = ($subtotal * ($item['Descuento'] ?? 0)) / 100;
-                $subtotalFinal = $subtotal - $descuento;
-
-                DB::table('Docdet')->insert([
-                    'Numero' => $numero,
-                    'CodPro' => $item['CodPro'],
-                    'Cantidad' => $item['Cantidad'],
-                    'Precio' => $item['Precio'],
-                    'Descuento' => $item['Descuento'] ?? 0,
-                    'Subtotal' => $subtotalFinal,
-                    'updated_at' => now()
-                ]);
-
-                // Actualizar stock
-                $this->actualizarStock($item['Codpro'], $item['Cantidad'], true);
-            }
-
-            DB::commit();
-
-            return response()->json(['mensaje' => 'Factura actualizada exitosamente']);
-
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return response()->json(['error' => 'Error al actualizar la factura'], 500);
-        }
-    }
-
-    /**
-     * Cancelar/anular factura
-     */
-    public function destroy($numero)
-    {
-        $factura = DB::table('Doccab')->where('Numero', $numero)->first();
+        // Determinar Condición de Pago
+        $fechaEmision = Carbon::parse($factura->Fecha);
+        $fechaVenc = Carbon::parse($factura->FechaV);
+        $condicionPago = $fechaEmision->diffInDays($fechaVenc, false) > 1 ? 'Crédito' : 'Contado';
         
-        if (!$factura) {
-            return response()->json(['error' => 'Factura no encontrada'], 404);
-        }
+        // Convertir total a letras
+        $totalEnLetras = NumberToWords::convert($factura->Total, $factura->MonedaNombre);
 
-        if ($factura->Eliminado) {
-            return response()->json(['error' => 'No se puede anular una factura ya eliminada'], 400);
-        }
-
-        try {
-            DB::beginTransaction();
-
-            // Restaurar stock
-            $detalles = DB::table('Docdet')->where('Numero', $numero)->get();
-            foreach ($detalles as $detalle) {
-                $this->restaurarStock($detalle->Codpro, $detalle->Cantidad);
-            }
-
-            // Marcar como eliminado
-            DB::table('Doccab')
-                ->where('Numero', $numero)
-                ->update([
-                    'Eliminado' => true,
-                    'updated_at' => now()
-                ]);
-
-            // Crear nota de crédito o ajuste contable
-            $this->crearNotaCredito($numero, $factura);
-
-            DB::commit();
-
-            return response()->json(['mensaje' => 'Factura anulada exitosamente']);
-
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return response()->json(['error' => 'Error al anular la factura'], 500);
-        }
+        return view('ventas.show', compact('factura', 'detalles', 'empresa', 'condicionPago', 'totalEnLetras'));
     }
 
-    /**
-     * Generar nueva factura (frontend)
-     */
-    public function nuevaFactura()
+
+    /*
+    |--------------------------------------------------------------------------
+    | MÉTODOS DE BÚSQUEDA (AJAX) PARA EL CARRITO
+    |--------------------------------------------------------------------------
+    */
+
+    public function buscarClientes(Request $request)
     {
-        $clientes = DB::table('Clientes')
-            ->where('Eliminado', true)
-            ->select(['CodCli', 'Razon', 'Ruc', 'Direccion'])
-            ->orderBy('Razon')
+        $query = $request->input('q');
+        if (strlen($query) < 3) return response()->json([]);
+
+        $clientes = DB::connection($this->connection)->table('Clientes')
+            ->where('Activo', 1)
+            ->where(function($q) use ($query) {
+                $q->where('Razon', 'LIKE', "%{$query}%")
+                  ->orWhere('Documento', 'LIKE', "%{$query}%");
+            })
+            ->select('Codclie', 'Razon', 'Documento', 'Direccion', 'Vendedor')
+            ->limit(10)
             ->get();
-
-        $productos = DB::table('Productos')
-            ->where('Eliminado', true)
-            ->where('Stock', '>', 0)
-            ->select(['CodPro', 'Nombre', 'Precio', 'Stock', 'Unidad'])
-            ->orderBy('Nombre')
-            ->get();
-
-        $vendedores = DB::table('Usuarios')
-            ->where('tipodeusario', 'contador')
-            ->where('Eliminado', true)
-            ->select(['Usuario', 'Nombre'])
-            ->orderBy('Nombre')
-            ->get();
-
-        // Número siguiente
-        $numeroSiguiente = $this->generarNumeroDocumento('FACT', true);
-
-        return response()->json([
-            'clientes' => $clientes,
-            'productos' => $productos,
-            'vendedores' => $vendedores,
-            'numero_siguiente' => $numeroSiguiente,
-            'fecha_actual' => now()->format('Y-m-d')
-        ]);
+        
+        return response()->json($clientes);
     }
 
-    /**
-     * Buscar productos para autocompletado
-     */
     public function buscarProductos(Request $request)
     {
-        $termino = $request->get('termino', '');
-        $limite = $request->get('limite', 10);
+        $query = $request->input('q');
+        if (strlen($query) < 3) return response()->json([]);
 
-        $productos = DB::table('Productos')
-            ->where('Eliminado', true)
-            ->where(function($q) use ($termino) {
-                $q->where('Nombre', 'like', "%{$termino}%")
-                  ->orWhere('CodPro', 'like', "%{$termino}%")
-                  ->orWhere('CodBar', 'like', "%{$termino}%");
+        $productos = DB::connection($this->connection)->table('Productos')
+            ->where('Eliminado', 0)
+            ->where(function($q) use ($query) {
+                $q->where('Nombre', 'LIKE', "%{$query}%")
+                  ->orWhere('CodPro', 'LIKE', "%{$query}%");
             })
-            ->select([
-                'CodPro',
-                'Nombre',
-                'Precio',
-                'Stock',
-                'Unidad',
-                'CodBar'
-            ])
-            ->limit($limite)
+            ->select('CodPro', 'Nombre', 'PventaMa as Precio', 'Costo', 'Stock', 'Afecto') // Afecto=Si paga IGV
+            ->limit(10)
             ->get();
-
+        
         return response()->json($productos);
     }
-
-    public function create()
+    
+    public function buscarLotes($codPro)
     {
-        // Retorna la vista del formulario de creación
-        return view('modules.ventas.facturacion.crear');
-    }
-
-    /**
-     * Marcar factura como pagada
-     */
-    public function marcarPagada(Request $request, $numero)
-    {
-        $request->validate([
-            'fecha_pago' => 'nullable|date',
-            'metodo_pago' => 'required|in:efectivo,transferencia,cheque,tarjeta',
-            'observaciones' => 'nullable|string|max:500'
-        ]);
-
-        try {
-            $fechaPago = $request->fecha_pago ?? now()->toDateString();
-
-            DB::table('Doccab')
-                ->where('Numero', $numero)
-                ->update([
-                    // 'Estado' => 'PAGADO', // Campo no existe en esquema
-                    'FechaPago' => $fechaPago,
-                    'MetodoPago' => $request->metodo_pago,
-                    'ObservacionesPago' => $request->observaciones,
-                    'updated_at' => now()
-                ]);
-
-            // Registrar movimiento en caja si está habilitado
-            if ($request->input('registrar_movimiento_caja', true)) {
-                $this->registrarMovimientoCaja($numero, $fechaPago);
-            }
-
-            return response()->json(['mensaje' => 'Factura marcada como pagada']);
-
-        } catch (\Exception $e) {
-            return response()->json(['error' => 'Error al marcar como pagada'], 500);
-        }
-    }
-
-    /**
-     * Generar reporte de facturas
-     */
-    public function reporte(Request $request)
-    {
-        $fechaInicio = $request->get('fecha_inicio', now()->startOfMonth()->toDateString());
-        $fechaFin = $request->get('fecha_fin', now()->endOfMonth()->toDateString());
-
-        $facturas = DB::table('Doccab')
-            ->leftJoin('Clientes', 'Doccab.CodClie', '=', 'Clientes.Codclie')
-            ->whereBetween('Doccab.Fecha', [$fechaInicio, $fechaFin])
-            ->where('Doccab.Tipo', 1)
-            ->select([
-                'Doccab.Numero',
-                'Doccab.Fecha',
-                'Doccab.Tipo',
-                'Clientes.Razon as Cliente',
-                'Clientes.Ruc as Ruc',
-                'Doccab.Subtotal',
-                'Doccab.Igv as Impuesto',
-                'Doccab.Total',
-                'Doccab.Estado',
-                'Doccab.Vendedor'
-            ])
-            ->orderBy('Doccab.Fecha', 'desc')
+        $lotes = DB::connection($this->connection)->table('Saldos')
+            ->where('codpro', $codPro)
+            ->where('saldo', '>', 0)
+            ->select('lote', 'vencimiento', 'saldo')
+            ->orderBy('vencimiento', 'asc')
             ->get();
-
-        // Calcular totales (eliminando referencias a Estado que no existe)
-        $totales = [
-            'total_facturas' => $facturas->count(),
-            'total_monto' => $facturas->sum('Total'),
-            // 'total_pendientes' => $facturas->where('Estado', 'PENDIENTE')->sum('Total'),
-            // 'total_pagadas' => $facturas->where('Estado', 'PAGADO')->sum('Total'),
-            'promedio_por_factura' => $facturas->count() > 0 ? $facturas->sum('Total') / $facturas->count() : 0
-        ];
-
-        return response()->json([
-            'reporte' => $facturas,
-            'totales' => $totales,
-            'periodo' => [
-                'inicio' => $fechaInicio,
-                'fin' => $fechaFin
-            ]
-        ]);
+            
+        return response()->json($lotes);
     }
-
-    // ===== MÉTODOS PRIVADOS DE SOPORTE =====
-
-    /**
-     * Generar número de documento
-     */
-    private function generarNumeroDocumento($tipo, $soloSiguiente = false)
+    
+    /*
+    |--------------------------------------------------------------------------
+    | Carrito AJAX (Llama al Servicio)
+    |--------------------------------------------------------------------------
+    */
+    
+    public function carritoAgregar(Request $request)
     {
-        $prefijos = [
-            'FACT' => 'F',
-            'BOLE' => 'B',
-            'NCRE' => 'N',
-            'NDEB' => 'D'
-        ];
-
-        $prefijo = $prefijos[$tipo] ?? 'F';
-        $año = now()->year;
-        
-        if ($soloSiguiente) {
-            $ultimoNumero = DB::table('Doccab')
-                ->where('Tipo', $tipo)
-                ->whereYear('Fecha', $año)
-                ->max('Numero');
-        } else {
-            $ultimoNumero = DB::table('Doccab')
-                ->where('Tipo', $tipo)
-                ->whereYear('Fecha', $año)
-                ->max('Numero');
-        }
-
-        $numeroConsecutivo = $ultimoNumero ? (int)substr($ultimoNumero, 4) + 1 : 1;
-        
-        if ($soloSiguiente) {
-            return $prefijo . $año . sprintf('%06d', $numeroConsecutivo);
-        }
-
-        return $prefijo . $año . sprintf('%06d', $numeroConsecutivo);
-    }
-
-    /**
-     * Calcular totales de factura
-     */
-    private function calcularTotales($items)
-    {
-        $subtotal = 0;
-        $impuesto = 0;
-
-        foreach ($items as $item) {
-            $itemSubtotal = $item['Cantidad'] * $item['Precio'];
-            $descuento = ($itemSubtotal * ($item['Descuento'] ?? 0)) / 100;
-            $itemSubtotal -= $descuento;
-            $subtotal += $itemSubtotal;
-        }
-
-        // IGV 18% en Perú
-        $impuesto = $subtotal * 0.18;
-        $total = $subtotal + $impuesto;
-
-        return [
-            'subtotal' => round($subtotal, 2),
-            'impuesto' => round($impuesto, 2),
-            'total' => round($total, 2)
-        ];
-    }
-
-    /**
-     * Actualizar stock de producto
-     */
-    private function actualizarStock($codPro, $cantidad, $esEdicion = false)
-    {
-        $producto = DB::table('Productos')->where('CodPro', $codPro)->first();
-        
-        if (!$producto) {
-            throw new \Exception("Producto {$codPro} no encontrado");
-        }
-
-        $nuevoStock = $producto->Stock - $cantidad;
-
-        if ($nuevoStock < 0 && !$esEdicion) {
-            throw new \Exception("Stock insuficiente para producto {$producto->Nombre}");
-        }
-
-        DB::table('Productos')
-            ->where('CodPro', $codPro)
-            ->update(['Stock' => $nuevoStock]);
-    }
-
-    /**
-     * Restaurar stock al anular factura
-     */
-    private function restaurarStock($codPro, $cantidad)
-    {
-        DB::table('Productos')
-            ->where('CodPro', $codPro)
-            ->increment('Stock', $cantidad);
-    }
-
-    /**
-     * Crear asiento contable
-     */
-    private function crearAsientoContable($cabeceraId, $numero, $totales)
-    {
-        // Asiento de ventas: Efectivo/Cuentas x Cobrar -> Ventas + IGV
-        DB::table('asientos_diario')->insert([
-            [
-                'fecha' => now(),
-                'glosa' => "VENTA {$numero}",
-                'cuenta_debe' => '1211', // Cuentas por cobrar
-                'cuenta_haber' => '4011', // IGV
-                'monto' => $totales['impuesto'],
-                'fecha_creacion' => now()
-            ],
-            [
-                'fecha' => now(),
-                'glosa' => "VENTA {$numero}",
-                'cuenta_debe' => '1211', // Cuentas por cobrar
-                'cuenta_haber' => '7011', // Ventas
-                'monto' => $totales['total'],
-                'fecha_creacion' => now()
-            ]
-        ]);
-    }
-
-    /**
-     * Crear nota de crédito por anulación
-     */
-    private function crearNotaCredito($numeroOriginal, $factura)
-    {
-        $numeroNC = $this->generarNumeroDocumento('NCRE');
-        
-        DB::table('Doccab')->insert([
-            'Numero' => $numeroNC,
-            'Tipo' => 'NCRE',
-            'CodCli' => $factura->CodCli,
-            'Fecha' => now(),
-            'Subtotal' => -$factura->Subtotal,
-            'Igv' => -$factura->Igv,
-            'Total' => -$factura->Total,
-            'Estado' => 'ANULADO',
-            'Vendedor' => $factura->Vendedor,
-            'Observacion' => "Anulación de factura {$numeroOriginal}",
-            'created_at' => now()
-        ]);
-    }
-
-    /**
-     * Calcular estadísticas rápidas - ENFOQUE SIMPLIFICADO
-     */
-    private function calcularEstadisticas($request)
-    {
-        // Crear query base para aplicar los mismos filtros
-        $query = DB::table('Doccab')
-            ->where('Doccab.Tipo', 1);
-
-        // Aplicar los mismos filtros que se usan en el index
-        if ($request->filled('fecha_desde')) {
-            $query->where('Doccab.Fecha', '>=', $request->fecha_desde);
-        }
-
-        if ($request->filled('fecha_hasta')) {
-            $query->where('Doccab.Fecha', '<=', $request->fecha_hasta);
-        }
-
-        if ($request->filled('cliente')) {
-            $query->where(function($q) use ($request) {
-                $q->where('Doccab.CodClie', 'like', '%' . $request->cliente . '%');
-            });
-        }
-
-        // ❌ Este bloque está mal: no hay 'Estado' en tu esquema, y además no está en try
-        // if ($request->filled('estado')) {
-        //     $query->where('Doccab.Estado', $request->estado);
-        // }
-
-        if ($request->filled('vendedor')) {
-            $query->where('Doccab.Vendedor', 'like', '%' . $request->vendedor . '%');
-        }
-
-        // Inicializamos stats
-        $stats = [
-            'total_facturas' => 0,
-            'total_monto' => 0,
-            'total_pendientes' => 0,
-            'total_pagadas' => 0
-        ];
-
         try {
-            // Ejecutar consultas que podrían fallar
-            $stats['total_facturas'] = $query->count();
-            $stats['total_monto'] = $query->sum('Total');
-            $stats['total_pendientes'] = $query->where('Eliminado', false)->sum('Total'); // Ajusta según tu lógica real
-
-            // Si necesitas lógica adicional para "pagadas", hazla aquí con cuidado
-            // Pero evita usar 'Estado' si no existe en la tabla
-
-        } catch (\Exception $e) {
-            Log::warning('No se pudieron calcular estadísticas de cobranza: ' . $e->getMessage());
-            // stats ya está inicializado, así que no rompe
-        }
-
-        return $stats;
-    }
-
-    /**
-     * Calcular margen promedio
-     */
-    private function calcularMargenPromedio($numero)
-    {
-        // Implementación simplificada - en producción sería más compleja
-        return 25.5; // 25.5% margen promedio
-    }
-
-    /**
-     * Verificar cumplimiento de entrega
-     */
-    private function verificarCumplimientoEntrega($numero)
-    {
-        // Implementación básica - verificar si hay registros de entrega
-        return true; // Cumplido
-    }
-
-    /**
-     * Registrar movimiento en caja
-     */
-    private function registrarMovimientoCaja($numero, $fechaPago)
-    {
-        $factura = DB::table('Doccab')->where('Numero', $numero)->first();
-        
-        if ($factura) {
-            DB::table('Movimientos_Caja')->insert([
-                'Fecha' => $fechaPago,
-                'Concepto' => "Cobranza factura {$numero}",
-                'Ingreso' => $factura->Total,
-                'Egreso' => 0,
-                'Saldo' => 0, // Se calculará automáticamente
-                'created_at' => now()
+            $itemData = $request->only(['codpro', 'nombre', 'lote', 'vencimiento', 'cantidad', 'precio', 'costo', 'unimed']);
+            $carrito = $this->carritoService->agregarItem($itemData);
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'Producto agregado',
+                'carrito' => $carrito
             ]);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 400);
         }
     }
 
-    /**
-     * Exportar facturas
-     */
-    public function exportar(Request $request)
+    public function carritoEliminar($itemId)
     {
-        $tipo = $request->get('tipo', 'excel');
-        $fechaInicio = $request->get('fecha_inicio', now()->startOfMonth()->toDateString());
-        $fechaFin = $request->get('fecha_fin', now()->endOfMonth()->toDateString());
-
-        // Obtener datos usando el mismo query del index
-        $facturas = DB::table('Doccab')
-            ->leftJoin('Clientes', 'Doccab.CodClie', '=', 'Clientes.Codclie')
-            ->leftJoin('accesoweb', 'Doccab.Usuario', '=', 'accesoweb.usuario')
-            ->whereBetween('Doccab.Fecha', [$fechaInicio, $fechaFin])
-            ->where('Doccab.Tipo', 1)
-            ->select([
-                'Doccab.Numero',
-                'Doccab.Fecha',
-                'Doccab.Tipo',
-                'Clientes.Razon as Cliente',
-                'Clientes.Ruc as Ruc',
-                'Doccab.Subtotal',
-                'Doccab.Igv as Impuesto',
-                'Doccab.Total',
-                'Doccab.Estado',
-                'Doccab.Vendedor',
-                'Usuarios.Nombre as Usuario'
-            ])
-            ->orderBy('Doccab.Fecha', 'desc')
-            ->get();
-
-        if ($tipo === 'csv') {
-            return $this->exportarCSV($facturas);
-        }
-
+        $carrito = $this->carritoService->eliminarItem($itemId);
         return response()->json([
-            'mensaje' => 'Exportación iniciada',
-            'total_registros' => $facturas->count(),
-            'fecha_desde' => $fechaInicio,
-            'fecha_hasta' => $fechaFin
+            'success' => true,
+            'message' => 'Producto eliminado',
+            'carrito' => $carrito
+        ]);
+    }
+    
+    public function carritoActualizarPago(Request $request)
+    {
+        $pagoData = $request->only(['tipo_doc', 'condicion', 'fecha_venc', 'vendedor_id', 'moneda']);
+        $carrito = $this->carritoService->actualizarPago($pagoData);
+        return response()->json([
+            'success' => true,
+            'message' => 'Datos de pago actualizados',
+            'carrito' => $carrito
         ]);
     }
 
-    /**
-     * Exportar a CSV
-     */
-    private function exportarCSV($facturas)
-    {
-        $filename = 'facturas_' . now()->format('Y-m-d_H-i-s') . '.csv';
-        
-        $headers = [
-            'Numero', 'Fecha', 'Tipo', 'Cliente', 'RUC', 'Subtotal', 
-            'Impuesto', 'Total', 'Vendedor'
-        ];
-
-        $csvData = [];
-        $csvData[] = implode(',', $headers);
-
-        foreach ($facturas as $factura) {
-            $row = [
-                $factura->Numero,
-                $factura->Fecha,
-                $factura->Tipo,
-                '"' . str_replace('"', '""', $factura->Cliente) . '"',
-                $factura->Ruc,
-                number_format($factura->Subtotal, 2),
-                number_format($factura->Igv, 2),
-                number_format($factura->Total, 2),
-                $factura->Vendedor
-            ];
-            $csvData[] = implode(',', $row);
-        }
-
-        return response(implode("\n", $csvData))
-            ->header('Content-Type', 'text/csv')
-            ->header('Content-Disposition', 'attachment; filename="' . $filename . '"');
-    } 
 }
