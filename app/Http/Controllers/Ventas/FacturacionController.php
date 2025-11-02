@@ -68,19 +68,46 @@ class FacturacionController extends Controller
             $cliente = DB::connection($this->connection)->table('Clientes')->where('Codclie', $clienteId)->first();
             if ($cliente) {
                 $carrito = $this->carritoService->iniciar($cliente);
+                
+                // ========================================
+                // LÓGICA AUTOMÁTICA: Determinar Factura o Boleta
+                // ========================================
+                $tipoDocAutomatico = 1; // Por defecto Factura
+                
+                // Si el cliente tiene RUC (11 dígitos) → Factura
+                // Si el cliente tiene DNI (8 dígitos) → Boleta
+                if ($cliente->Documento) {
+                    $longitudDoc = strlen(trim($cliente->Documento));
+                    if ($longitudDoc === 8) {
+                        $tipoDocAutomatico = 3; // Boleta (tipo 3)
+                    } elseif ($longitudDoc === 11) {
+                        $tipoDocAutomatico = 1; // Factura (tipo 1)
+                    } else {
+                        // Documento con longitud diferente, dejar Factura por defecto
+                        $tipoDocAutomatico = 1;
+                    }
+                }
+                
+                // Actualizar el carrito con el tipo de documento sugerido
+                $carrito = $this->carritoService->actualizarPago([
+                    'tipo_doc' => $tipoDocAutomatico,
+                    'condicion' => 'contado',
+                    'fecha_venc' => now()->addDays(30)->format('Y-m-d'),
+                    'vendedor_id' => $cliente->Vendedor ?? null, // Vendedor del cliente si existe
+                    'moneda' => 1 // Soles por defecto
+                ]);
             }
         }
         
         // Cargamos los vendedores (Empleados) de tu BD
         $vendedores = DB::connection($this->connection)->table('Empleados')
-                        //->where('Tipo', 1) // Asumo Tipo 1 = Vendedor, ajusta si es necesario
                         ->orderBy('Nombre')
                         ->get();
         
         // Cargamos Tipos de Documento (Factura/Boleta) de tu tabla Tablas
         $tiposDoc = DB::connection($this->connection)->table('Tablas')
                         ->where('n_codtabla', 3) // Asumo 3 = Tipos de Documento
-                        ->whereIn('n_numero', [1, 2]) // 1=Factura, 2=Boleta
+                        ->whereIn('n_numero', [1, 3]) // 1=Factura, 3=Boleta (ajusta según tu BD)
                         ->get();
 
         return view('ventas.crear', [
@@ -246,7 +273,7 @@ class FacturacionController extends Controller
             'nombre' => 'SEDIMCORP SAC',
             'giro' => 'EMPRESA DE DISTRIBUIDORA DE FARMACOS',
             'ruc' => '20123456789', // <-- RUC de ejemplo, cámbialo
-            'direccion' => 'AV. LOS HEROES 754 OTR. D SAN JUAN DE MIRAFLORES - LIMA - LIMA',
+            'direccion' => 'AV. LOS HEROES 754 OTR. D SAN JUAN DE MIRAFLORES - TRUJILLO - LA LIBERTAD',
             'telefono' => '(01) 555-1234',
             'email' => 'ventas@sedimcorp.com',
             'web' => 'www.sedimcorp.com'

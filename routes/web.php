@@ -355,6 +355,55 @@ Route::middleware(['auth', 'check.contador'])->group(function () {
             Route::get('/api/buscar-lotes/{codPro}', [App\Http\Controllers\Ventas\FacturacionController::class, 'buscarLotes'])
                  ->name('api.buscarLotes');
         });
+
+        Route::prefix('proveedores')->name('proveedores.')->group(function () {
+            Route::get('/', [App\Http\Controllers\Contabilidad\ProveedoresController::class, 'index'])
+                 ->name('index'); // contador.proveedores.index
+                 
+            Route::get('/crear', [App\Http\Controllers\Contabilidad\ProveedoresController::class, 'create'])
+                 ->name('crear'); // contador.proveedores.crear
+                 
+            Route::post('/store', [App\Http\Controllers\Contabilidad\ProveedoresController::class, 'store'])
+                 ->name('store'); // contador.proveedores.store
+            
+            // (Aquí irán las rutas de Editar y Órdenes de Compra más adelante)
+        });
+
+
+        Route::prefix('compras')->name('compras.')->group(function () {
+            Route::get('/', [App\Http\Controllers\Contabilidad\OrdenCompraController::class, 'index'])
+                 ->name('index'); // contador.compras.index
+                 
+            Route::get('/crear', [App\Http\Controllers\Contabilidad\OrdenCompraController::class, 'create'])
+                 ->name('create'); // contador.compras.create
+                 
+            Route::post('/guardar', [App\Http\Controllers\Contabilidad\OrdenCompraController::class, 'store'])
+                 ->name('store'); // contador.compras.store
+                 
+            // --- APIs (AJAX) para el Carrito de Compras ---
+            Route::post('/carrito/agregar', [App\Http\Controllers\Contabilidad\OrdenCompraController::class, 'carritoAgregar'])
+                 ->name('carrito.agregar');
+            
+            Route::delete('/carrito/eliminar/{itemId}', [App\Http\Controllers\Contabilidad\OrdenCompraController::class, 'carritoEliminar'])
+                 ->name('carrito.eliminar');
+                 
+            Route::post('/carrito/pago', [App\Http\Controllers\Contabilidad\OrdenCompraController::class, 'carritoActualizarPago'])
+                 ->name('carrito.pago');
+            
+            Route::get('/show/{id}', [App\Http\Controllers\Contabilidad\OrdenCompraController::class, 'show'])
+                ->name('show');
+            
+            // --- APIs (AJAX) para Búsquedas ---
+            Route::get('/api/buscar-proveedores', [App\Http\Controllers\Contabilidad\OrdenCompraController::class, 'buscarProveedores'])
+                 ->name('api.buscarProveedores');
+
+
+            Route::get('/api/buscar-productos', [App\Http\Controllers\Contabilidad\OrdenCompraController::class, 'buscarProductos'])
+                 ->name('api.buscarProductos');
+
+            Route::get('/api/buscar-lotes/{codPro}', [App\Http\Controllers\Contabilidad\OrdenCompraController::class, 'buscarLotes'])
+                 ->name('api.buscarLotes');
+        });
         
 
 

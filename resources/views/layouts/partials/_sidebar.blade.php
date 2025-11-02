@@ -81,19 +81,26 @@
     <i class="fas fa-cart-plus"></i>
     <span>Nueva Venta</span>
 </a>
+
 <a class="nav-link {{ request()->is('ventas/listado*') ? 'active' : '' }}" href="#">
     <i class="fas fa-receipt"></i>
     <span>Listado de Ventas</span>
 </a>
+
+<a class="nav-link {{ request()->is('ventas/listado*') ? 'active' : '' }}" href="{{ route('contador.compras.index') }}">
+    <i class="fas fa-receipt"></i>
+    <span>Orden de compra </span>
+</a>
+
 <a class="nav-link {{ request()->is('ventas/clientes*') ? 'active' : '' }}" href="{{ route('contador.clientes.index') }}">
     <i class="fas fa-users"></i>
     <span>Clientes</span>
 </a>
 
 <div class="nav-section">Administración</div>
-<a class="nav-link {{ request()->is('admin/usuarios*') ? 'active' : '' }}" href="#">
+<a class="nav-link {{ request()->is('admin/usuarios*') ? 'active' : '' }}" href="{{ route('contador.proveedores.index') }}">
     <i class="fas fa-user-shield"></i>
-    <span>Usuarios y Roles</span>
+    <span>Lista de Proveedores</span>
 </a>
 <a class="nav-link {{ request()->is('admin/auditoria*') ? 'active' : '' }}" href="#">
     <i class="fas fa-history"></i>
