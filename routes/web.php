@@ -22,6 +22,9 @@ use App\Http\Controllers\Contabilidad\PlanCuentasController;
 use App\Http\Controllers\Contabilidad\FlujoCajaController; 
 use App\Http\Controllers\Clientes\ClientesController; 
 use App\Http\Controllers\Contabilidad\CajaController;
+use App\Http\Controllers\Contabilidad\FlujoEgresoController;
+use App\Http\Controllers\Contabilidad\CuentasPorPagarController;
+use App\Http\Controllers\Compras\RegistroCompraController;
 //RUTAS PÚBLICAS
 Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
 Route::post('/login', [LoginController::class, 'login'])->name('login.post');
@@ -122,14 +125,8 @@ Route::middleware(['auth', 'check.contador'])->group(function () {
 
         Route::get('/api/dashboard/stats', [ContadorDashboardController::class, 'getStats'])->name('api.dashboard.stats');
         Route::post('/api/dashboard/clear-cache', [ContadorDashboardController::class, 'clearCache'])->name('api.dashboard.clearCache');
-        
-        // Reportes Financieros y Libros Electrónicos
-        Route::get('reportes/financiero', [ReportesSunatController::class, 'index'])->name('reportes.financiero');
-        Route::get('reportes/ventas', [ReportesSunatController::class, 'registroVentas'])->name('reportes.ventas');
-        Route::get('reportes/compras', [ReportesSunatController::class, 'registroCompras'])->name('reportes.compras');
-        Route::get('libros-electronicos', [ReportesSunatController::class, 'librosElectronicos'])->name('libros-electronicos');
-        Route::get('reportes/declaracion', [ReportesSunatController::class, 'declaracionJurada'])->name('reportes.declaracion');
-        
+
+       
         // Rutas de Facturas
         Route::get('facturas', [App\Http\Controllers\Ventas\FacturacionController::class, 'index'])->name('facturas.index');
         Route::get('facturas/create', [App\Http\Controllers\Ventas\FacturacionController::class, 'create'])->name('facturas.create');
@@ -179,6 +176,14 @@ Route::middleware(['auth', 'check.contador'])->group(function () {
             // APIs opcionales
             Route::get('api/estadisticas', [LibroDiarioController::class, 'getEstadisticas'])->name('api.estadisticas');
             Route::get('api/busqueda-avanzada', [LibroDiarioController::class, 'getBusquedaAvanzada'])->name('api.busqueda-avanzada');
+        });
+
+        Route::prefix('anulacion-cobranza')->name('anulacion.')->group(function () {
+            // Muestra la vista de confirmación
+            Route::get('/{serie}/{numero}', [App\Http\Controllers\Contabilidad\AnulacionPlanillaController::class, 'show'])->name('show');
+            
+            // Procesa la anulación
+            Route::post('/store', [App\Http\Controllers\Contabilidad\AnulacionPlanillaController::class, 'store'])->name('store');
         });
         
         Route::prefix('caja')->name('caja.')->group(function () {
@@ -369,13 +374,29 @@ Route::middleware(['auth', 'check.contador'])->group(function () {
             // (Aquí irán las rutas de Editar y Órdenes de Compra más adelante)
         });
 
+        Route::prefix('cuentas-por-pagar')->name('cxp.')->group(function () {
+            Route::get('/', [CuentasPorPagarController::class, 'index'])->name('index');
+            Route::get('/proveedor/{id}', [CuentasPorPagarController::class, 'showByProveedor'])->name('show');
+        });
+
+        Route::prefix('flujo/egresos')->name('flujo.egresos.')->group(function () {
+            Route::get('/paso-1', [FlujoEgresoController::class, 'showPaso1'])->name('paso1');
+            Route::post('/paso-1', [FlujoEgresoController::class, 'handlePaso1'])->name('handlePaso1');
+            Route::get('/paso-2', [FlujoEgresoController::class, 'showPaso2'])->name('paso2');
+            Route::post('/paso-2', [FlujoEgresoController::class, 'handlePaso2'])->name('handlePaso2');
+            Route::get('/paso-3', [FlujoEgresoController::class, 'showPaso3'])->name('paso3');
+            Route::post('/procesar', [FlujoEgresoController::class, 'procesar'])->name('procesar');
+        });
+
+        
+
 
         Route::prefix('compras')->name('compras.')->group(function () {
             Route::get('/', [App\Http\Controllers\Contabilidad\OrdenCompraController::class, 'index'])
                  ->name('index'); // contador.compras.index
                  
             Route::get('/crear', [App\Http\Controllers\Contabilidad\OrdenCompraController::class, 'create'])
-                 ->name('create'); // contador.compras.create
+                 ->name('create'); // contador.compras.registro.create
                  
             Route::post('/guardar', [App\Http\Controllers\Contabilidad\OrdenCompraController::class, 'store'])
                  ->name('store'); // contador.compras.store
@@ -403,6 +424,36 @@ Route::middleware(['auth', 'check.contador'])->group(function () {
 
             Route::get('/api/buscar-lotes/{codPro}', [App\Http\Controllers\Contabilidad\OrdenCompraController::class, 'buscarLotes'])
                  ->name('api.buscarLotes');
+        });
+
+        Route::prefix('notas-credito')->name('notas-credito.')->group(function () {
+            
+            Route::get('/', [App\Http\Controllers\Contabilidad\NotaCreditoController::class, 'index'])
+                 ->name('index'); 
+            
+            // --- Flujo de Creación ---
+            Route::get('/crear', [App\Http\Controllers\Contabilidad\NotaCreditoController::class, 'create'])
+                 ->name('create');
+            
+            Route::post('/buscar-factura', [App\Http\Controllers\Contabilidad\NotaCreditoController::class, 'buscarFactura'])
+                 ->name('buscarFactura');
+                 
+            Route::get('/crear-paso-2', [App\Http\Controllers\Contabilidad\NotaCreditoController::class, 'showPaso2'])
+                 ->name('showPaso2');
+                 
+            Route::post('/guardar', [App\Http\Controllers\Contabilidad\NotaCreditoController::class, 'store'])
+                 ->name('store');
+                 
+            // --- ¡RUTA CORREGIDA! ---
+            // Ya no usa {id}, usa {numero} (el N° de la NC, ej: "NC01-00000001")
+            Route::get('/show/{numero}', [App\Http\Controllers\Contabilidad\NotaCreditoController::class, 'show'])
+                 ->name('show'); // contador.notas_credito.show
+        });
+
+
+        Route::prefix('registro-compra')->name('compras.registro.')->group(function () {
+            Route::get('/crear', [RegistroCompraController::class, 'create'])->name('create');
+            Route::post('/guardar', [RegistroCompraController::class, 'store'])->name('store');
         });
         
 

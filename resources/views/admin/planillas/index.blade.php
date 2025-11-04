@@ -432,15 +432,14 @@
                                         Editar
                                     </a>
                                 @endif
-                                @if(auth()->user()->tipousuario === 'ADMIN')
-                                    <button type="button" 
-                                            class="action-btn btn-delete"
-                                            onclick="eliminarPlanilla('{{ $p->Serie }}', '{{ $p->Numero }}')"
-                                            title="Eliminar planilla">
-                                        <i class="fas fa-trash"></i>
-                                        Eliminar
-                                    </button>
-                                @endif
+                                @if($p->Confirmacion)
+                                    <a href="{{ route('contador.anulacion.show', [$p->Serie, $p->Numero]) }}" 
+                                       class="action-btn btn-anular" {{-- Usamos el nuevo estilo --}}
+                                       title="Anular esta planilla (Recomendado)">
+                                        <i class="fas fa-undo-alt"></i> {{-- Icono de reversa --}}
+                                        Anular
+                                    </a>
+                                @endif                                
                             </td>
                         </tr>
                     @empty

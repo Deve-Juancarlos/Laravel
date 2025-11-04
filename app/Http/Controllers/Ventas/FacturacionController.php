@@ -7,7 +7,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
-use App\Services\VentaCarritoService; // <-- ¡NUESTRO SERVICIO!
+use App\Services\VentaCarritoService; 
+use App\Services\ContabilidadService;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Auth;
 use App\Helpers\NumberToWords; 
@@ -15,11 +16,15 @@ class FacturacionController extends Controller
 {
     protected $connection = 'sqlsrv';
     protected $carritoService;
+    protected $contabilidadService;
 
-    public function __construct(VentaCarritoService $carritoService)
-    {
+    public function __construct(
+        VentaCarritoService $carritoService,
+        ContabilidadService $contabilidadService 
+    ) {
         $this->middleware('auth');
         $this->carritoService = $carritoService;
+        $this->contabilidadService = $contabilidadService; 
     }
 
     /**
@@ -117,9 +122,7 @@ class FacturacionController extends Controller
         ]);
     }
 
-    /**
-     * PASO 4: Guardar la Venta (El POST final)
-     */
+    
     public function store(Request $request)
     {
         $carrito = $this->carritoService->get();
@@ -132,51 +135,55 @@ class FacturacionController extends Controller
             
             // 1. Generar el correlativo correctamente
             $tipoDoc = $carrito['pago']['tipo_doc'];
-            $serie = $tipoDoc == 1 ? 'F001' : 'B001';
+            $serie = $tipoDoc == 1 ? 'F001' : 'B001'; // Ajusta tus series
 
-            // Obtenemos el último número para esta serie y tipo
             $ultimoNum = DB::connection($this->connection)->table('Doccab')
                 ->where('Tipo', $tipoDoc)
                 ->where('Numero', 'like', $serie.'-%')
                 ->orderBy('Numero', 'desc')
                 ->value('Numero');
 
-            // Extraemos solo la parte numérica después del guion de la serie
             if ($ultimoNum) {
                 $ultimoNumInt = (int)substr($ultimoNum, strpos($ultimoNum, '-') + 1);
             } else {
                 $ultimoNumInt = 0;
             }
 
-            // Nuevo correlativo
             $nuevoNumInt = $ultimoNumInt + 1;
             $nuevoNumStr = str_pad($nuevoNumInt, 8, '0', STR_PAD_LEFT);
             $numeroDoc = $serie . '-' . $nuevoNumStr;
 
             // 2. Crear la cabecera (Doccab)
+            // ¡AÑADIMOS EL CAMPO 'estado_sunat'!
             DB::connection($this->connection)->table('Doccab')->insert([
-            'Numero' => $numeroDoc,
-            'Tipo' => $tipoDoc,
-            'CodClie' => $carrito['cliente']->Codclie,
-            'Fecha' => now(),
-            'Dias' => $carrito['pago']['condicion'] == 'credito' 
-                ? max(0, (int) Carbon::parse($carrito['pago']['fecha_venc'])->diffInDays(now()))
-                : 0,
-            'FechaV' => $carrito['pago']['condicion'] == 'credito' ? $carrito['pago']['fecha_venc'] : now(),
-            'Subtotal' => $carrito['totales']['subtotal'],
-            'Igv' => $carrito['totales']['igv'],
-            'Total' => $carrito['totales']['total'],
-            'Moneda' => $carrito['pago']['moneda'],
-            'Vendedor' => $carrito['pago']['vendedor_id'],
-            'Eliminado' => 0,
-            'Impreso' => 0,
-            'Usuario' => Auth::user()->usuario,
-        ]);
+                'Numero' => $numeroDoc,
+                'Tipo' => $tipoDoc,
+                'CodClie' => $carrito['cliente']->Codclie,
+                'Fecha' => now(),
+                'Dias' => $carrito['pago']['condicion'] == 'credito' 
+                    ? max(0, (int) Carbon::parse($carrito['pago']['fecha_venc'])->diffInDays(now()))
+                    : 0,
+                'FechaV' => $carrito['pago']['condicion'] == 'credito' ? $carrito['pago']['fecha_venc'] : now(),
+                'Subtotal' => $carrito['totales']['subtotal'],
+                'Igv' => $carrito['totales']['igv'],
+                'Total' => $carrito['totales']['total'],
+                'Moneda' => $carrito['pago']['moneda'],
+                'Vendedor' => $carrito['pago']['vendedor_id'],
+                'Eliminado' => 0,
+                'Impreso' => 0,
+                'Usuario' => Auth::user()->usuario,
+                'estado_sunat' => 'PENDIENTE' // <-- ¡CAMPO AÑADIDO!
+            ]);
 
 
-            // 3. Insertar los detalles (Docdet) y REBAJAR STOCK (Saldos)
+            // 3. Insertar detalles (Docdet) y REBAJAR STOCK
+            $totalCostoVenta = 0; 
             foreach ($carrito['items'] as $item) {
                 
+                $precio_bruto_item = $item['cantidad'] * $item['precio'];
+                $descuento_item = $precio_bruto_item * ($item['descuento'] / 100);
+                $subtotal_item_neto = $precio_bruto_item - $descuento_item;
+
                 DB::connection($this->connection)->table('Docdet')->insert([
                     'Numero' => $numeroDoc,
                     'Tipo' => $tipoDoc,
@@ -186,7 +193,8 @@ class FacturacionController extends Controller
                     'Unimed' => $item['unimed'] ?? 1,
                     'Cantidad' => $item['cantidad'],
                     'Precio' => $item['precio'],
-                    'Subtotal' => ($item['cantidad'] * $item['precio']),
+                    'Descuento1' => $item['descuento'], 
+                    'Subtotal' => $subtotal_item_neto, 
                     'Costo' => $item['costo'],
                     'Nbonif' => 0 
                 ]);
@@ -201,6 +209,9 @@ class FacturacionController extends Controller
                 if ($afectado == 0) {
                     throw new \Exception("Stock agotado para {$item['codpro']} Lote {$item['lote']}. Venta cancelada.");
                 }
+                
+                // 3C. ¡ACUMULAR EL COSTO DE VENTA!
+                $totalCostoVenta += ($item['costo'] * $item['cantidad']);
             }
 
             // 4. Crear la Cuenta por Cobrar (CtaCliente)
@@ -215,21 +226,38 @@ class FacturacionController extends Controller
             ]);
             
             
-            DB::connection($this->connection)->commit();
+            // =================================================
+            // 5. 👨‍💼 LLAMADA AL MOTOR CONTABLE (PRIORIDAD #1) 👨‍💼
+            // =================================================
+            $this->contabilidadService->registrarAsientoVenta(
+                $numeroDoc,
+                $tipoDoc,
+                $carrito['cliente'],
+                $carrito['totales'], // Array ['subtotal', 'igv', 'total']
+                $totalCostoVenta,
+                Auth::id() // Pasamos el ID del usuario (ej: 1, 2, 3)
+            );
+
+            // =================================================
+            
+            DB::connection($this->connection)->commit(); // ¡Todo se confirma!
+            
+            // ⛔️ HEMOS QUITADO EL 'ProcesarDocumentoSunatJob::dispatch()' ⛔️
+            
             $this->carritoService->olvidar(); // Limpiamos el carrito
             
-            // Redirigir a la vista 'show'
+            // ✅ Mensaje de éxito normal
             return redirect()->route('contador.facturas.show', ['numero' => $numeroDoc, 'tipo' => $tipoDoc])
-                            ->with('success', "Venta {$numeroDoc} registrada exitosamente.");
+                            ->with('success', "Venta {$numeroDoc} registrada exitosamente (Asiento Contable Creado).");
 
         } catch (\Exception $e) {
             DB::connection($this->connection)->rollBack();
-            Log::error("Error al guardar venta: " . $e->getMessage());
+            Log::error("Error al guardar venta (store): " . $e->getMessage());
             Log::error($e->getTraceAsString());
+            
             return redirect()->back()->with('error', 'Error crítico al guardar la venta: ' . $e->getMessage());
         }
     }
-
     /**
      * Muestra la vista de la factura/boleta para imprimir (show)
      */
@@ -354,7 +382,8 @@ class FacturacionController extends Controller
     public function carritoAgregar(Request $request)
     {
         try {
-            $itemData = $request->only(['codpro', 'nombre', 'lote', 'vencimiento', 'cantidad', 'precio', 'costo', 'unimed']);
+            // ¡AÑADIDO 'descuento'!
+            $itemData = $request->only(['codpro', 'nombre', 'lote', 'vencimiento', 'cantidad', 'precio', 'costo', 'unimed', 'descuento']);
             $carrito = $this->carritoService->agregarItem($itemData);
             
             return response()->json([

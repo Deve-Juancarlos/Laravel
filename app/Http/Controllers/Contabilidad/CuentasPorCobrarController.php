@@ -11,9 +11,7 @@ class CuentasPorCobrarController extends Controller
 {
     protected $connection = 'sqlsrv';
 
-    /**
-     * Muestra la vista principal de Cuentas por Cobrar (Aging Report).
-     */
+    
     public function index(Request $request)
     {
         // --- 1. Obtener Filtros ---

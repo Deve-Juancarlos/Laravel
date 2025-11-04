@@ -4,24 +4,31 @@ namespace App\Http\Controllers\Contabilidad;
 
 use App\Http\Controllers\Controller;
 use App\Services\Contabilidad\FlujoCajaService; 
-use App\Services\ReniecService; // 1. Importamos tu servicio
+use App\Services\ReniecService; 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\DB; // <-- ¡SIN ESPACIOS RAROS!
+use Illuminate\Support\Facades\DB; 
 use Illuminate\Support\Facades\Validator;
 use Carbon\Carbon;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Auth;
+use App\Services\ContabilidadService;
 
 class FlujoCajaController extends Controller
 {
-    protected $connection = 'sqlsrv'; // Tu conexión
+    protected $connection = 'sqlsrv'; 
     protected $flujoCajaService;
-    protected $reniecService; // Lo necesitamos para el 'handlePaso1'
+    protected $reniecService; 
+    protected $contabilidadService;
 
-    public function __construct(FlujoCajaService $flujoCajaService, ReniecService $reniecService)
-    {
+    public function __construct(
+        FlujoCajaService $flujoCajaService, 
+        ReniecService $reniecService,
+        ContabilidadService $contabilidadService // <-- 4. INYECTAR SERVICIO
+    ) {
         $this->flujoCajaService = $flujoCajaService;
         $this->reniecService = $reniecService; 
+        $this->contabilidadService = $contabilidadService; // <-- 5. ASIGNAR SERVICIO
     }
 
     /*
@@ -266,12 +273,14 @@ class FlujoCajaController extends Controller
         try {
             DB::connection($this->connection)->beginTransaction();
             
-            $clienteId = $flujoData['cliente_id'];
+            $cliente = DB::connection($this->connection)->table('Clientes')
+                            ->where('Codclie', $flujoData['cliente_id'])->first();
             $pago = $flujoData['pago'];
             $aplicaciones = $flujoData['aplicaciones'] ?? collect();
             $esAdelanto = $flujoData['adelanto'] ?? false;
             $montoTotalPagado = (float) $pago['monto_pagado'];
             $montoTotalAplicado = 0;
+            $montoAdelanto = 0; // <-- Variable para el asiento
             $fechaPago = Carbon::parse($pago['fecha_pago']);
             $serie = $pago['serie_planilla'];
             
@@ -279,26 +288,25 @@ class FlujoCajaController extends Controller
             $ultimoNum = DB::connection($this->connection)->table('PlanC_cobranza')
                             ->where('Serie', $serie)->max('Numero');
             $nextNum = str_pad((int)$ultimoNum + 1, 7, '0', STR_PAD_LEFT);
-            $planillaNumeroCompleto = $serie . '-' . $nextNum;
+            $planillaNumeroCompleto = $serie . '-' . $nextNum; // <-- Lo usaremos para el asiento
 
             DB::connection($this->connection)->table('PlanC_cobranza')->insert([
                 'Serie' => $serie,
                 'Numero' => $nextNum,
+                // ... (resto de campos)
                 'Vendedor' => $pago['vendedor_id'],
                 'FechaCrea' => now(),
                 'FechaIng' => $fechaPago,
-                'Confirmacion' => 1,
-                'Impreso' => 0,
+                'Confirmacion' => 1, 'Impreso' => 0,
             ]);
 
             // 2. Insertar movimiento en el Banco (CtaBanco)
-            $clasePago = 3; // 3 = Transferencia (Default)
+            $clasePago = 3; // Transferencia
             if ($pago['metodo_pago'] == 'cheque') $clasePago = 1;
             if ($pago['metodo_pago'] == 'efectivo' || $pago['metodo_pago'] == 'deposito') $clasePago = 2;
 
             DB::connection($this->connection)->table('CtaBanco')->insert([
-                'Tipo' => 1, // 1 = Ingreso
-                'Clase' => $clasePago,
+                'Tipo' => 1, 'Clase' => $clasePago,
                 'Cuenta' => $pago['cuenta_destino'],
                 'Documento' => $planillaNumeroCompleto, 
                 'Monto' => $montoTotalPagado,
@@ -318,22 +326,20 @@ class FlujoCajaController extends Controller
                     DB::connection($this->connection)->table('PlanD_cobranza')->insert([
                         'Serie' => $serie,
                         'Numero' => $nextNum,
-                        'CodClie' => $clienteId,
+                        'CodClie' => $cliente->Codclie,
                         'Documento' => $documento,
-                        'TipoDoc' => $tipo,
-                        'FechaFac' => $factura->FechaF,
-                        'Valor' => $factura->Importe,
-                        'NroRecibo' => $planillaNumeroCompleto,
+                        // ... (resto de campos)
+                        'TipoDoc' => $tipo, 'FechaFac' => $factura->FechaF,
+                        'Valor' => $factura->Importe, 'NroRecibo' => $planillaNumeroCompleto,
                         'Descuento' => 0,
                         'Efectivo' => ($pago['metodo_pago'] != 'cheque') ? $montoAplicado : 0,
                         'Cheque' => ($pago['metodo_pago'] == 'cheque') ? $montoAplicado : 0,
                         'NroCheque' => ($pago['metodo_pago'] == 'cheque') ? $pago['referencia'] : null,
-                        'Moneda' => 1, 'Cambio' => 1, // Asumo Soles
+                        'Moneda' => 1, 'Cambio' => 1,
                     ]);
                     
                     DB::connection($this->connection)->table('CtaCliente')
-                        ->where('Documento', $documento)
-                        ->where('Tipo', $tipo)
+                        ->where('Documento', $documento)->where('Tipo', $tipo)
                         ->decrement('Saldo', $montoAplicado);
                     
                     $montoTotalAplicado += $montoAplicado;
@@ -342,26 +348,38 @@ class FlujoCajaController extends Controller
 
             // 4. Registrar el adelanto (si existe)
             if ($esAdelanto) {
-                $montoAdelanto = round($montoTotalPagado - $montoTotalAplicado, 2);
+                $montoAdelanto = round($montoTotalPagado - $montoTotalAplicado, 2); // <-- Calculamos el adelanto
                 if ($montoAdelanto > 0.01) {
                     $adelantoDocNum = 'ANT-' . $nextNum;
                     DB::connection($this->connection)->table('CtaCliente')->insert([
                         'Documento' => $adelantoDocNum,
-                        'Tipo' => 99, // 99 = Tipo "Anticipo" (Verifica tu tabla 'Tablas' codtabla=3)
-                        'CodClie' => $clienteId,
-                        'FechaF' => $fechaPago,
-                        'FechaV' => $fechaPago,
+                        'Tipo' => 99, // 99 = Tipo "Anticipo"
+                        'CodClie' => $cliente->Codclie,
+                        'FechaF' => $fechaPago, 'FechaV' => $fechaPago,
                         'Importe' => -$montoAdelanto,
                         'Saldo' => -$montoAdelanto,
                     ]);
                 }
             }
             
+            // ==========================================================
+            // 5. 👨‍💼 LLAMADA AL MOTOR CONTABLE (COBRANZA) 👨‍💼
+            // ==========================================================
+            $this->contabilidadService->registrarAsientoCobranza(
+                $planillaNumeroCompleto,
+                $cliente,
+                $pago,
+                $montoTotalPagado,
+                $montoTotalAplicado,
+                $montoAdelanto,
+                Auth::id() // ID del usuario logueado
+            );
+
             DB::connection($this->connection)->commit();
             session()->forget('flujo_cobranza');
             
             return redirect()->route('dashboard.contador') // Ruta de tu dashboard
-                             ->with('success', 'Cobranza registrada exitosamente (Planilla: ' . $planillaNumeroCompleto . ')');
+                            ->with('success', 'Cobranza registrada (Planilla: ' . $planillaNumeroCompleto . ') y Asiento Contable generado.');
 
         } catch (\Exception $e) {
             DB::connection($this->connection)->rollBack();
@@ -369,15 +387,8 @@ class FlujoCajaController extends Controller
             Log::error($e->getTraceAsString());
             
             return redirect()->route('contador.flujo.cobranzas.paso4')
-                             ->with('error', 'Error crítico al guardar en BD: ' . $e->getMessage());
+                            ->with('error', 'Error crítico al guardar: ' . $e->getMessage());
         }
     }
-
-    /*
-    |--------------------------------------------------------------------------
-    | ¡¡¡ SECCIÓN DE BÚSQUEDA ELIMINADA !!!
-    |--------------------------------------------------------------------------
-    | Los métodos 'searchClientes' y 'getDeudaCliente' se eliminaron 
-    | porque ahora están centralizados en 'ClientesController'.
-    */
+   
 }

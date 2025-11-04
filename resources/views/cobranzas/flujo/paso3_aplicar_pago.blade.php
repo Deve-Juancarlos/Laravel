@@ -11,8 +11,6 @@
 @endsection
 
 @section('content')
-
-@section('content')
 <div class="row">
     <div class="col-lg-10 mx-auto">
         
@@ -59,7 +57,6 @@
                                     <td class="text-end">S/ {{ number_format($factura->Importe, 2) }}</td>
                                     <td class="text-end fw-bold">S/ {{ number_format($factura->Saldo, 2) }}</td>
                                     <td>
-                                        {{-- ¡CAMBIO CRÍTICO! El name ahora usa la composite_key --}}
                                         <input type="number"
                                                name="aplicaciones[{{ $factura->composite_key }}]"
                                                class="form-control form-control-sm text-end input-aplicar"
@@ -80,10 +77,18 @@
                             </tbody>
                         </table>
                     </div>
-                    </div>
+                </div>
                 
-                <div class="card-footer d-flex justify-content-between">
-                    {{-- ... (Tus botones de 'Atrás' y 'Siguiente' se quedan igual) ... --}}
+                <div class="card-footer">
+                    <!-- Botones de navegación -->
+                    <div class="d-flex justify-content-between">
+                        <a href="{{ route('contador.flujo.cobranzas.paso2') }}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left me-1"></i> Atrás
+                        </a>
+                        <button type="submit" class="btn btn-primary" id="btn_siguiente_paso3" disabled>
+                            Siguiente <i class="fas fa-arrow-right ms-1"></i>
+                        </button>
+                    </div>
                 </div>
             </form>
         </div>
@@ -95,22 +100,16 @@
 <script>
 $(document).ready(function() {
     
-    // Convertimos a número
+    // Convertimos a número desde el data-attribute (más seguro)
     const totalPagado = parseFloat({{ $pago['monto_pagado'] }});
     let totalAplicado = 0;
     let restantePorAplicar = totalPagado;
 
+    console.log('Total Pagado:', totalPagado); // Debug
+
     // Elementos del DOM
     const $inputs = $('.input-aplicar');
-    const $totalAplicadoEl = $('#total_aplicado');
-    const $restantePorAplicarEl = $('#restante_por_aplicar');
     const $btnSiguiente = $('#btn_siguiente_paso3');
-    const $opcionAdelanto = $('#opcion_pago_adelantado');
-    const $saldoAdelanto = $('#saldo_adelanto');
-
-    function formatearMoneda(numero) {
-        return 'S/ ' + numero.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,');
-    }
 
     // Función principal para recalcular
     function recalcularTotales() {
@@ -126,53 +125,38 @@ $(document).ready(function() {
                 $(this).val(saldoMax.toFixed(2));
             }
             
-            // Validación: no aplicar más de lo que se pagó
-            if (totalAplicado + valor > totalPagado) {
-                valor = totalPagado - totalAplicado;
-                $(this).val(valor.toFixed(2));
-                // Deshabilitar el resto de inputs
-                $inputs.not(this).filter(function() { return !this.value; }).prop('disabled', true);
-            } else {
-                 $inputs.prop('disabled', false);
-            }
-            
             totalAplicado += valor;
         });
         
+        // Si el total aplicado excede el pago, mostrar advertencia
+        if (totalAplicado > totalPagado) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Monto excedido',
+                text: `El total aplicado (S/ ${totalAplicado.toFixed(2)}) excede el monto pagado (S/ ${totalPagado.toFixed(2)}). Ajuste los montos.`,
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 3000
+            });
+        }
+        
         restantePorAplicar = totalPagado - totalAplicado;
 
-        // Actualizar los KPIs
-        $totalAplicadoEl.text(formatearMoneda(totalAplicado));
-        $restantePorAplicarEl.text(formatearMoneda(restantePorAplicar));
-
-        // Habilitar/Deshabilitar botón siguiente
-        // Se puede pasar si se aplicó algo O si se va a guardar como adelanto
-        if (totalAplicado > 0) {
+        // Solo habilitar el botón si coincide exactamente (con tolerancia de 1 centavo)
+        if (Math.abs(totalAplicado - totalPagado) <= 0.01 && totalAplicado > 0) {
             $btnSiguiente.prop('disabled', false);
         } else {
             $btnSiguiente.prop('disabled', true);
-        }
-
-        // Mostrar opción de pago adelantado si sobra dinero
-        if (restantePorAplicar > 0.005) { // Usamos 0.005 por temas de redondeo
-            $opcionAdelanto.show();
-            $saldoAdelanto.text(formatearMoneda(restantePorAplicar));
-            // Si el checkbox está marcado, también se puede pasar
-            $btnSiguiente.prop('disabled', false);
-        } else {
-            $opcionAdelanto.hide();
-            $('#guardar_como_adelanto').prop('checked', false);
         }
     }
 
     // Event Listeners
     $inputs.on('input', recalcularTotales);
-    $('#guardar_como_adelanto').on('change', recalcularTotales);
 
     // Botón de Auto-Aplicar (FIFO - Primero en entrar, primero en salir)
     $('#btn_auto_aplicar').on('click', function() {
         let montoRestanteAuto = totalPagado;
-        $inputs.prop('disabled', false);
         
         $inputs.each(function() {
             if (montoRestanteAuto <= 0.005) {
@@ -199,16 +183,41 @@ $(document).ready(function() {
 
     // Validación final antes de enviar
     $('#formPaso3').on('submit', function(e) {
-        if (totalAplicado < 0.005 && !$('#guardar_como_adelanto').is(':checked')) {
+        // Recalcular antes de enviar
+        recalcularTotales();
+        
+        // Validación 1: Debe haber aplicado algo
+        if (totalAplicado < 0.01) {
             e.preventDefault();
-            Swal.fire('Error', 'Debe aplicar el pago a al menos una factura o guardarlo como adelanto.', 'error');
-            return;
+            Swal.fire('Error', 'Debe aplicar el pago a al menos una factura.', 'error');
+            return false;
         }
 
-        if (Math.abs(totalAplicado + ($('#guardar_como_adelanto').is(':checked') ? restantePorAplicar : 0) - totalPagado) > 0.01) {
-             e.preventDefault();
-             Swal.fire('Error', 'El monto aplicado no coincide con el total pagado. Por favor, revise los montos.', 'error');
+        // Validación 2: No puede aplicar más de lo que pagó
+        if (totalAplicado > totalPagado + 0.01) {
+            e.preventDefault();
+            Swal.fire('Error', `El monto total aplicado (S/ ${totalAplicado.toFixed(2)}) excede el monto pagado (S/ ${totalPagado.toFixed(2)}).`, 'error');
+            return false;
         }
+
+        // Validación 3: Debe aplicar EXACTAMENTE lo que pagó
+        if (Math.abs(totalAplicado - totalPagado) > 0.01) {
+            e.preventDefault();
+            Swal.fire({
+                icon: 'error',
+                title: 'Monto no coincide',
+                html: `Debe aplicar <strong>exactamente</strong> el monto pagado.<br><br>
+                       Pagó: <strong>S/ ${totalPagado.toFixed(2)}</strong><br>
+                       Aplicó: <strong>S/ ${totalAplicado.toFixed(2)}</strong><br>
+                       ${restantePorAplicar > 0 ? 'Falta: <strong class="text-danger">S/ ' + restantePorAplicar.toFixed(2) + '</strong>' : 
+                         'Sobra: <strong class="text-danger">S/ ' + Math.abs(restantePorAplicar).toFixed(2) + '</strong>'}`,
+                confirmButtonText: 'Entendido'
+            });
+            return false;
+        }
+
+        // Todo OK
+        return true;
     });
 
     // Recalcular al inicio (por si hay old data)

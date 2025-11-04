@@ -8,9 +8,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
 use Carbon\Carbon;
 use Symfony\Component\HttpFoundation\StreamedResponse;
-// Importa cualquier paquete de PDF/Excel que uses, ej:
-// use Barryvdh\DomPDF\Facade\Pdf;
-// use Maatwebsite\Excel\Facades\Excel;
+
 
 class LibroDiarioService
 {

@@ -43,7 +43,7 @@
     <span>Flujos diarios</span>
 </a>
 
-<a class="nav-link {{ request()->is('contabilidad/reportes*') ? 'active' : '' }}" href="{{ route('contador.reportes.ventas') }}">
+<a class="nav-link {{ request()->is('contabilidad/reportes*') ? 'active' : '' }}" href="#">
     <i class="fas fa-file-invoice-dollar"></i>
     <span>Reportes</span>
 </a>
@@ -71,9 +71,20 @@
     <i class="fas fa-warehouse"></i>
     <span>Stock y Lotes</span>
 </a>
-<a class="nav-link {{ request()->is('inventario/laboratorios*') ? 'active' : '' }}" href="{{ route('contador.inventario.laboratorios') }}">
-    <i class="fas fa-flask"></i>
-    <span>Laboratorios</span>
+
+<a class="nav-link {{ request()->is('admin/usuarios*') ? 'active' : '' }}" href="{{ route('contador.proveedores.index') }}">
+    <i class="fas fa-user-shield"></i>
+    <span>Lista de Proveedores</span>
+</a>
+
+<a class="nav-link {{ request()->is('ventas/listado*') ? 'active' : '' }}" href="{{ route('contador.compras.index') }}">
+    <i class="fas fa-receipt"></i>
+    <span>Orden de compra </span>
+</a>
+
+<a class="nav-link {{ request()->is('ventas/listado*') ? 'active' : '' }}" href="{{ route('contador.cxp.index') }}">
+    <i class="fas fa-receipt"></i>
+    <span>Lista de ordenes </span>
 </a>
 
 <div class="nav-section">Ventas</div>
@@ -87,9 +98,11 @@
     <span>Listado de Ventas</span>
 </a>
 
-<a class="nav-link {{ request()->is('ventas/listado*') ? 'active' : '' }}" href="{{ route('contador.compras.index') }}">
+
+
+<a class="nav-link {{ request()->is('ventas/listado*') ? 'active' : '' }}" href="{{ route('contador.notas-credito.index') }}">
     <i class="fas fa-receipt"></i>
-    <span>Orden de compra </span>
+    <span>Descuentos</span>
 </a>
 
 <a class="nav-link {{ request()->is('ventas/clientes*') ? 'active' : '' }}" href="{{ route('contador.clientes.index') }}">
@@ -98,10 +111,7 @@
 </a>
 
 <div class="nav-section">Administración</div>
-<a class="nav-link {{ request()->is('admin/usuarios*') ? 'active' : '' }}" href="{{ route('contador.proveedores.index') }}">
-    <i class="fas fa-user-shield"></i>
-    <span>Lista de Proveedores</span>
-</a>
+
 <a class="nav-link {{ request()->is('admin/auditoria*') ? 'active' : '' }}" href="#">
     <i class="fas fa-history"></i>
     <span>Auditoría</span>

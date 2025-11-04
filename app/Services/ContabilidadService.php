@@ -2,830 +2,704 @@
 
 namespace App\Services;
 
-use App\Models\Venta;
-use App\Models\Factura;
-use App\Models\Pago;
-use App\Models\CuentaPorCobrar;
-use App\Models\MovimientoInventario;
-use App\Models\Banco;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Config;
 use Carbon\Carbon;
 
 class ContabilidadService
 {
-    /**
-     * Registrar venta en contabilidad
-     */
-    public function registrarVenta(Venta $factura): array
+    protected $connection = 'sqlsrv';
+
+    
+    protected function generarNumeroAsiento(Carbon $fecha): string
     {
-        try {
-            DB::beginTransaction();
-            
-            $asientos = $this->generarAsientosVenta($factura);
-            
-            foreach ($asientos as $asiento) {
-                $this->registrarAsientoContable($asiento);
-            }
-            
-            // Registrar efectos en kardex
-            $this->actualizarKardexVentas($factura);
-            
-            // Actualizar cuentas por cobrar si es crédito
-            if ($factura->TipoPago === 'CREDITO') {
-                $this->actualizarCuentasPorCobrar($factura);
-            }
-            
-            DB::commit();
-            
-            Log::info('Venta registrada en contabilidad', [
-                'factura' => $factura->Numero,
-                'total' => $factura->Total,
-                'asientos' => count($asientos)
-            ]);
-            
-            return [
-                'success' => true,
-                'asientos_creados' => count($asientos),
-                'message' => 'Venta registrada en contabilidad exitosamente'
-            ];
-            
-        } catch (\Exception $e) {
-            DB::rollback();
-            Log::error('Error al registrar venta en contabilidad', [
-                'factura' => $factura->Numero,
-                'error' => $e->getMessage()
-            ]);
-            
-            return [
-                'success' => false,
-                'error' => $e->getMessage()
-            ];
+        // ... (Este método ya lo tienes, no cambia) ...
+        $prefijo = 'A-' . $fecha->format('Ymd') . '-';
+        
+        $ultimoAsiento = DB::connection($this->connection)
+            ->table('libro_diario')
+            ->where('numero', 'LIKE', $prefijo . '%')
+            ->orderBy('numero', 'desc')
+            ->value('numero');
+
+        $correlativo = 0;
+        if ($ultimoAsiento) {
+            $correlativo = (int)substr($ultimoAsiento, -4);
         }
+
+        $nuevoCorrelativo = str_pad($correlativo + 1, 4, '0', STR_PAD_LEFT);
+
+        return $prefijo . $nuevoCorrelativo;
     }
 
     /**
-     * Registrar pago recibido
+     * Registra el Asiento de Venta y su Costo de Venta asociado.
+     *
+     * @param string $numeroDoc Número de Factura/Boleta (F001-0001)
+     * @param int $tipoDoc Tipo de Documento (1=Factura, 3=Boleta)
+     * @param object $cliente Objeto del cliente
+     * @param array $totales Array con ['subtotal', 'igv', 'total']
+     * @param float $totalCostoVenta El costo total de los productos vendidos
+     * @param int $userId ID del usuario que registra
+     * * @return int ID del asiento creado en libro_diario
+     * @throws \Exception
      */
-    public function registrarPago(Pago $pago): array
-    {
-        try {
-            DB::beginTransaction();
-            
-            // Determinar si es ingreso o egreso
-            if ($pago->Tipo === 1) { // Ingreso
-                $asientos = $this->generarAsientosIngreso($pago);
-            } else { // Egreso
-                $asientos = $this->generarAsientosEgreso($pago);
-            }
-            
-            foreach ($asientos as $asiento) {
-                $this->registrarAsientoContable($asiento);
-            }
-            
-            // Actualizar cuentas por cobrar si aplica
-            if ($pago->Tipo === 1 && $pago->Factura) {
-                $this->actualizarCuentaPorCobrar($pago);
-            }
-            
-            // Actualizar saldo bancario
-            if ($pago->CuentaBanco) {
-                $this->actualizarSaldoBancario($pago);
-            }
-            
-            DB::commit();
-            
-            Log::info('Pago registrado en contabilidad', [
-                'pago' => $pago->Numero,
-                'monto' => $pago->Monto,
-                'tipo' => $pago->Tipo
-            ]);
-            
-            return [
-                'success' => true,
-                'asientos_creados' => count($asientos),
-                'message' => 'Pago registrado exitosamente'
-            ];
-            
-        } catch (\Exception $e) {
-            DB::rollback();
-            Log::error('Error al registrar pago', [
-                'pago' => $pago->Numero,
-                'error' => $e->getMessage()
-            ]);
-            
-            return [
-                'success' => false,
-                'error' => $e->getMessage()
-            ];
-        }
-    }
+    public function registrarAsientoVenta(
+        string $numeroDoc,
+        int $tipoDoc,
+        object $cliente,
+        array $totales,
+        float $totalCostoVenta,
+        int $userId
+    ): int {
 
-    /**
-     * Generar balance de comprobación
-     */
-    public function generarBalanceComprobacion(Carbon $fechaInicio, Carbon $fechaFin): array
-    {
+        $fechaHoy = Carbon::now();
+        $docNombre = $tipoDoc == 1 ? 'Factura' : 'Boleta';
+        
+        // 1. Validar que los montos sean coherentes
+        if ($totales['total'] <= 0 || $totalCostoVenta < 0) {
+            Log::warning("Asiento contable omitido por montos inválidos.", ['doc' => $numeroDoc]);
+            // No lanzamos excepción, solo omitimos el asiento si la venta es 0
+            return 0; 
+        }
+
+        // Cargar cuentas desde el archivo de configuración
+        $ctaCobrar = $tipoDoc == 1 
+            ? Config::get('contabilidad.cuentas.ventas.factura_por_cobrar') 
+            : Config::get('contabilidad.cuentas.ventas.boleta_por_cobrar');
+        $ctaIgv     = Config::get('contabilidad.cuentas.ventas.igv_por_pagar');
+        $ctaVenta   = Config::get('contabilidad.cuentas.ventas.ingreso_por_venta');
+        $ctaCosto   = Config::get('contabilidad.cuentas.costos.costo_de_venta');
+        $ctaMercaderia = Config::get('contabilidad.cuentas.costos.mercaderias');
+        
+        // 2. Crear la Glosa
+        $glosa = "Provisión Venta y Costo de Venta - {$docNombre} {$numeroDoc} - Cliente: {$cliente->Razon}";
+        
+        // 3. Totales del Asiento
+        $totalDebe  = round($totales['total'] + $totalCostoVenta, 2);
+        $totalHaber = round($totales['total'] + $totalCostoVenta, 2);
+
         try {
-            $cuentas = $this->obtenerCuentasConMovimientos($fechaInicio, $fechaFin);
+            // 4. Insertar la cabecera del Asiento (libro_diario)
+            // NOTA: Usamos getPdo()->lastInsertId() porque 'id' es IDENTITY
             
-            $balance = [
-                'fecha_inicio' => $fechaInicio->format('Y-m-d'),
-                'fecha_fin' => $fechaFin->format('Y-m-d'),
-                'total_debe' => 0,
-                'total_haber' => 0,
-                'cuentas' => []
-            ];
-            
-            foreach ($cuentas as $cuenta) {
-                $balance['cuentas'][] = [
-                    'cuenta' => $cuenta['cuenta'],
-                    'descripcion' => $cuenta['descripcion'],
-                    'debe' => $cuenta['debe'],
-                    'haber' => $cuenta['haber'],
-                    'saldo_deudor' => $cuenta['debe'] > $cuenta['haber'] ? $cuenta['debe'] - $cuenta['haber'] : 0,
-                    'saldo_acreedor' => $cuenta['haber'] > $cuenta['debe'] ? $cuenta['haber'] - $cuenta['debe'] : 0
-                ];
+            $sqlCabecera = "
+                INSERT INTO libro_diario 
+                (numero, fecha, glosa, total_debe, total_haber, balanceado, estado, usuario_id, created_at, updated_at) 
+                OUTPUT INSERTED.id
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
                 
-                $balance['total_debe'] += $cuenta['debe'];
-                $balance['total_haber'] += $cuenta['haber'];
+            $paramsCabecera = [
+                $this->generarNumeroAsiento($fechaHoy),
+                $fechaHoy,
+                substr($glosa, 0, 500), // Limitar glosa a 500 chars
+                $totalDebe,
+                $totalHaber,
+                1, // Balanceado
+                'ACTIVO',
+                $userId,
+                $fechaHoy,
+                $fechaHoy
+            ];
+            
+            $resultado = DB::connection($this->connection)->select($sqlCabecera, $paramsCabecera);
+            $asientoId = $resultado[0]->id;
+
+            if (!$asientoId) {
+                throw new \Exception("No se pudo obtener el ID del asiento insertado.");
             }
-            
-            $balance['diferencia'] = abs($balance['total_debe'] - $balance['total_haber']);
-            $balance['balanceado'] = $balance['diferencia'] < 0.01;
-            
-            return [
-                'success' => true,
-                'balance' => $balance
-            ];
-            
-        } catch (\Exception $e) {
-            Log::error('Error al generar balance de comprobación', [
-                'fecha_inicio' => $fechaInicio->format('Y-m-d'),
-                'fecha_fin' => $fechaFin->format('Y-m-d'),
-                'error' => $e->getMessage()
-            ]);
-            
-            return [
-                'success' => false,
-                'error' => $e->getMessage()
-            ];
-        }
-    }
 
-    /**
-     * Generar estado de resultados
-     */
-    public function generarEstadoResultados(Carbon $fechaInicio, Carbon $fechaFin): array
-    {
-        try {
-            $ingresos = $this->calcularIngresos($fechaInicio, $fechaFin);
-            $costos = $this->calcularCostosVentas($fechaInicio, $fechaFin);
-            $gastos = $this->calcularGastosOperativos($fechaInicio, $fechaFin);
+            // 5. Insertar los detalles del Asiento (libro_diario_detalles)
             
-            $estadoResultados = [
-                'periodo' => [
-                    'inicio' => $fechaInicio->format('Y-m-d'),
-                    'fin' => $fechaFin->format('Y-m-d')
-                ],
-                'ingresos' => $ingresos,
-                'costos_ventas' => $costos,
-                'gastos_operativos' => $gastos,
-                'utilidad_bruta' => $ingresos['total'] - $costos['total'],
-                'utilidad_operativa' => 0,
-                'utilidad_neta' => 0
-            ];
-            
-            $estadoResultados['utilidad_operativa'] = 
-                $estadoResultados['utilidad_bruta'] - $gastos['total'];
-            
-            $estadoResultados['utilidad_neta'] = 
-                $estadoResultados['utilidad_operativa']; // Sin considerar otros ingresos/egresos
-            
-            return [
-                'success' => true,
-                'estado_resultados' => $estadoResultados
-            ];
-            
-        } catch (\Exception $e) {
-            Log::error('Error al generar estado de resultados', [
-                'error' => $e->getMessage()
-            ]);
-            
-            return [
-                'success' => false,
-                'error' => $e->getMessage()
-            ];
-        }
-    }
-
-    /**
-     * Generar balance general
-     */
-    public function generarBalanceGeneral(Carbon $fechaCorte): array
-    {
-        try {
-            $activos = $this->calcularActivos($fechaCorte);
-            $pasivos = $this->calcularPasivos($fechaCorte);
-            $patrimonio = $this->calcularPatrimonio($fechaCorte);
-            
-            $balanceGeneral = [
-                'fecha_corte' => $fechaCorte->format('Y-m-d'),
-                'activos' => $activos,
-                'pasivos' => $pasivos,
-                'patrimonio' => $patrimonio,
-                'total_activos' => $activos['total'],
-                'total_pasivos' => $pasivos['total'],
-                'total_patrimonio' => $patrimonio['total']
-            ];
-            
-            // Verificar equilibrio contable
-            $balanceGeneral['diferencia'] = 
-                $balanceGeneral['total_activos'] - 
-                ($balanceGeneral['total_pasivos'] + $balanceGeneral['total_patrimonio']);
-            $balanceGeneral['equilibrado'] = abs($balanceGeneral['diferencia']) < 0.01;
-            
-            return [
-                'success' => true,
-                'balance_general' => $balanceGeneral
-            ];
-            
-        } catch (\Exception $e) {
-            Log::error('Error al generar balance general', [
-                'error' => $e->getMessage()
-            ]);
-            
-            return [
-                'success' => false,
-                'error' => $e->getMessage()
-            ];
-        }
-    }
-
-    /**
-     * Registrar anulación de venta
-     */
-    public function registrarAnulacionVenta(Venta $factura): array
-    {
-        try {
-            DB::beginTransaction();
-            
-            // Generar asientos de anulación (reversión)
-            $asientos = $this->generarAsientosAnulacion($factura);
-            
-            foreach ($asientos as $asiento) {
-                $this->registrarAsientoContable($asiento);
-            }
-            
-            // Actualizar kardex (reversión de salidas)
-            $this->revertirKardexVentas($factura);
-            
-            // Cancelar cuenta por cobrar
-            $this->cancelarCuentaPorCobrar($factura);
-            
-            DB::commit();
-            
-            Log::info('Anulación de venta registrada en contabilidad', [
-                'factura' => $factura->Numero,
-                'asientos' => count($asientos)
-            ]);
-            
-            return [
-                'success' => true,
-                'asientos_creados' => count($asientos),
-                'message' => 'Anulación registrada exitosamente'
-            ];
-            
-        } catch (\Exception $e) {
-            DB::rollback();
-            Log::error('Error al registrar anulación de venta', [
-                'factura' => $factura->Numero,
-                'error' => $e->getMessage()
-            ]);
-            
-            return [
-                'success' => false,
-                'error' => $e->getMessage()
-            ];
-        }
-    }
-
-    /**
-     * Generar flujo de caja
-     */
-    public function generarFlujoCaja(Carbon $fechaInicio, Carbon $fechaFin): array
-    {
-        try {
-            $flujoOperativo = $this->calcularFlujoOperativo($fechaInicio, $fechaFin);
-            $flujoInversion = $this->calcularFlujoInversion($fechaInicio, $fechaFin);
-            $flujoFinanciamiento = $this->calcularFlujoFinanciamiento($fechaInicio, $fechaFin);
-            
-            $flujoCaja = [
-                'periodo' => [
-                    'inicio' => $fechaInicio->format('Y-m-d'),
-                    'fin' => $fechaFin->format('Y-m-d')
-                ],
-                'actividades_operativas' => $flujoOperativo,
-                'actividades_inversion' => $flujoInversion,
-                'actividades_financiamiento' => $flujoFinanciamiento,
-                'neto_operativo' => $flujoOperativo['total'],
-                'neto_inversion' => $flujoInversion['total'],
-                'neto_financiamiento' => $flujoFinanciamiento['total'],
-                'variacion_neta' => 0
-            ];
-            
-            $flujoCaja['variacion_neta'] = 
-                $flujoCaja['neto_operativo'] + 
-                $flujoCaja['neto_inversion'] + 
-                $flujoCaja['neto_financiamiento'];
-            
-            return [
-                'success' => true,
-                'flujo_caja' => $flujoCaja
-            ];
-            
-        } catch (\Exception $e) {
-            Log::error('Error al generar flujo de caja', [
-                'error' => $e->getMessage()
-            ]);
-            
-            return [
-                'success' => false,
-                'error' => $e->getMessage()
-            ];
-        }
-    }
-
-    /**
-     * Conciliar cuentas bancarias
-     */
-    public function conciliarCuentaBancaria(string $cuentaBanco, Carbon $fechaCorte): array
-    {
-        try {
-            // Obtener saldo según libros
-            $saldoLibros = $this->obtenerSaldoContableCuenta($cuentaBanco, $fechaCorte);
-            
-            // Obtener saldo según extracto bancario
-            $saldoBanco = $this->obtenerSaldoBancario($cuentaBanco, $fechaCorte);
-            
-            // Obtener diferencias (cheques en tránsito, depósitos en tránsito, etc.)
-            $diferencias = $this->analizarDiferenciasConciliacion($cuentaBanco, $fechaCorte);
-            
-            $conciliacion = [
-                'cuenta' => $cuentaBanco,
-                'fecha_corte' => $fechaCorte->format('Y-m-d'),
-                'saldo_libros' => $saldoLibros,
-                'saldo_banco' => $saldoBanco,
-                'diferencias' => $diferencias,
-                'ajustes_requeridos' => $diferencias['total_diferencias'],
-                'saldo_conciliado' => $saldoBanco + $diferencias['total_diferencias'],
-                'balance' => abs(($saldoLibros) - ($saldoBanco + $diferencias['total_diferencias'])) < 0.01
-            ];
-            
-            return [
-                'success' => true,
-                'conciliacion' => $conciliacion
-            ];
-            
-        } catch (\Exception $e) {
-            return [
-                'success' => false,
-                'error' => $e->getMessage()
-            ];
-        }
-    }
-
-    // Métodos privados de apoyo
-
-    private function generarAsientosVenta(Venta $factura): array
-    {
-        $asientos = [];
-        
-        // Asiento 1: Registro de venta (Cliente - Ventas)
-        $asientos[] = [
-            'fecha' => $factura->Fecha,
-            'documento' => $factura->Numero,
-            'concepto' => "Venta factura {$factura->Numero}",
-            'detalle' => "Venta a cliente {$factura->cliente->Razon}",
-            'lineas' => [
+            $detallesAsiento = [
+                // --- Asiento de Venta (Provisión) ---
                 [
-                    'cuenta' => '12', // Cuentas por cobrar comerciales
-                    'descripcion' => "Cliente {$factura->cliente->Razon}",
-                    'debe' => $factura->Total,
-                    'haber' => 0
+                    'asiento_id' => $asientoId, 'cuenta_contable' => $ctaCobrar,
+                    'debe' => $totales['total'], 'haber' => 0,
+                    'concepto' => "Provisión {$docNombre} {$numeroDoc}"
                 ],
                 [
-                    'cuenta' => '701', // Ventas
-                    'descripcion' => "Venta factura {$factura->Numero}",
-                    'debe' => 0,
-                    'haber' => $factura->Subtotal
+                    'asiento_id' => $asientoId, 'cuenta_contable' => $ctaIgv,
+                    'debe' => 0, 'haber' => $totales['igv'],
+                    'concepto' => "IGV {$docNombre} {$numeroDoc}"
                 ],
                 [
-                    'cuenta' => '401', // IGV
-                    'descripcion' => "IGV factura {$factura->Numero}",
-                    'debe' => 0,
-                    'haber' => $factura->Impuesto
-                ]
-            ]
-        ];
-        
-        // Asiento 2: Costo de ventas (si se maneja inventario perpetuo)
-        if ($factura->detalles->isNotEmpty()) {
-            $costoTotal = $factura->detalles->sum(function ($detalle) {
-                return $detalle->Cantidad * ($detalle->producto->Costo ?? 0);
+                    'asiento_id' => $asientoId, 'cuenta_contable' => $ctaVenta,
+                    'debe' => 0, 'haber' => $totales['subtotal'],
+                    'concepto' => "Base Imponible {$docNombre} {$numeroDoc}"
+                ],
+                
+                // --- Asiento de Costo de Venta ---
+                [
+                    'asiento_id' => $asientoId, 'cuenta_contable' => $ctaCosto,
+                    'debe' => $totalCostoVenta, 'haber' => 0,
+                    'concepto' => "Costo de Venta {$docNombre} {$numeroDoc}"
+                ],
+                [
+                    'asiento_id' => $asientoId, 'cuenta_contable' => $ctaMercaderia,
+                    'debe' => 0, 'haber' => $totalCostoVenta,
+                    'concepto' => "Salida Mercadería {$docNombre} {$numeroDoc}"
+                ],
+            ];
+            
+            // Filtrar movimientos de 0 (ej. ventas exoneradas sin IGV o costo 0)
+            $detallesFiltrados = array_filter($detallesAsiento, function($d) {
+                return $d['debe'] > 0 || $d['haber'] > 0;
             });
+
+            // Añadir timestamps a los detalles
+            $now = now();
+            foreach ($detallesFiltrados as &$detalle) {
+                $detalle['created_at'] = $now;
+                $detalle['updated_at'] = $now;
+                $detalle['documento_referencia'] = $numeroDoc;
+
+                // CASTING CORRECTO
+                $detalle['debe'] = (float) $detalle['debe'];
+                $detalle['haber'] = (float) $detalle['haber'];
+                $detalle['cuenta_contable'] = (string) $detalle['cuenta_contable'];
+                $detalle['concepto'] = (string) $detalle['concepto'];
+            }
+            unset($detalle);
+
+
+            DB::connection($this->connection)->table('libro_diario_detalles')->insert($detallesFiltrados);
             
-            if ($costoTotal > 0) {
-                $asientos[] = [
-                    'fecha' => $factura->Fecha,
-                    'documento' => $factura->Numero,
-                    'concepto' => "Costo de ventas factura {$factura->Numero}",
-                    'detalle' => "Costo de productos vendidos",
-                    'lineas' => [
-                        [
-                            'cuenta' => '691', // Costo de ventas
-                            'descripcion' => "Costo ventas factura {$factura->Numero}",
-                            'debe' => $costoTotal,
-                            'haber' => 0
-                        ],
-                        [
-                            'cuenta' => '20', // Mercaderías
-                            'descripcion' => "Mercaderías - Salida por venta",
-                            'debe' => 0,
-                            'haber' => $costoTotal
-                        ]
-                    ]
+            Log::info("Motor Contable: Asiento {$asientoId} creado para Venta {$numeroDoc}");
+
+            return $asientoId;
+
+        } catch (\Exception $e) {
+            Log::error("Error en Motor Contable (Venta): " . $e->getMessage(), [
+                'doc' => $numeroDoc, 
+                'trace' => $e->getTraceAsString()
+            ]);
+            // Lanzamos la excepción para que la transacción principal (del Controller) haga rollback
+            throw new \Exception("Error al registrar asiento contable: " . $e->getMessage());
+        }
+    }
+
+    public function registrarAsientoCobranza(
+        string $planillaNumero,
+        object $cliente,
+        array $pago,
+        float $montoTotalPagado,
+        float $montoTotalAplicado,
+        float $montoAdelanto,
+        int $userId
+    ): int {
+        $fechaPago = Carbon::parse($pago['fecha_pago']);
+
+        // 1. --- OBTENER CUENTAS ---
+
+        // 1A. (DEBE) Obtener la cuenta contable del banco de destino
+        $cuentaBanco = DB::connection($this->connection)->table('Bancos')
+                        ->where('Cuenta', $pago['cuenta_destino'])
+                        ->value('cuenta_contable'); // <-- Usamos la nueva columna
+        
+        if (!$cuentaBanco) {
+            // Si el banco no tiene cuenta asignada, usamos la de por defecto
+            Log::warning("Contabilidad: Banco {$pago['cuenta_destino']} sin cuenta contable. Usando default.");
+            $cuentaBanco = ($pago['metodo_pago'] == 'efectivo')
+                ? Config::get('contabilidad.cuentas.cobranzas.caja_default')
+                : Config::get('contabilidad.cuentas.cobranzas.banco_default');
+        }
+
+        // 1B. (HABER) Obtener las cuentas de contrapartida
+        $ctaPorCobrar = Config::get('contabilidad.cuentas.cobranzas.factura_por_cobrar'); // Asumimos 121201 para todo
+        $ctaAnticipo  = Config::get('contabilidad.cuentas.cobranzas.anticipo_clientes');
+
+        
+        // 2. --- Glosa y Totales ---
+        $glosa = "Cobranza s/ Planilla {$planillaNumero} - Cliente: {$cliente->Razon}";
+        $totalDebe  = round($montoTotalPagado, 2);
+        $totalHaber = round($montoTotalAplicado + $montoAdelanto, 2); // Debe ser igual al totalDebe
+
+        if (abs($totalDebe - $totalHaber) > 0.01) {
+            throw new \Exception("Asiento de Cobranza desbalanceado. Debe: {$totalDebe}, Haber: {$totalHaber}");
+        }
+        if ($totalDebe <= 0) {
+            Log::warning("Asiento de Cobranza omitido por monto 0.", ['planilla' => $planillaNumero]);
+            return 0;
+        }
+
+        try {
+            // 3. --- Insertar Cabecera (libro_diario) ---
+            $sqlCabecera = "
+                INSERT INTO libro_diario 
+                (numero, fecha, glosa, total_debe, total_haber, balanceado, estado, usuario_id, created_at, updated_at) 
+                OUTPUT INSERTED.id
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                
+            $paramsCabecera = [
+                $this->generarNumeroAsiento($fechaPago),
+                $fechaPago,
+                substr($glosa, 0, 500),
+                (float) $totalDebe,
+                (float) $totalHaber,
+                1, 'ACTIVO', $userId,
+                now(), now()
+            ];
+            
+            $resultado = DB::connection($this->connection)->select($sqlCabecera, $paramsCabecera);
+            $asientoId = $resultado[0]->id;
+
+            if (!$asientoId) throw new \Exception("No se pudo obtener el ID del asiento de cobranza.");
+
+            // 4. --- Insertar Detalles (libro_diario_detalles) ---
+            $detallesAsiento = [];
+
+            // 4A. El DEBE (Ingreso del dinero)
+            $detallesAsiento[] = [
+                'asiento_id' => $asientoId, 'cuenta_contable' => $cuentaBanco,
+                'debe' => (float) $totalDebe, 'haber' => 0.0,
+                'concepto' => "Ingreso por Cobranza Planilla {$planillaNumero}"
+            ];
+
+            // 4B. El HABER (Cancelación de Deuda)
+            if ($montoTotalAplicado > 0) {
+                $detallesAsiento[] = [
+                    'asiento_id' => $asientoId, 'cuenta_contable' => $ctaPorCobrar,
+                    'debe' => 0.0, 'haber' => (float) $montoTotalAplicado,
+                    'concepto' => "Cancelación Facturas Planilla {$planillaNumero}"
                 ];
             }
-        }
-        
-        return $asientos;
-    }
-
-    private function generarAsientosIngreso(Pago $pago): array
-    {
-        $asientos = [];
-        
-        // Asiento de ingreso
-        if ($pago->CuentaBanco) {
-            // Ingreso a cuenta bancaria
-            $asientos[] = [
-                'fecha' => $pago->Fecha,
-                'documento' => $pago->Numero,
-                'concepto' => "Ingreso - {$pago->Concepto}",
-                'detalle' => $pago->Concepto,
-                'lineas' => [
-                    [
-                        'cuenta' => '10', // Cuentas corrientes
-                        'descripcion' => "Banco {$pago->CuentaBanco}",
-                        'debe' => $pago->Monto,
-                        'haber' => 0
-                    ],
-                    [
-                        'cuenta' => '12', // Cuentas por cobrar o ingresos
-                        'descripcion' => "Ingreso por {$pago->Concepto}",
-                        'debe' => 0,
-                        'haber' => $pago->Monto
-                    ]
-                ]
-            ];
-        } else {
-            // Ingreso en efectivo
-            $asientos[] = [
-                'fecha' => $pago->Fecha,
-                'documento' => $pago->Numero,
-                'concepto' => "Ingreso en efectivo - {$pago->Concepto}",
-                'detalle' => $pago->Concepto,
-                'lineas' => [
-                    [
-                        'cuenta' => '10', // Caja
-                        'descripcion' => "Caja",
-                        'debe' => $pago->Monto,
-                        'haber' => 0
-                    ],
-                    [
-                        'cuenta' => '12', // Cuentas por cobrar
-                        'descripcion' => "Ingreso por {$pago->Concepto}",
-                        'debe' => 0,
-                        'haber' => $pago->Monto
-                    ]
-                ]
-            ];
-        }
-        
-        return $asientos;
-    }
-
-    private function generarAsientosEgreso(Pago $pago): array
-    {
-        $asientos = [];
-        
-        // Asiento de egreso
-        if ($pago->CuentaBanco) {
-            // Egreso de cuenta bancaria
-            $asientos[] = [
-                'fecha' => $pago->Fecha,
-                'documento' => $pago->Numero,
-                'concepto' => "Egreso - {$pago->Concepto}",
-                'detalle' => $pago->Concepto,
-                'lineas' => [
-                    [
-                        'cuenta' => '60', // Compras o gastos
-                        'descripcion' => "Gasto - {$pago->Concepto}",
-                        'debe' => $pago->Monto,
-                        'haber' => 0
-                    ],
-                    [
-                        'cuenta' => '10', // Cuentas corrientes
-                        'descripcion' => "Banco {$pago->CuentaBanco}",
-                        'debe' => 0,
-                        'haber' => $pago->Monto
-                    ]
-                ]
-            ];
-        } else {
-            // Egreso en efectivo
-            $asientos[] = [
-                'fecha' => $pago->Fecha,
-                'documento' => $pago->Numero,
-                'concepto' => "Egreso en efectivo - {$pago->Concepto}",
-                'detalle' => $pago->Concepto,
-                'lineas' => [
-                    [
-                        'cuenta' => '60', // Compras o gastos
-                        'descripcion' => "Gasto - {$pago->Concepto}",
-                        'debe' => $pago->Monto,
-                        'haber' => 0
-                    ],
-                    [
-                        'cuenta' => '10', // Caja
-                        'descripcion' => "Caja",
-                        'debe' => 0,
-                        'haber' => $pago->Monto
-                    ]
-                ]
-            ];
-        }
-        
-        return $asientos;
-    }
-
-    private function generarAsientosAnulacion(Venta $factura): array
-    {
-        $asientos = [];
-        
-        // Revisión de la venta (reverse entry)
-        $asientos[] = [
-            'fecha' => now(),
-            'documento' => $factura->Numero . '-ANUL',
-            'concepto' => "Anulación factura {$factura->Numero}",
-            'detalle' => "Reversión de venta anulada",
-            'lineas' => [
-                [
-                    'cuenta' => '701', // Ventas (reversión)
-                    'descripcion' => "Anulación venta factura {$factura->Numero}",
-                    'debe' => $factura->Subtotal,
-                    'haber' => 0
-                ],
-                [
-                    'cuenta' => '401', // IGV (reversión)
-                    'descripcion' => "Anulación IGV factura {$factura->Numero}",
-                    'debe' => $factura->Impuesto,
-                    'haber' => 0
-                ],
-                [
-                    'cuenta' => '12', // Cuentas por cobrar (reversión)
-                    'descripcion' => "Cliente {$factura->cliente->Razon} - Anulación",
-                    'debe' => 0,
-                    'haber' => $factura->Total
-                ]
-            ]
-        ];
-        
-        return $asientos;
-    }
-
-    private function registrarAsientoContable(array $asiento): void
-    {
-        // En una implementación real, esto guardaría en tabla de asientos contables
-        Log::info('Asiento contable registrado', [
-            'fecha' => $asiento['fecha'],
-            'documento' => $asiento['documento'],
-            'concepto' => $asiento['concepto'],
-            'lineas' => count($asiento['lineas'])
-        ]);
-    }
-
-    private function actualizarKardexVentas(Venta $factura): void
-    {
-        foreach ($factura->detalles as $detalle) {
-            // Actualizar kardex - esto se maneja en el MovimientoInventario
-            Log::info('Kardex actualizado por venta', [
-                'producto' => $detalle->Codpro,
-                'cantidad' => $detalle->Cantidad,
-                'costo' => $detalle->producto->Costo ?? 0
-            ]);
-        }
-    }
-
-    private function actualizarCuentasPorCobrar(Venta $factura): void
-    {
-        // La cuenta por cobrar ya se crea en el FacturaService
-        Log::info('Cuenta por cobrar actualizada', [
-            'factura' => $factura->Numero,
-            'cliente' => $factura->CodClie,
-            'monto' => $factura->Total
-        ]);
-    }
-
-    private function actualizarCuentaPorCobrar(Pago $pago): void
-    {
-        // Actualizar saldo de cuenta por cobrar con el pago recibido
-        Log::info('Cuenta por cobrar actualizada por pago', [
-            'pago' => $pago->Numero,
-            'monto' => $pago->Monto
-        ]);
-    }
-
-    private function actualizarSaldoBancario(Pago $pago): void
-    {
-        // Actualizar saldo de cuenta bancaria
-        Log::info('Saldo bancario actualizado', [
-            'cuenta' => $pago->CuentaBanco,
-            'monto' => $pago->Monto,
-            'tipo' => $pago->Tipo
-        ]);
-    }
-
-    private function obtenerCuentasConMovimientos(Carbon $fechaInicio, Carbon $fechaFin): array
-    {
-        // En una implementación real, consultaría la tabla de asientos contables
-        // Por ahora retornamos estructura de ejemplo
-        
-        return [
-            [
-                'cuenta' => '10',
-                'descripcion' => 'Caja y Bancos',
-                'debe' => 10000.00,
-                'haber' => 5000.00
-            ],
-            [
-                'cuenta' => '12',
-                'descripcion' => 'Cuentas por Cobrar',
-                'debe' => 8000.00,
-                'haber' => 12000.00
-            ],
-            [
-                'cuenta' => '20',
-                'descripcion' => 'Mercaderías',
-                'debe' => 25000.00,
-                'haber' => 5000.00
-            ]
-        ];
-    }
-
-    private function calcularIngresos(Carbon $fechaInicio, Carbon $fechaFin): array
-    {
-        $ingresos = Venta::whereBetween('Fecha', [$fechaInicio, $fechaFin])
-            ->where('Eliminado', false)
-            ->sum('Total');
-        
-        return [
-            'ventas' => $ingresos,
-            'otros_ingresos' => 0,
-            'total' => $ingresos
-        ];
-    }
-
-    private function calcularCostosVentas(Carbon $fechaInicio, Carbon $fechaFin): array
-    {
-        // Calcular costo de ventas basado en productos vendidos
-        $facturas = Venta::whereBetween('Fecha', [$fechaInicio, $fechaFin])
-            ->where('Eliminado', false)
-            ->with('detalles.producto')
-            ->get();
-        
-        $costoTotal = 0;
-        foreach ($facturas as $factura) {
-            foreach ($factura->detalles as $detalle) {
-                $costoTotal += $detalle->Cantidad * ($detalle->producto->Costo ?? 0);
+            
+            // 4C. El HABER (Anticipo)
+            if ($montoAdelanto > 0) {
+                 $detallesAsiento[] = [
+                    'asiento_id' => $asientoId, 'cuenta_contable' => $ctaAnticipo,
+                    'debe' => 0.0, 'haber' => (float) $montoAdelanto,
+                    'concepto' => "Anticipo Cliente Planilla {$planillaNumero}"
+                ];
             }
+
+            // 5. --- Guardar Detalles ---
+            $now = now();
+            foreach ($detallesAsiento as &$detalle) {
+                $detalle['created_at'] = $now;
+                $detalle['updated_at'] = $now;
+                $detalle['documento_referencia'] = $planillaNumero;
+            }
+
+            DB::connection($this->connection)->table('libro_diario_detalles')->insert($detallesAsiento);
+            
+            Log::info("Motor Contable: Asiento {$asientoId} creado para Cobranza {$planillaNumero}");
+
+            return $asientoId;
+
+        } catch (\Exception $e) {
+            Log::error("Error en Motor Contable (Cobranza): " . $e->getMessage(), [
+                'planilla' => $planillaNumero, 
+                'trace' => $e->getTraceAsString()
+            ]);
+            throw new \Exception("Error al registrar asiento contable de cobranza: " . $e->getMessage());
+        }
+    }
+
+    public function registrarAsientoCompra(
+        string $nroFacturaProveedor,
+        object $proveedor,
+        float $subtotal,
+        float $igv,
+        float $total,
+        Carbon $fechaFactura,
+        int $userId
+    ): int {
+        
+        // 1. --- OBTENER CUENTAS ---
+        $ctaCompra     = Config::get('contabilidad.cuentas.compras.compras_mercaderia');
+        $ctaIgv        = Config::get('contabilidad.cuentas.compras.igv_compras');
+        $ctaPorPagar   = Config::get('contabilidad.cuentas.compras.facturas_por_pagar');
+        $ctaAlmacen    = Config::get('contabilidad.cuentas.compras.almacen_mercaderia');
+        $ctaVariacion  = Config::get('contabilidad.cuentas.compras.variacion_stock');
+
+        // 2. --- Glosa y Totales ---
+        $glosa = "Provisión Compra s/ Factura {$nroFacturaProveedor} - Prov: {$proveedor->RazonSocial}";
+        
+        // El asiento contable completo (provisión + destino) debe sumar:
+        $totalDebe  = round($subtotal + $igv + $subtotal, 2);
+        $totalHaber = round($total + $subtotal, 2);
+
+        if (abs($totalDebe - $totalHaber) > 0.01) {
+            throw new \Exception("Asiento de Compra desbalanceado. Debe: {$totalDebe}, Haber: {$totalHaber}");
+        }
+        if ($totalDebe <= 0) {
+            Log::warning("Asiento de Compra omitido por monto 0.", ['factura' => $nroFacturaProveedor]);
+            return 0;
+        }
+
+        try {
+            // 3. --- Insertar Cabecera (libro_diario) ---
+            $sqlCabecera = "
+                INSERT INTO libro_diario 
+                (numero, fecha, glosa, total_debe, total_haber, balanceado, estado, usuario_id, created_at, updated_at) 
+                OUTPUT INSERTED.id
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                
+            $paramsCabecera = [
+                $this->generarNumeroAsiento($fechaFactura),
+                $fechaFactura,
+                substr($glosa, 0, 500),
+                (float) $totalDebe,
+                (float) $totalHaber,
+                1, 'ACTIVO', $userId,
+                now(), now()
+            ];
+            
+            $resultado = DB::connection($this->connection)->select($sqlCabecera, $paramsCabecera);
+            $asientoId = $resultado[0]->id;
+
+            if (!$asientoId) throw new \Exception("No se pudo obtener el ID del asiento de compra.");
+
+            // 4. --- Insertar Detalles (libro_diario_detalles) ---
+            $detallesAsiento = [];
+
+            // --- Asiento 1: Provisión (60/40/42) ---
+            $detallesAsiento[] = [
+                'asiento_id' => $asientoId, 'cuenta_contable' => $ctaCompra,
+                'debe' => (float) $subtotal, 'haber' => 0.0,
+                'concepto' => "Compra de Mercadería s/ Factura {$nroFacturaProveedor}"
+            ];
+            $detallesAsiento[] = [
+                'asiento_id' => $asientoId, 'cuenta_contable' => $ctaIgv,
+                'debe' => (float) $igv, 'haber' => 0.0,
+                'concepto' => "IGV Crédito Fiscal s/ Factura {$nroFacturaProveedor}"
+            ];
+            $detallesAsiento[] = [
+                'asiento_id' => $asientoId, 'cuenta_contable' => $ctaPorPagar,
+                'debe' => 0.0, 'haber' => (float) $total,
+                'concepto' => "Provisión por Pagar s/ Factura {$nroFacturaProveedor}"
+            ];
+            
+            // --- Asiento 2: Destino (20/61) ---
+            $detallesAsiento[] = [
+                'asiento_id' => $asientoId, 'cuenta_contable' => $ctaAlmacen,
+                'debe' => (float) $subtotal, 'haber' => 0.0,
+                'concepto' => "Ingreso a Almacén s/ Factura {$nroFacturaProveedor}"
+            ];
+            $detallesAsiento[] = [
+                'asiento_id' => $asientoId, 'cuenta_contable' => $ctaVariacion,
+                'debe' => 0.0, 'haber' => (float) $subtotal,
+                'concepto' => "Variación de Existencias s/ Factura {$nroFacturaProveedor}"
+            ];
+
+            // 5. --- Guardar Detalles ---
+            $now = now();
+            foreach ($detallesAsiento as &$detalle) {
+                // Filtramos líneas con 0 (ej. compras exoneradas)
+                if ($detalle['debe'] > 0 || $detalle['haber'] > 0) {
+                    $detalle['created_at'] = $now;
+                    $detalle['updated_at'] = $now;
+                    $detalle['documento_referencia'] = $nroFacturaProveedor;
+                } else {
+                    $detalle = null; // Marcamos para eliminar
+                }
+            }
+            $detallesFiltrados = array_filter($detallesAsiento);
+
+            DB::connection($this->connection)->table('libro_diario_detalles')->insert($detallesFiltrados);
+            
+            Log::info("Motor Contable: Asiento {$asientoId} creado para Compra {$nroFacturaProveedor}");
+
+            return $asientoId;
+
+        } catch (\Exception $e) {
+            Log::error("Error en Motor Contable (Compra): " . $e->getMessage(), [
+                'factura' => $nroFacturaProveedor, 
+                'trace' => $e->getTraceAsString()
+            ]);
+            throw new \Exception("Error al registrar asiento contable de compra: " . $e->getMessage());
+        }
+    }
+
+    public function registrarAsientoPagoProveedor(
+        string $nroOperacion,
+        object $proveedor,
+        string $cuentaBancoId,
+        float $montoTotalPagado,
+        Carbon $fechaPago,
+        int $userId
+    ): int {
+        
+        // 1. --- OBTENER CUENTAS ---
+
+        // 1A. (HABER) Obtener la cuenta contable del banco de origen (de donde sale el dinero)
+        $cuentaBancoContable = DB::connection($this->connection)->table('Bancos')
+                        ->where('Cuenta', $cuentaBancoId)
+                        ->value('cuenta_contable'); // <-- Usamos la columna que creamos
+        
+        if (!$cuentaBancoContable) {
+            Log::warning("Contabilidad: Banco {$cuentaBancoId} sin cuenta contable. Usando default.");
+            $cuentaBancoContable = Config::get('contabilidad.cuentas.cobranzas.banco_default'); // Re-usamos el default
+        }
+
+        // 1B. (DEBE) Obtener la cuenta de contrapartida (la deuda que cancelamos)
+        $ctaPorPagar = Config::get('contabilidad.cuentas.compras.facturas_por_pagar'); // 421201
+
+        
+        // 2. --- Glosa y Totales ---
+        $glosa = "Pago a Proveedor s/ Op. {$nroOperacion} - Prov: {$proveedor->RazonSocial}";
+        $totalDebe  = round($montoTotalPagado, 2);
+        $totalHaber = round($montoTotalPagado, 2);
+
+        if ($totalDebe <= 0) return 0; // Omitir asiento si es 0
+
+        try {
+            // 3. --- Insertar Cabecera (libro_diario) ---
+            $sqlCabecera = "
+                INSERT INTO libro_diario 
+                (numero, fecha, glosa, total_debe, total_haber, balanceado, estado, usuario_id, created_at, updated_at) 
+                OUTPUT INSERTED.id
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                
+            $paramsCabecera = [
+                $this->generarNumeroAsiento($fechaPago),
+                $fechaPago,
+                substr($glosa, 0, 500),
+                (float) $totalDebe,
+                (float) $totalHaber,
+                1, 'ACTIVO', $userId,
+                now(), now()
+            ];
+            
+            $resultado = DB::connection($this->connection)->select($sqlCabecera, $paramsCabecera);
+            $asientoId = $resultado[0]->id;
+
+            if (!$asientoId) throw new \Exception("No se pudo obtener el ID del asiento de pago.");
+
+            // 4. --- Insertar Detalles (libro_diario_detalles) ---
+            $detallesAsiento = [
+                // 4A. El DEBE (Cancelación de la deuda 42)
+                [
+                    'asiento_id' => $asientoId, 'cuenta_contable' => $ctaPorPagar,
+                    'debe' => (float) $totalDebe, 'haber' => 0.0,
+                    'concepto' => "Cancelación deuda Proveedor s/ Op. {$nroOperacion}"
+                ],
+                
+                // 4B. El HABER (Salida del dinero del banco 10)
+                [
+                    'asiento_id' => $asientoId, 'cuenta_contable' => $cuentaBancoContable,
+                    'debe' => 0.0, 'haber' => (float) $totalHaber,
+                    'concepto' => "Egreso de Banco s/ Op. {$nroOperacion}"
+                ]
+            ];
+
+            // 5. --- Guardar Detalles ---
+            $now = now();
+            foreach ($detallesAsiento as &$detalle) {
+                $detalle['created_at'] = $now;
+                $detalle['updated_at'] = $now;
+                $detalle['documento_referencia'] = $nroOperacion;
+            }
+
+            DB::connection($this->connection)->table('libro_diario_detalles')->insert($detallesAsiento);
+            Log::info("Motor Contable: Asiento {$asientoId} creado para Pago a Proveedor {$nroOperacion}");
+            return $asientoId;
+
+        } catch (\Exception $e) {
+            Log::error("Error en Motor Contable (Pago Proveedor): " . $e->getMessage(), ['op' => $nroOperacion]);
+            throw new \Exception("Error al registrar asiento contable de pago: " . $e->getMessage());
+        }
+    }
+
+    public function registrarAsientoNotaCredito(
+        string $numeroNC,
+        array $carrito,
+        object $facturaOriginal,
+        int $userId
+    ): int {
+        
+        $total    = (float) $carrito['totales']['total'];
+        $subtotal = (float) $carrito['totales']['subtotal'];
+        $igv      = (float) $carrito['totales']['igv'];
+        $fechaHoy = Carbon::now();
+
+        // 1. --- OBTENER CUENTAS ---
+
+        // 1A. (DEBE) Determinar la cuenta de cargo (704 si es devolución, 67 si es descuento)
+        if ($carrito['tipo_operacion'] == 'devolucion') {
+            $ctaCargo = Config::get('contabilidad.cuentas.notas_credito.devolucion_ventas');
+        } else {
+            $ctaCargo = Config::get('contabilidad.cuentas.notas_credito.descuento_ventas');
         }
         
-        return [
-            'costo_productos' => $costoTotal,
-            'otros_costos' => 0,
-            'total' => $costoTotal
-        ];
-    }
-
-    private function calcularGastosOperativos(Carbon $fechaInicio, Carbon $fechaFin): array
-    {
-        $gastos = Pago::whereBetween('Fecha', [$fechaInicio, $fechaFin])
-            ->where('Tipo', 2) // Egresos
-            ->sum('Monto');
+        // 1B. (DEBE) Cuenta de IGV
+        $ctaIgv = Config::get('contabilidad.cuentas.notas_credito.igv_nc');
         
-        return [
-            'gastos_operativos' => $gastos,
-            'otros_gastos' => 0,
-            'total' => $gastos
-        ];
+        // 1C. (HABER) Cuenta por Cobrar (la 12)
+        $ctaPorCobrar = Config::get('contabilidad.cuentas.notas_credito.cuenta_por_cobrar');
+        
+        // 2. --- Glosa y Totales ---
+        $glosa = "Por la NC {$numeroNC} (Afecta Fact. {$facturaOriginal->Numero}) - Motivo: {$carrito['motivo']}";
+        $totalDebe  = round($subtotal + $igv, 2);
+        $totalHaber = round($total, 2);
+
+        if (abs($totalDebe - $totalHaber) > 0.01) {
+            throw new \Exception("Asiento de NC desbalanceado. Debe: {$totalDebe}, Haber: {$totalHaber}");
+        }
+        if ($totalDebe <= 0) {
+            Log::warning("Asiento de NC omitido por monto 0.", ['nc' => $numeroNC]);
+            return 0;
+        }
+
+        try {
+            // 3. --- Insertar Cabecera (libro_diario) ---
+            // ¡Usamos nuestro generador de correlativos consistente!
+            $numeroAsiento = $this->generarNumeroAsiento($fechaHoy);
+            
+            $sqlCabecera = "
+                INSERT INTO libro_diario 
+                (numero, fecha, glosa, total_debe, total_haber, balanceado, estado, usuario_id, created_at, updated_at) 
+                OUTPUT INSERTED.id
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                
+            $paramsCabecera = [
+                $numeroAsiento,
+                $fechaHoy,
+                substr($glosa, 0, 500),
+                (float) $totalDebe,
+                (float) $totalHaber,
+                1, 'ACTIVO', $userId,
+                now(), now()
+            ];
+            
+            $resultado = DB::connection($this->connection)->select($sqlCabecera, $paramsCabecera);
+            $asientoId = $resultado[0]->id;
+
+            if (!$asientoId) throw new \Exception("No se pudo obtener el ID del asiento de NC.");
+
+            // 4. --- Insertar Detalles (libro_diario_detalles) ---
+            $detallesAsiento = [
+                // 4A. El DEBE (Reversión de Venta o Gasto por Descuento)
+                [
+                    'asiento_id' => $asientoId, 'cuenta_contable' => $ctaCargo,
+                    'debe' => (float) $subtotal, 'haber' => 0.0,
+                    'concepto' => "Reversión/Desc. s/ Fact. {$facturaOriginal->Numero}"
+                ],
+                // 4B. El DEBE (Reversión de IGV)
+                [
+                    'asiento_id' => $asientoId, 'cuenta_contable' => $ctaIgv,
+                    'debe' => (float) $igv, 'haber' => 0.0,
+                    'concepto' => "Reversión IGV s/ Fact. {$facturaOriginal->Numero}"
+                ],
+                // 4C. El HABER (Reducción de la Cuenta por Cobrar)
+                [
+                    'asiento_id' => $asientoId, 'cuenta_contable' => $ctaPorCobrar,
+                    'debe' => 0.0, 'haber' => (float) $total,
+                    'concepto' => "NC {$numeroNC} aplicada a Fact. {$facturaOriginal->Numero}"
+                ]
+            ];
+            
+            // 5. --- Guardar Detalles ---
+            $now = now();
+            foreach ($detallesAsiento as &$detalle) {
+                if ($detalle['debe'] > 0 || $detalle['haber'] > 0) {
+                    $detalle['created_at'] = $now;
+                    $detalle['updated_at'] = $now;
+                    $detalle['documento_referencia'] = $numeroNC;
+                } else {
+                    $detalle = null; // No insertar líneas con 0
+                }
+            }
+
+            DB::connection($this->connection)->table('libro_diario_detalles')->insert(array_filter($detallesAsiento));
+            Log::info("Motor Contable: Asiento {$asientoId} creado para Nota de Crédito {$numeroNC}");
+            return $asientoId;
+
+        } catch (\Exception $e) {
+            Log::error("Error en Motor Contable (Nota de Crédito): " . $e->getMessage(), ['nc' => $numeroNC]);
+            throw new \Exception("Error al registrar asiento contable de NC: " . $e->getMessage());
+        }
     }
 
-    private function calcularActivos(Carbon $fechaCorte): array
-    {
-        return [
-            'efectivo' => 15000.00,
-            'cuentas_cobrar' => 25000.00,
-            'inventario' => 40000.00,
-            'activos_fijos' => 50000.00,
-            'total' => 130000.00
-        ];
-    }
+    public function registrarAsientoAnulacionCobranza(
+        object $planilla,
+        object $bancoIngreso,
+        float $totalAnulado,
+        string $motivo,
+        int $userId
+    ): int {
+        
+        $fechaAnulacion = Carbon::now();
 
-    private function calcularPasivos(Carbon $fechaCorte): array
-    {
-        return [
-            'cuentas_pagar' => 10000.00,
-            'impuestos' => 5000.00,
-            'prestamos' => 20000.00,
-            'otros_pasivos' => 3000.00,
-            'total' => 38000.00
-        ];
-    }
+        // 1. --- OBTENER CUENTAS ---
+        $ctaCliente = Config::get('contabilidad.cuentas.anulaciones.cliente_por_cobrar');
+        
+        // Buscamos la cuenta contable del banco que se usó en el ingreso
+        $cuentaBancoContable = DB::connection($this->connection)->table('Bancos')
+                        ->where('Cuenta', $bancoIngreso->Cuenta)
+                        ->value('cuenta_contable');
+        
+        if (!$cuentaBancoContable) {
+            $cuentaBancoContable = Config::get('contabilidad.cuentas.cobranzas.banco_default');
+        }
 
-    private function calcularPatrimonio(Carbon $fechaCorte): array
-    {
-        return [
-            'capital' => 80000.00,
-            'utilidades_ejercicios' => 14000.00,
-            'otros' => 0,
-            'total' => 94000.00
-        ];
-    }
+        // 2. --- Glosa y Totales ---
+        $glosa = "ANULACIÓN de Cobranza. Planilla: {$planilla->Serie}-{$planilla->Numero}. Motivo: {$motivo}";
+        $totalDebe  = round($totalAnulado, 2);
+        $totalHaber = round($totalAnulado, 2);
 
-    private function calcularFlujoOperativo(Carbon $fechaInicio, Carbon $fechaFin): array
-    {
-        return [
-            'ingresos_clientes' => $this->calcularIngresos($fechaInicio, $fechaFin)['total'],
-            'gastos_operativos' => $this->calcularGastosOperativos($fechaInicio, $fechaFin)['total'],
-            'total' => 0
-        ];
-    }
+        if ($totalDebe <= 0) return 0; // No hacer nada si el monto es 0
 
-    private function calcularFlujoInversion(Carbon $fechaInicio, Carbon $fechaFin): array
-    {
-        return [
-            'compras_activos' => 5000.00,
-            'ventas_activos' => 0,
-            'total' => -5000.00
-        ];
-    }
+        try {
+            // 3. --- Insertar Cabecera (libro_diario) ---
+            $numeroAsiento = $this->generarNumeroAsiento($fechaAnulacion);
+            
+            $sqlCabecera = "
+                INSERT INTO libro_diario 
+                (numero, fecha, glosa, total_debe, total_haber, balanceado, estado, usuario_id, created_at, updated_at) 
+                OUTPUT INSERTED.id
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                
+            $paramsCabecera = [
+                $numeroAsiento,
+                $fechaAnulacion,
+                substr($glosa, 0, 500),
+                (float) $totalDebe,
+                (float) $totalHaber,
+                1, 'ACTIVO', $userId,
+                now(), now()
+            ];
+            
+            $resultado = DB::connection($this->connection)->select($sqlCabecera, $paramsCabecera);
+            $asientoId = $resultado[0]->id;
 
-    private function calcularFlujoFinanciamiento(Carbon $fechaInicio, Carbon $fechaFin): array
-    {
-        return [
-            'prestamos_recibidos' => 0,
-            'prestamos_pagados' => 2000.00,
-            'dividendos_pagados' => 0,
-            'total' => -2000.00
-        ];
-    }
+            if (!$asientoId) throw new \Exception("No se pudo obtener el ID del asiento de anulación.");
 
-    private function obtenerSaldoContableCuenta(string $cuenta, Carbon $fechaCorte): float
-    {
-        // En implementación real consultaría asientos contables
-        return 10000.00; // Ejemplo
-    }
+            // 4. --- Insertar Detalles (El asiento inverso 12 / 10) ---
+            $detallesAsiento = [
+                // 4A. El DEBE (Restauramos la deuda al Cliente)
+                [
+                    'asiento_id' => $asientoId, 'cuenta_contable' => $ctaCliente,
+                    'debe' => (float) $totalDebe, 'haber' => 0.0,
+                    'concepto' => "Extorno s/ Planilla {$planilla->Serie}-{$planilla->Numero}"
+                ],
+                // 4B. El HABER (Revertimos el ingreso del banco)
+                [
+                    'asiento_id' => $asientoId, 'cuenta_contable' => $cuentaBancoContable,
+                    'debe' => 0.0, 'haber' => (float) $totalHaber,
+                    'concepto' => "Extorno de Banco s/ Planilla {$planilla->Serie}-{$planilla->Numero}"
+                ]
+            ];
 
-    private function obtenerSaldoBancario(string $cuenta, Carbon $fechaCorte): float
-    {
-        // En implementación real consultaría extractos bancarios
-        return 9800.00; // Ejemplo
-    }
+            // 5. --- Guardar Detalles ---
+            $now = now();
+            foreach ($detallesAsiento as &$detalle) {
+                $detalle['created_at'] = $now;
+                $detalle['updated_at'] = $now;
+                $detalle['documento_referencia'] = 'ANUL-' . $planilla->Serie . '-' . $planilla->Numero;
+            }
 
-    private function analizarDiferenciasConciliacion(string $cuenta, Carbon $fechaCorte): array
-    {
-        return [
-            'cheques_transito' => 150.00,
-            'depositos_transito' => 0,
-            'cargos_bancarios' => 50.00,
-            'otros' => 0,
-            'total_diferencias' => -200.00 // Cheques en tránsito - cargos bancarios
-        ];
-    }
+            DB::connection($this->connection)->table('libro_diario_detalles')->insert($detallesAsiento);
+            Log::info("Motor Contable: Asiento {$asientoId} creado para Anulación de Cobranza {$planilla->Serie}-{$planilla->Numero}");
+            return $asientoId;
 
-    private function revertirKardexVentas(Venta $factura): void
-    {
-        Log::info('Kardex revertido por anulación de venta', [
-            'factura' => $factura->Numero
-        ]);
-    }
-
-    private function cancelarCuentaPorCobrar(Venta $factura): void
-    {
-        Log::info('Cuenta por cobrar cancelada por anulación', [
-            'factura' => $factura->Numero
-        ]);
+        } catch (\Exception $e) {
+            Log::error("Error en Motor Contable (Anulación Cobranza): " . $e->getMessage());
+            throw new \Exception("Error al registrar asiento contable de anulación: " . $e->getMessage());
+        }
     }
 }

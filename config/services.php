@@ -40,5 +40,13 @@ return [
         'token' => env('RENIEC_API_TOKEN', null),
     ],
 
+    'pse' => [
+        // Esta es la URL de la API de tu proveedor (Nubefact, TCI, Efact, etc.)
+        'url' => env('PSE_API_URL', 'https_://api.tu-proveedor.com'),
+        
+        // Este es tu Token o "llave secreta" para conectarte
+        'token' => env('PSE_API_TOKEN', null),
+    ],
+
 
 ];

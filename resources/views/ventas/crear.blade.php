@@ -268,19 +268,26 @@
                                 </select>
                                 <small id="stockDisponible" class="form-text"></small>
                             </div>
-                            <div class="col-md-3">
+                            <div class="col-md-2">
                                 <label class="form-label fw-bold">
                                     <i class="fas fa-hashtag me-1"></i> 3. Cantidad
                                 </label>
                                 <input type="number" class="form-control" id="itemCantidad" 
                                        placeholder="0.00" step="0.01" min="0.01">
                             </div>
-                            <div class="col-md-3">
+                            <div class="col-md-2">
                                 <label class="form-label fw-bold">
-                                    <i class="fas fa-dollar-sign me-1"></i> 4. Precio Unitario (S/)
+                                    <i class="fas fa-dollar-sign me-1"></i> 4. Precio (S/)
                                 </label>
                                 <input type="number" class="form-control" id="itemPrecio" 
                                        placeholder="0.00" step="0.01" min="0.01">
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label fw-bold">
+                                    <i class="fas fa-percent me-1"></i> 5. Dcto (%)
+                                </label>
+                                <input type="number" class="form-control" id="itemDescuento" 
+                                       value="0" step="0.01" min="0" max="100">
                             </div>
                             <div class="col-md-3">
                                 <label class="form-label fw-bold">
@@ -291,7 +298,7 @@
                             </div>
                             <div class="col-md-3">
                                 <label class="form-label fw-bold">
-                                    <i class="fas fa-plus-circle me-1"></i> 5. Añadir
+                                    <i class="fas fa-plus-circle me-1"></i> 6. Añadir
                                 </label>
                                 <button type="button" class="btn btn-success w-100" id="btnAgregarItem">
                                     <i class="fas fa-cart-plus me-1"></i> Agregar
@@ -314,13 +321,14 @@
                                     <th class="py-3"><i class="fas fa-barcode me-1"></i> Lote</th>
                                     <th class="text-end py-3"><i class="fas fa-hashtag me-1"></i> Cantidad</th>
                                     <th class="text-end py-3"><i class="fas fa-tag me-1"></i> Precio</th>
+                                    <th class="text-end py-3"><i class="fas fa-percent me-1"></i> Dcto %</th>
                                     <th class="text-end py-3"><i class="fas fa-calculator me-1"></i> Subtotal</th>
                                     <th class="text-center py-3"><i class="fas fa-cog me-1"></i> Acción</th>
                                 </tr>
                             </thead>
                             <tbody id="tablaItems">
                                 <tr>
-                                    <td colspan="6" class="text-center text-muted py-4">
+                                    <td colspan="7" class="text-center text-muted py-4">
                                         <i class="fas fa-shopping-cart fa-2x mb-2 d-block"></i>
                                         El carrito está vacío. Añada productos arriba.
                                     </td>
@@ -328,21 +336,35 @@
                             </tbody>
                             <tfoot>
                                 <tr>
-                                    <td colspan="4" class="text-end py-3">
-                                        <i class="fas fa-file-invoice me-1"></i> SUBTOTAL:
+                                    <td colspan="5" class="text-end py-3">
+                                        <i class="fas fa-file-invoice me-1"></i> SUBTOTAL BRUTO:
                                     </td>
-                                    <td class="text-end py-3" id="totalSubtotal">S/ 0.00</td>
+                                    <td class="text-end py-3" id="totalBruto">S/ 0.00</td>
                                     <td></td>
                                 </tr>
                                 <tr>
-                                    <td colspan="4" class="text-end py-3">
+                                    <td colspan="5" class="text-end py-3 text-danger">
+                                        <i class="fas fa-tags me-1"></i> DESCUENTO TOTAL:
+                                    </td>
+                                    <td class="text-end py-3 text-danger fw-bold" id="totalDescuento">S/ 0.00</td>
+                                    <td></td>
+                                </tr>
+                                <tr>
+                                    <td colspan="5" class="text-end py-3">
+                                        <i class="fas fa-receipt me-1"></i> SUBTOTAL NETO:
+                                    </td>
+                                    <td class="text-end py-3 fw-bold" id="totalSubtotal">S/ 0.00</td>
+                                    <td></td>
+                                </tr>
+                                <tr>
+                                    <td colspan="5" class="text-end py-3">
                                         <i class="fas fa-percent me-1"></i> IGV (18%):
                                     </td>
                                     <td class="text-end py-3" id="totalIgv">S/ 0.00</td>
                                     <td></td>
                                 </tr>
                                 <tr class="fs-5">
-                                    <td colspan="4" class="text-end py-3 fw-bolder">
+                                    <td colspan="5" class="text-end py-3 fw-bolder">
                                         <i class="fas fa-coins me-1"></i> IMPORTE TOTAL:
                                     </td>
                                     <td class="text-end py-3 fw-bolder text-success" id="totalTotal">S/ 0.00</td>
@@ -520,6 +542,7 @@
             $('#itemPrecio').val(parseFloat(producto.Precio).toFixed(2));
             $('#itemCosto').val(parseFloat(producto.Costo).toFixed(2));
             $('#itemUnimed').val(1);
+            $('#itemDescuento').val(0);
             
             const $selectLote = $('#selectLote');
             $selectLote.empty().prop('disabled', true).append('<option value="">Cargando lotes...</option>');
@@ -560,15 +583,20 @@
         });
 
         // ========================================
-        // CALCULAR SUBTOTAL
+        // CALCULAR SUBTOTAL CON DESCUENTO
         // ========================================
-        $('#itemCantidad, #itemPrecio').on('input', actualizarSubtotal);
+        $('#itemCantidad, #itemPrecio, #itemDescuento').on('input', actualizarSubtotal);
 
         function actualizarSubtotal() {
             const cantidad = parseFloat($('#itemCantidad').val()) || 0;
             const precio = parseFloat($('#itemPrecio').val()) || 0;
-            const subtotal = cantidad * precio;
-            $('#itemSubtotal').val('S/ ' + subtotal.toFixed(2));
+            const descuento = parseFloat($('#itemDescuento').val()) || 0;
+            
+            const subtotalBruto = cantidad * precio;
+            const montoDescuento = subtotalBruto * (descuento / 100);
+            const subtotalNeto = subtotalBruto - montoDescuento;
+            
+            $('#itemSubtotal').val('S/ ' + subtotalNeto.toFixed(2));
         }
 
         // ========================================
@@ -597,7 +625,8 @@
                 cantidad: parseFloat($('#itemCantidad').val()),
                 precio: parseFloat($('#itemPrecio').val()),
                 costo: parseFloat($('#itemCosto').val()),
-                stock: parseFloat(loteSel.data('stock'))
+                stock: parseFloat(loteSel.data('stock')),
+                descuento: parseFloat($('#itemDescuento').val()) || 0
             };
 
             if (!item.cantidad || item.cantidad <= 0 || !item.precio) {
@@ -793,6 +822,7 @@
             $('#selectLote').empty().prop('disabled', true).append('<option value="">Seleccione un producto...</option>');
             $('#itemCantidad').val('');
             $('#itemPrecio').val('');
+            $('#itemDescuento').val('0');
             $('#itemSubtotal').val('');
             $('#stockDisponible').text('');
         }
@@ -805,7 +835,7 @@
             if (!carrito) {
                 $('#paso2_items, #paso3_pago').removeClass('active');
                 $('#tablaItems').empty();
-                $('#totalSubtotal, #totalIgv, #totalTotal').text('S/ 0.00');
+                $('#totalBruto, #totalDescuento, #totalSubtotal, #totalIgv, #totalTotal').text('S/ 0.00');
                 return;
             }
 
@@ -817,8 +847,11 @@
             
             if (carrito.items && Object.keys(carrito.items).length > 0) {
                 $.each(carrito.items, function(itemId, item) {
-                    const subtotal = item.cantidad * item.precio;
+                    const subtotalBruto = item.cantidad * item.precio;
+                    const montoDescuento = subtotalBruto * (item.descuento / 100);
+                    const subtotalNeto = subtotalBruto - montoDescuento;
                     const venc = item.vencimiento ? new Date(item.vencimiento).toLocaleDateString('es-PE') : 'N/A';
+                    
                     $tablaItems.append(`
                         <tr>
                             <td>
@@ -831,7 +864,8 @@
                             </td>
                             <td class="text-end">${item.cantidad}</td>
                             <td class="text-end">${formatCurrency(item.precio)}</td>
-                            <td class="text-end fw-bold">${formatCurrency(subtotal)}</td>
+                            <td class="text-end ${item.descuento > 0 ? 'text-danger fw-bold' : ''}">${item.descuento}%</td>
+                            <td class="text-end fw-bold">${formatCurrency(subtotalNeto)}</td>
                             <td class="text-center">
                                 <button type="button" class="btn btn-danger btn-sm btn-eliminar-item" data-item-id="${itemId}">
                                     <i class="fas fa-trash"></i>
@@ -845,7 +879,7 @@
             } else {
                 $tablaItems.append(`
                     <tr>
-                        <td colspan="6" class="text-center text-muted py-4">
+                        <td colspan="7" class="text-center text-muted py-4">
                             <i class="fas fa-shopping-cart fa-2x mb-2 d-block"></i>
                             El carrito está vacío. Añada productos arriba.
                         </td>
@@ -855,6 +889,9 @@
                 $('#indicador-paso3').removeClass('active');
             }
 
+            // Actualizar totales con descuento
+            $('#totalBruto').text(formatCurrency(carrito.totales.subtotal_bruto || 0));
+            $('#totalDescuento').text(formatCurrency(carrito.totales.descuento_total || 0));
             $('#totalSubtotal').text(formatCurrency(carrito.totales.subtotal));
             $('#totalIgv').text(formatCurrency(carrito.totales.igv));
             $('#totalTotal').text(formatCurrency(carrito.totales.total));
