@@ -297,10 +297,8 @@
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Animar barras de progreso al cargar
     setTimeout(() => {
         document.querySelectorAll('.progress-fill').forEach(bar => {
-            // Re-aplicar el width activa la transición CSS
             bar.style.width = bar.style.width; 
         });
     }, 100);
