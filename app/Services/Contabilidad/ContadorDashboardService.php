@@ -546,7 +546,6 @@ class ContadorDashboardService
 
     public function obtenerProductosStockBajo($limite = 10)
     {
-        // (Tu código original aquí...)
         return DB::table('Productos as p')
             ->leftJoin('Laboratorios as l', DB::raw('LEFT(p.CodPro, 2)'), '=', DB::raw('RTRIM(l.CodLab)'))
             ->where('p.Eliminado', 0)
@@ -574,7 +573,6 @@ class ContadorDashboardService
 
     public function obtenerProductosProximosVencer($limite = 10)
     {
-        // (Tu código original aquí...)
         $fechaLimite = now()->addMonths(3);
         return DB::table('Saldos as s')
             ->join('Productos as p', 's.codpro', '=', 'p.CodPro')
@@ -652,9 +650,6 @@ class ContadorDashboardService
         });
     }
 
-    // ===================================================================
-    // MÉTODOS QUE FALTABAN (COPIADOS DEL CONTROLADOR ORIGINAL)
-    // ===================================================================
 
     public function obtenerMesesLabels($cantidad = 6)
     {

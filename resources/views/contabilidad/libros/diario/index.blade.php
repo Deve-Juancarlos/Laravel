@@ -2,50 +2,47 @@
 
 @section('title', 'Libro Diario')
 
-<!-- 1. Título de la Cabecera -->
-@section('page-title', 'Libro Diario')
+@push('styles')
+    {{-- Hacemos referencia al CSS que acabamos de crear --}}
+    <link href="{{ asset('css/contabilidad/libro-diario.css') }}" rel="stylesheet">
+@endpush
 
-<!-- 2. Breadcrumbs -->
+{{-- 
+    MEJORA DE COHERENCIA:
+    Usamos la sección 'header-content' que definimos en 'layouts.app'
+    para poner el título, subtítulo y botón de acción.
+--}}
+@section('header-content')
+    <div class="page-header">
+        <div class="page-header-content">
+            <div class="page-icon">
+                <i class="fas fa-book"></i>
+            </div>
+            <div class="page-title-info">
+                <h1 class="page-title">Libro Diario</h1>
+                <p class="page-subtitle">Registro completo de asientos contables de SEIMCORP</p>
+            </div>
+        </div>
+        <div class="page-actions">
+            <button class="btn btn-primary" onclick="window.location.href='{{ route('contador.libro-diario.create') }}'">
+                <i class="fas fa-plus"></i> Nuevo Asiento
+            </button>
+        </div>
+    </div>
+@endsection
+
 @section('breadcrumbs')
     <li class="breadcrumb-item"><a href="{{ route('dashboard.contador') }}">Contabilidad</a></li>
     <li class="breadcrumb-item active" aria-current="page">Libro Diario</li>
 @endsection
 
-<!-- 3. Estilos CSS de esta página -->
-@push('styles')
-    <!-- Hacemos referencia al CSS que define el look moderno de esta página -->
-    <link href="{{ asset('css/contabilidad/libro-diario.css') }}" rel="stylesheet">
-@endpush
 
-
-<!-- 4. Contenido Principal -->
 @section('content')
 <div class="libro-diario-view">
 
-    {{-- Header Moderno --}}
-    <div class="page-header-modern">
-        <div class="page-header-content">
-            <div class="page-header-info">
-                <h1>
-                    <i class="fas fa-book"></i>
-                    Libro Diario
-                </h1>
-                <p>Registro completo de asientos contables de SEIMCORP.</p>
-            </div>
-            <div class="page-header-actions">
-                <a href="{{ route('contador.libro-diario.create') }}" class="btn btn-primary">
-                    <i class="fas fa-plus-circle"></i>
-                    Nuevo Asiento
-                </a>
-            </div>
-        </div>
-    </div>
+    {{-- Ya no necesitamos el 'page-header-modern' aquí, porque lo maneja el layout --}}
 
-    {{-- Alertas (Están en el layout, pero las dejamos por si se mueven) --}}
-    {{-- Las alertas del layout app.blade.php ya manejan 'success' y 'error' --}}
-
-
-    {{-- Estadísticas Modernas --}}
+    {{-- Estadísticas Modernas (Tu código está perfecto) --}}
     <div class="stats-grid">
         <div class="stat-card">
             <div class="stat-content">
@@ -96,7 +93,7 @@
         </div>
     </div>
 
-    {{-- Filtros Modernos --}}
+    {{-- Filtros Modernos (Tu código está perfecto) --}}
     <div class="filters-card">
         <div class="filters-header">
             <h5 class="filters-title">
@@ -105,7 +102,11 @@
             </h5>
         </div>
         <div class="filters-body">
-            <form method="GET" action="{{ route('contador.libro-diario.index') }}">
+            {{-- 
+                Usamos un 'id' en el form para que los botones de exportar 
+                puedan leer los valores de los filtros fácilmente.
+            --}}
+            <form id="filter-form" method="GET" action="{{ route('contador.libro-diario.index') }}">
                 <div class="row g-3">
                     <div class="col-md-3">
                         <div class="form-group">
@@ -129,20 +130,6 @@
                         <div class="form-group">
                             <label class="form-label">Cuenta Contable</label>
                             <input type="text" class="form-control" name="cuenta_contable" value="{{ request('cuenta_contable') }}" placeholder="Ej: 10411">
-                            {{-- 
-                            // Opcional: Si tienes pocas cuentas, un Select es mejor.
-                            // Si tienes miles, un input de texto es más rápido.
-                            <select class="form-select" name="cuenta_contable">
-                                <option value="">Todas las cuentas</option>
-                                @if(isset($cuentasContables))
-                                    @foreach($cuentasContables as $cuenta)
-                                        <option value="{{ $cuenta->codigo }}" {{ request('cuenta_contable') == $cuenta->codigo ? 'selected' : '' }}>
-                                            {{ $cuenta->codigo }} - {{ $cuenta->nombre }}
-                                        </option>
-                                    @endforeach
-                                @endif
-                            </select>
-                            --}}
                         </div>
                     </div>
                 </div>
@@ -150,18 +137,19 @@
                     <div class="col-12 d-flex justify-content-between">
                         <div class="btn-group">
                             <button type="submit" class="btn btn-primary">
-                                <i class="fas fa-search"></i> Buscar
+                                <i class="fas fa-search me-1"></i> Buscar
                             </button>
                             <a href="{{ route('contador.libro-diario.index') }}" class="btn btn-outline-secondary">
-                                <i class="fas fa-redo"></i> Limpiar
+                                <i class="fas fa-redo me-1"></i> Limpiar
                             </a>
                         </div>
                         <div class="btn-group">
+                            {{-- Estos botones ahora llaman a las funciones JS externas --}}
                             <button type="button" class="btn btn-success" onclick="exportarExcel()">
-                                <i class="fas fa-file-excel"></i> Exportar Excel
+                                <i class="fas fa-file-excel me-1"></i> Exportar Excel
                             </button>
                             <button type="button" class="btn btn-danger" onclick="exportarPDF()">
-                                <i class="fas fa-file-pdf"></i> Exportar PDF
+                                <i class="fas fa-file-pdf me-1"></i> Exportar PDF
                             </button>
                         </div>
                     </div>
@@ -170,7 +158,7 @@
         </div>
     </div>
 
-    {{-- Tabla Moderna de Asientos --}}
+    {{-- Tabla Moderna de Asientos (Tu lógica @if está bien para este caso) --}}
     <div class="table-card">
         
         @if(isset($asientos) && $asientos->count() > 0)
@@ -212,13 +200,13 @@
                         </td>
                         <td class="text-center">
                             @if($asiento->balanceado)
-                                <span class="badge bg-success-light text-success">
-                                    <i class="fas fa-check-circle"></i>
+                                <span class="badge bg-success-light">
+                                    <i class="fas fa-check-circle me-1"></i>
                                     Balanceado
                                 </span>
                             @else
-                                <span class="badge bg-warning-light text-warning">
-                                    <i class="fas fa-exclamation-triangle"></i>
+                                <span class="badge bg-warning-light">
+                                    <i class="fas fa-exclamation-triangle me-1"></i>
                                     Descuadrado
                                 </span>
                             @endif
@@ -231,7 +219,6 @@
                                 <a href="{{ route('contador.libro-diario.edit', $asiento->id) }}" class="btn btn-icon btn-outline-secondary" title="Editar">
                                     <i class="fas fa-edit"></i>
                                 </a>
-                                <!-- MEJORA: Botón de Eliminar añadido -->
                                 <button type="button" class="btn btn-icon btn-outline-danger" 
                                         title="Eliminar"
                                         onclick="confirmarEliminacion({{ $asiento->id }})">
@@ -257,7 +244,7 @@
         @endif
 
         @else
-        {{-- Estado Vacío Mejorado --}}
+        {{-- Estado Vacío (Tu código está perfecto) --}}
         <div class="empty-state">
             <div class="empty-state-icon">
                 <i class="fas fa-inbox"></i>
@@ -265,7 +252,7 @@
             <h5>No se encontraron asientos contables</h5>
             <p>Los asientos aparecerán aquí según los filtros seleccionados o puedes crear el primer asiento ahora.</p>
             <a href="{{ route('contador.libro-diario.create') }}" class="btn btn-primary">
-                <i class="fas fa-plus-circle"></i> Crear Primer Asiento
+                <i class="fas fa-plus-circle me-1"></i> Crear Primer Asiento
             </a>
         </div>
         @endif
@@ -274,94 +261,5 @@
 @endsection
 
 @push('scripts')
-<script>
-// Funciones de exportación (requieren los parámetros de filtro)
-function getFilterParams() {
-    return new URLSearchParams(window.location.search);
-}
-
-function exportarExcel() {
-    const params = getFilterParams();
-    params.set('formato', 'excel');
-    window.location.href = `{{ route('contador.libro-diario.exportar') }}?${params.toString()}`;
-}
-
-function exportarPDF() {
-    const params = getFilterParams();
-    params.set('formato', 'pdf');
-    window.location.href = `{{ route('contador.libro-diario.exportar') }}?${params.toString()}`;
-}
-
-// Animación de números al cargar
-function animateValue(element, start, end, duration) {
-    const range = end - start;
-    if (range === 0) {
-        element.textContent = (end.toString().includes('.')) ? 'S/ ' + end.toFixed(2) : end.toString();
-        return;
-    }
-    const increment = range / (duration / 16);
-    let current = start;
-    
-    const timer = setInterval(() => {
-        current += increment;
-        if ((increment > 0 && current >= end) || (increment < 0 && current <= end)) {
-            current = end;
-            clearInterval(timer);
-        }
-        
-        const isDecimal = current.toString().includes('.') || end.toString().includes('.');
-        const isCurrency = element.textContent.startsWith('S/ ');
-
-        let formattedValue = isDecimal ? 
-            current.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',') : 
-            current.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-        
-        element.textContent = isCurrency ? 'S/ ' + formattedValue : formattedValue;
-    }, 16);
-}
-
-window.addEventListener('load', function() {
-    document.querySelectorAll('.stat-value').forEach(element => {
-        const value = parseFloat(element.getAttribute('data-value')) || 0;
-        const startValue = 0;
-        
-        if (element.textContent.startsWith('S/ ')) {
-            element.textContent = 'S/ 0.00';
-            animateValue(element, startValue, value, 1000);
-        } else {
-            element.textContent = '0';
-            animateValue(element, startValue, value, 1000);
-        }
-    });
-});
-
-
-// Confirmación de eliminación (SweetAlert2)
-function confirmarEliminacion(id) {
-    if (typeof Swal !== 'undefined') {
-        Swal.fire({
-            title: '¿Estás seguro?',
-            text: "Esta acción eliminará el asiento contable permanentemente. No se puede deshacer.",
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#d33',
-            cancelButtonColor: '#6c757d',
-            confirmButtonText: 'Sí, eliminar',
-            cancelButtonText: 'Cancelar'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                // Muestra el overlay de carga
-                if(typeof showLoading === 'function') showLoading();
-                document.getElementById('delete-form-' + id).submit();
-            }
-        });
-    } else {
-        // Fallback si SweetAlert no carga
-        if (confirm('¿Estás seguro de eliminar este asiento? Esta acción no se puede deshacer.')) {
-            if(typeof showLoading === 'function') showLoading();
-            document.getElementById('delete-form-' + id).submit();
-        }
-    }
-}
-</script>
+    <script src="{{ asset('js/contabilidad/libro-diario.js') }}"></script>
 @endpush

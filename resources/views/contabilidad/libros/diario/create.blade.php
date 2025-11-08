@@ -14,9 +14,12 @@
 
 <!-- 3. Estilos CSS de esta página -->
 @push('styles')
-    <!-- Usamos los mismos estilos del formulario de 'edit' para consistencia -->
-    <link href="{{ asset('css/contabilidad/asiento-form.css') }}" rel="stylesheet">
     <link href="{{ asset('css/contabilidad/libro-diario-create.css') }}" rel="stylesheet">
+    <link href="{{ asset('css/contabilidad/asiento-form.css') }}" rel="stylesheet">
+    <link href="{{ asset('css/contabilidad/detalles-animations.css') }}" rel="stylesheet">
+    <link href="{{ asset('css/contabilidad/detalles-interactivity.css') }}" rel="stylesheet">
+    <link href="{{ asset('css/contabilidad/detalles-accessibility.css') }}" rel="stylesheet">
+    <link href="{{ asset('css/contabilidad/detalles-master.css') }}" rel="stylesheet">
 @endpush
 
 <!-- 4. Contenido Principal -->
@@ -151,7 +154,7 @@
             </div>
             
             {{-- Resumen del Balance --}}
-            <div class="balance-summary">
+            <div class="balance-summary mt-4">
                 <h6 class="balance-title">
                     <i class="fas fa-calculator"></i> Resumen del Balance
                 </h6>
