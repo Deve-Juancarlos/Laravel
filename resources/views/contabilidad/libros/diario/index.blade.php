@@ -32,7 +32,7 @@
 @endsection
 
 @section('breadcrumbs')
-    <li class="breadcrumb-item"><a href="{{ route('dashboard.contador') }}">Contabilidad</a></li>
+    <li class="breadcrumb-item"><a href="{{ route('contador.dashboard.contador') }}">Contabilidad</a></li>
     <li class="breadcrumb-item active" aria-current="page">Libro Diario</li>
 @endsection
 

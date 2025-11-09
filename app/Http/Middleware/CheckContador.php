@@ -34,7 +34,7 @@ class CheckContador
             // Redirige según su tipo de usuario real
             $redirectRoute = match ($rol) {
                 'admin', 'super_admin' => 'dashboard.admin',
-                'contador' => 'dashboard.contador',
+                'contador' => 'contador.dashboard.contador',
                 default => 'login',
             };
 

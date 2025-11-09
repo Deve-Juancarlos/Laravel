@@ -378,7 +378,7 @@ class FlujoCajaController extends Controller
             DB::connection($this->connection)->commit();
             session()->forget('flujo_cobranza');
             
-            return redirect()->route('dashboard.contador') // Ruta de tu dashboard
+            return redirect()->route('contador.dashboard.contador') // Ruta de tu dashboard
                             ->with('success', 'Cobranza registrada (Planilla: ' . $planillaNumeroCompleto . ') y Asiento Contable generado.');
 
         } catch (\Exception $e) {

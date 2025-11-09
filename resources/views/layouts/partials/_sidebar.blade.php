@@ -1,6 +1,6 @@
 
 <div class="nav-section">Principal</div>
-<a class="nav-link {{ request()->routeIs('dashboard.contador') ? 'active' : '' }}" href="{{ route('dashboard.contador') }}">
+<a class="nav-link {{ request()->routeIs('contador.dashboard.contador') ? 'active' : '' }}" href="{{ route('contador.dashboard.contador') }}">
     <i class="fas fa-chart-pie"></i>
     <span>Dashboard</span>
 </a>
@@ -37,7 +37,7 @@
     <span>Flujos diarios</span>
 </a>
 
-<a class="nav-link {{ request()->is('contabilidad/reportes*') ? 'active' : '' }}" href="#">
+<a class="nav-link {{ request()->is('contabilidad/reportes*') ? 'active' : '' }}" href="{{ route('contador.reportes.index') }}">
     <i class="fas fa-file-invoice-dollar"></i>
     <span>Reportes</span>
 </a>
@@ -58,7 +58,7 @@
 
 <a class="nav-link {{ request()->is('tesoreria/cobranzas*') ? 'active' : '' }}" href="{{ route('contador.letras_descuento.index') }}">
     <i class="fas fa-hand-holding-usd"></i>
-    <span>LETRAS</span>
+    <span>Letras</span>
 </a>
 
 <div class="nav-section">Inventario</div>
@@ -105,7 +105,8 @@
 
 <div class="nav-section">Administración</div>
 
-<a class="nav-link {{ request()->is('admin/auditoria*') ? 'active' : '' }}" href="#">
+<a class="nav-link {{ request()->routeIs('contador.reportes.auditoria.*') ? 'active' : '' }}" 
+   href="{{ route('contador.reportes.auditoria.libro_diario') }}">
     <i class="fas fa-history"></i>
     <span>Auditoría</span>
 </a>

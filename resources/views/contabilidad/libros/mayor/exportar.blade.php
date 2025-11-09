@@ -11,7 +11,7 @@
 
 {{-- 2. Breadcrumbs --}}
 @section('breadcrumbs')
-    <li class="breadcrumb-item"><a href="{{ route('dashboard.contador') }}">Contabilidad</a></li>
+    <li class="breadcrumb-item"><a href="{{ route('contador.dashboard.contador') }}">Contabilidad</a></li>
     <li class="breadcrumb-item"><a href="{{ route('contador.libro-mayor.index') }}">Libro Mayor</a></li>
     <li class="breadcrumb-item active" aria-current="page">Exportar</li>
 @endsection

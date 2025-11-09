@@ -119,7 +119,7 @@
                 
                 <nav aria-label="breadcrumb">
                     <ol class="breadcrumb">
-                        <li class="breadcrumb-item"><a href="{{ route('dashboard.contador') }}">Inicio</a></li>
+                        <li class="breadcrumb-item"><a href="{{ route('contador.dashboard.contador') }}">Inicio</a></li>
                         @yield('breadcrumbs')
                     </ol>
                 </nav>

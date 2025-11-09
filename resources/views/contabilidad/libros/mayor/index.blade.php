@@ -182,21 +182,18 @@
     </style>
 @endpush
 
-{{-- 1. Título de la Página --}}
 @section('page-title', 'Libro Mayor')
 
-{{-- 2. Breadcrumbs --}}
 @section('breadcrumbs')
     <li class="breadcrumb-item">
-        <a href="{{ route('dashboard.contador') }}">Contabilidad</a>
+        <a href="{{ route('contador.dashboard.contador') }}">Contabilidad</a>
     </li>
     <li class="breadcrumb-item active" aria-current="page">Libro Mayor</li>
 @endsection
 
-{{-- 3. Contenido Principal --}}
 @section('content')
     <div class="libro-mayor-view">
-        {{-- === ALERTAS === --}}
+       
         @if(session('success'))
             <div class="alert alert-success alert-dismissible fade show" role="alert">
                 <i class="fas fa-check-circle me-2"></i>

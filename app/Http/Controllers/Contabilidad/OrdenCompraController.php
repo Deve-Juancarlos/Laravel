@@ -8,6 +8,9 @@ use App\Services\CompraCarritoService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Mail; 
+use App\Mail\EnviarDocumentoMail;   
+use Barryvdh\DomPDF\Facade\Pdf as PDF;
 
 class OrdenCompraController extends Controller
 {
@@ -132,15 +135,10 @@ class OrdenCompraController extends Controller
     
     public function show($id)
     {
-        $orden = $this->getOrdenCompraCompleta($id);
-        if (!$orden) abort(404);
+        $data = $this->getShowData($id);
+        if (!$data['orden']) abort(404);
 
-        return view('compras.ordenes.show', [
-            'orden' => $orden,
-            'detalles' => $orden->detalles,
-            'proveedor' => $orden->proveedor,
-            'empresa' => $this->getEmpresaDatos()
-        ]);
+        return view('compras.ordenes.show', $data);
     }
     
   
@@ -225,4 +223,71 @@ class OrdenCompraController extends Controller
         $carrito = $this->carritoService->actualizarPago($pagoData);
         return response()->json(['success' => true, 'carrito' => $carrito]);
     }
+    public function enviarEmail(Request $request, $id)
+    {
+        $request->validate(['email_destino' => 'required|email']);
+        $emailDestino = $request->input('email_destino');
+
+        try {
+            // 1. Obtenemos los datos de la O/C
+            $data = $this->getShowData($id);
+            if (!$data['orden']) abort(404);
+
+            $orden = $data['orden'];
+            $numeroOC = $orden->Serie . '-' . $orden->Numero;
+            
+            // 2. Generamos el PDF en memoria
+            $pdf = PDF::loadView('compras.ordenes.show', $data);
+            
+            // 3. Definir los datos para el email
+            $emailData = [
+                'asunto' => "Envío de Orden de Compra: {$numeroOC}",
+                'titulo' => "Estimado Proveedor {$orden->ProveedorNombre},",
+                'cuerpo' => "Adjuntamos nuestra Orden de Compra N° {$numeroOC} emitida por {$data['empresa']['nombre']}.",
+                'pdf' => $pdf->output(),
+                'nombreArchivo' => "OC-{$numeroOC}.pdf"
+            ];
+
+            // 4. Enviar el Email
+            Mail::to($emailDestino)->send(new EnviarDocumentoMail($emailData));
+
+            return redirect()->back()->with('success', "O/C {$numeroOC} enviada a {$emailDestino} exitosamente.");
+
+        } catch (\Exception $e) {
+            Log::error("Error al enviar email de O/C: " . $e->getMessage());
+            Log::error($e->getTraceAsString());
+            return redirect()->back()->with('error', 'Error al enviar el email: ' . $e->getMessage());
+        }
+    }
+
+    private function getShowData($id)
+    {
+        $orden = DB::connection($this->connection)->table('OrdenCompraCab as oc')
+            ->join('Proveedores as p', 'oc.CodProv', '=', 'p.CodProv')
+            ->where('oc.Id', $id)
+            ->select('oc.*', 'p.RazonSocial as ProveedorNombre', 'p.Ruc as ProveedorRuc', 'p.Direccion as ProveedorDireccion', 'p.Email as ProveedorEmail') // <-- ¡AÑADIDO ProveedorEmail!
+            ->first();
+            
+        if(!$orden) return ['orden' => null];
+
+        $detalles = DB::connection($this->connection)->table('OrdenCompraDet as od')
+            ->join('Productos as p', 'od.CodPro', '=', 'p.CodPro')
+            ->leftJoin('Laboratorios as l', DB::raw('RTRIM(l.CodLab)'), '=', DB::raw('LEFT(p.CodPro, 2)'))
+            ->where('od.OrdenId', $id)
+            ->select('od.*', 'p.Nombre as ProductoNombre', 'l.Descripcion as LaboratorioNombre')
+            ->get();
+            
+        $proveedor = (object)[
+            'RazonSocial' => $orden->ProveedorNombre,
+            'Ruc' => $orden->ProveedorRuc,
+            'Direccion' => $orden->ProveedorDireccion,
+            'Email' => $orden->ProveedorEmail 
+        ];
+        
+        $empresa = $this->getEmpresaDatos();
+        
+        return compact('orden', 'detalles', 'proveedor', 'empresa');
+    }
+
+    
 }

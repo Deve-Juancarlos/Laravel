@@ -156,7 +156,7 @@ class AnulacionPlanillaController extends Controller
 
             DB::connection($this->connection)->commit();
 
-            return redirect()->route('dashboard.contador') // O a la lista de planillas
+            return redirect()->route('contador.dashboard.contador') // O a la lista de planillas
                 ->with('success', "Planilla {$planillaNumeroCompleto} anulada exitosamente. Se revirtieron saldos y se generó el asiento de extorno.");
 
         } catch (\Exception $e) {

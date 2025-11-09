@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use App\Services\ContabilidadService;
 use Carbon\Carbon;
+use PDF;
 
 class RegistroCompraController extends Controller
 {

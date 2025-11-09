@@ -26,7 +26,7 @@ class PlanCuentasController extends Controller
             return view('contabilidad.plan-cuentas.index', $data);
         } catch (\Exception $e) {
             Log::error('Error en PlanCuentasController@index: ' . $e->getMessage());
-            return redirect()->route('dashboard.contador')->with('error', 'Error al cargar el Plan de Cuentas.');
+            return redirect()->route('contador.dashboard.contador')->with('error', 'Error al cargar el Plan de Cuentas.');
         }
     }
 

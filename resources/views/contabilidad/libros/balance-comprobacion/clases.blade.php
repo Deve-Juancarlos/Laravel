@@ -3,11 +3,9 @@
 @section('title', 'Balance por Clases - Balance de Comprobación')
 
 @push('styles')
-    {{-- Referencia al CSS que crearemos --}}
     <link href="{{ asset('css/contabilidad/balance-comprobacion-clases.css') }}" rel="stylesheet">
 @endpush
 
-{{-- 1. Título de la Página --}}
 @section('page-title')
     <div>
         <h1><i class="fas fa-layer-group me-2"></i>Balance por Clases</h1>
@@ -15,14 +13,13 @@
     </div>
 @endsection
 
-{{-- 2. Breadcrumbs --}}
 @section('breadcrumbs')
-    <li class="breadcrumb-item"><a href="{{ route('dashboard.contador') }}">Contabilidad</a></li>
+    <li class="breadcrumb-item"><a href="{{ route('contador.dashboard.contador') }}">Contabilidad</a></li>
     <li class="breadcrumb-item"><a href="{{ route('contador.balance-comprobacion.index') }}">Balance de Comprobación</a></li>
     <li class="breadcrumb-item active" aria-current="page">Balance por Clases</li>
 @endsection
 
-{{-- 3. Contenido Principal --}}
+
 @section('content')
 <div class="container-fluid">
 

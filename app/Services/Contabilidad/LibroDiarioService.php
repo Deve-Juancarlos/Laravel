@@ -8,10 +8,139 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
 use Carbon\Carbon;
 use Symfony\Component\HttpFoundation\StreamedResponse;
-
+use App\Models\LibroDiario; // <-- ¡¡IMPORTADO PARA USAR ELOQUENT!!
 
 class LibroDiarioService
 {
+    // ===================================================================
+    // MÉTODOS DE ESCRITURA (C-U-D) - ¡REFRACTORIZADOS CON ELOQUENT!
+    // ===================================================================
+
+    /**
+     * Almacena un nuevo asiento contable.
+     * ¡¡REFACTORIZADO CON ELOQUENT!!
+     */
+    public function storeAsiento(array $validatedData, $observaciones, $userId)
+    {
+        $totalDebe = collect($validatedData['detalles'])->sum('debe');
+        $totalHaber = collect($validatedData['detalles'])->sum('haber');
+
+        if (abs($totalDebe - $totalHaber) > 0.01) {
+            throw new \Exception('El asiento no cuadra. Debe: S/ ' . number_format($totalDebe, 2) .
+                ', Haber: S/ ' . number_format($totalHaber, 2));
+        }
+
+        DB::beginTransaction();
+        try {
+            $numeroAsiento = $this->obtenerSiguienteNumeroAsiento();
+
+            // ▼▼▼ CAMBIO DE DB::table A ELOQUENT ▼▼▼
+            // Al llamar a "create", el Observador se disparará.
+            $asiento = LibroDiario::create([
+                'numero' => $numeroAsiento,
+                'fecha' => $validatedData['fecha'],
+                'glosa' => $validatedData['glosa'],
+                'total_debe' => $totalDebe,
+                'total_haber' => $totalHaber,
+                'balanceado' => true,
+                'estado' => 'ACTIVO',
+                'usuario_id' => $userId,
+                'observaciones' => $observaciones,
+                // created_at y updated_at son automáticos con Eloquent
+            ]);
+            // ▲▲▲ FIN DEL CAMBIO ▲▲▲
+
+            $detallesParaInsertar = [];
+            foreach ($validatedData['detalles'] as $detalle) {
+                $detallesParaInsertar[] = [
+                    'cuenta_contable' => $detalle['cuenta_contable'],
+                    'debe' => $detalle['debe'] ?? 0,
+                    'haber' => $detalle['haber'] ?? 0,
+                    'concepto' => $detalle['concepto'],
+                    'documento_referencia' => $detalle['documento_referencia'] ?? null,
+                    // created_at y updated_at son automáticos
+                ];
+            }
+            
+            // Usamos la relación (definida en el Modelo) para crear los detalles
+            $asiento->detalles()->createMany($detallesParaInsertar);
+
+            DB::commit();
+
+            Log::info('Asiento contable creado', [
+                'numero' => $numeroAsiento, 'total' => $totalDebe, 'usuario_id' => $userId
+            ]);
+
+            return $asiento->id; // Devolvemos el ID del asiento creado
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            // Re-lanzamos la excepción para que el controlador la atrape
+            throw new \Exception('Error al registrar el asiento en el servicio: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Actualiza la cabecera de un asiento.
+     * ¡¡REFACTORIZADO CON ELOQUENT!!
+     */
+    public function updateAsiento($id, array $validatedData)
+    {
+        // ▼▼▼ CAMBIO DE DB::table A ELOQUENT ▼▼▼
+        // 1. Buscamos el asiento usando el Modelo
+        $asiento = LibroDiario::findOrFail($id);
+        
+        // 2. Al llamar a "update" en el modelo, el Observador se disparará.
+        $asiento->update([
+            'fecha' => $validatedData['fecha'],
+            'glosa' => $validatedData['glosa'],
+            'observaciones' => $validatedData['observaciones'],
+            // updated_at es automático
+        ]);
+        // ▲▲▲ FIN DEL CAMBIO ▲▲▲
+    }
+
+    /**
+     * Elimina un asiento y sus detalles.
+     * ¡¡REFACTORIZADO CON ELOQUENT!!
+     */
+    public function deleteAsiento($id, $usuario)
+    {
+        DB::beginTransaction();
+        try {
+            // ▼▼▼ CAMBIO DE DB::table A ELOQUENT ▼▼▼
+            // 1. Buscamos el asiento usando el Modelo
+            $asiento = LibroDiario::findOrFail($id);
+            if (!$asiento) {
+                throw new \Exception('Asiento no encontrado');
+            }
+            
+            // 2. Eliminamos los detalles primero (buena práctica, aunque CASCADE lo haría)
+            $asiento->detalles()->delete();
+            
+            // 3. Eliminamos el asiento (esto disparará el Observador "deleted")
+            $asiento->delete();
+            // ▲▲▲ FIN DEL CAMBIO ▲▲▲
+            
+            DB::commit();
+            
+            Log::info('Asiento contable eliminado', [
+                'numero' => $asiento->numero, 'total' => $asiento->total_debe, 'usuario' => $usuario
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            throw new \Exception('Error al eliminar el asiento: ' . $e->getMessage());
+        }
+    }
+
+
+    // ===================================================================
+    // MÉTODOS DE LECTURA (R) - SIN CAMBIOS
+    // (Estos métodos no necesitan disparar el Observador,
+    // por lo que DB::table() es rápido y está perfecto)
+    // ===================================================================
+
     /**
      * Obtiene los datos para el dashboard del Libro Diario.
      */
@@ -57,66 +186,6 @@ class LibroDiarioService
     }
 
     /**
-     * Almacena un nuevo asiento contable.
-     */
-    public function storeAsiento(array $validatedData, $observaciones, $userId)
-    {
-        $totalDebe = collect($validatedData['detalles'])->sum('debe');
-        $totalHaber = collect($validatedData['detalles'])->sum('haber');
-
-        if (abs($totalDebe - $totalHaber) > 0.01) {
-            throw new \Exception('El asiento no cuadra. Debe: S/ ' . number_format($totalDebe, 2) .
-                ', Haber: S/ ' . number_format($totalHaber, 2));
-        }
-
-        DB::beginTransaction();
-        try {
-            // CORRECCIÓN: Usamos el método robusto para obtener el número
-            $numeroAsiento = $this->obtenerSiguienteNumeroAsiento();
-
-            $asientoId = DB::table('libro_diario')->insertGetId([
-                'numero' => $numeroAsiento,
-                'fecha' => $validatedData['fecha'],
-                'glosa' => $validatedData['glosa'],
-                'total_debe' => $totalDebe,
-                'total_haber' => $totalHaber,
-                'balanceado' => true,
-                'estado' => 'ACTIVO',
-                'usuario_id' => $userId,
-                'observaciones' => $observaciones,
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]);
-
-            foreach ($validatedData['detalles'] as $detalle) {
-                DB::table('libro_diario_detalles')->insert([
-                    'asiento_id' => $asientoId,
-                    'cuenta_contable' => $detalle['cuenta_contable'],
-                    'debe' => $detalle['debe'] ?? 0,
-                    'haber' => $detalle['haber'] ?? 0,
-                    'concepto' => $detalle['concepto'],
-                    'documento_referencia' => $detalle['documento_referencia'] ?? null,
-                    'created_at' => now(),
-                    'updated_at' => now(),
-                ]);
-            }
-
-            DB::commit();
-
-            Log::info('Asiento contable creado', [
-                'numero' => $numeroAsiento, 'total' => $totalDebe, 'usuario_id' => $userId
-            ]);
-
-            return $asientoId;
-
-        } catch (\Exception $e) {
-            DB::rollBack();
-            // Re-lanzamos la excepción para que el controlador la atrape
-            throw new \Exception('Error al registrar el asiento en el servicio: ' . $e->getMessage());
-        }
-    }
-
-    /**
      * Obtiene los detalles de un asiento para mostrarlo.
      */
     public function getAsientoDetails($id)
@@ -129,7 +198,7 @@ class LibroDiarioService
             $query->select('a.*', DB::raw('NULL as usuario_nombre'), DB::raw('NULL as usuario_tipo'));
         }
         $asiento = $query->where('a.id', $id)->first();
-              
+                
         if (!$asiento) {
             return null; // El controlador manejará el not found
         }
@@ -169,53 +238,6 @@ class LibroDiarioService
     }
 
     /**
-     * Actualiza la cabecera de un asiento.
-     */
-    public function updateAsiento($id, array $validatedData)
-    {
-        $asientoExistente = DB::table('libro_diario')->where('id', $id)->first();
-        if (!$asientoExistente) {
-            throw new \Exception('Asiento no encontrado.');
-        }
-
-        DB::table('libro_diario')
-            ->where('id', $id)
-            ->update([
-                'fecha' => $validatedData['fecha'],
-                'glosa' => $validatedData['glosa'],
-                'observaciones' => $validatedData['observaciones'],
-                'updated_at' => now(),
-            ]);
-    }
-
-    /**
-     * Elimina un asiento y sus detalles.
-     */
-    public function deleteAsiento($id, $usuario)
-    {
-        DB::beginTransaction();
-        try {
-            $asiento = DB::table('libro_diario')->where('id', $id)->first();
-            if (!$asiento) {
-                throw new \Exception('Asiento no encontrado');
-            }
-            
-            DB::table('libro_diario_detalles')->where('asiento_id', $id)->delete();
-            DB::table('libro_diario')->where('id', $id)->delete();
-            
-            DB::commit();
-            
-            Log::info('Asiento contable eliminado', [
-                'numero' => $asiento->numero, 'total' => $asiento->total_debe, 'usuario' => $usuario
-            ]);
-
-        } catch (\Exception $e) {
-            DB::rollBack();
-            throw new \Exception('Error al eliminar el asiento: ' . $e->getMessage());
-        }
-    }
-
-    /**
      * Maneja la lógica de exportación.
      */
     public function export(Request $request)
@@ -238,7 +260,7 @@ class LibroDiarioService
 
 
     // ===================================================================
-    // MÉTODOS DE AYUDA (Movidos desde el controlador)
+    // MÉTODOS DE AYUDA (Sin Cambios)
     // ===================================================================
 
     public function obtenerAsientos($fechaInicio = null, $fechaFin = null, $numeroAsiento = null, $cuentaContable = null, $paginar = true)
@@ -282,12 +304,12 @@ class LibroDiarioService
             $query->whereBetween('fecha', [$fechaInicio, $fechaFin]);
         }
         $resultado = $query->selectRaw('
-                COUNT(*) as total_asientos,
-                SUM(total_debe) as total_debe,
-                SUM(total_haber) as total_haber,
-                AVG(total_debe) as promedio_asiento
-            ')->first();
-            
+                    COUNT(*) as total_asientos,
+                    SUM(total_debe) as total_debe,
+                    SUM(total_haber) as total_haber,
+                    AVG(total_debe) as promedio_asiento
+                ')->first();
+                
         return [
             'total_asientos' => $resultado->total_asientos ?? 0,
             'total_debe' => round($resultado->total_debe ?? 0, 2),
@@ -470,11 +492,13 @@ class LibroDiarioService
             fputcsv($output, ['Número', 'Fecha', 'Glosa', 'Total Debe', 'Total Haber', 'Balanceado', 'Usuario ID', 'Observaciones']);
 
             foreach ($asientosCollection as $a) {
+                // ▼▼▼ ¡¡AQUÍ ESTÁ LA CORRECCIÓN DEL ERROR DE EXPORTACIÓN!! ▼▼▼
                 fputcsv($output, [
                     (string)($a->numero ?? ''), (string)(isset($a->fecha) ? Carbon::parse($a->fecha)->format('Y-m-d') : ''),
                     (string)($a->glosa ?? ''), (float)($a->total_debe ?? 0), (float)($a->total_haber ?? 0),
                     ($a->balanceado ?? '') ? 'SI' : 'NO', (string)($a->usuario_id ?? ''), (string)($a->observaciones ?? ''),
                 ]);
+                // ▲▲▲ FIN DE LA CORRECCIÓN ▲▲▲
             }
             fclose($output);
         };

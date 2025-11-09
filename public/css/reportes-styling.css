@@ -1,0 +1,411 @@
+/* ===================================
+   CSS PROFESIONAL PARA REPORTES CONTABLES
+   =================================== */
+
+/* Variables CSS para consistencia */
+:root {
+  --primary-color: #2563eb;
+  --primary-hover: #1d4ed8;
+  --secondary-color: #6b7280;
+  --success-color: #10b981;
+  --warning-color: #f59e0b;
+  --danger-color: #ef4444;
+  --light-bg: #f8fafc;
+  --border-color: #e5e7eb;
+  --text-primary: #1f2937;
+  --text-secondary: #6b7280;
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+  --transition-base: all 0.2s ease-in-out;
+  --border-radius: 0.5rem;
+  --font-size-base: 0.875rem;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+}
+
+/* Container principal */
+.container-fluid {
+  padding-left: 1.5rem;
+  padding-right: 1.5rem;
+  background-color: var(--light-bg);
+  min-height: calc(100vh - 100px);
+}
+
+/* ===================================
+   NAVEGACIÓN POR PESTAÑAS - ESTILO PROFESIONAL
+   =================================== */
+
+.card {
+  border: none;
+  box-shadow: var(--shadow-sm);
+  border-radius: var(--border-radius);
+  overflow: hidden;
+}
+
+.card-header {
+  background-color: white !important;
+  border-bottom: 1px solid var(--border-color);
+  padding: 0;
+  overflow-x: auto;
+}
+
+/* Navegación de pestañas */
+.nav-tabs {
+  border-bottom: 1px solid var(--border-color);
+  background-color: white;
+}
+
+.nav-tabs .nav-item {
+  margin-bottom: 0;
+  position: relative;
+}
+
+.nav-tabs .nav-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 1.25rem 2rem;
+  border: none;
+  border-bottom: 3px solid transparent;
+  background-color: transparent;
+  color: var(--text-secondary);
+  font-size: 1rem;
+  font-weight: var(--font-weight-medium);
+  text-decoration: none;
+  white-space: nowrap;
+  transition: var(--transition-base);
+  position: relative;
+  overflow: hidden;
+}
+
+.nav-tabs .nav-link::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(37, 99, 235, 0.1), transparent);
+  transition: left 0.5s ease;
+}
+
+.nav-tabs .nav-link:hover::before {
+  left: 100%;
+}
+
+.nav-tabs .nav-link:hover {
+  color: var(--primary-color);
+  background-color: rgba(37, 99, 235, 0.05);
+  border-bottom-color: var(--border-color);
+  transform: translateY(-1px);
+}
+
+/* Estado activo de las pestañas */
+.nav-tabs .nav-link.active {
+  color: var(--primary-color);
+  background-color: white;
+  border-bottom-color: var(--primary-color);
+  font-weight: var(--font-weight-semibold);
+  box-shadow: 0 -2px 8px rgba(37, 99, 235, 0.1);
+}
+
+.nav-tabs .nav-link.active::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--primary-color), var(--primary-hover));
+  border-radius: 1px;
+}
+
+/* Iconos en pestañas */
+.nav-tabs .nav-link i {
+  font-size: 1.1rem;
+  width: 1.2rem;
+  text-align: center;
+  opacity: 0.8;
+}
+
+.nav-tabs .nav-link:hover i,
+.nav-tabs .nav-link.active i {
+  opacity: 1;
+}
+
+/* ===================================
+   DROPDOWN DE AUDITORÍA
+   =================================== */
+
+.nav-item.dropdown .nav-link {
+  position: relative;
+  padding-right: 3rem;
+}
+
+.nav-item.dropdown .nav-link::after {
+  content: '\f078';
+  font-family: 'Font Awesome 6 Free';
+  font-weight: 900;
+  position: absolute;
+  right: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  transition: var(--transition-base);
+  font-size: 0.8rem;
+}
+
+.nav-item.dropdown .nav-link[aria-expanded="true"]::after {
+  transform: translateY(-50%) rotate(180deg);
+}
+
+/* Dropdown menu */
+.dropdown-menu {
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-lg);
+  border-radius: var(--border-radius);
+  padding: 0.5rem 0;
+  margin-top: 0.5rem;
+  background-color: white;
+  min-width: 280px;
+  animation: dropdownFadeIn 0.2s ease-out;
+}
+
+@keyframes dropdownFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1.5rem;
+  color: var(--text-primary);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-medium);
+  text-decoration: none;
+  transition: var(--transition-base);
+  border: none;
+  background: none;
+  width: 100%;
+  text-align: left;
+}
+
+.dropdown-item:hover,
+.dropdown-item:focus {
+  background-color: rgba(37, 99, 235, 0.1);
+  color: var(--primary-color);
+  transform: translateX(4px);
+}
+
+.dropdown-item.active {
+  background-color: var(--primary-color);
+  color: white;
+  font-weight: var(--font-weight-semibold);
+}
+
+.dropdown-item i {
+  font-size: 0.9rem;
+  width: 1rem;
+  opacity: 0.7;
+}
+
+/* ===================================
+   ÁREA DE CONTENIDO
+   =================================== */
+
+.tab-content {
+  background-color: white;
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow-sm);
+  padding: 2rem;
+  margin-top: 1.5rem;
+  min-height: 400px;
+  border: 1px solid var(--border-color);
+}
+
+/* ===================================
+   RESPONSIVE DESIGN
+   =================================== */
+
+/* Tablets */
+@media (max-width: 992px) {
+  .container-fluid {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+  
+  .nav-tabs .nav-link {
+    padding: 1rem 1.5rem;
+    font-size: 0.9rem;
+  }
+  
+  .tab-content {
+    padding: 1.5rem;
+  }
+}
+
+/* Móviles */
+@media (max-width: 768px) {
+  .container-fluid {
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+  }
+  
+  .card-header {
+    padding: 0;
+  }
+  
+  .nav-tabs {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding-bottom: 0.25rem;
+  }
+  
+  .nav-tabs .nav-link {
+    padding: 0.875rem 1.25rem;
+    font-size: 0.85rem;
+    white-space: nowrap;
+    min-width: fit-content;
+  }
+  
+  .nav-tabs .nav-link i {
+    font-size: 1rem;
+  }
+  
+  .dropdown-menu {
+    min-width: 240px;
+  }
+  
+  .tab-content {
+    padding: 1rem;
+    margin-top: 1rem;
+  }
+}
+
+/* Móviles pequeños */
+@media (max-width: 576px) {
+  .container-fluid {
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+  }
+  
+  .nav-tabs .nav-link {
+    padding: 0.75rem 1rem;
+    font-size: 0.8rem;
+  }
+  
+  .tab-content {
+    padding: 0.875rem;
+  }
+  
+  .dropdown-menu {
+    min-width: 220px;
+  }
+  
+  .dropdown-item {
+    padding: 0.625rem 1.25rem;
+    font-size: 0.8rem;
+  }
+}
+
+/* ===================================
+   ESTADOS DE FOCO PARA ACCESIBILIDAD
+   =================================== */
+
+.nav-tabs .nav-link:focus,
+.dropdown-item:focus {
+  outline: 2px solid var(--primary-color);
+  outline-offset: -2px;
+  border-radius: var(--border-radius);
+}
+
+.nav-tabs .nav-link:focus:not(.active) {
+  background-color: rgba(37, 99, 235, 0.1);
+}
+
+/* ===================================
+   EFECTOS DE CARGA Y ANIMACIONES
+   =================================== */
+
+.tab-content {
+  animation: fadeInContent 0.3s ease-out;
+}
+
+@keyframes fadeInContent {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.nav-item {
+  animation: slideInTab 0.3s ease-out;
+}
+
+@keyframes slideInTab {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.nav-item:nth-child(1) { animation-delay: 0.1s; }
+.nav-item:nth-child(2) { animation-delay: 0.2s; }
+.nav-item:nth-child(3) { animation-delay: 0.3s; }
+.nav-item:nth-child(4) { animation-delay: 0.4s; }
+
+/* ===================================
+   UTILIDADES ADICIONALES
+   =================================== */
+
+.text-muted-custom {
+  color: var(--text-secondary) !important;
+}
+
+.bg-light-custom {
+  background-color: var(--light-bg) !important;
+}
+
+.border-primary-custom {
+  border-color: var(--primary-color) !important;
+}
+
+.shadow-custom {
+  box-shadow: var(--shadow-md) !important;
+}
+
+/* Ocultar scrollbar en navegadores webkit pero mantener funcionalidad */
+.nav-tabs::-webkit-scrollbar {
+  height: 4px;
+}
+
+.nav-tabs::-webkit-scrollbar-track {
+  background: var(--light-bg);
+}
+
+.nav-tabs::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 2px;
+}
+
+.nav-tabs::-webkit-scrollbar-thumb:hover {
+  background: var(--secondary-color);
+}
