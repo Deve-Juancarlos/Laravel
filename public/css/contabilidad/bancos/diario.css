@@ -1,0 +1,641 @@
+/*
+ * =====================================================
+ * MÓDULO DE REPORTE DIARIO - SISTEMA CONTABLE
+ * Estilos profesionales para reporte diario de bancos
+ * =====================================================
+ */
+
+/* =====================================================
+   1. VARIABLES Y CONFIGURACIÓN BASE
+   ===================================================== */
+:root {
+    /* Paleta Profesional Empresarial */
+    --bank-primary: #1e3a5f;
+    --bank-primary-dark: #152a45;
+    --bank-primary-light: #2d4d7a;
+    --bank-secondary: #455a64;
+    
+    /* Colores Funcionales */
+    --bank-success: #2e7d32;
+    --bank-success-light: #e8f5e9;
+    --bank-danger: #c62828;
+    --bank-danger-light: #ffebee;
+    --bank-info: #0277bd;
+    --bank-info-light: #e1f5fe;
+    --bank-warning: #f57c00;
+    --bank-warning-light: #fff3e0;
+    
+    /* Colores Neutros */
+    --bank-text-primary: #212529;
+    --bank-text-secondary: #6c757d;
+    --bank-text-muted: #868e96;
+    --bank-border: #dee2e6;
+    --bank-border-light: #e9ecef;
+    --bank-bg: #f8f9fa;
+    --bank-bg-white: #ffffff;
+    --bank-bg-dark: #f1f3f5;
+    
+    /* Espaciado Consistente */
+    --spacing-xs: 0.5rem;
+    --spacing-sm: 0.75rem;
+    --spacing-md: 1rem;
+    --spacing-lg: 1.5rem;
+    --spacing-xl: 2rem;
+    --spacing-xxl: 3rem;
+    
+    /* Bordes y Sombras Sutiles */
+    --radius-sm: 4px;
+    --radius-md: 6px;
+    --radius-lg: 8px;
+    --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.05);
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
+    --shadow-md: 0 2px 6px rgba(0, 0, 0, 0.1);
+    --shadow-lg: 0 4px 12px rgba(0, 0, 0, 0.12);
+    
+    /* Transiciones */
+    --transition: all 0.2s ease;
+}
+
+/* =====================================================
+   2. CONTENEDOR PRINCIPAL
+   ===================================================== */
+.diario-view {
+    padding: 0;
+}
+
+/* =====================================================
+   3. TÍTULO DE PÁGINA MEJORADO
+   ===================================================== */
+.diario-view .page-title-enhanced {
+    background: linear-gradient(135deg, var(--bank-primary) 0%, var(--bank-primary-dark) 100%);
+    color: var(--bank-bg-white);
+    padding: var(--spacing-lg) var(--spacing-xl);
+    border-radius: var(--radius-lg);
+    margin-bottom: var(--spacing-lg);
+    box-shadow: var(--shadow-md);
+}
+
+.diario-view .page-title-enhanced h1 {
+    font-size: 1.75rem;
+    font-weight: 600;
+    margin: 0 0 var(--spacing-xs) 0;
+    display: flex;
+    align-items: center;
+}
+
+.diario-view .page-title-enhanced p {
+    margin: 0;
+    font-size: 0.9375rem;
+    opacity: 0.9;
+    font-weight: 400;
+}
+
+/* =====================================================
+   4. NAVEGACIÓN SECUNDARIA (PESTAÑAS)
+   ===================================================== */
+.diario-view .eerr-subnav {
+    background-color: var(--bank-bg-white);
+    border: 1px solid var(--bank-border);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-xs);
+    box-shadow: var(--shadow-xs);
+    display: flex;
+    justify-content: space-between;
+}
+
+.diario-view .eerr-subnav .nav-link {
+    color: var(--bank-text-secondary);
+    font-weight: 500;
+    font-size: 0.8125rem;
+    padding: var(--spacing-sm) var(--spacing-xs);
+    border-radius: var(--radius-md);
+    transition: var(--transition);
+    border: none;
+    white-space: nowrap;
+    flex: 1;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.375rem;
+}
+
+.diario-view .eerr-subnav .nav-link:hover {
+    background-color: var(--bank-bg);
+    color: var(--bank-primary);
+}
+
+.diario-view .eerr-subnav .nav-link.active {
+    background-color: var(--bank-primary);
+    color: var(--bank-bg-white);
+    font-weight: 600;
+}
+
+.diario-view .eerr-subnav .nav-link i {
+    font-size: 0.8125rem;
+    flex-shrink: 0;
+}
+
+/* =====================================================
+   5. TARJETA DE FILTROS
+   ===================================================== */
+.diario-view .filters-card {
+    background-color: var(--bank-bg-white);
+    border: 1px solid var(--bank-border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+}
+
+.diario-view .filters-card .card-body {
+    padding: var(--spacing-lg);
+}
+
+.diario-view .filters-card .form-label {
+    font-weight: 600;
+    font-size: 0.8125rem;
+    color: var(--bank-text-primary);
+    margin-bottom: var(--spacing-xs);
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+.diario-view .filters-card .form-control {
+    border: 1px solid var(--bank-border);
+    border-radius: var(--radius-md);
+    padding: 0.5rem var(--spacing-sm);
+    font-size: 0.9375rem;
+    color: var(--bank-text-primary);
+    transition: var(--transition);
+    background-color: var(--bank-bg-white);
+}
+
+.diario-view .filters-card .form-control:focus {
+    border-color: var(--bank-primary);
+    box-shadow: 0 0 0 0.2rem rgba(30, 58, 95, 0.1);
+    outline: none;
+}
+
+.diario-view .filters-card .btn-primary {
+    background-color: var(--bank-primary);
+    border: none;
+    padding: 0.5rem var(--spacing-md);
+    font-weight: 600;
+    border-radius: var(--radius-md);
+    transition: var(--transition);
+}
+
+.diario-view .filters-card .btn-primary:hover {
+    background-color: var(--bank-primary-dark);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+}
+
+/* =====================================================
+   6. TARJETAS DE ESTADÍSTICAS (KPIs)
+   ===================================================== */
+.diario-view .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--spacing-lg);
+    margin-bottom: var(--spacing-xl);
+}
+
+.diario-view .stat-card {
+    background-color: var(--bank-bg-white);
+    border: 1px solid var(--bank-border);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-lg);
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+    position: relative;
+    overflow: hidden;
+    transition: var(--transition);
+    box-shadow: var(--shadow-sm);
+}
+
+.diario-view .stat-card::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    transition: var(--transition);
+}
+
+.diario-view .stat-card.primary::before {
+    background-color: var(--bank-primary);
+}
+
+.diario-view .stat-card.success::before {
+    background-color: var(--bank-success);
+}
+
+.diario-view .stat-card.danger::before {
+    background-color: var(--bank-danger);
+}
+
+.diario-view .stat-card.info::before {
+    background-color: var(--bank-info);
+}
+
+.diario-view .stat-card.warning::before {
+    background-color: var(--bank-warning);
+}
+
+.diario-view .stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.diario-view .stat-card .stat-icon {
+    width: 3.5rem;
+    height: 3.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-md);
+    flex-shrink: 0;
+}
+
+.diario-view .stat-card.primary .stat-icon {
+    background-color: rgba(30, 58, 95, 0.1);
+    color: var(--bank-primary);
+}
+
+.diario-view .stat-card.success .stat-icon {
+    background-color: var(--bank-success-light);
+    color: var(--bank-success);
+}
+
+.diario-view .stat-card.danger .stat-icon {
+    background-color: var(--bank-danger-light);
+    color: var(--bank-danger);
+}
+
+.diario-view .stat-card.info .stat-icon {
+    background-color: var(--bank-info-light);
+    color: var(--bank-info);
+}
+
+.diario-view .stat-card.warning .stat-icon {
+    background-color: var(--bank-warning-light);
+    color: var(--bank-warning);
+}
+
+.diario-view .stat-card .stat-icon i {
+    font-size: 1.5rem;
+}
+
+.diario-view .stat-card .stat-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.diario-view .stat-card .stat-label {
+    font-size: 0.75rem;
+    color: var(--bank-text-secondary);
+    margin: 0 0 0.25rem 0;
+    text-transform: uppercase;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+
+.diario-view .stat-card .stat-value {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--bank-text-primary);
+    line-height: 1.2;
+    margin: 0;
+}
+
+/* =====================================================
+   7. GRID DE TARJETAS DE BANCOS
+   ===================================================== */
+.diario-view .bancos-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: var(--spacing-lg);
+    margin-bottom: var(--spacing-xl);
+}
+
+.diario-view .banco-card {
+    background: linear-gradient(135deg, var(--banco-color) 0%, var(--banco-color-light) 100%);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-lg);
+    color: var(--bank-bg-white);
+    box-shadow: var(--shadow-md);
+    transition: var(--transition);
+    position: relative;
+    overflow: hidden;
+}
+
+.diario-view .banco-card::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+    pointer-events: none;
+}
+
+.diario-view .banco-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
+}
+
+/* Header del Banco */
+.diario-view .banco-header {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+    margin-bottom: var(--spacing-lg);
+    padding-bottom: var(--spacing-md);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.diario-view .banco-logo {
+    width: 3.5rem;
+    height: 3.5rem;
+    background-color: rgba(255, 255, 255, 0.2);
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    font-weight: 700;
+    backdrop-filter: blur(10px);
+}
+
+.diario-view .banco-info h5 {
+    margin: 0 0 0.25rem 0;
+    font-size: 1.125rem;
+    font-weight: 600;
+}
+
+.diario-view .banco-currency {
+    font-size: 0.8125rem;
+    opacity: 0.9;
+}
+
+/* Estadísticas del Banco */
+.diario-view .banco-stats {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--spacing-md);
+    margin-bottom: var(--spacing-lg);
+}
+
+.diario-view .banco-stat {
+    background-color: rgba(255, 255, 255, 0.15);
+    padding: var(--spacing-sm) var(--spacing-md);
+    border-radius: var(--radius-md);
+    backdrop-filter: blur(10px);
+}
+
+.diario-view .banco-stat-label {
+    font-size: 0.75rem;
+    opacity: 0.9;
+    margin-bottom: 0.25rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.diario-view .banco-stat-value {
+    font-size: 1.125rem;
+    font-weight: 700;
+}
+
+/* Footer del Banco */
+.diario-view .banco-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: var(--spacing-md);
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.diario-view .movimientos-badge {
+    background-color: rgba(255, 255, 255, 0.2);
+    padding: 0.375rem 0.75rem;
+    border-radius: var(--radius-sm);
+    font-size: 0.8125rem;
+    font-weight: 600;
+    backdrop-filter: blur(10px);
+}
+
+.diario-view .banco-acciones .btn {
+    background-color: rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: var(--bank-bg-white);
+    font-size: 0.8125rem;
+    padding: 0.375rem 0.75rem;
+    backdrop-filter: blur(10px);
+    transition: var(--transition);
+}
+
+.diario-view .banco-acciones .btn:hover {
+    background-color: rgba(255, 255, 255, 0.3);
+    border-color: rgba(255, 255, 255, 0.5);
+}
+
+/* =====================================================
+   8. TARJETA DE TOTALES
+   ===================================================== */
+.diario-view .totales-card {
+    background-color: var(--bank-bg-white);
+    border: 1px solid var(--bank-border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+}
+
+.diario-view .totales-card .card-body {
+    padding: var(--spacing-xl);
+}
+
+.diario-view .totales-card h4 {
+    color: var(--bank-text-primary);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.diario-view .totales-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--spacing-lg);
+}
+
+.diario-view .total-item {
+    text-align: center;
+    padding: var(--spacing-lg);
+    background-color: var(--bank-bg);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--bank-border);
+}
+
+.diario-view .total-item h6 {
+    color: var(--bank-text-secondary);
+    font-size: 0.875rem;
+    margin-bottom: var(--spacing-sm);
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    font-weight: 600;
+}
+
+.diario-view .total-item .value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--bank-text-primary);
+}
+
+/* =====================================================
+   9. TARJETAS GENERALES
+   ===================================================== */
+.diario-view .card {
+    border: 1px solid var(--bank-border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    background-color: var(--bank-bg-white);
+}
+
+.diario-view .card-body {
+    padding: var(--spacing-lg);
+}
+
+/* =====================================================
+   10. ESTADOS VACÍOS
+   ===================================================== */
+.diario-view .text-center.p-5 {
+    color: var(--bank-text-muted);
+}
+
+.diario-view .text-center i.fa-4x {
+    color: var(--bank-border);
+    opacity: 0.5;
+}
+
+.diario-view .text-muted {
+    color: var(--bank-text-muted) !important;
+}
+
+/* =====================================================
+   11. UTILIDADES
+   ===================================================== */
+.diario-view .shadow-sm {
+    box-shadow: var(--shadow-sm) !important;
+}
+
+/* =====================================================
+   12. RESPONSIVE DESIGN
+   ===================================================== */
+@media (max-width: 1200px) {
+    .diario-view .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .diario-view .totales-row {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 992px) {
+    .diario-view .eerr-subnav {
+        overflow-x: auto;
+        white-space: nowrap;
+        -webkit-overflow-scrolling: touch;
+        justify-content: flex-start;
+    }
+    
+    .diario-view .eerr-subnav .nav-link {
+        display: inline-flex;
+        flex: 0 0 auto;
+        min-width: auto;
+    }
+    
+    .diario-view .bancos-grid {
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    }
+}
+
+@media (max-width: 768px) {
+    .diario-view .stats-grid {
+        grid-template-columns: 1fr;
+        gap: var(--spacing-md);
+    }
+    
+    .diario-view .stat-card {
+        padding: var(--spacing-md);
+    }
+    
+    .diario-view .stat-card .stat-icon {
+        width: 3rem;
+        height: 3rem;
+    }
+    
+    .diario-view .stat-card .stat-icon i {
+        font-size: 1.25rem;
+    }
+    
+    .diario-view .stat-card .stat-value {
+        font-size: 1.5rem;
+    }
+    
+    .diario-view .page-title-enhanced {
+        padding: var(--spacing-md);
+    }
+    
+    .diario-view .page-title-enhanced h1 {
+        font-size: 1.5rem;
+    }
+    
+    .diario-view .filters-card .card-body {
+        padding: var(--spacing-md);
+    }
+    
+    .diario-view .bancos-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .diario-view .totales-row {
+        grid-template-columns: 1fr;
+    }
+    
+    .diario-view .totales-card .card-body {
+        padding: var(--spacing-md);
+    }
+}
+
+@media (max-width: 576px) {
+    .diario-view .page-title-enhanced h1 {
+        font-size: 1.25rem;
+    }
+    
+    .diario-view .page-title-enhanced p {
+        font-size: 0.875rem;
+    }
+    
+    .diario-view .eerr-subnav .nav-link {
+        font-size: 0.8125rem;
+        padding: var(--spacing-xs) var(--spacing-sm);
+    }
+    
+    .diario-view .stat-card .stat-label {
+        font-size: 0.6875rem;
+    }
+    
+    .diario-view .stat-card .stat-value {
+        font-size: 1.25rem;
+    }
+    
+    .diario-view .banco-stats {
+        grid-template-columns: 1fr;
+    }
+    
+    .diario-view .total-item .value {
+        font-size: 1.25rem;
+    }
+}

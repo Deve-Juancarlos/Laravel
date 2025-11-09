@@ -1,124 +1,69 @@
-/*
- * Estilos para el Módulo de Caja
- */
-
-/* === KPIs === */
-.stats-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 1.25rem;
-}
-.stat-card {
+.stats-grid .stat-card {
     background-color: #fff;
-    border-radius: 12px;
-    padding: 1.25rem;
+    border-radius: 0.5rem;
+    padding: 1.5rem;
     display: flex;
     align-items: center;
-    gap: 1.25rem;
-    border-left: 5px solid;
+    border-left: 5px solid var(--bs-primary);
 }
-.stat-card.success { border-color: #198754; }
-.stat-card.danger { border-color: #dc3545; }
-.stat-card.info { border-color: #0dcaf0; }
-.stat-card.primary { border-color: #0d6efd; }
 
-.stat-card i {
-    font-size: 2rem;
-    color: #6c757d;
+.stats-grid .stat-card i {
+    font-size: 2.5rem;
+    color: var(--bs-primary);
+    opacity: 0.3;
+    margin-right: 1.25rem;
 }
-.stat-card.success i { color: #198754; }
-.stat-card.danger i { color: #dc3545; }
-.stat-card.info i { color: #0dcaf0; }
-.stat-card.primary i { color: #0d6efd; }
 
-.stat-card .stat-info {
+.stats-grid .stat-card .stat-info {
     flex: 1;
+    text-align: right;
 }
-.stat-card .stat-label {
-    font-size: 0.875rem;
+
+.stats-grid .stat-card .stat-label {
+    font-size: 0.85rem;
     color: #6c757d;
     margin-bottom: 0.25rem;
     text-transform: uppercase;
     font-weight: 600;
 }
-.stat-card .stat-value {
+
+.stats-grid .stat-card .stat-value {
     font-size: 1.75rem;
     font-weight: 700;
-    color: #212529;
+    color: #343a40;
 }
 
-/* === Filtros === */
-.filters-card {
+.stats-grid .stat-card.primary { border-left-color: var(--bs-primary); }
+.stats-grid .stat-card.primary i { color: var(--bs-primary); }
+
+.stats-grid .stat-card.success { border-left-color: var(--bs-success); }
+.stats-grid .stat-card.success i { color: var(--bs-success); }
+
+.stats-grid .stat-card.danger { border-left-color: var(--bs-danger); }
+.stats-grid .stat-card.danger i { color: var(--bs-danger); }
+
+.stats-grid .stat-card.info { border-left-color: var(--bs-info); }
+.stats-grid .stat-card.info i { color: var(--bs-info); }
+
+.table-container .table-header {
     background-color: #fff;
-    border-radius: 12px;
+    border-bottom: 2px solid #dee2e6;
 }
-.filters-card .form-label {
-    font-weight: 600;
-    font-size: 0.875rem;
-    color: #495057;
-}
-
-/* === Tabla === */
-.table-container {
-    background: #fff;
-    border-radius: 12px;
-}
-.table-header {
-    padding: 1rem 1.25rem;
-}
-.table-title {
-    font-size: 1.2rem;
+.table-container .table-title {
+    color: #343a40;
     font-weight: 600;
 }
 
-/* === Formulario (Create/Edit) === */
-/* Estilos para que el select2 se vea bien con Bootstrap 5 */
-.select2-container--bootstrap-5 .select2-selection {
-    border-radius: .375rem !important;
-    padding: 0.430rem 0.75rem !important;
-    height: calc(1.5em + .75rem + 2px) !important;
-    border: 1px solid #ced4da;
-}
-.select2-container--bootstrap-5.select2-container--focus .select2-selection {
-    border-color: #86b7fe;
-    box-shadow: 0 0 0 0.25rem rgba(13,110,253,.25);
-}
-.select2-container--bootstrap-5 .select2-selection--single .select2-selection__arrow {
-    height: 100% !important;
-    top: 0 !important;
-}
-
-/* === Vista Show === */
-.asiento-vinculado {
-    background-color: #f8f9fa;
-    border: 1px solid #dee2e6;
-    border-radius: 8px;
-}
-.asiento-header {
-    background-color: #e9ecef;
-    padding: 1rem 1.25rem;
-    border-bottom: 1px solid #dee2e6;
-}
-
-/* Colores soft para badges y fondos */
 .bg-success-soft {
     background-color: rgba(25, 135, 84, 0.1);
-    color: #198754;
+    color: #0f5132 !important;
 }
 .bg-danger-soft {
     background-color: rgba(220, 53, 69, 0.1);
-    color: #dc3545;
+    color: #842029 !important;
 }
-
-/* Responsive */
-@media (max-width: 992px) {
-    .stats-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
+.pagination-wrapper {
+    background-color: #f8f9fa;
+    display: flex;
+    justify-content: flex-end;
 }
-@media (max-width: 576px) {
-    .stats-grid {
-        grid-template-columns: 1fr;
-    }
-}
-

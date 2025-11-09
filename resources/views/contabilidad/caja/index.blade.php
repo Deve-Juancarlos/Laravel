@@ -3,8 +3,10 @@
 @section('title', 'Caja Chica')
 
 @push('styles')
+
     <link href="{{ asset('css/contabilidad/caja.css') }}" rel="stylesheet">
 @endpush
+
 
 @section('page-title')
     <div>
@@ -16,6 +18,8 @@
     </a>
 @endsection
 
+
+
 @section('breadcrumbs')
     <li class="breadcrumb-item"><a href="{{ route('dashboard.contador') }}">Contabilidad</a></li>
     <li class="breadcrumb-item active" aria-current="page">Caja</li>
@@ -24,7 +28,6 @@
 @section('content')
 <div class="container-fluid">
 
-    <!-- Filtros -->
     <div class="card shadow-sm filters-card mb-4">
         <div class="card-body">
             <form method="GET" action="{{ route('contador.caja.index') }}">
@@ -55,7 +58,6 @@
         </div>
     </div>
 
-    <!-- KPIs -->
     <div class="row mb-4 stats-grid">
         <div class="col-md-3">
             <div class="stat-card shadow-sm primary">
@@ -95,7 +97,6 @@
         </div>
     </div>
 
-    <!-- Tabla de Movimientos -->
     <div class="card shadow-sm table-container">
         <div class="card-header table-header">
             <h5 class="table-title mb-0">Movimientos de Caja</h5>
@@ -164,4 +165,3 @@
     </div>
 </div>
 @endsection
-

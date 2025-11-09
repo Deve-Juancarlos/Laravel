@@ -1,0 +1,569 @@
+/*
+ * =====================================================
+ * MÓDULO DE RESUMEN MENSUAL - SISTEMA CONTABLE
+ * Estilos profesionales para resumen mensual de bancos
+ * =====================================================
+ */
+
+/* =====================================================
+   1. VARIABLES Y CONFIGURACIÓN BASE
+   ===================================================== */
+:root {
+    /* Paleta Profesional Empresarial */
+    --bank-primary: #1e3a5f;
+    --bank-primary-dark: #152a45;
+    --bank-primary-light: #2d4d7a;
+    --bank-secondary: #455a64;
+    
+    /* Colores Funcionales */
+    --bank-success: #2e7d32;
+    --bank-success-light: #e8f5e9;
+    --bank-danger: #c62828;
+    --bank-danger-light: #ffebee;
+    --bank-info: #0277bd;
+    --bank-info-light: #e1f5fe;
+    --bank-warning: #f57c00;
+    --bank-warning-light: #fff3e0;
+    
+    /* Colores Neutros */
+    --bank-text-primary: #212529;
+    --bank-text-secondary: #6c757d;
+    --bank-text-muted: #868e96;
+    --bank-border: #dee2e6;
+    --bank-border-light: #e9ecef;
+    --bank-bg: #f8f9fa;
+    --bank-bg-white: #ffffff;
+    --bank-bg-dark: #f1f3f5;
+    
+    /* Espaciado Consistente */
+    --spacing-xs: 0.5rem;
+    --spacing-sm: 0.75rem;
+    --spacing-md: 1rem;
+    --spacing-lg: 1.5rem;
+    --spacing-xl: 2rem;
+    --spacing-xxl: 3rem;
+    
+    /* Bordes y Sombras Sutiles */
+    --radius-sm: 4px;
+    --radius-md: 6px;
+    --radius-lg: 8px;
+    --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.05);
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
+    --shadow-md: 0 2px 6px rgba(0, 0, 0, 0.1);
+    --shadow-lg: 0 4px 12px rgba(0, 0, 0, 0.12);
+    
+    /* Transiciones */
+    --transition: all 0.2s ease;
+}
+
+/* =====================================================
+   2. CONTENEDOR PRINCIPAL
+   ===================================================== */
+.mensual-content {
+    padding: 0;
+}
+
+/* =====================================================
+   3. NAVEGACIÓN SECUNDARIA (PESTAÑAS)
+   ===================================================== */
+.mensual-content .eerr-subnav {
+    background-color: var(--bank-bg-white);
+    border: 1px solid var(--bank-border);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-xs);
+    box-shadow: var(--shadow-xs);
+    display: flex;
+    justify-content: space-between;
+}
+
+.mensual-content .eerr-subnav .nav-link {
+    color: var(--bank-text-secondary);
+    font-weight: 500;
+    font-size: 0.8125rem;
+    padding: var(--spacing-sm) var(--spacing-xs);
+    border-radius: var(--radius-md);
+    transition: var(--transition);
+    border: none;
+    white-space: nowrap;
+    flex: 1;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.375rem;
+}
+
+.mensual-content .eerr-subnav .nav-link:hover {
+    background-color: var(--bank-bg);
+    color: var(--bank-primary);
+}
+
+.mensual-content .eerr-subnav .nav-link.active {
+    background-color: var(--bank-primary);
+    color: var(--bank-bg-white);
+    font-weight: 600;
+}
+
+.mensual-content .eerr-subnav .nav-link i {
+    font-size: 0.8125rem;
+    flex-shrink: 0;
+}
+
+/* =====================================================
+   4. TARJETA DE FILTROS
+   ===================================================== */
+.mensual-content .filters-card {
+    background-color: var(--bank-bg-white);
+    border: 1px solid var(--bank-border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+}
+
+.mensual-content .filters-card .card-body {
+    padding: var(--spacing-lg);
+}
+
+.mensual-content .filters-card .form-label {
+    font-weight: 600;
+    font-size: 0.8125rem;
+    color: var(--bank-text-primary);
+    margin-bottom: var(--spacing-xs);
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+.mensual-content .filters-card .form-select {
+    border: 1px solid var(--bank-border);
+    border-radius: var(--radius-md);
+    padding: 0.5rem var(--spacing-sm);
+    font-size: 0.9375rem;
+    color: var(--bank-text-primary);
+    transition: var(--transition);
+    background-color: var(--bank-bg-white);
+}
+
+.mensual-content .filters-card .form-select:focus {
+    border-color: var(--bank-primary);
+    box-shadow: 0 0 0 0.2rem rgba(30, 58, 95, 0.1);
+    outline: none;
+}
+
+.mensual-content .filters-card .btn-primary {
+    background-color: var(--bank-primary);
+    border: none;
+    padding: 0.5rem var(--spacing-md);
+    font-weight: 600;
+    border-radius: var(--radius-md);
+    transition: var(--transition);
+}
+
+.mensual-content .filters-card .btn-primary:hover {
+    background-color: var(--bank-primary-dark);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+}
+
+/* =====================================================
+   5. TARJETAS KPI PRINCIPALES
+   ===================================================== */
+.mensual-content .kpi-card {
+    background-color: var(--bank-bg-white);
+    border: 1px solid var(--bank-border);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-lg);
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+    transition: var(--transition);
+    box-shadow: var(--shadow-sm);
+    position: relative;
+    overflow: hidden;
+}
+
+.mensual-content .kpi-card::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    transition: var(--transition);
+}
+
+.mensual-content .kpi-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.mensual-content .kpi-card .kpi-icon {
+    width: 3.5rem;
+    height: 3.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-md);
+    font-size: 1.5rem;
+    flex-shrink: 0;
+}
+
+.mensual-content .kpi-card .kpi-content {
+    flex: 1;
+}
+
+.mensual-content .kpi-card .kpi-content h3 {
+    font-size: 1.75rem;
+    font-weight: 700;
+    margin: 0 0 0.25rem 0;
+    color: var(--bank-text-primary);
+}
+
+.mensual-content .kpi-card .kpi-content p {
+    font-size: 0.75rem;
+    color: var(--bank-text-secondary);
+    margin: 0;
+    text-transform: uppercase;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+
+/* KPI Income Card */
+.mensual-content .income-card::before {
+    background-color: var(--bank-success);
+}
+
+.mensual-content .income-card .kpi-icon {
+    background-color: var(--bank-success-light);
+    color: var(--bank-success);
+}
+
+/* KPI Expense Card */
+.mensual-content .expense-card::before {
+    background-color: var(--bank-danger);
+}
+
+.mensual-content .expense-card .kpi-icon {
+    background-color: var(--bank-danger-light);
+    color: var(--bank-danger);
+}
+
+/* KPI Net Card */
+.mensual-content .net-card::before {
+    background-color: var(--bank-info);
+}
+
+.mensual-content .net-card .kpi-icon {
+    background-color: var(--bank-info-light);
+    color: var(--bank-info);
+}
+
+/* KPI Movements Card */
+.mensual-content .movements-card::before {
+    background-color: var(--bank-primary);
+}
+
+.mensual-content .movements-card .kpi-icon {
+    background-color: rgba(30, 58, 95, 0.1);
+    color: var(--bank-primary);
+}
+
+/* =====================================================
+   6. TARJETAS DE BANCO MENSUAL
+   ===================================================== */
+.mensual-content .bank-monthly-card {
+    background-color: var(--bank-bg-white);
+    border: 1px solid var(--bank-border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    transition: var(--transition);
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.mensual-content .bank-monthly-card:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-md);
+}
+
+/* Bank Header */
+.mensual-content .bank-header {
+    padding: var(--spacing-lg);
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+    border-bottom: 1px solid var(--bank-border-light);
+    background-color: var(--bank-bg);
+}
+
+.mensual-content .bank-logo {
+    width: 3rem;
+    height: 3rem;
+    background: linear-gradient(135deg, var(--bank-primary) 0%, var(--bank-primary-light) 100%);
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--bank-bg-white);
+    flex-shrink: 0;
+}
+
+.mensual-content .bank-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.mensual-content .bank-info h5 {
+    font-size: 1rem;
+    font-weight: 600;
+    margin: 0 0 0.25rem 0;
+    color: var(--bank-text-primary);
+}
+
+.mensual-content .bank-info p {
+    font-size: 0.8125rem;
+    margin: 0;
+}
+
+/* Bank Metrics */
+.mensual-content .bank-metrics {
+    padding: var(--spacing-lg);
+    flex: 1;
+}
+
+.mensual-content .metric-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--spacing-md);
+    margin-bottom: var(--spacing-md);
+}
+
+.mensual-content .metric-item {
+    background-color: var(--bank-bg);
+    padding: var(--spacing-md);
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    border: 1px solid var(--bank-border-light);
+}
+
+.mensual-content .metric-item i {
+    font-size: 1.25rem;
+    flex-shrink: 0;
+}
+
+.mensual-content .metric-item.income i {
+    color: var(--bank-success);
+}
+
+.mensual-content .metric-item.expense i {
+    color: var(--bank-danger);
+}
+
+.mensual-content .metric-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.mensual-content .metric-label {
+    display: block;
+    font-size: 0.6875rem;
+    color: var(--bank-text-secondary);
+    text-transform: uppercase;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    margin-bottom: 0.25rem;
+}
+
+.mensual-content .metric-value {
+    display: block;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--bank-text-primary);
+}
+
+/* Net Flow */
+.mensual-content .net-flow {
+    background-color: var(--bank-bg);
+    padding: var(--spacing-md);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--bank-border-light);
+}
+
+.mensual-content .flow-item {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    font-size: 0.875rem;
+    padding: var(--spacing-xs) 0;
+}
+
+.mensual-content .flow-item:not(:last-child) {
+    border-bottom: 1px solid var(--bank-border-light);
+    margin-bottom: var(--spacing-xs);
+    padding-bottom: var(--spacing-xs);
+}
+
+.mensual-content .flow-item i {
+    color: var(--bank-text-secondary);
+    width: 1.25rem;
+    flex-shrink: 0;
+}
+
+.mensual-content .flow-item span:nth-child(2) {
+    color: var(--bank-text-secondary);
+    flex: 1;
+}
+
+.mensual-content .flow-item span:nth-child(3) {
+    margin-left: auto;
+}
+
+/* Bank Actions */
+.mensual-content .bank-actions {
+    padding: var(--spacing-md) var(--spacing-lg);
+    border-top: 1px solid var(--bank-border-light);
+    background-color: var(--bank-bg);
+}
+
+.mensual-content .bank-actions .btn {
+    width: 100%;
+    border-color: var(--bank-primary);
+    color: var(--bank-primary);
+    font-size: 0.8125rem;
+    padding: 0.5rem var(--spacing-md);
+    font-weight: 600;
+    transition: var(--transition);
+}
+
+.mensual-content .bank-actions .btn:hover {
+    background-color: var(--bank-primary);
+    color: var(--bank-bg-white);
+}
+
+/* =====================================================
+   7. ALERTAS
+   ===================================================== */
+.mensual-content .alert {
+    border: none;
+    border-radius: var(--radius-lg);
+    border-left: 4px solid;
+    padding: var(--spacing-md) var(--spacing-lg);
+    box-shadow: var(--shadow-sm);
+}
+
+.mensual-content .alert-info {
+    border-left-color: var(--bank-info);
+    background-color: var(--bank-info-light);
+    color: #1a5a7c;
+}
+
+/* =====================================================
+   8. UTILIDADES DE TEXTO
+   ===================================================== */
+.mensual-content .text-muted {
+    color: var(--bank-text-muted) !important;
+}
+
+.mensual-content .text-success {
+    color: var(--bank-success) !important;
+}
+
+.mensual-content .text-danger {
+    color: var(--bank-danger) !important;
+}
+
+.mensual-content .fw-bold {
+    font-weight: 700 !important;
+}
+
+/* =====================================================
+   9. RESPONSIVE DESIGN
+   ===================================================== */
+@media (max-width: 1200px) {
+    .mensual-content .kpi-card .kpi-content h3 {
+        font-size: 1.5rem;
+    }
+}
+
+@media (max-width: 992px) {
+    .mensual-content .eerr-subnav {
+        overflow-x: auto;
+        white-space: nowrap;
+        -webkit-overflow-scrolling: touch;
+        justify-content: flex-start;
+    }
+    
+    .mensual-content .eerr-subnav .nav-link {
+        display: inline-flex;
+        flex: 0 0 auto;
+        min-width: auto;
+    }
+}
+
+@media (max-width: 768px) {
+    .mensual-content .kpi-card {
+        padding: var(--spacing-md);
+    }
+    
+    .mensual-content .kpi-card .kpi-icon {
+        width: 3rem;
+        height: 3rem;
+        font-size: 1.25rem;
+    }
+    
+    .mensual-content .kpi-card .kpi-content h3 {
+        font-size: 1.5rem;
+    }
+    
+    .mensual-content .filters-card .card-body {
+        padding: var(--spacing-md);
+    }
+    
+    .mensual-content .bank-header {
+        padding: var(--spacing-md);
+    }
+    
+    .mensual-content .bank-metrics {
+        padding: var(--spacing-md);
+    }
+    
+    .mensual-content .bank-actions {
+        padding: var(--spacing-md);
+    }
+}
+
+@media (max-width: 576px) {
+    .mensual-content .eerr-subnav .nav-link {
+        font-size: 0.8125rem;
+        padding: var(--spacing-xs) var(--spacing-sm);
+    }
+    
+    .mensual-content .kpi-card .kpi-content h3 {
+        font-size: 1.25rem;
+    }
+    
+    .mensual-content .kpi-card .kpi-content p {
+        font-size: 0.6875rem;
+    }
+    
+    .mensual-content .metric-row {
+        grid-template-columns: 1fr;
+    }
+    
+    .mensual-content .bank-logo {
+        width: 2.5rem;
+        height: 2.5rem;
+        font-size: 0.875rem;
+    }
+    
+    .mensual-content .bank-info h5 {
+        font-size: 0.9375rem;
+    }
+    
+    .mensual-content .metric-value {
+        font-size: 0.9375rem;
+    }
+}

@@ -1,0 +1,613 @@
+/*
+ * =====================================================
+ * MÓDULO DE CONCILIACIÓN BANCARIA - SISTEMA CONTABLE
+ * Estilos profesionales para conciliación bancaria
+ * =====================================================
+ */
+
+/* =====================================================
+   1. VARIABLES Y CONFIGURACIÓN BASE
+   ===================================================== */
+:root {
+    /* Paleta Profesional Empresarial */
+    --bank-primary: #1e3a5f;
+    --bank-primary-dark: #152a45;
+    --bank-primary-light: #2d4d7a;
+    --bank-secondary: #455a64;
+    
+    /* Colores Funcionales */
+    --bank-success: #2e7d32;
+    --bank-success-light: #e8f5e9;
+    --bank-danger: #c62828;
+    --bank-danger-light: #ffebee;
+    --bank-info: #0277bd;
+    --bank-info-light: #e1f5fe;
+    --bank-warning: #f57c00;
+    --bank-warning-light: #fff3e0;
+    
+    /* Colores Neutros */
+    --bank-text-primary: #212529;
+    --bank-text-secondary: #6c757d;
+    --bank-text-muted: #868e96;
+    --bank-border: #dee2e6;
+    --bank-border-light: #e9ecef;
+    --bank-bg: #f8f9fa;
+    --bank-bg-white: #ffffff;
+    --bank-bg-dark: #f1f3f5;
+    
+    /* Espaciado Consistente */
+    --spacing-xs: 0.5rem;
+    --spacing-sm: 0.75rem;
+    --spacing-md: 1rem;
+    --spacing-lg: 1.5rem;
+    --spacing-xl: 2rem;
+    --spacing-xxl: 3rem;
+    
+    /* Bordes y Sombras Sutiles */
+    --radius-sm: 4px;
+    --radius-md: 6px;
+    --radius-lg: 8px;
+    --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.05);
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
+    --shadow-md: 0 2px 6px rgba(0, 0, 0, 0.1);
+    --shadow-lg: 0 4px 12px rgba(0, 0, 0, 0.12);
+    
+    /* Transiciones */
+    --transition: all 0.2s ease;
+}
+
+/* =====================================================
+   2. CONTENEDOR PRINCIPAL
+   ===================================================== */
+.conciliacion-container {
+    padding: 0;
+}
+
+/* =====================================================
+   3. NAVEGACIÓN SECUNDARIA (PESTAÑAS)
+   ===================================================== */
+.conciliacion-container .eerr-subnav {
+    background-color: var(--bank-bg-white);
+    border: 1px solid var(--bank-border);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-xs);
+    box-shadow: var(--shadow-xs);
+    display: flex;
+    justify-content: space-between;
+}
+
+.conciliacion-container .eerr-subnav .nav-link {
+    color: var(--bank-text-secondary);
+    font-weight: 500;
+    font-size: 0.8125rem;
+    padding: var(--spacing-sm) var(--spacing-xs);
+    border-radius: var(--radius-md);
+    transition: var(--transition);
+    border: none;
+    white-space: nowrap;
+    flex: 1;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.375rem;
+}
+
+.conciliacion-container .eerr-subnav .nav-link:hover {
+    background-color: var(--bank-bg);
+    color: var(--bank-primary);
+}
+
+.conciliacion-container .eerr-subnav .nav-link.active {
+    background-color: var(--bank-primary);
+    color: var(--bank-bg-white);
+    font-weight: 600;
+}
+
+.conciliacion-container .eerr-subnav .nav-link i {
+    font-size: 0.8125rem;
+    flex-shrink: 0;
+}
+
+/* =====================================================
+   4. TARJETA DE FILTROS
+   ===================================================== */
+.conciliacion-container .filters-card {
+    background-color: var(--bank-bg-white);
+    border: 1px solid var(--bank-border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+}
+
+.conciliacion-container .filters-card .card-body {
+    padding: var(--spacing-lg);
+}
+
+.conciliacion-container .filters-card .form-label {
+    font-weight: 600;
+    font-size: 0.8125rem;
+    color: var(--bank-text-primary);
+    margin-bottom: var(--spacing-xs);
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+.conciliacion-container .filters-card .form-control,
+.conciliacion-container .filters-card .form-select {
+    border: 1px solid var(--bank-border);
+    border-radius: var(--radius-md);
+    padding: 0.5rem var(--spacing-sm);
+    font-size: 0.9375rem;
+    color: var(--bank-text-primary);
+    transition: var(--transition);
+    background-color: var(--bank-bg-white);
+}
+
+.conciliacion-container .filters-card .form-control:focus,
+.conciliacion-container .filters-card .form-select:focus {
+    border-color: var(--bank-primary);
+    box-shadow: 0 0 0 0.2rem rgba(30, 58, 95, 0.1);
+    outline: none;
+}
+
+.conciliacion-container .filters-card .btn-primary {
+    background-color: var(--bank-primary);
+    border: none;
+    padding: 0.5rem var(--spacing-md);
+    font-weight: 600;
+    border-radius: var(--radius-md);
+    transition: var(--transition);
+}
+
+.conciliacion-container .filters-card .btn-primary:hover {
+    background-color: var(--bank-primary-dark);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+}
+
+/* =====================================================
+   5. TARJETAS DE CONCILIACIÓN
+   ===================================================== */
+.conciliacion-container .conciliation-card {
+    background-color: var(--bank-bg-white);
+    border: 1px solid var(--bank-border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    margin-bottom: var(--spacing-lg);
+    overflow: hidden;
+}
+
+.conciliacion-container .conciliation-card .card-header {
+    padding: var(--spacing-lg);
+    border-bottom: 2px solid var(--bank-border);
+}
+
+.conciliacion-container .conciliation-card .card-body {
+    padding: var(--spacing-lg);
+}
+
+/* Header de Libros */
+.conciliacion-container .books-header {
+    background: linear-gradient(135deg, var(--bank-info) 0%, #0288d1 100%);
+    color: var(--bank-bg-white);
+}
+
+.conciliacion-container .books-header h5 {
+    margin: 0 0 var(--spacing-sm) 0;
+    font-weight: 600;
+    font-size: 1rem;
+}
+
+.conciliacion-container .balance-amount {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-top: var(--spacing-xs);
+}
+
+/* Header de Banco */
+.conciliacion-container .bank-header {
+    background: linear-gradient(135deg, var(--bank-primary) 0%, var(--bank-primary-dark) 100%);
+    color: var(--bank-bg-white);
+}
+
+.conciliacion-container .bank-header h5 {
+    margin: 0;
+    font-weight: 600;
+    font-size: 1rem;
+}
+
+/* =====================================================
+   6. SECCIÓN DE AJUSTES
+   ===================================================== */
+.conciliacion-container .adjustments-section {
+    margin-bottom: var(--spacing-lg);
+}
+
+.conciliacion-container .adjustment-item {
+    margin-bottom: var(--spacing-lg);
+}
+
+.conciliacion-container .adjustment-item:last-child {
+    margin-bottom: 0;
+}
+
+.conciliacion-container .adjustment-title {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--bank-text-primary);
+    margin-bottom: var(--spacing-sm);
+    padding: var(--spacing-sm) var(--spacing-md);
+    background-color: var(--bank-bg-dark);
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.conciliacion-container .count-badge {
+    background-color: var(--bank-primary);
+    color: var(--bank-bg-white);
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+    border-radius: var(--radius-sm);
+}
+
+/* =====================================================
+   7. TABLAS DE CONCILIACIÓN
+   ===================================================== */
+.conciliacion-container .table-container {
+    border: 1px solid var(--bank-border-light);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    background-color: var(--bank-bg-white);
+}
+
+.conciliacion-container .modern-table {
+    margin: 0;
+}
+
+.conciliacion-container .modern-table tr {
+    border-bottom: 1px solid var(--bank-border-light);
+}
+
+.conciliacion-container .modern-table tr:last-child {
+    border-bottom: none;
+}
+
+.conciliacion-container .modern-table td {
+    padding: var(--spacing-sm) var(--spacing-md);
+    vertical-align: middle;
+    font-size: 0.875rem;
+}
+
+.conciliacion-container .item-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.conciliacion-container .item-number {
+    font-weight: 600;
+    color: var(--bank-text-primary);
+}
+
+.conciliacion-container .item-date {
+    font-size: 0.75rem;
+    color: var(--bank-text-secondary);
+}
+
+.conciliacion-container .amount-negative {
+    color: var(--bank-danger);
+    font-weight: 700;
+}
+
+.conciliacion-container .amount-positive {
+    color: var(--bank-success);
+    font-weight: 700;
+}
+
+/* =====================================================
+   8. SALDO FINAL
+   ===================================================== */
+.conciliacion-container .final-balance {
+    margin-top: var(--spacing-lg);
+    padding-top: var(--spacing-lg);
+    border-top: 2px solid var(--bank-border);
+}
+
+.conciliacion-container .balance-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--spacing-md);
+    background-color: var(--bank-bg-dark);
+    border-radius: var(--radius-md);
+    border: 2px solid var(--bank-border);
+}
+
+.conciliacion-container .balance-label {
+    font-size: 0.875rem;
+    font-weight: 700;
+    color: var(--bank-text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.conciliacion-container .balance-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--bank-primary);
+}
+
+/* =====================================================
+   9. FORMULARIO BANCO
+   ===================================================== */
+.conciliacion-container .form-section {
+    margin-bottom: var(--spacing-xl);
+}
+
+.conciliacion-container .form-group-enhanced {
+    margin-bottom: var(--spacing-lg);
+}
+
+.conciliacion-container .form-group-enhanced .form-label {
+    font-weight: 600;
+    font-size: 0.875rem;
+    color: var(--bank-text-primary);
+    margin-bottom: var(--spacing-xs);
+}
+
+.conciliacion-container .form-control-lg {
+    font-size: 1.25rem;
+    font-weight: 600;
+    padding: var(--spacing-md);
+}
+
+.conciliacion-container .input-group-text {
+    background-color: var(--bank-bg-dark);
+    border-color: var(--bank-border);
+    font-weight: 600;
+    color: var(--bank-text-primary);
+}
+
+.conciliacion-container .form-control,
+.conciliacion-container .form-control-lg {
+    border: 1px solid var(--bank-border);
+    border-radius: var(--radius-md);
+    transition: var(--transition);
+}
+
+.conciliacion-container .form-control:focus,
+.conciliacion-container .form-control-lg:focus {
+    border-color: var(--bank-primary);
+    box-shadow: 0 0 0 0.2rem rgba(30, 58, 95, 0.1);
+    outline: none;
+}
+
+.conciliacion-container textarea.form-control {
+    resize: vertical;
+    min-height: 100px;
+}
+
+/* =====================================================
+   10. RESULTADO DE CONCILIACIÓN
+   ===================================================== */
+.conciliacion-container .result-section {
+    margin-bottom: var(--spacing-lg);
+}
+
+.conciliacion-container .result-display {
+    padding: var(--spacing-lg);
+    border-radius: var(--radius-lg);
+    border: 2px solid var(--bank-border);
+    text-align: center;
+    background-color: var(--bank-bg);
+    transition: var(--transition);
+}
+
+.conciliacion-container .result-title {
+    font-size: 0.875rem;
+    font-weight: 700;
+    color: var(--bank-text-secondary);
+    margin-bottom: var(--spacing-sm);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.conciliacion-container .result-amount {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin: var(--spacing-sm) 0;
+    color: var(--bank-text-primary);
+}
+
+.conciliacion-container .result-badge {
+    display: inline-block;
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+    font-weight: 700;
+    border-radius: var(--radius-md);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.conciliacion-container .bg-success-soft {
+    background-color: var(--bank-success-light) !important;
+    border-color: var(--bank-success) !important;
+}
+
+.conciliacion-container .bg-danger-soft {
+    background-color: var(--bank-danger-light) !important;
+    border-color: var(--bank-danger) !important;
+}
+
+/* =====================================================
+   11. BOTONES
+   ===================================================== */
+.conciliacion-container .save-btn {
+    background-color: var(--bank-success);
+    border: none;
+    padding: var(--spacing-md);
+    font-weight: 600;
+    font-size: 1rem;
+    border-radius: var(--radius-md);
+    transition: var(--transition);
+}
+
+.conciliacion-container .save-btn:hover {
+    background-color: #388e3c;
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+}
+
+/* =====================================================
+   12. ESTADOS VACÍOS
+   ===================================================== */
+.conciliacion-container .empty-state,
+.conciliacion-container .alert-state {
+    text-align: center;
+    padding: var(--spacing-xxl);
+    background-color: var(--bank-bg-white);
+    border: 1px solid var(--bank-border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+}
+
+.conciliacion-container .empty-icon,
+.conciliacion-container .alert-icon {
+    width: 4rem;
+    height: 4rem;
+    margin: 0 auto var(--spacing-lg) auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    font-size: 2rem;
+}
+
+.conciliacion-container .empty-icon {
+    background-color: var(--bank-info-light);
+    color: var(--bank-info);
+}
+
+.conciliacion-container .alert-icon {
+    background-color: var(--bank-warning-light);
+    color: var(--bank-warning);
+}
+
+.conciliacion-container .empty-state h5,
+.conciliacion-container .alert-state h5 {
+    color: var(--bank-text-primary);
+    font-weight: 600;
+    margin-bottom: var(--spacing-sm);
+}
+
+.conciliacion-container .alert-state p {
+    color: var(--bank-text-secondary);
+    margin: 0;
+}
+
+/* =====================================================
+   13. UTILIDADES
+   ===================================================== */
+.conciliacion-container .text-muted {
+    color: var(--bank-text-muted) !important;
+}
+
+.conciliacion-container .shadow-sm {
+    box-shadow: var(--shadow-sm) !important;
+}
+
+.conciliacion-container .badge {
+    padding: 0.35rem 0.65rem;
+    font-weight: 600;
+    font-size: 0.75rem;
+    border-radius: var(--radius-sm);
+}
+
+.conciliacion-container .bg-success {
+    background-color: var(--bank-success) !important;
+}
+
+.conciliacion-container .bg-danger {
+    background-color: var(--bank-danger) !important;
+}
+
+/* =====================================================
+   14. RESPONSIVE DESIGN
+   ===================================================== */
+@media (max-width: 992px) {
+    .conciliacion-container .eerr-subnav {
+        overflow-x: auto;
+        white-space: nowrap;
+        -webkit-overflow-scrolling: touch;
+        justify-content: flex-start;
+    }
+    
+    .conciliacion-container .eerr-subnav .nav-link {
+        display: inline-flex;
+        flex: 0 0 auto;
+        min-width: auto;
+    }
+    
+    .conciliacion-container .conciliation-card {
+        margin-bottom: var(--spacing-md);
+    }
+}
+
+@media (max-width: 768px) {
+    .conciliacion-container .filters-card .card-body {
+        padding: var(--spacing-md);
+    }
+    
+    .conciliacion-container .conciliation-card .card-header,
+    .conciliacion-container .conciliation-card .card-body {
+        padding: var(--spacing-md);
+    }
+    
+    .conciliacion-container .balance-amount {
+        font-size: 1.5rem;
+    }
+    
+    .conciliacion-container .result-amount {
+        font-size: 2rem;
+    }
+    
+    .conciliacion-container .balance-item {
+        flex-direction: column;
+        gap: var(--spacing-sm);
+        text-align: center;
+    }
+    
+    .conciliacion-container .balance-value {
+        font-size: 1.25rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .conciliacion-container .eerr-subnav .nav-link {
+        font-size: 0.8125rem;
+        padding: var(--spacing-xs) var(--spacing-sm);
+    }
+    
+    .conciliacion-container .adjustment-title {
+        font-size: 0.8125rem;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--spacing-xs);
+    }
+    
+    .conciliacion-container .modern-table td {
+        padding: var(--spacing-xs) var(--spacing-sm);
+        font-size: 0.8125rem;
+    }
+    
+    .conciliacion-container .result-amount {
+        font-size: 1.75rem;
+    }
+    
+    .conciliacion-container .empty-state,
+    .conciliacion-container .alert-state {
+        padding: var(--spacing-lg);
+    }
+}

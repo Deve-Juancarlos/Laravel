@@ -1,0 +1,581 @@
+/*
+ * =====================================================
+ * MÓDULO DE REPORTES DE BANCOS - SISTEMA CONTABLE
+ * Estilos profesionales para generación de reportes
+ * =====================================================
+ */
+
+/* =====================================================
+   1. VARIABLES Y CONFIGURACIÓN BASE
+   ===================================================== */
+:root {
+    /* Paleta Profesional Empresarial */
+    --bank-primary: #1e3a5f;
+    --bank-primary-dark: #152a45;
+    --bank-primary-light: #2d4d7a;
+    --bank-secondary: #455a64;
+    
+    /* Colores Funcionales */
+    --bank-success: #2e7d32;
+    --bank-success-light: #e8f5e9;
+    --bank-danger: #c62828;
+    --bank-danger-light: #ffebee;
+    --bank-info: #0277bd;
+    --bank-info-light: #e1f5fe;
+    --bank-warning: #f57c00;
+    --bank-warning-light: #fff3e0;
+    
+    /* Colores Neutros */
+    --bank-text-primary: #212529;
+    --bank-text-secondary: #6c757d;
+    --bank-text-muted: #868e96;
+    --bank-border: #dee2e6;
+    --bank-border-light: #e9ecef;
+    --bank-bg: #f8f9fa;
+    --bank-bg-white: #ffffff;
+    --bank-bg-dark: #f1f3f5;
+    
+    /* Espaciado Consistente */
+    --spacing-xs: 0.5rem;
+    --spacing-sm: 0.75rem;
+    --spacing-md: 1rem;
+    --spacing-lg: 1.5rem;
+    --spacing-xl: 2rem;
+    --spacing-xxl: 3rem;
+    
+    /* Bordes y Sombras Sutiles */
+    --radius-sm: 4px;
+    --radius-md: 6px;
+    --radius-lg: 8px;
+    --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.05);
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
+    --shadow-md: 0 2px 6px rgba(0, 0, 0, 0.1);
+    --shadow-lg: 0 4px 12px rgba(0, 0, 0, 0.12);
+    
+    /* Transiciones */
+    --transition: all 0.2s ease;
+}
+
+/* =====================================================
+   2. CONTENEDOR PRINCIPAL
+   ===================================================== */
+.reportes-conteiner {
+    padding: 0;
+}
+
+/* =====================================================
+   3. TÍTULO DE PÁGINA MEJORADO
+   ===================================================== */
+.reportes-conteiner .page-title-enhanced {
+    background: linear-gradient(135deg, var(--bank-primary) 0%, var(--bank-primary-dark) 100%);
+    color: var(--bank-bg-white);
+    padding: var(--spacing-lg) var(--spacing-xl);
+    border-radius: var(--radius-lg);
+    margin-bottom: var(--spacing-lg);
+    box-shadow: var(--shadow-md);
+}
+
+.reportes-conteiner .page-title-enhanced h1 {
+    font-size: 1.75rem;
+    font-weight: 600;
+    margin: 0 0 var(--spacing-xs) 0;
+    display: flex;
+    align-items: center;
+}
+
+.reportes-conteiner .page-title-enhanced p {
+    margin: 0;
+    font-size: 0.9375rem;
+    opacity: 0.9;
+    font-weight: 400;
+}
+
+/* =====================================================
+   4. NAVEGACIÓN SECUNDARIA (PESTAÑAS)
+   ===================================================== */
+.reportes-conteiner .eerr-subnav {
+    background-color: var(--bank-bg-white);
+    border: 1px solid var(--bank-border);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-xs);
+    box-shadow: var(--shadow-xs);
+    display: flex;
+    justify-content: space-between;
+}
+
+.reportes-conteiner .eerr-subnav .nav-link {
+    color: var(--bank-text-secondary);
+    font-weight: 500;
+    font-size: 0.8125rem;
+    padding: var(--spacing-sm) var(--spacing-xs);
+    border-radius: var(--radius-md);
+    transition: var(--transition);
+    border: none;
+    white-space: nowrap;
+    flex: 1;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.375rem;
+}
+
+.reportes-conteiner .eerr-subnav .nav-link:hover {
+    background-color: var(--bank-bg);
+    color: var(--bank-primary);
+}
+
+.reportes-conteiner .eerr-subnav .nav-link.active {
+    background-color: var(--bank-primary);
+    color: var(--bank-bg-white);
+    font-weight: 600;
+}
+
+.reportes-conteiner .eerr-subnav .nav-link i {
+    font-size: 0.8125rem;
+    flex-shrink: 0;
+}
+
+/* =====================================================
+   5. GRID DE TARJETAS DE REPORTES
+   ===================================================== */
+.reportes-conteiner .reports-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: var(--spacing-lg);
+}
+
+.reportes-conteiner .report-card {
+    background-color: var(--bank-bg-white);
+    border: 1px solid var(--bank-border);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-lg);
+    box-shadow: var(--shadow-sm);
+    transition: var(--transition);
+    position: relative;
+    overflow: hidden;
+}
+
+.reportes-conteiner .report-card::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+}
+
+.reportes-conteiner .report-card:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-md);
+}
+
+/* Estilos específicos por tipo de reporte */
+.reportes-conteiner .report-card.general::before {
+    background-color: var(--bank-primary);
+}
+
+.reportes-conteiner .report-card.flujo::before {
+    background-color: var(--bank-success);
+}
+
+.reportes-conteiner .report-card.comparativo::before {
+    background-color: var(--bank-info);
+}
+
+.reportes-conteiner .report-card.conciliacion::before {
+    background-color: var(--bank-warning);
+}
+
+.reportes-conteiner .report-icon {
+    width: 3.5rem;
+    height: 3.5rem;
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    margin-bottom: var(--spacing-md);
+}
+
+.reportes-conteiner .report-card.general .report-icon {
+    background-color: rgba(30, 58, 95, 0.1);
+    color: var(--bank-primary);
+}
+
+.reportes-conteiner .report-card.flujo .report-icon {
+    background-color: var(--bank-success-light);
+    color: var(--bank-success);
+}
+
+.reportes-conteiner .report-card.comparativo .report-icon {
+    background-color: var(--bank-info-light);
+    color: var(--bank-info);
+}
+
+.reportes-conteiner .report-card.conciliacion .report-icon {
+    background-color: var(--bank-warning-light);
+    color: var(--bank-warning);
+}
+
+.reportes-conteiner .report-card h6 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--bank-text-primary);
+    margin-bottom: var(--spacing-sm);
+}
+
+.reportes-conteiner .report-card p {
+    font-size: 0.875rem;
+    color: var(--bank-text-secondary);
+    margin-bottom: var(--spacing-sm);
+    line-height: 1.5;
+}
+
+.reportes-conteiner .report-card small {
+    font-size: 0.8125rem;
+}
+
+/* =====================================================
+   6. TARJETA DE FILTROS
+   ===================================================== */
+.reportes-conteiner .filters-card {
+    background-color: var(--bank-bg-white);
+    border: 1px solid var(--bank-border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+}
+
+.reportes-conteiner .filters-card .card-body {
+    padding: var(--spacing-lg);
+}
+
+.reportes-conteiner .filters-card .form-label {
+    font-weight: 600;
+    font-size: 0.8125rem;
+    color: var(--bank-text-primary);
+    margin-bottom: var(--spacing-xs);
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+.reportes-conteiner .filters-card .form-control,
+.reportes-conteiner .filters-card .form-select {
+    border: 1px solid var(--bank-border);
+    border-radius: var(--radius-md);
+    padding: 0.5rem var(--spacing-sm);
+    font-size: 0.9375rem;
+    color: var(--bank-text-primary);
+    transition: var(--transition);
+    background-color: var(--bank-bg-white);
+}
+
+.reportes-conteiner .filters-card .form-control:focus,
+.reportes-conteiner .filters-card .form-select:focus {
+    border-color: var(--bank-primary);
+    box-shadow: 0 0 0 0.2rem rgba(30, 58, 95, 0.1);
+    outline: none;
+}
+
+.reportes-conteiner .filters-card .btn-primary {
+    background-color: var(--bank-primary);
+    border: none;
+    padding: 0.75rem 2rem;
+    font-weight: 600;
+    font-size: 1rem;
+    border-radius: var(--radius-md);
+    transition: var(--transition);
+}
+
+.reportes-conteiner .filters-card .btn-primary:hover {
+    background-color: var(--bank-primary-dark);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+}
+
+/* =====================================================
+   7. TARJETAS DE ESTADÍSTICAS (KPIs)
+   ===================================================== */
+.reportes-conteiner .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--spacing-lg);
+    margin-bottom: var(--spacing-xl);
+}
+
+.reportes-conteiner .stat-card {
+    background-color: var(--bank-bg-white);
+    border: 1px solid var(--bank-border);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-lg);
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+    position: relative;
+    overflow: hidden;
+    transition: var(--transition);
+    box-shadow: var(--shadow-sm);
+}
+
+.reportes-conteiner .stat-card::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    transition: var(--transition);
+}
+
+.reportes-conteiner .stat-card.success::before {
+    background-color: var(--bank-success);
+}
+
+.reportes-conteiner .stat-card.danger::before {
+    background-color: var(--bank-danger);
+}
+
+.reportes-conteiner .stat-card.info::before {
+    background-color: var(--bank-info);
+}
+
+.reportes-conteiner .stat-card.warning::before {
+    background-color: var(--bank-warning);
+}
+
+.reportes-conteiner .stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.reportes-conteiner .stat-card .stat-icon {
+    width: 3.5rem;
+    height: 3.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-md);
+    flex-shrink: 0;
+    font-size: 1.5rem;
+}
+
+.reportes-conteiner .stat-card.success .stat-icon {
+    background-color: var(--bank-success-light);
+    color: var(--bank-success);
+}
+
+.reportes-conteiner .stat-card.danger .stat-icon {
+    background-color: var(--bank-danger-light);
+    color: var(--bank-danger);
+}
+
+.reportes-conteiner .stat-card.info .stat-icon {
+    background-color: var(--bank-info-light);
+    color: var(--bank-info);
+}
+
+.reportes-conteiner .stat-card.warning .stat-icon {
+    background-color: var(--bank-warning-light);
+    color: var(--bank-warning);
+}
+
+.reportes-conteiner .stat-card .stat-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.reportes-conteiner .stat-card .stat-label {
+    font-size: 0.75rem;
+    color: var(--bank-text-secondary);
+    margin: 0 0 0.25rem 0;
+    text-transform: uppercase;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+
+.reportes-conteiner .stat-card .stat-value {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--bank-text-primary);
+    line-height: 1.2;
+    margin: 0;
+}
+
+/* =====================================================
+   8. TARJETA DE RESULTADOS
+   ===================================================== */
+.reportes-conteiner .card {
+    border: 1px solid var(--bank-border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    background-color: var(--bank-bg-white);
+}
+
+.reportes-conteiner .card-header {
+    padding: var(--spacing-md) var(--spacing-lg);
+    border-bottom: 1px solid var(--bank-border);
+}
+
+.reportes-conteiner .card-header.bg-primary {
+    background: linear-gradient(135deg, var(--bank-primary) 0%, var(--bank-primary-dark) 100%);
+    color: var(--bank-bg-white);
+    border-bottom: none;
+}
+
+.reportes-conteiner .card-header h5 {
+    font-size: 1rem;
+    font-weight: 600;
+    margin: 0;
+}
+
+.reportes-conteiner .card-body {
+    padding: var(--spacing-lg);
+}
+
+/* =====================================================
+   9. ESTADO VACÍO
+   ===================================================== */
+.reportes-conteiner .text-center.p-5 {
+    color: var(--bank-text-muted);
+}
+
+.reportes-conteiner .text-center i.fa-4x {
+    color: var(--bank-border);
+    opacity: 0.5;
+}
+
+.reportes-conteiner .text-center h4 {
+    color: var(--bank-text-primary);
+    font-weight: 600;
+    margin-top: var(--spacing-md);
+}
+
+.reportes-conteiner .text-center p {
+    color: var(--bank-text-secondary);
+}
+
+/* =====================================================
+   10. UTILIDADES
+   ===================================================== */
+.reportes-conteiner .text-muted {
+    color: var(--bank-text-muted) !important;
+}
+
+.reportes-conteiner .shadow-sm {
+    box-shadow: var(--shadow-sm) !important;
+}
+
+/* =====================================================
+   11. RESPONSIVE DESIGN
+   ===================================================== */
+@media (max-width: 1200px) {
+    .reportes-conteiner .reports-grid {
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    }
+    
+    .reportes-conteiner .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 992px) {
+    .reportes-conteiner .eerr-subnav {
+        overflow-x: auto;
+        white-space: nowrap;
+        -webkit-overflow-scrolling: touch;
+        justify-content: flex-start;
+    }
+    
+    .reportes-conteiner .eerr-subnav .nav-link {
+        display: inline-flex;
+        flex: 0 0 auto;
+        min-width: auto;
+    }
+    
+    .reportes-conteiner .reports-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .reportes-conteiner .page-title-enhanced {
+        padding: var(--spacing-md);
+    }
+    
+    .reportes-conteiner .page-title-enhanced h1 {
+        font-size: 1.5rem;
+    }
+    
+    .reportes-conteiner .reports-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .reportes-conteiner .stats-grid {
+        grid-template-columns: 1fr;
+        gap: var(--spacing-md);
+    }
+    
+    .reportes-conteiner .stat-card {
+        padding: var(--spacing-md);
+    }
+    
+    .reportes-conteiner .stat-card .stat-icon {
+        width: 3rem;
+        height: 3rem;
+        font-size: 1.25rem;
+    }
+    
+    .reportes-conteiner .stat-card .stat-value {
+        font-size: 1.5rem;
+    }
+    
+    .reportes-conteiner .filters-card .card-body {
+        padding: var(--spacing-md);
+    }
+    
+    .reportes-conteiner .report-card {
+        padding: var(--spacing-md);
+    }
+    
+    .reportes-conteiner .report-icon {
+        width: 3rem;
+        height: 3rem;
+        font-size: 1.25rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .reportes-conteiner .page-title-enhanced h1 {
+        font-size: 1.25rem;
+    }
+    
+    .reportes-conteiner .page-title-enhanced p {
+        font-size: 0.875rem;
+    }
+    
+    .reportes-conteiner .eerr-subnav .nav-link {
+        font-size: 0.8125rem;
+        padding: var(--spacing-xs) var(--spacing-sm);
+    }
+    
+    .reportes-conteiner .stat-card .stat-label {
+        font-size: 0.6875rem;
+    }
+    
+    .reportes-conteiner .stat-card .stat-value {
+        font-size: 1.25rem;
+    }
+    
+    .reportes-conteiner .report-card h6 {
+        font-size: 0.9375rem;
+    }
+    
+    .reportes-conteiner .report-card p {
+        font-size: 0.8125rem;
+    }
+    
+    .reportes-conteiner .filters-card .btn-primary {
+        padding: 0.5rem 1.5rem;
+        font-size: 0.9375rem;
+    }
+}

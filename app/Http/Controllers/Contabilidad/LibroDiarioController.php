@@ -15,6 +15,7 @@ class LibroDiarioController extends Controller
     // 2. Inyectamos el servicio
     public function __construct(LibroDiarioService $libroDiarioService)
     {
+        $this->middleware('auth');
         $this->libroDiarioService = $libroDiarioService;
     }
 

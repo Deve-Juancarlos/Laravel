@@ -24,9 +24,9 @@ return [
         ],
 
         'anulaciones' => [
-            // Asiento de Anulación de Cobranza (12 / 10)
-            'cliente_por_cobrar' => env('CTA_ANUL_CLIENTE', '121201'), // Revierte la 12
-            'banco'              => env('CTA_ANUL_BANCO', '104101'), // Revierte la 10
+            // Asiento de Anulación de Cobranza 
+            'cliente_por_cobrar' => env('CTA_ANUL_CLIENTE', '121201'),
+            'banco'              => env('CTA_ANUL_BANCO', '104101'), 
             
             
         ],
@@ -42,12 +42,12 @@ return [
         // --- ¡NUEVA SECCIÓN PARA NOTAS DE CRÉDITO! ---
         'notas_credito' => [
             // Asiento de NC (DEBE)
-            'devolucion_ventas'   => env('CTA_NC_DEVOLUCION', '704101'), // 70.4 Devoluciones sobre Ventas
-            'descuento_ventas'    => env('CTA_NC_DESCUENTO', '675101'),  // 67.5 Descuentos Concedidos
-            'igv_nc'              => env('CTA_NC_IGV', '401101'),        // 40.1.1 IGV (revierte el débito fiscal)
+            'devolucion_ventas'   => env('CTA_NC_DEVOLUCION', '704101'), 
+            'descuento_ventas'    => env('CTA_NC_DESCUENTO', '675101'),  
+            'igv_nc'              => env('CTA_NC_IGV', '401101'),        
             
             // Asiento de NC (HABER)
-            'cuenta_por_cobrar'   => env('CTA_NC_POR_COBRAR', '121201'), // 12.1.2 Facturas por Cobrar (reduce la deuda)
+            'cuenta_por_cobrar'   => env('CTA_NC_POR_COBRAR', '121201'), 
         ],
 
     ],

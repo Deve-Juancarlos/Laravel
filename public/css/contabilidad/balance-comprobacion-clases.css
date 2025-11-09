@@ -1,94 +1,409 @@
-/*
- * Estilos para la vista de Balance por Clases
- */
-
-/* Colores personalizados por clase */
-.bg-activo { background: #3b82f6 !important; color: white !important; }
-.bg-pasivo { background: #f59e0b !important; color: white !important; }
-.bg-patrimonio { background: #06b6d4 !important; color: white !important; }
-.bg-ingresos { background: #10b981 !important; color: white !important; }
-.bg-gastos { background: #ef4444 !important; color: white !important; }
-
-/* Tarjetas resumen general */
-.summary-card {
-    border-radius: 12px;
-    padding: 1.25rem 1rem;
-    color: white;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+/* ==== Variables y estilo base ==== */
+:root {
+    --color-primario: #1b998b;
+    --color-secundario: #2a547e;
+    --color-acento: #f4d35e;
+    --color-bg: #f7f9fa;
+    --color-texto: #333;
+    --color-exito: #28a745;
+    --color-peligro: #dc3545;
+    --color-info: #17a2b8;
+    --radio: 8px;
+    --sombra: 0 2px 8px rgba(0,0,0,0.05);
+    
+    /* Colores específicos para clases contables */
+    --color-activo: #3b82f6;
+    --color-pasivo: #f59e0b;
+    --color-patrimonio: #06b6d4;
+    --color-ingresos: #10b981;
+    --color-gastos: #ef4444;
 }
-.summary-card:hover { 
-    transform: translateY(-3px); 
-    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+
+body {
+    font-family: 'Segoe UI', Tahoma, sans-serif;
+    background-color: var(--color-bg);
+    color: var(--color-texto);
 }
-.summary-card .summary-icon {
-    font-size: 1.25rem;
-    opacity: 0.7;
+
+/* ==== Filtros ==== */
+.filters-card {
+    background: white;
+    border-radius: var(--radio);
+    border-left: 5px solid var(--color-primario);
+    overflow: hidden;
+}
+
+.filters-card .card-body {
+    padding: 1.5rem;
+}
+
+.form-label {
+    font-weight: 500;
+    font-size: 0.9rem;
+    color: #495057;
     margin-bottom: 0.5rem;
 }
-.summary-card h6 {
-    text-transform: uppercase;
-    font-size: 0.8rem;
-    font-weight: 700;
-    opacity: 0.9;
+
+.form-control {
+    border-radius: var(--radio);
+    border: 1px solid #ced4da;
+    padding: 0.6rem 0.75rem;
+    transition: border-color 0.2s, box-shadow 0.2s;
 }
+
+.form-control:focus {
+    border-color: var(--color-primario);
+    box-shadow: 0 0 0 0.2rem rgba(27, 153, 139, 0.25);
+}
+
+/* ==== Tarjetas de Resumen ==== */
+.summary-card {
+    background: white;
+    border-radius: var(--radio);
+    padding: 1.5rem;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.summary-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 4px;
+    background: linear-gradient(90deg, var(--gradient-start, var(--color-primario)) 0%, var(--gradient-end, var(--color-secundario)) 100%);
+}
+
+.summary-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.12);
+}
+
+/* Colores específicos por clase */
+.bg-activo {
+    --gradient-start: var(--color-activo);
+    --gradient-end: #2563eb;
+}
+
+.bg-pasivo {
+    --gradient-start: var(--color-pasivo);
+    --gradient-end: #ea580c;
+}
+
+.bg-patrimonio {
+    --gradient-start: var(--color-patrimonio);
+    --gradient-end: #0891b2;
+}
+
+.bg-ingresos {
+    --gradient-start: var(--color-ingresos);
+    --gradient-end: #059669;
+}
+
+.bg-gastos {
+    --gradient-start: var(--color-gastos);
+    --gradient-end: #dc2626;
+}
+
+.summary-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    margin: 0 auto 1rem;
+    background: linear-gradient(135deg, rgba(27, 153, 139, 0.1) 0%, rgba(42, 84, 126, 0.1) 100%);
+    color: var(--color-primario);
+}
+
+.bg-activo .summary-icon {
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(37, 99, 235, 0.1) 100%);
+    color: var(--color-activo);
+}
+
+.bg-pasivo .summary-icon {
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(234, 88, 12, 0.1) 100%);
+    color: var(--color-pasivo);
+}
+
+.bg-patrimonio .summary-icon {
+    background: linear-gradient(135deg, rgba(6, 182, 212, 0.1) 0%, rgba(8, 145, 178, 0.1) 100%);
+    color: var(--color-patrimonio);
+}
+
+.bg-ingresos .summary-icon {
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(5, 150, 105, 0.1) 100%);
+    color: var(--color-ingresos);
+}
+
+.bg-gastos .summary-icon {
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.1) 0%, rgba(220, 38, 38, 0.1) 100%);
+    color: var(--color-gastos);
+}
+
+.summary-card h6 {
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 0.5rem;
+}
+
 .summary-card h4 {
     font-size: 1.5rem;
-}
-.summary-card.border {
-    border: 1px solid #e0e0e0;
-}
-.summary-card.border .text-primary {
-    color: #3b82f6 !important;
-}
-.summary-card.border .text-success {
-    color: #10b981 !important;
-}
-.summary-card.border .text-danger {
-    color: #ef4444 !important;
+    font-weight: 700;
+    margin: 0;
 }
 
-
-/* Tarjetas por clase */
+/* ==== Tarjetas de Clase ==== */
 .class-card {
-    border-radius: 12px;
+    background: white;
+    border-radius: var(--radio);
     overflow: hidden;
-    margin-bottom: 30px;
-    border: 1px solid #e0e0e0;
+    margin-bottom: 1.5rem;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
+
+.class-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+}
+
 .class-card-header {
-    padding: 1rem 1.25rem;
+    padding: 1.25rem 1.5rem;
+    color: white;
     font-weight: 700;
     font-size: 1.1rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
 }
-.class-card-body { padding: 0; }
 
-/* Tabla dentro de tarjeta */
-.class-card .table {
+/* Headers con gradientes según la clase */
+.class-card-header.bg-activo {
+    background: linear-gradient(135deg, var(--color-activo) 0%, #2563eb 100%);
+}
+
+.class-card-header.bg-pasivo {
+    background: linear-gradient(135deg, var(--color-pasivo) 0%, #ea580c 100%);
+}
+
+.class-card-header.bg-patrimonio {
+    background: linear-gradient(135deg, var(--color-patrimonio) 0%, #0891b2 100%);
+}
+
+.class-card-header.bg-ingresos {
+    background: linear-gradient(135deg, var(--color-ingresos) 0%, #059669 100%);
+}
+
+.class-card-header.bg-gastos {
+    background: linear-gradient(135deg, var(--color-gastos) 0%, #dc2626 100%);
+}
+
+.class-card-body {
+    padding: 1.5rem;
+}
+
+/* ==== Tabla ==== */
+.table {
     margin-bottom: 0;
 }
-.class-card .table th, 
-.class-card .table td { 
-    vertical-align: middle; 
-    padding: 0.75rem 1.25rem;
-    font-size: 0.875rem;
-}
-.class-card .table th {
-    font-size: 0.7rem;
+
+.table thead th {
+    background: #f8f9fa;
+    color: var(--color-secundario);
+    font-weight: 600;
+    font-size: 0.85rem;
     text-transform: uppercase;
-    color: #6c757d;
+    letter-spacing: 0.5px;
+    border-bottom: 2px solid #dee2e6;
+    padding: 0.9rem 0.75rem;
 }
-.class-card .total-row { 
-    font-weight: 700; 
+
+.table tbody tr {
+    transition: background-color 0.2s ease;
+}
+
+.table tbody tr:hover {
+    background-color: rgba(27, 153, 139, 0.05);
+}
+
+.table tbody td {
+    padding: 0.85rem 0.75rem;
+    vertical-align: middle;
     font-size: 0.9rem;
 }
 
-/* Filtros */
-.filters-card {
-    background-color: #fff;
-    border-radius: 12px;
-}
-.filters-card .form-label {
+.table tbody td a {
+    color: var(--color-primario);
     font-weight: 600;
-    font-size: 0.875rem;
-    color: #495057;
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.table tbody td a:hover {
+    color: var(--color-secundario);
+    text-decoration: underline;
+}
+
+.table tfoot .total-row {
+    background: linear-gradient(135deg, #343a40 0%, #495057 100%);
+    color: white;
+    font-weight: 700;
+}
+
+.table tfoot .total-row td {
+    padding: 1rem 0.75rem;
+}
+
+/* ==== Barra de Progreso ==== */
+.progress {
+    height: 6px;
+    border-radius: 10px;
+    background-color: #e9ecef;
+    overflow: hidden;
+}
+
+.progress-bar {
+    border-radius: 10px;
+    transition: width 0.6s ease;
+}
+
+.progress-bar.bg-activo {
+    background: linear-gradient(90deg, var(--color-activo) 0%, #2563eb 100%);
+}
+
+.progress-bar.bg-pasivo {
+    background: linear-gradient(90deg, var(--color-pasivo) 0%, #ea580c 100%);
+}
+
+.progress-bar.bg-patrimonio {
+    background: linear-gradient(90deg, var(--color-patrimonio) 0%, #0891b2 100%);
+}
+
+.progress-bar.bg-ingresos {
+    background: linear-gradient(90deg, var(--color-ingresos) 0%, #059669 100%);
+}
+
+.progress-bar.bg-gastos {
+    background: linear-gradient(90deg, var(--color-gastos) 0%, #dc2626 100%);
+}
+
+/* ==== Botones ==== */
+.btn {
+    border-radius: var(--radio);
+    padding: 0.6rem 1.2rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    border: none;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, var(--color-primario) 0%, #159f8f 100%);
+    color: white;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, #159f8f 0%, var(--color-primario) 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(27, 153, 139, 0.3);
+}
+
+.btn-secondary {
+    background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%);
+    color: white;
+}
+
+.btn-secondary:hover {
+    background: linear-gradient(135deg, #5a6268 0%, #545b62 100%);
+    transform: translateY(-2px);
+}
+
+.btn-warning {
+    background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);
+    color: #000;
+}
+
+.btn-warning:hover {
+    background: linear-gradient(135deg, #ff9800 0%, #ffc107 100%);
+    transform: translateY(-2px);
+}
+
+.btn-success {
+    background: linear-gradient(135deg, var(--color-exito) 0%, #20c997 100%);
+    color: white;
+}
+
+.btn-success:hover {
+    background: linear-gradient(135deg, #20c997 0%, var(--color-exito) 100%);
+    transform: translateY(-2px);
+}
+
+/* ==== Responsive ==== */
+@media (max-width: 992px) {
+    .summary-card {
+        margin-bottom: 1rem;
+    }
+    
+    .class-card {
+        margin-bottom: 1.5rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .summary-card h4 {
+        font-size: 1.2rem;
+    }
+    
+    .summary-icon {
+        width: 40px;
+        height: 40px;
+        font-size: 1.2rem;
+    }
+    
+    .class-card-header {
+        font-size: 1rem;
+        padding: 1rem;
+    }
+    
+    .table-responsive {
+        font-size: 0.85rem;
+    }
+    
+    .btn {
+        width: 100%;
+        margin-bottom: 0.5rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .summary-card {
+        padding: 1rem;
+    }
+    
+    .summary-card h6 {
+        font-size: 0.75rem;
+    }
+    
+    .summary-card h4 {
+        font-size: 1rem;
+    }
+    
+    .table thead th {
+        font-size: 0.75rem;
+        padding: 0.6rem 0.5rem;
+    }
+    
+    .table tbody td {
+        font-size: 0.8rem;
+        padding: 0.6rem 0.5rem;
+    }
+    
+    .class-card-header {
+        font-size: 0.9rem;
+        padding: 0.8rem 1rem;
+    }
 }

@@ -1,9 +1,3 @@
-<!-- Este es el menú lateral, organizado por nuestros módulos -->
-
-<!--
-    Usamos request()->is('ruta*') para marcar como 'active'
-    la sección actual.
--->
 
 <div class="nav-section">Principal</div>
 <a class="nav-link {{ request()->routeIs('dashboard.contador') ? 'active' : '' }}" href="{{ route('dashboard.contador') }}">
@@ -53,7 +47,7 @@
     <i class="fas fa-university"></i>
     <span>Bancos</span>
 </a>
-<a class="nav-link {{ request()->is('tesoreria/caja*') ? 'active' : '' }}" href="{{ route('contador.caja.index') }}">
+<a class="nav-link {{ request()->is('tesoreria/caja*') ? 'active' : '' }}" href="{{ route('contador.caja.create') }}">
     <i class="fas fa-cash-register"></i>
     <span>Caja Chica</span>
 </a>
@@ -62,12 +56,17 @@
     <span>Cuentas por Cobrar</span>
 </a>
 
+<a class="nav-link {{ request()->is('tesoreria/cobranzas*') ? 'active' : '' }}" href="{{ route('contador.letras_descuento.index') }}">
+    <i class="fas fa-hand-holding-usd"></i>
+    <span>LETRAS</span>
+</a>
+
 <div class="nav-section">Inventario</div>
 <a class="nav-link {{ request()->is('inventario/productos*') ? 'active' : '' }}" href="{{ route('contador.inventario.index') }}">
     <i class="fas fa-boxes"></i>
     <span>Productos</span>
 </a>
-<a class="nav-link {{ request()->is('inventario/stock*') ? 'active' : '' }}" href="{{ route('contador.inventario.stock') }}">
+<a class="nav-link {{ request()->is('inventario/stock*') ? 'active' : '' }}" href="{{ route('contador.test.stock') }}">
     <i class="fas fa-warehouse"></i>
     <span>Stock y Lotes</span>
 </a>
@@ -92,12 +91,6 @@
     <i class="fas fa-cart-plus"></i>
     <span>Nueva Venta</span>
 </a>
-
-<a class="nav-link {{ request()->is('ventas/listado*') ? 'active' : '' }}" href="#">
-    <i class="fas fa-receipt"></i>
-    <span>Listado de Ventas</span>
-</a>
-
 
 
 <a class="nav-link {{ request()->is('ventas/listado*') ? 'active' : '' }}" href="{{ route('contador.notas-credito.index') }}">

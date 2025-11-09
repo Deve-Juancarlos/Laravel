@@ -10,6 +10,9 @@
 <div class="card shadow">
     <div class="card-header">
         <h5 class="card-title m-0">Lista de Productos</h5>
+        <a href="{{ route('contador.inventario.create') }}" class="btn btn-success btn-sm">
+            <i class="fas fa-plus-circle"></i> Nuevo Producto
+        </a>
     </div>
     <div class="card-body">
         <form method="GET" action="{{ route('contador.inventario.index') }}" class="mb-3">

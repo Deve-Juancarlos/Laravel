@@ -1,218 +1,902 @@
-/*
- * Estilos para la vista de Detalle de Cuenta del Libro Mayor
- * Extraído del <style> tag
- */
+/* ==========================================
+   LIBRO MAYOR - CUENTA ESPECÍFICA
+   Sistema CSS Profesional para Vista de Detalle de Cuenta
+   ========================================== */
 
+/* ==========================================
+   VARIABLES DEL SISTEMA DE DISEÑO
+   ========================================== */
+:root {
+    /* Colores Principales */
+    --color-primario: #1b998b;
+    --color-secundario: #2a547e;
+    --color-acento: #ff6b35;
+    --color-exito: #28a745;
+    --color-peligro: #dc3545;
+    --color-advertencia: #ffc107;
+    --color-info: #17a2b8;
+    --color-luz: #f8f9fa;
+    --color-oscuro: #343a40;
+    
+    /* Colores Semánticos */
+    --color-debe: #e74c3c;
+    --color-haber: #27ae60;
+    --color-deudor: #e74c3c;
+    --color-acreedor: #27ae60;
+    --color-saldo-positivo: #27ae60;
+    --color-saldo-negativo: #e74c3c;
+    
+    /* Grises */
+    --gris-50: #f8f9fa;
+    --gris-100: #e9ecef;
+    --gris-200: #dee2e6;
+    --gris-300: #ced4da;
+    --gris-400: #adb5bd;
+    --gris-500: #6c757d;
+    --gris-600: #495057;
+    --gris-700: #343a40;
+    --gris-800: #212529;
+    --gris-900: #000000;
+    
+    /* Tipografía */
+    --fuente-primaria: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    --fuente-monoespaciada: 'Consolas', 'Monaco', 'Courier New', monospace;
+    --peso-normal: 400;
+    --peso-medio: 500;
+    --peso-semibold: 600;
+    --peso-bold: 700;
+    
+    /* Espaciado */
+    --espaciado-xs: 0.25rem;
+    --espaciado-sm: 0.5rem;
+    --espaciado-md: 1rem;
+    --espaciado-lg: 1.5rem;
+    --espaciado-xl: 2rem;
+    --espaciado-2xl: 3rem;
+    
+    /* Sombras */
+    --sombra-suave: 0 2px 4px rgba(0, 0, 0, 0.05);
+    --sombra-media: 0 4px 6px rgba(0, 0, 0, 0.1);
+    --sombra-fuerte: 0 8px 25px rgba(0, 0, 0, 0.15);
+    --sombra-hover: 0 8px 30px rgba(0, 0, 0, 0.12);
+    
+    /* Bordes */
+    --radio-borde: 0.5rem;
+    --radio-borde-sm: 0.25rem;
+    --radio-borde-lg: 0.75rem;
+    --grosor-borde: 1px;
+    --grosor-borde-grueso: 2px;
+    
+    /* Transiciones */
+    --transicion-rapida: 0.15s ease-in-out;
+    --transicion-normal: 0.3s ease-in-out;
+    --transicion-lenta: 0.5s ease-in-out;
+    
+    /* Z-index */
+    --z-dropdown: 1000;
+    --z-sticky: 1020;
+    --z-fixed: 1030;
+    --z-modal: 1040;
+    --z-tooltip: 1070;
+}
+
+/* ==========================================
+   ESTILOS BASE Y RESET
+   ========================================== */
+* {
+    box-sizing: border-box;
+}
+
+body {
+    font-family: var(--fuente-primaria);
+    line-height: 1.6;
+    color: var(--gris-700);
+    background-color: var(--gris-50);
+}
+
+/* ==========================================
+   ALERTAS Y NOTIFICACIONES
+   ========================================== */
+.alert {
+    border: none;
+    border-radius: var(--radio-borde);
+    font-weight: var(--peso-medio);
+    box-shadow: var(--sombra-suave);
+    margin-bottom: var(--espaciado-lg);
+}
+
+.alert-success {
+    background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+    color: #155724;
+    border-left: 4px solid var(--color-exito);
+}
+
+.alert-danger {
+    background: linear-gradient(135deg, #f8d7da 0%, #f1b0b7 100%);
+    color: #721c24;
+    border-left: 4px solid var(--color-peligro);
+}
+
+.alert i {
+    color: inherit;
+}
+
+/* ==========================================
+   TARJETAS Y CONTENEDORES
+   ========================================== */
+.card {
+    border: none;
+    border-radius: var(--radio-borde);
+    box-shadow: var(--sombra-media);
+    transition: var(--transicion-normal);
+}
+
+.card:hover {
+    box-shadow: var(--sombra-hover);
+}
+
+.card-header {
+    background: linear-gradient(135deg, var(--gris-50) 0%, #ffffff 100%);
+    border-bottom: var(--grosor-borde) solid var(--gris-200);
+    font-weight: var(--peso-semibold);
+    padding: var(--espaciado-md) var(--espaciado-lg);
+}
+
+.card-body {
+    padding: var(--espaciado-lg);
+}
+
+/* ==========================================
+   FILTROS DE FECHA
+   ========================================== */
 .filters-card {
-    background-color: #fff;
-    border-radius: 12px;
-}
-.filters-card .form-label {
-    font-weight: 600;
-    font-size: 0.875rem;
-    color: #495057;
-}
- 
-/* Breadcrumb */
-.breadcrumb-section { 
-    background: #f8f9fa; 
-    padding: 1rem 2rem; 
-    border-bottom: 1px solid #dee2e6; 
-}
-.breadcrumb { 
-    margin: 0; 
-    font-size: 0.9rem; 
-}
-.breadcrumb a { 
-    color: #6c757d; 
-    text-decoration: none; 
-}
-.breadcrumb a:hover { 
-    color: #495057; 
-}
-.breadcrumb .active { 
-    color: #212529; 
-    font-weight: 500; 
+    margin-bottom: var(--espaciado-xl);
+    overflow: hidden;
 }
 
-/* Header */
-.btn-back { 
-    background: rgba(255,255,255,0.2); 
-    border: none; 
-    color: white; 
-    padding: 0.5rem 1rem; 
-    border-radius: 6px; 
-    text-decoration: none; 
-    font-size: 0.9rem; 
-    transition: all 0.3s ease; 
-    font-weight: 500;
+.form-label {
+    font-weight: var(--peso-semibold);
+    color: var(--gris-700);
+    margin-bottom: var(--espaciado-sm);
+    font-size: 0.875rem;
 }
-.btn-back:hover { 
-    background: rgba(255,255,255,0.4); 
-    transform: translateY(-1px); 
+
+.form-control {
+    border: var(--grosor-borde) solid var(--gris-300);
+    border-radius: var(--radio-borde-sm);
+    padding: 0.625rem 0.75rem;
+    font-size: 0.875rem;
+    transition: var(--transicion-rapida);
+    background-color: #ffffff;
+}
+
+.form-control:focus {
+    border-color: var(--color-primario);
+    box-shadow: 0 0 0 0.2rem rgba(27, 153, 139, 0.25);
+    outline: none;
+}
+
+.form-control:hover {
+    border-color: var(--gris-400);
+}
+
+.btn {
+    border-radius: var(--radio-borde-sm);
+    font-weight: var(--peso-medio);
+    font-size: 0.875rem;
+    padding: 0.625rem 1rem;
+    transition: var(--transicion-rapida);
+    border: none;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    text-decoration: none;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, var(--color-primario) 0%, #16a085 100%);
+    color: white;
+    box-shadow: var(--sombra-suave);
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, #16a085 0%, var(--color-primario) 100%);
+    transform: translateY(-1px);
+    box-shadow: var(--sombra-media);
     color: white;
 }
 
-/* Resumen de la cuenta */
-.account-info { 
-    background: white; 
-    padding: 1.5rem; 
-    margin-bottom: 1rem; 
-    border-radius: 12px; 
-    box-shadow: 0 2px 6px rgba(0,0,0,0.05); 
-    display: grid; 
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); 
-    gap: 1.5rem; 
-}
-.account-field { 
-    display: flex; 
-    flex-direction: column; 
-}
-.account-label { 
-    font-size: 0.8rem; 
-    text-transform: uppercase; 
-    color: #6c757d; 
-    font-weight: 600; 
-    margin-bottom: 0.25rem; 
-    letter-spacing: 0.5px; 
-}
-.account-value { 
-    font-size: 1.1rem; 
-    font-weight: 600; 
-    color: #212529; 
-}
-.account-value.saldo { 
-    font-size: 1.4rem; 
-}
-.saldo-deudor { 
-    color: #dc3545; 
-}
-.saldo-acreedor { 
-    color: #198754;
+.btn-primary:active {
+    transform: translateY(0);
 }
 
-/* Resumen del período */
-.summary-cards { 
-    display: grid; 
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); 
-    gap: 1rem; 
-    margin-bottom: 1rem; 
-}
-.summary-card { 
-    background: white; 
-    padding: 1.25rem; 
-    border-radius: 12px; 
-    border-left: 4px solid; 
-    display: flex; 
-    flex-direction: column; 
-    justify-content: center; 
-}
-.summary-card.debe { 
-    border-left-color: #dc3545; 
-}
-.summary-card.haber { 
-    border-left-color: #198754; 
-}
-.summary-card.total { 
-    border-left-color: #0d6efd; 
-}
-.summary-label { 
-    font-size: 0.8rem; 
-    color: #6c757d; 
-    text-transform: uppercase; 
-    margin-bottom: 0.25rem; 
-    font-weight: 600;
-}
-.summary-value { 
-    font-size: 1.5rem; 
-    font-weight: 700; 
-    color: #212529; 
+.btn-secondary {
+    background: var(--gris-500);
+    color: white;
 }
 
-/* Tabla de movimientos */
-.table-container { 
-    background: white; 
-    border-radius: 12px; 
-    overflow: hidden; 
-}
-.table-header { 
-    background: #fff; 
-    padding: 1rem 1.5rem; 
-    border-bottom: 1px solid #e9ecef; 
-    display: flex; 
-    justify-content: space-between; 
-    align-items: center; 
-}
-.table-title { 
-    font-size: 1.1rem; 
-    font-weight: 600; 
-    margin: 0; 
-}
-.table { 
-    width: 100%; 
-    border-collapse: collapse; 
-    font-size: 0.9rem; 
-}
-.table th, .table td { 
-    padding: 1rem 1.25rem; 
-    vertical-align: middle;
-}
-.table th { 
-    font-weight: 600; 
-    text-transform: uppercase; 
-    font-size: 0.75rem; 
-    color: #6c757d;
-}
-.table tbody tr:nth-child(even) { 
-    background-color: #f8f9fa; 
-}
-.debe-column { 
-    color: #dc3545; 
-    font-weight: 600; 
-}
-.haber-column { 
-    color: #198754; 
-    font-weight: 600; 
-}
-.saldo-column { 
-    font-weight: 600; 
-}
-.saldo-acumulado { 
-    background-color: #e9ecef !important; 
-    font-weight: 600; 
+.btn-secondary:hover {
+    background: var(--gris-600);
+    color: white;
 }
 
-/* Links */
-.documento-link { 
-    color: #0d6efd; 
-    text-decoration: none; 
-    font-weight: 500; 
-    background-color: rgba(13, 110, 253, 0.1);
-    padding: 0.25rem 0.5rem;
-    border-radius: 6px;
-    transition: all 0.2s ease;
-}
-.documento-link:hover { 
-    color: #fff; 
-    background-color: #0d6efd; 
-    text-decoration: none; 
-}
-
-/* Botones soft */
 .btn-success-soft {
-    background-color: rgba(25, 135, 84, 0.1);
-    color: #198754;
-    border: 1px solid rgba(25, 135, 84, 0.2);
+    background: linear-gradient(135deg, rgba(40, 167, 69, 0.1) 0%, rgba(40, 167, 69, 0.05) 100%);
+    color: var(--color-exito);
+    border: 1px solid rgba(40, 167, 69, 0.3);
+    font-weight: var(--peso-medio);
 }
+
 .btn-success-soft:hover {
-    background-color: #198754;
-    color: #fff;
+    background: linear-gradient(135deg, rgba(40, 167, 69, 0.2) 0%, rgba(40, 167, 69, 0.1) 100%);
+    color: var(--color-exito);
+    transform: translateY(-1px);
+    box-shadow: var(--sombra-suave);
 }
 
+/* ==========================================
+   INFORMACIÓN DE LA CUENTA
+   ========================================== */
+.account-info {
+    background: linear-gradient(135deg, #ffffff 0%, var(--gris-50) 100%);
+    border-radius: var(--radio-borde);
+    padding: var(--espaciado-xl);
+    margin-bottom: var(--espaciado-xl);
+    box-shadow: var(--sombra-media);
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: var(--espaciado-lg);
+    border: var(--grosor-borde) solid var(--gris-200);
+}
 
-/* Responsive */
+.account-field {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espaciado-xs);
+}
+
+.account-label {
+    font-size: 0.75rem;
+    font-weight: var(--peso-semibold);
+    color: var(--gris-500);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin: 0;
+}
+
+.account-value {
+    font-size: 1.125rem;
+    font-weight: var(--peso-semibold);
+    color: var(--gris-800);
+    line-height: 1.4;
+    margin: 0;
+}
+
+.account-value.saldo {
+    font-size: 1.25rem;
+    font-weight: var(--peso-bold);
+    font-family: var(--fuente-monoespaciada);
+}
+
+.saldo-acreedor {
+    color: var(--color-acreedor) !important;
+}
+
+.saldo-deudor {
+    color: var(--color-deudor) !important;
+}
+
+/* ==========================================
+   TARJETAS DE RESUMEN
+   ========================================== */
+.summary-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: var(--espaciado-lg);
+    margin-bottom: var(--espaciado-2xl);
+}
+
+.summary-card {
+    background: linear-gradient(135deg, #ffffff 0%, var(--gris-50) 100%);
+    border-radius: var(--radio-borde);
+    padding: var(--espaciado-xl);
+    text-align: center;
+    border: var(--grosor-borde) solid var(--gris-200);
+    transition: var(--transicion-normal);
+    position: relative;
+    overflow: hidden;
+}
+
+.summary-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--color-primario), var(--color-secundario));
+    opacity: 0;
+    transition: var(--transicion-normal);
+}
+
+.summary-card:hover::before {
+    opacity: 1;
+}
+
+.summary-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--sombra-fuerte);
+}
+
+.summary-card.debe {
+    border-left: 4px solid var(--color-debe);
+}
+
+.summary-card.haber {
+    border-left: 4px solid var(--color-haber);
+}
+
+.summary-card.total {
+    border-left: 4px solid var(--color-primario);
+}
+
+.summary-label {
+    font-size: 0.875rem;
+    font-weight: var(--peso-semibold);
+    color: var(--gris-600);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: var(--espaciado-sm);
+}
+
+.summary-value {
+    font-size: 1.75rem;
+    font-weight: var(--peso-bold);
+    font-family: var(--fuente-monoespaciada);
+    color: var(--gris-800);
+    line-height: 1.2;
+    margin: 0;
+}
+
+.summary-card.debe .summary-value {
+    color: var(--color-debe);
+}
+
+.summary-card.haber .summary-value {
+    color: var(--color-haber);
+}
+
+/* ==========================================
+   CONTENEDOR Y TABLA
+   ========================================== */
+.table-container {
+    background: #ffffff;
+    border-radius: var(--radio-borde);
+    overflow: hidden;
+    box-shadow: var(--sombra-media);
+}
+
+.table-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: linear-gradient(135deg, var(--color-primario) 0%, #16a085 100%);
+    color: white;
+    padding: var(--espaciado-lg);
+    border: none;
+}
+
+.table-title {
+    margin: 0;
+    font-size: 1.125rem;
+    font-weight: var(--peso-semibold);
+    display: flex;
+    align-items: center;
+}
+
+.table-title i {
+    opacity: 0.9;
+}
+
+.table-responsive {
+    overflow-x: auto;
+    max-height: none;
+}
+
+.table {
+    width: 100%;
+    margin-bottom: 0;
+    background: transparent;
+}
+
+.table th,
+.table td {
+    padding: 0.875rem 1rem;
+    vertical-align: middle;
+    border-top: var(--grosor-borde) solid var(--gris-200);
+}
+
+.table thead th {
+    background: linear-gradient(135deg, var(--gris-100) 0%, #e9ecef 100%);
+    color: var(--gris-700);
+    font-weight: var(--peso-semibold);
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-bottom: var(--grosor-borde-grueso) solid var(--gris-300);
+    position: sticky;
+    top: 0;
+    z-index: var(--z-sticky);
+}
+
+.table tbody tr {
+    transition: var(--transicion-rapida);
+}
+
+.table tbody tr:hover {
+    background-color: rgba(27, 153, 139, 0.05);
+    transform: scale(1.005);
+}
+
+.table tbody tr:nth-child(even) {
+    background-color: rgba(248, 249, 250, 0.5);
+}
+
+.table tbody tr:nth-child(even):hover {
+    background-color: rgba(27, 153, 139, 0.08);
+}
+
+/* ==========================================
+   CLASES ESPECIALES PARA SALDOS
+   ========================================== */
+.saldo-acumulado {
+    background: linear-gradient(135deg, var(--gris-100) 0%, #e9ecef 100%) !important;
+    font-weight: var(--peso-semibold);
+}
+
+.saldo-acreedor {
+    color: var(--color-acreedor);
+    font-weight: var(--peso-semibold);
+}
+
+.saldo-deudor {
+    color: var(--color-deudor);
+    font-weight: var(--peso-semibold);
+}
+
+.debe-column {
+    color: var(--color-debe);
+    font-weight: var(--peso-semibold);
+    font-family: var(--fuente-monoespaciada);
+}
+
+.haber-column {
+    color: var(--color-haber);
+    font-weight: var(--peso-semibold);
+    font-family: var(--fuente-monoespaciada);
+}
+
+.saldo-column {
+    font-weight: var(--peso-bold);
+    font-family: var(--fuente-monoespaciada);
+}
+
+.text-end {
+    text-align: right !important;
+}
+
+/* ==========================================
+   ENLACES Y ELEMENTOS INTERACTIVOS
+   ========================================== */
+.documento-link {
+    color: var(--color-primario);
+    text-decoration: none;
+    font-weight: var(--peso-medio);
+    padding: 0.25rem 0.5rem;
+    border-radius: var(--radio-borde-sm);
+    transition: var(--transicion-rapida);
+    border: 1px solid transparent;
+}
+
+.documento-link:hover {
+    color: var(--color-secundario);
+    background-color: rgba(27, 153, 139, 0.1);
+    border-color: rgba(27, 153, 139, 0.3);
+    transform: translateY(-1px);
+    text-decoration: none;
+}
+
+.documento-link:focus {
+    outline: 2px solid rgba(27, 153, 139, 0.5);
+    outline-offset: 2px;
+}
+
+/* ==========================================
+   FILAS DE TOTALES
+   ========================================== */
+.table-light {
+    background: linear-gradient(135deg, var(--gris-100) 0%, #e9ecef 100%) !important;
+    font-weight: var(--peso-semibold);
+    color: var(--gris-700);
+}
+
+.table-dark {
+    background: linear-gradient(135deg, var(--gris-700) 0%, var(--gris-800) 100%) !important;
+    color: white;
+    font-weight: var(--peso-bold);
+}
+
+.table-dark td {
+    border-top: none;
+    color: white;
+}
+
+.table-dark .saldo-acreedor {
+    color: #90ee90 !important;
+}
+
+.table-dark .saldo-deudor {
+    color: #ffb3ba !important;
+}
+
+/* ==========================================
+   ESTADO VACÍO
+   ========================================== */
+.text-muted {
+    color: var(--gris-500) !important;
+}
+
+.text-center {
+    text-align: center !important;
+}
+
+.p-5 {
+    padding: 3rem !important;
+}
+
+.fa-3x {
+    font-size: 3rem;
+    opacity: 0.3;
+    margin-bottom: var(--espaciado-md);
+}
+
+.mb-3 {
+    margin-bottom: 1rem !important;
+}
+
+.mb-0 {
+    margin-bottom: 0 !important;
+}
+
+/* ==========================================
+   RESPONSIVE DESIGN
+   ========================================== */
 @media (max-width: 768px) {
-    .account-info { grid-template-columns: 1fr; }
-    .summary-cards { grid-template-columns: 1fr; }
-    .page-header h1 { font-size: 1.5rem; }
+    .container-fluid {
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+    
+    .account-info {
+        grid-template-columns: 1fr;
+        gap: var(--espaciado-md);
+        padding: var(--espaciado-lg);
+    }
+    
+    .summary-cards {
+        grid-template-columns: 1fr;
+        gap: var(--espaciado-md);
+    }
+    
+    .summary-card {
+        padding: var(--espaciado-lg);
+    }
+    
+    .summary-value {
+        font-size: 1.5rem;
+    }
+    
+    .table-container {
+        border-radius: var(--radio-borde-sm);
+    }
+    
+    .table th,
+    .table td {
+        padding: 0.5rem 0.75rem;
+        font-size: 0.875rem;
+    }
+    
+    .table-header {
+        flex-direction: column;
+        gap: var(--espaciado-md);
+        text-align: center;
+    }
+    
+    .table-header .btn {
+        align-self: center;
+    }
+    
+    .form-control {
+        font-size: 16px; /* Prevenir zoom en iOS */
+    }
+}
+
+@media (max-width: 576px) {
+    .account-info {
+        padding: var(--espaciado-md);
+    }
+    
+    .summary-card {
+        padding: var(--espaciado-md);
+    }
+    
+    .summary-value {
+        font-size: 1.25rem;
+    }
+    
+    .table th,
+    .table td {
+        padding: 0.375rem 0.5rem;
+        font-size: 0.75rem;
+    }
+    
+    .account-value.saldo {
+        font-size: 1rem;
+    }
+    
+    .documento-link {
+        font-size: 0.875rem;
+    }
+    
+    .filters-card .row {
+        gap: var(--espaciado-sm);
+    }
+    
+    .filters-card .col-md-4 {
+        margin-bottom: var(--espaciado-sm);
+    }
+    
+    .filters-card .d-flex {
+        flex-direction: column;
+        gap: var(--espaciado-sm);
+    }
+    
+    .btn {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+/* ==========================================
+   ANIMACIONES
+   ========================================== */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeInLeft {
+    from {
+        opacity: 0;
+        transform: translateX(-30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes fadeInRight {
+    from {
+        opacity: 0;
+        transform: translateX(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.7;
+    }
+}
+
+/* ==========================================
+   APLICACIÓN DE ANIMACIONES
+   ========================================== */
+.account-info {
+    animation: fadeInLeft 0.6s ease-out;
+}
+
+.summary-cards {
+    animation: fadeInUp 0.6s ease-out 0.1s both;
+}
+
+.summary-card:nth-child(2) {
+    animation-delay: 0.2s;
+}
+
+.summary-card:nth-child(3) {
+    animation-delay: 0.3s;
+}
+
+.table-container {
+    animation: fadeInUp 0.6s ease-out 0.2s both;
+}
+
+/* ==========================================
+   EFECTOS ESPECIALES
+   ========================================== */
+.summary-card::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(45deg, transparent 0%, rgba(255, 255, 255, 0.1) 50%, transparent 100%);
+    transform: translateX(-100%);
+    transition: var(--transicion-lenta);
+}
+
+.summary-card:hover::after {
+    transform: translateX(100%);
+}
+
+/* ==========================================
+   ESTADOS DE CARGA
+   ========================================== */
+.loading {
+    opacity: 0.6;
+    pointer-events: none;
+    position: relative;
+}
+
+.loading::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 20px;
+    height: 20px;
+    margin: -10px 0 0 -10px;
+    border: 2px solid var(--gris-300);
+    border-top: 2px solid var(--color-primario);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* ==========================================
+   IMPRESIÓN
+   ========================================== */
+@media print {
+    .container-fluid {
+        max-width: none;
+        padding: 0;
+    }
+    
+    .card {
+        box-shadow: none;
+        border: var(--grosor-borde) solid var(--gris-300);
+    }
+    
+    .filters-card {
+        display: none;
+    }
+    
+    .btn {
+        display: none;
+    }
+    
+    .table th,
+    .table td {
+        padding: 0.5rem;
+        font-size: 0.75rem;
+    }
+    
+    .account-info,
+    .summary-cards {
+        break-inside: avoid;
+    }
+    
+    .summary-card,
+    .table-container {
+        break-inside: avoid;
+    }
+}
+
+/* ==========================================
+   ACCESIBILIDAD
+   ========================================== */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+/* Focus visible para navegación por teclado */
+.btn:focus-visible,
+.form-control:focus-visible,
+.documento-link:focus-visible {
+    outline: 2px solid var(--color-primario);
+    outline-offset: 2px;
+}
+
+/* ==========================================
+   UTILIDADES ADICIONALES
+   ========================================== */
+.text-success {
+    color: var(--color-exito) !important;
+}
+
+.text-danger {
+    color: var(--color-peligro) !important;
+}
+
+.w-100 {
+    width: 100% !important;
+}
+
+.mb-4 {
+    margin-bottom: 1.5rem !important;
+}
+
+.shadow-sm {
+    box-shadow: var(--sombra-suave) !important;
+}
+
+.shadow {
+    box-shadow: var(--sombra-media) !important;
+}
+
+.d-flex {
+    display: flex !important;
+}
+
+.justify-content-between {
+    justify-content: space-between !important;
+}
+
+.align-items-center {
+    align-items: center !important;
+}
+
+.g-3 {
+    gap: 1rem !important;
+}
+
+.col-md-4 {
+    flex: 0 0 auto;
+    width: 33.33333333%;
+}
+
+.col-md-3 {
+    flex: 0 0 auto;
+    width: 25%;
+}
+
+@media (min-width: 768px) {
+    .col-md-4 {
+        flex: 0 0 auto;
+        width: 33.33333333%;
+    }
 }

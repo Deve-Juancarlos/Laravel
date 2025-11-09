@@ -25,6 +25,7 @@ use App\Http\Controllers\Contabilidad\CajaController;
 use App\Http\Controllers\Contabilidad\FlujoEgresoController;
 use App\Http\Controllers\Contabilidad\CuentasPorPagarController;
 use App\Http\Controllers\Compras\RegistroCompraController;
+use App\Http\Controllers\Contabilidad\InventarioController;
 //RUTAS PÚBLICAS
 Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
 Route::post('/login', [LoginController::class, 'login'])->name('login.post');
@@ -300,26 +301,16 @@ Route::middleware(['auth', 'check.contador'])->group(function () {
              ->name('api.clientes.search');
 
 
-        Route::get('/productos', [App\Http\Controllers\Contabilidad\InventarioController::class, 'index'])
-         ->name('inventario.index');
-         
-        // 2. Link "Stock y Lotes"
-        Route::get('/stock-lotes', [App\Http\Controllers\Contabilidad\InventarioController::class, 'stockLotes'])
-         ->name('inventario.stock');
-         
-        // 3. Link "Laboratorios"
-        Route::get('/laboratorios', [App\Http\Controllers\Contabilidad\InventarioController::class, 'laboratorios'])
-         ->name('inventario.laboratorios');
+        Route::prefix('inventario')->name('inventario.')->group(function () {
+            Route::get('/', [InventarioController::class, 'index'])->name('index');
+            Route::get('/crear', [InventarioController::class, 'create'])->name('create');
+            Route::post('/', [InventarioController::class, 'store'])->name('store');
+            Route::get('/{codPro}', [InventarioController::class, 'show'])->name('show');
+            Route::get('/laboratorios', [InventarioController::class, 'laboratorios'])->name('laboratorios');
+            Route::get('/vencimientos', [InventarioController::class, 'vencimientos'])->name('vencimientos');
+        });
 
-        // --- RUTAS ADICIONALES DEL MÓDULO ---
-         
-        // Reporte de Vencimientos (¡Muy importante para compras!)
-        Route::get('/inventario/vencimientos', [App\Http\Controllers\Contabilidad\InventarioController::class, 'vencimientos'])
-         ->name('inventario.vencimientos');
-         
-        // Detalle de un producto (para ver lotes)
-        Route::get('/inventario/producto/{codPro}', [App\Http\Controllers\Contabilidad\InventarioController::class, 'show'])
-         ->name('inventario.show');
+        Route::get('/test-stock', [InventarioController::class, 'stockLotes'])->name('test.stock');
 
 
         Route::prefix('ventas')->name('facturas.')->group(function () {
@@ -338,7 +329,7 @@ Route::middleware(['auth', 'check.contador'])->group(function () {
                  
             // --- GUARDADO FINAL ---
             Route::post('/guardar', [App\Http\Controllers\Ventas\FacturacionController::class, 'store'])
-                 ->name('store'); // contador.facturas.store
+                 ->name('store');
             
             // --- APIs (AJAX) para el Carrito ---
             Route::post('/carrito/agregar', [App\Http\Controllers\Ventas\FacturacionController::class, 'carritoAgregar'])
@@ -454,6 +445,45 @@ Route::middleware(['auth', 'check.contador'])->group(function () {
         Route::prefix('registro-compra')->name('compras.registro.')->group(function () {
             Route::get('/crear', [RegistroCompraController::class, 'create'])->name('create');
             Route::post('/guardar', [RegistroCompraController::class, 'store'])->name('store');
+        });
+
+        // ... en routes/web.php (dentro del grupo 'contador')
+
+        /*
+        |--------------------------------------------------------------------------
+        | 📜 MÓDULO DE LETRAS (PARTE 2: DESCUENTO CON PLANILLAS)
+        |--------------------------------------------------------------------------
+        */
+        Route::prefix('letras-descuento')->name('letras_descuento.')->group(function () {
+            
+            // Lista de Planillas
+            Route::get('/', [App\Http\Controllers\Contabilidad\PlanillaLetrasController::class, 'index'])
+                 ->name('index'); // contador.letras_descuento.index
+            
+            // --- Flujo de Creación de Planilla ---
+            Route::get('/crear', [App\Http\Controllers\Contabilidad\PlanillaLetrasController::class, 'create'])
+                 ->name('create'); // Paso 1: Crear cabecera PllaLetras
+                 
+            Route::post('/guardar', [App\Http\Controllers\Contabilidad\PlanillaLetrasController::class, 'store'])
+                 ->name('store'); // Guarda PllaLetras y redirige a 'show'
+            
+            // --- Vista de Detalle (el "Carrito" de Letras) ---
+            Route::get('/{serie}/{numero}', [App\Http\Controllers\Contabilidad\PlanillaLetrasController::class, 'show'])
+                 ->name('show'); // Paso 2: Añadir letras a PllaDetLetras
+
+            // --- APIs (AJAX) para el Carrito ---
+            Route::get('/api/buscar-letras', [App\Http\Controllers\Contabilidad\PlanillaLetrasController::class, 'apiBuscarLetrasPendientes'])
+                 ->name('api.buscarLetras');
+                 
+            Route::post('/agregar-letra', [App\Http\Controllers\Contabilidad\PlanillaLetrasController::class, 'agregarLetraPlanilla'])
+                 ->name('api.agregarLetra');
+                 
+            Route::delete('/quitar-letra/{id}', [App\Http\Controllers\Contabilidad\PlanillaLetrasController::class, 'quitarLetraPlanilla'])
+                 ->name('api.quitarLetra');
+
+            // --- El "GOLAZO" Contable ---
+            Route::post('/{serie}/{numero}/procesar', [App\Http\Controllers\Contabilidad\PlanillaLetrasController::class, 'procesarDescuento'])
+                 ->name('procesar'); // contador.letras_descuento.procesar
         });
         
 

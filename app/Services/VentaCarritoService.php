@@ -4,6 +4,7 @@ namespace App\Services;
 
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Facades\Log; // <-- Añadido para Loggear
 
 class VentaCarritoService
 {
@@ -15,16 +16,19 @@ class VentaCarritoService
     {
         $carrito = [
             'cliente' => $cliente,
-            'items' => collect(), // Usamos colecciones de Laravel
+            'items' => collect(),
             'pago' => [
-                'tipo_doc' => 1, // 1 = Factura por defecto (de tu tabla Tablas)
-                'condicion' => 'contado', // 'contado' o 'credito'
+                'tipo_doc' => 1,
+                'condicion' => 'contado',
                 'fecha_venc' => now()->addDays(30)->format('Y-m-d'),
                 'vendedor_id' => $cliente->Vendedor ?? null,
-                'moneda' => 1, // 1 = Soles (de tu tabla Tablas)
+                'moneda' => 1,
             ],
+            // ¡CORREGIDO! Inicializa todos los totales
             'totales' => [
-                'subtotal' => 0,
+                'subtotal_bruto' => 0,
+                'descuento_total' => 0,
+                'subtotal' => 0, // Subtotal Neto
                 'igv' => 0,
                 'total' => 0,
             ]
@@ -38,7 +42,10 @@ class VentaCarritoService
         return Session::get($this->sessionKey);
     }
 
-    // Añade un item (producto/lote) al carrito
+    /**
+     * ¡CORREGIDO!
+     * Ahora SÍ guarda el 'vencimiento' en todas las operaciones.
+     */
     public function agregarItem($itemData)
     {
         $carrito = $this->get();
@@ -47,6 +54,12 @@ class VentaCarritoService
         if (empty($itemData['codpro']) || empty($itemData['lote']) || !isset($itemData['cantidad']) || !isset($itemData['precio'])) {
             throw new \Exception("Datos del item incompletos.");
         }
+        
+        // Validación de Vencimiento (evita el NULL de raíz)
+        if (empty($itemData['vencimiento']) || $itemData['vencimiento'] == 'N/A') {
+             Log::warning("Vencimiento NULO detectado para {$itemData['codpro']} Lote {$itemData['lote']}. Usando fecha actual.");
+             $itemData['vencimiento'] = now()->format('Y-m-d'); // Fallback
+        }
 
         $stockLote = $this->getStockLote($itemData['codpro'], $itemData['lote']);
         if ($stockLote < $itemData['cantidad']) {
@@ -54,17 +67,24 @@ class VentaCarritoService
         }
 
         $itemId = $itemData['codpro'] . '-' . $itemData['lote'];
-
-        // Guardamos el descuento (default 0)
         $itemData['descuento'] = (float)($itemData['descuento'] ?? 0);
 
-        if ($carrito['items']->has($itemId)) {
-            $carrito['items'][$itemId]['cantidad'] = $itemData['cantidad'];
-            $carrito['items'][$itemId]['precio'] = $itemData['precio'];
-            $carrito['items'][$itemId]['descuento'] = $itemData['descuento']; // Actualiza descuento
-        } else {
-            $carrito['items'][$itemId] = $itemData;
-        }
+        // ¡¡¡LÓGICA CORREGIDA!!!
+        // La forma más simple y segura es simplemente "sobrescribir" el item.
+        // No necesitamos la lógica 'if/else' porque $itemData ya tiene toda la info.
+        $carrito['items']->put($itemId, $itemData);
+
+        // (Si quisiéramos mantener la lógica de "get" y "put")
+        // if ($carrito['items']->has($itemId)) {
+        //     $item = $carrito['items']->get($itemId);
+        //     $item['cantidad'] = $itemData['cantidad'];
+        //     $item['precio'] = $itemData['precio'];
+        //     $item['descuento'] = $itemData['descuento'];
+        //     $item['vencimiento'] = $itemData['vencimiento']; // <-- ESTA ERA LA LÍNEA FALTANTE
+        //     $carrito['items']->put($itemId, $item);
+        // } else {
+        //     $carrito['items']->put($itemId, $itemData);
+        // }
 
         $this->actualizarTotales($carrito);
         return $carrito;
@@ -88,12 +108,12 @@ class VentaCarritoService
         return $carrito;
     }
 
-    // Recalcula los totales
+    // Recalcula los totales (Tu código está perfecto aquí)
     private function actualizarTotales(&$carrito)
     {
-        $subtotal_bruto = 0; // Total sin descuentos
+        $subtotal_bruto = 0;
         $descuento_total = 0;
-        $subtotal_neto = 0; // Total con descuentos (Base Imponible)
+        $subtotal_neto = 0;
 
         foreach ($carrito['items'] as $item) {
             $precio_bruto_item = $item['cantidad'] * $item['precio'];
@@ -106,27 +126,28 @@ class VentaCarritoService
             $subtotal_neto += $subtotal_item_neto;
         }
         
-        $igv = $subtotal_neto * 0.18; // IGV se calcula sobre el subtotal neto
+        $igv = $subtotal_neto * 0.18;
         $total = $subtotal_neto + $igv;
 
         $carrito['totales']['subtotal_bruto'] = round($subtotal_bruto, 2);
         $carrito['totales']['descuento_total'] = round($descuento_total, 2);
-        $carrito['totales']['subtotal'] = round($subtotal_neto, 2); // Subtotal es el Neto
+        $carrito['totales']['subtotal'] = round($subtotal_neto, 2); // Subtotal Neto
         $carrito['totales']['igv'] = round($igv, 2);
         $carrito['totales']['total'] = round($total, 2);
 
         Session::put($this->sessionKey, $carrito);
     }
     
-    // Función de ayuda para consultar stock real de un lote
+    // Función de ayuda para consultar stock (Tu código está perfecto aquí)
     public function getStockLote($codPro, $lote)
     {
-        $saldo = DB::connection($this->connection)->table('Saldos')
+        // Usamos SUM() como en tu código, es más seguro.
+        return (float) DB::connection($this->connection)
+            ->table('Saldos')
             ->where('codpro', $codPro)
             ->where('lote', $lote)
             ->where('saldo', '>', 0)
-            ->first();
-        return $saldo ? $saldo->saldo : 0;
+            ->sum('saldo'); 
     }
 
     public function olvidar()

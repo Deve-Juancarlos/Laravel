@@ -12,7 +12,7 @@
         <h5 class="card-title m-0">Stock Detallado por Lote (Tabla Saldos)</h5>
     </div>
     <div class="card-body">
-        <form method="GET" action="{{ route('contador.inventario.stock') }}" class="mb-3">
+        <form method="GET" action="{{ route('contador.test.stock') }}" class="mb-3">
             <div class="row g-3">
                 <div class="col-md-6">
                     <input type="text" class="form-control" name="q" placeholder="Buscar por Producto, Código o Lote..." value="{{ $filtros['q'] ?? '' }}">
@@ -21,7 +21,7 @@
                     <button type="submit" class="btn btn-primary w-100"><i class="fas fa-filter"></i> Filtrar</button>
                 </div>
                 <div class="col-md-3">
-                    <a href="{{ route('contador.inventario.stock') }}" class="btn btn-secondary w-100">Limpiar</a>
+                    <a href="{{ route('contador.test.stock') }}" class="btn btn-secondary w-100">Limpiar</a>
                 </div>
             </div>
         </form>

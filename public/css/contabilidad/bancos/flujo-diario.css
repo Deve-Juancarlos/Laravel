@@ -1,0 +1,544 @@
+/*
+ * =====================================================
+ * MÓDULO DE FLUJO DIARIO - SISTEMA CONTABLE
+ * Estilos profesionales para gestión de flujo de caja
+ * =====================================================
+ */
+
+/* =====================================================
+   1. VARIABLES Y CONFIGURACIÓN BASE
+   ===================================================== */
+:root {
+    /* Paleta Profesional Empresarial */
+    --bank-primary: #1e3a5f;
+    --bank-primary-dark: #152a45;
+    --bank-primary-light: #2d4d7a;
+    --bank-secondary: #455a64;
+    
+    /* Colores Funcionales */
+    --bank-success: #2e7d32;
+    --bank-success-light: #e8f5e9;
+    --bank-danger: #c62828;
+    --bank-danger-light: #ffebee;
+    --bank-info: #0277bd;
+    --bank-info-light: #e1f5fe;
+    --bank-warning: #f57c00;
+    --bank-warning-light: #fff3e0;
+    
+    /* Colores Neutros */
+    --bank-text-primary: #212529;
+    --bank-text-secondary: #6c757d;
+    --bank-text-muted: #868e96;
+    --bank-border: #dee2e6;
+    --bank-border-light: #e9ecef;
+    --bank-bg: #f8f9fa;
+    --bank-bg-white: #ffffff;
+    --bank-bg-dark: #f1f3f5;
+    
+    /* Espaciado Consistente */
+    --spacing-xs: 0.5rem;
+    --spacing-sm: 0.75rem;
+    --spacing-md: 1rem;
+    --spacing-lg: 1.5rem;
+    --spacing-xl: 2rem;
+    --spacing-xxl: 3rem;
+    
+    /* Bordes y Sombras Sutiles */
+    --radius-sm: 4px;
+    --radius-md: 6px;
+    --radius-lg: 8px;
+    --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.05);
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
+    --shadow-md: 0 2px 6px rgba(0, 0, 0, 0.1);
+    --shadow-lg: 0 4px 12px rgba(0, 0, 0, 0.12);
+    
+    /* Transiciones */
+    --transition: all 0.2s ease;
+}
+
+/* =====================================================
+   2. CONTENEDOR PRINCIPAL
+   ===================================================== */
+.flujo-diario-view {
+    padding: 0;
+}
+
+/* =====================================================
+   3. TÍTULO DE PÁGINA MEJORADO
+   ===================================================== */
+.flujo-diario-view .page-title-enhanced {
+    background: linear-gradient(135deg, var(--bank-primary) 0%, var(--bank-primary-dark) 100%);
+    color: var(--bank-bg-white);
+    padding: var(--spacing-lg) var(--spacing-xl);
+    border-radius: var(--radius-lg);
+    margin-bottom: var(--spacing-lg);
+    box-shadow: var(--shadow-md);
+}
+
+.flujo-diario-view .page-title-enhanced h1 {
+    font-size: 1.75rem;
+    font-weight: 600;
+    margin: 0 0 var(--spacing-xs) 0;
+    display: flex;
+    align-items: center;
+}
+
+.flujo-diario-view .page-title-enhanced p {
+    margin: 0;
+    font-size: 0.9375rem;
+    opacity: 0.9;
+    font-weight: 400;
+}
+
+/* =====================================================
+   4. NAVEGACIÓN SECUNDARIA (PESTAÑAS)
+   ===================================================== */
+.flujo-diario-view .eerr-subnav {
+    background-color: var(--bank-bg-white);
+    border: 1px solid var(--bank-border);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-xs);
+    box-shadow: var(--shadow-xs);
+    display: flex;
+    justify-content: space-between;
+}
+
+.flujo-diario-view .eerr-subnav .nav-link {
+    color: var(--bank-text-secondary);
+    font-weight: 500;
+    font-size: 0.8125rem;
+    padding: var(--spacing-sm) var(--spacing-xs);
+    border-radius: var(--radius-md);
+    transition: var(--transition);
+    border: none;
+    white-space: nowrap;
+    flex: 1;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.375rem;
+}
+
+.flujo-diario-view .eerr-subnav .nav-link:hover {
+    background-color: var(--bank-bg);
+    color: var(--bank-primary);
+}
+
+.flujo-diario-view .eerr-subnav .nav-link.active {
+    background-color: var(--bank-primary);
+    color: var(--bank-bg-white);
+    font-weight: 600;
+}
+
+.flujo-diario-view .eerr-subnav .nav-link i {
+    font-size: 0.8125rem;
+    flex-shrink: 0;
+}
+
+/* =====================================================
+   5. TARJETA DE FILTROS
+   ===================================================== */
+.flujo-diario-view .filters-card {
+    background-color: var(--bank-bg-white);
+    border: 1px solid var(--bank-border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+}
+
+.flujo-diario-view .filters-card .card-body {
+    padding: var(--spacing-lg);
+}
+
+.flujo-diario-view .filters-card .form-label {
+    font-weight: 600;
+    font-size: 0.8125rem;
+    color: var(--bank-text-primary);
+    margin-bottom: var(--spacing-xs);
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+.flujo-diario-view .filters-card .form-control,
+.flujo-diario-view .filters-card .form-select {
+    border: 1px solid var(--bank-border);
+    border-radius: var(--radius-md);
+    padding: 0.5rem var(--spacing-sm);
+    font-size: 0.9375rem;
+    color: var(--bank-text-primary);
+    transition: var(--transition);
+    background-color: var(--bank-bg-white);
+}
+
+.flujo-diario-view .filters-card .form-control:focus,
+.flujo-diario-view .filters-card .form-select:focus {
+    border-color: var(--bank-primary);
+    box-shadow: 0 0 0 0.2rem rgba(30, 58, 95, 0.1);
+    outline: none;
+}
+
+.flujo-diario-view .filters-card .btn-primary {
+    background-color: var(--bank-primary);
+    border: none;
+    padding: 0.5rem var(--spacing-md);
+    font-weight: 600;
+    border-radius: var(--radius-md);
+    transition: var(--transition);
+}
+
+.flujo-diario-view .filters-card .btn-primary:hover {
+    background-color: var(--bank-primary-dark);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+}
+
+/* =====================================================
+   6. TARJETAS DE ESTADÍSTICAS (KPIs)
+   ===================================================== */
+.flujo-diario-view .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--spacing-lg);
+    margin-bottom: var(--spacing-xl);
+}
+
+.flujo-diario-view .stat-card {
+    background-color: var(--bank-bg-white);
+    border: 1px solid var(--bank-border);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-lg);
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+    position: relative;
+    overflow: hidden;
+    transition: var(--transition);
+    box-shadow: var(--shadow-sm);
+}
+
+.flujo-diario-view .stat-card::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    transition: var(--transition);
+}
+
+.flujo-diario-view .stat-card.primary::before {
+    background-color: var(--bank-primary);
+}
+
+.flujo-diario-view .stat-card.success::before {
+    background-color: var(--bank-success);
+}
+
+.flujo-diario-view .stat-card.danger::before {
+    background-color: var(--bank-danger);
+}
+
+.flujo-diario-view .stat-card.info::before {
+    background-color: var(--bank-info);
+}
+
+.flujo-diario-view .stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.flujo-diario-view .stat-card .stat-icon {
+    width: 3.5rem;
+    height: 3.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-md);
+    flex-shrink: 0;
+}
+
+.flujo-diario-view .stat-card.primary .stat-icon {
+    background-color: rgba(30, 58, 95, 0.1);
+    color: var(--bank-primary);
+}
+
+.flujo-diario-view .stat-card.success .stat-icon {
+    background-color: var(--bank-success-light);
+    color: var(--bank-success);
+}
+
+.flujo-diario-view .stat-card.danger .stat-icon {
+    background-color: var(--bank-danger-light);
+    color: var(--bank-danger);
+}
+
+.flujo-diario-view .stat-card.info .stat-icon {
+    background-color: var(--bank-info-light);
+    color: var(--bank-info);
+}
+
+.flujo-diario-view .stat-card .stat-icon i {
+    font-size: 1.5rem;
+}
+
+.flujo-diario-view .stat-card .stat-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.flujo-diario-view .stat-card .stat-label {
+    font-size: 0.75rem;
+    color: var(--bank-text-secondary);
+    margin: 0 0 0.25rem 0;
+    text-transform: uppercase;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+
+.flujo-diario-view .stat-card .stat-value {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--bank-text-primary);
+    line-height: 1.2;
+    margin: 0;
+}
+
+/* =====================================================
+   7. TARJETAS GENERALES
+   ===================================================== */
+.flujo-diario-view .card {
+    border: 1px solid var(--bank-border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    background-color: var(--bank-bg-white);
+}
+
+.flujo-diario-view .card-header {
+    background-color: var(--bank-bg-dark);
+    border-bottom: 1px solid var(--bank-border);
+    padding: var(--spacing-md) var(--spacing-lg);
+}
+
+.flujo-diario-view .card-header h6 {
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: var(--bank-text-primary);
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+.flujo-diario-view .card-body {
+    padding: var(--spacing-lg);
+}
+
+.flujo-diario-view .card-footer {
+    background-color: var(--bank-bg-dark);
+    border-top: 1px solid var(--bank-border);
+    padding: var(--spacing-md) var(--spacing-lg);
+}
+
+/* =====================================================
+   8. TABLAS
+   ===================================================== */
+.flujo-diario-view .table {
+    margin-bottom: 0;
+}
+
+.flujo-diario-view .table thead th {
+    background-color: var(--bank-bg-dark);
+    color: var(--bank-text-secondary);
+    font-weight: 600;
+    font-size: 0.8125rem;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    padding: var(--spacing-sm) var(--spacing-md);
+    border-bottom: 2px solid var(--bank-border);
+    white-space: nowrap;
+}
+
+.flujo-diario-view .table tbody td {
+    padding: var(--spacing-sm) var(--spacing-md);
+    vertical-align: middle;
+    font-size: 0.875rem;
+    color: var(--bank-text-primary);
+    border-bottom: 1px solid var(--bank-border-light);
+}
+
+.flujo-diario-view .table tbody tr:hover {
+    background-color: var(--bank-bg);
+}
+
+.flujo-diario-view .table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+/* =====================================================
+   9. BADGES Y ETIQUETAS
+   ===================================================== */
+.flujo-diario-view .badge {
+    padding: 0.35rem 0.65rem;
+    font-weight: 600;
+    font-size: 0.75rem;
+    border-radius: var(--radius-sm);
+    letter-spacing: 0.3px;
+}
+
+.flujo-diario-view .bg-success-soft {
+    background-color: var(--bank-success-light);
+    color: var(--bank-success);
+    border: 1px solid rgba(46, 125, 50, 0.2);
+}
+
+.flujo-diario-view .bg-danger-soft {
+    background-color: var(--bank-danger-light);
+    color: var(--bank-danger);
+    border: 1px solid rgba(198, 40, 40, 0.2);
+}
+
+.flujo-diario-view .badge.bg-light {
+    background-color: var(--bank-bg-dark);
+    color: var(--bank-text-secondary);
+    border: 1px solid var(--bank-border);
+}
+
+/* =====================================================
+   10. COLORES DE TEXTO
+   ===================================================== */
+.flujo-diario-view .text-success {
+    color: var(--bank-success) !important;
+}
+
+.flujo-diario-view .text-danger {
+    color: var(--bank-danger) !important;
+}
+
+.flujo-diario-view .text-primary {
+    color: var(--bank-primary) !important;
+}
+
+.flujo-diario-view .text-info {
+    color: var(--bank-info) !important;
+}
+
+.flujo-diario-view .text-muted {
+    color: var(--bank-text-muted) !important;
+}
+
+/* =====================================================
+   11. ESTADOS VACÍOS
+   ===================================================== */
+.flujo-diario-view .text-center.p-5 {
+    color: var(--bank-text-muted);
+}
+
+.flujo-diario-view .text-center i.fa-2x,
+.flujo-diario-view .text-center i.fa-3x {
+    color: var(--bank-border);
+    opacity: 0.5;
+}
+
+/* =====================================================
+   12. UTILIDADES
+   ===================================================== */
+.flujo-diario-view .fw-medium {
+    font-weight: 500 !important;
+}
+
+.flujo-diario-view .fw-bold {
+    font-weight: 700 !important;
+}
+
+.flujo-diario-view .shadow-sm {
+    box-shadow: var(--shadow-sm) !important;
+}
+
+/* =====================================================
+   13. RESPONSIVE DESIGN
+   ===================================================== */
+@media (max-width: 1200px) {
+    .flujo-diario-view .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 992px) {
+    .flujo-diario-view .eerr-subnav {
+        overflow-x: auto;
+        white-space: nowrap;
+        -webkit-overflow-scrolling: touch;
+        justify-content: flex-start;
+    }
+    
+    .flujo-diario-view .eerr-subnav .nav-link {
+        display: inline-flex;
+        flex: 0 0 auto;
+        min-width: auto;
+    }
+}
+
+@media (max-width: 768px) {
+    .flujo-diario-view .stats-grid {
+        grid-template-columns: 1fr;
+        gap: var(--spacing-md);
+    }
+    
+    .flujo-diario-view .stat-card {
+        padding: var(--spacing-md);
+    }
+    
+    .flujo-diario-view .stat-card .stat-icon {
+        width: 3rem;
+        height: 3rem;
+    }
+    
+    .flujo-diario-view .stat-card .stat-icon i {
+        font-size: 1.25rem;
+    }
+    
+    .flujo-diario-view .stat-card .stat-value {
+        font-size: 1.5rem;
+    }
+    
+    .flujo-diario-view .page-title-enhanced {
+        padding: var(--spacing-md);
+    }
+    
+    .flujo-diario-view .page-title-enhanced h1 {
+        font-size: 1.5rem;
+    }
+    
+    .flujo-diario-view .table-responsive {
+        font-size: 0.8125rem;
+    }
+    
+    .flujo-diario-view .filters-card .card-body {
+        padding: var(--spacing-md);
+    }
+}
+
+@media (max-width: 576px) {
+    .flujo-diario-view .page-title-enhanced h1 {
+        font-size: 1.25rem;
+    }
+    
+    .flujo-diario-view .page-title-enhanced p {
+        font-size: 0.875rem;
+    }
+    
+    .flujo-diario-view .eerr-subnav .nav-link {
+        font-size: 0.8125rem;
+        padding: var(--spacing-xs) var(--spacing-sm);
+    }
+    
+    .flujo-diario-view .stat-card .stat-label {
+        font-size: 0.6875rem;
+    }
+    
+    .flujo-diario-view .stat-card .stat-value {
+        font-size: 1.25rem;
+    }
+    
+    .flujo-diario-view .card-header h6 {
+        font-size: 0.875rem;
+    }
+}

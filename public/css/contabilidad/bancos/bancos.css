@@ -1,0 +1,586 @@
+/*
+ * =====================================================
+ * MÓDULO DE BANCOS - SISTEMA CONTABLE
+ * Estilos profesionales para gestión bancaria empresarial
+ * =====================================================
+ */
+
+/* =====================================================
+   1. VARIABLES Y CONFIGURACIÓN BASE
+   ===================================================== */
+:root {
+    /* Paleta Profesional Empresarial */
+    --bank-primary: #1e3a5f;
+    --bank-primary-dark: #152a45;
+    --bank-primary-light: #2d4d7a;
+    --bank-secondary: #455a64;
+    
+    /* Colores Funcionales */
+    --bank-success: #2e7d32;
+    --bank-success-light: #e8f5e9;
+    --bank-danger: #c62828;
+    --bank-danger-light: #ffebee;
+    --bank-info: #0277bd;
+    --bank-info-light: #e1f5fe;
+    --bank-warning: #f57c00;
+    --bank-warning-light: #fff3e0;
+    
+    /* Colores Neutros */
+    --bank-text-primary: #212529;
+    --bank-text-secondary: #6c757d;
+    --bank-text-muted: #868e96;
+    --bank-border: #dee2e6;
+    --bank-border-light: #e9ecef;
+    --bank-bg: #f8f9fa;
+    --bank-bg-white: #ffffff;
+    --bank-bg-dark: #f1f3f5;
+    
+    /* Espaciado Consistente */
+    --spacing-xs: 0.5rem;
+    --spacing-sm: 0.75rem;
+    --spacing-md: 1rem;
+    --spacing-lg: 1.5rem;
+    --spacing-xl: 2rem;
+    --spacing-xxl: 3rem;
+    
+    /* Bordes y Sombras Sutiles */
+    --radius-sm: 4px;
+    --radius-md: 6px;
+    --radius-lg: 8px;
+    --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.05);
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
+    --shadow-md: 0 2px 6px rgba(0, 0, 0, 0.1);
+    --shadow-lg: 0 4px 12px rgba(0, 0, 0, 0.12);
+    
+    /* Transiciones */
+    --transition: all 0.2s ease;
+}
+
+/* =====================================================
+   2. CONTENEDOR PRINCIPAL
+   ===================================================== */
+.bancos-dashboard {
+    padding: 0;
+}
+
+/* =====================================================
+   3. TÍTULO DE PÁGINA MEJORADO
+   ===================================================== */
+.bancos-dashboard .page-title-enhanced {
+    background: linear-gradient(135deg, var(--bank-primary) 0%, var(--bank-primary-dark) 100%);
+    color: var(--bank-bg-white);
+    padding: var(--spacing-lg) var(--spacing-xl);
+    border-radius: var(--radius-lg);
+    margin-bottom: var(--spacing-lg);
+    box-shadow: var(--shadow-md);
+}
+
+.bancos-dashboard .page-title-enhanced h1 {
+    font-size: 1.75rem;
+    font-weight: 600;
+    margin: 0 0 var(--spacing-xs) 0;
+    display: flex;
+    align-items: center;
+}
+
+.bancos-dashboard .page-title-enhanced p {
+    margin: 0;
+    font-size: 0.9375rem;
+    opacity: 0.9;
+    font-weight: 400;
+}
+
+/* =====================================================
+   4. NAVEGACIÓN SECUNDARIA (PESTAÑAS)
+   ===================================================== */
+.bancos-dashboard .eerr-subnav {
+    background-color: var(--bank-bg-white);
+    border: 1px solid var(--bank-border);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-xs);
+    box-shadow: var(--shadow-xs);
+    display: flex;
+    justify-content: space-between;
+}
+
+.bancos-dashboard .eerr-subnav .nav-link {
+    color: var(--bank-text-secondary);
+    font-weight: 500;
+    font-size: 0.8125rem;
+    padding: var(--spacing-sm) var(--spacing-xs);
+    border-radius: var(--radius-md);
+    transition: var(--transition);
+    border: none;
+    white-space: nowrap;
+    flex: 1;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.375rem;
+}
+
+.bancos-dashboard .eerr-subnav .nav-link:hover {
+    background-color: var(--bank-bg);
+    color: var(--bank-primary);
+}
+
+.bancos-dashboard .eerr-subnav .nav-link.active {
+    background-color: var(--bank-primary);
+    color: var(--bank-bg-white);
+    font-weight: 600;
+}
+
+.bancos-dashboard .eerr-subnav .nav-link i {
+    font-size: 0.8125rem;
+    flex-shrink: 0;
+}
+
+/* =====================================================
+   5. TARJETA DE FILTROS
+   ===================================================== */
+.bancos-dashboard .filters-card {
+    background-color: var(--bank-bg-white);
+    border: 1px solid var(--bank-border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+}
+
+.bancos-dashboard .filters-card .card-body {
+    padding: var(--spacing-lg);
+}
+
+.bancos-dashboard .filters-card .form-label {
+    font-weight: 600;
+    font-size: 0.8125rem;
+    color: var(--bank-text-primary);
+    margin-bottom: var(--spacing-xs);
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+.bancos-dashboard .filters-card .form-control,
+.bancos-dashboard .filters-card .form-select {
+    border: 1px solid var(--bank-border);
+    border-radius: var(--radius-md);
+    padding: 0.5rem var(--spacing-sm);
+    font-size: 0.9375rem;
+    color: var(--bank-text-primary);
+    transition: var(--transition);
+    background-color: var(--bank-bg-white);
+}
+
+.bancos-dashboard .filters-card .form-control:focus,
+.bancos-dashboard .filters-card .form-select:focus {
+    border-color: var(--bank-primary);
+    box-shadow: 0 0 0 0.2rem rgba(30, 58, 95, 0.1);
+    outline: none;
+}
+
+.bancos-dashboard .filters-card .btn-primary {
+    background-color: var(--bank-primary);
+    border: none;
+    padding: 0.5rem var(--spacing-md);
+    font-weight: 600;
+    border-radius: var(--radius-md);
+    transition: var(--transition);
+}
+
+.bancos-dashboard .filters-card .btn-primary:hover {
+    background-color: var(--bank-primary-dark);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+}
+
+/* =====================================================
+   6. TARJETAS DE ESTADÍSTICAS (KPIs)
+   ===================================================== */
+.bancos-dashboard .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--spacing-lg);
+    margin-bottom: var(--spacing-xl);
+}
+
+.bancos-dashboard .stat-card {
+    background-color: var(--bank-bg-white);
+    border: 1px solid var(--bank-border);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-lg);
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+    position: relative;
+    overflow: hidden;
+    transition: var(--transition);
+    box-shadow: var(--shadow-sm);
+}
+
+.bancos-dashboard .stat-card::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    transition: var(--transition);
+}
+
+.bancos-dashboard .stat-card.success::before {
+    background-color: var(--bank-success);
+}
+
+.bancos-dashboard .stat-card.danger::before {
+    background-color: var(--bank-danger);
+}
+
+.bancos-dashboard .stat-card.info::before {
+    background-color: var(--bank-info);
+}
+
+.bancos-dashboard .stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.bancos-dashboard .stat-card .stat-icon {
+    width: 3.5rem;
+    height: 3.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-md);
+    flex-shrink: 0;
+}
+
+.bancos-dashboard .stat-card.success .stat-icon {
+    background-color: var(--bank-success-light);
+    color: var(--bank-success);
+}
+
+.bancos-dashboard .stat-card.danger .stat-icon {
+    background-color: var(--bank-danger-light);
+    color: var(--bank-danger);
+}
+
+.bancos-dashboard .stat-card.info .stat-icon {
+    background-color: var(--bank-info-light);
+    color: var(--bank-info);
+}
+
+.bancos-dashboard .stat-card .stat-icon i {
+    font-size: 1.5rem;
+}
+
+.bancos-dashboard .stat-card .stat-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.bancos-dashboard .stat-card .stat-label {
+    font-size: 0.75rem;
+    color: var(--bank-text-secondary);
+    margin: 0 0 0.25rem 0;
+    text-transform: uppercase;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+
+.bancos-dashboard .stat-card .stat-value {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--bank-text-primary);
+    line-height: 1.2;
+    margin: 0;
+}
+
+/* =====================================================
+   7. TARJETAS GENERALES
+   ===================================================== */
+.bancos-dashboard .card {
+    border: 1px solid var(--bank-border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    background-color: var(--bank-bg-white);
+}
+
+.bancos-dashboard .card-header {
+    background-color: var(--bank-bg-dark);
+    border-bottom: 1px solid var(--bank-border);
+    padding: var(--spacing-md) var(--spacing-lg);
+}
+
+.bancos-dashboard .card-header h6 {
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: var(--bank-text-primary);
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+.bancos-dashboard .card-body {
+    padding: var(--spacing-lg);
+}
+
+.bancos-dashboard .card-footer {
+    background-color: var(--bank-bg-dark);
+    border-top: 1px solid var(--bank-border);
+    padding: var(--spacing-md) var(--spacing-lg);
+}
+
+.bancos-dashboard .card-footer.bg-success {
+    background-color: var(--bank-success) !important;
+    border-top-color: var(--bank-success);
+}
+
+/* =====================================================
+   8. LISTA DE SALDOS
+   ===================================================== */
+.bancos-dashboard .saldo-card {
+    border-bottom: 1px solid var(--bank-border-light);
+    padding: var(--spacing-md) var(--spacing-lg);
+    transition: var(--transition);
+}
+
+.bancos-dashboard .saldo-card:hover {
+    background-color: var(--bank-bg);
+}
+
+.bancos-dashboard .saldo-card:last-child {
+    border-bottom: none;
+}
+
+.bancos-dashboard .saldo-card a {
+    color: inherit;
+}
+
+.bancos-dashboard .saldo-card .text-primary {
+    color: var(--bank-primary) !important;
+    font-size: 0.9375rem;
+}
+
+.bancos-dashboard .saldo-card .saldo-value {
+    font-size: 1.25rem;
+    font-weight: 700;
+}
+
+/* =====================================================
+   9. TABLAS
+   ===================================================== */
+.bancos-dashboard .table {
+    margin-bottom: 0;
+}
+
+.bancos-dashboard .table thead th {
+    background-color: var(--bank-bg-dark);
+    color: var(--bank-text-secondary);
+    font-weight: 600;
+    font-size: 0.8125rem;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    padding: var(--spacing-sm) var(--spacing-md);
+    border-bottom: 2px solid var(--bank-border);
+    white-space: nowrap;
+}
+
+.bancos-dashboard .table tbody td {
+    padding: var(--spacing-sm) var(--spacing-md);
+    vertical-align: middle;
+    font-size: 0.875rem;
+    color: var(--bank-text-primary);
+    border-bottom: 1px solid var(--bank-border-light);
+}
+
+.bancos-dashboard .table tbody tr:hover {
+    background-color: var(--bank-bg);
+}
+
+.bancos-dashboard .table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.bancos-dashboard .table-sm tbody td,
+.bancos-dashboard .table-sm thead th {
+    padding: 0.5rem var(--spacing-sm);
+    font-size: 0.8125rem;
+}
+
+/* =====================================================
+   10. BADGES Y ETIQUETAS
+   ===================================================== */
+.bancos-dashboard .badge {
+    padding: 0.35rem 0.65rem;
+    font-weight: 600;
+    font-size: 0.75rem;
+    border-radius: var(--radius-sm);
+    letter-spacing: 0.3px;
+}
+
+.bancos-dashboard .bg-primary-soft {
+    background-color: rgba(30, 58, 95, 0.1);
+    color: var(--bank-primary);
+}
+
+.bancos-dashboard .badge.bg-light {
+    background-color: var(--bank-bg-dark);
+    color: var(--bank-text-secondary);
+    border: 1px solid var(--bank-border);
+}
+
+/* =====================================================
+   11. COLORES DE TEXTO
+   ===================================================== */
+.bancos-dashboard .text-success {
+    color: var(--bank-success) !important;
+}
+
+.bancos-dashboard .text-danger {
+    color: var(--bank-danger) !important;
+}
+
+.bancos-dashboard .text-primary {
+    color: var(--bank-primary) !important;
+}
+
+.bancos-dashboard .text-muted {
+    color: var(--bank-text-muted) !important;
+}
+
+/* =====================================================
+   12. ESTADOS VACÍOS
+   ===================================================== */
+.bancos-dashboard .text-center.p-4,
+.bancos-dashboard .text-center.p-5 {
+    color: var(--bank-text-muted);
+}
+
+.bancos-dashboard .text-center i.fa-2x,
+.bancos-dashboard .text-center i.fa-3x {
+    color: var(--bank-border);
+    opacity: 0.5;
+}
+
+/* =====================================================
+   13. PAGINACIÓN
+   ===================================================== */
+.bancos-dashboard .pagination-wrapper {
+    padding: var(--spacing-md) var(--spacing-lg);
+    background-color: var(--bank-bg-dark);
+    border-top: 1px solid var(--bank-border);
+}
+
+.bancos-dashboard .pagination .page-link {
+    color: var(--bank-primary);
+    border-color: var(--bank-border);
+}
+
+.bancos-dashboard .pagination .page-item.active .page-link {
+    background-color: var(--bank-primary);
+    border-color: var(--bank-primary);
+}
+
+/* =====================================================
+   14. UTILIDADES
+   ===================================================== */
+.bancos-dashboard .fw-medium {
+    font-weight: 500 !important;
+}
+
+.bancos-dashboard .fw-500 {
+    font-weight: 500 !important;
+}
+
+.bancos-dashboard .shadow-sm {
+    box-shadow: var(--shadow-sm) !important;
+}
+
+/* =====================================================
+   15. RESPONSIVE DESIGN
+   ===================================================== */
+@media (max-width: 1200px) {
+    .bancos-dashboard .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 992px) {
+    .bancos-dashboard .eerr-subnav {
+        overflow-x: auto;
+        white-space: nowrap;
+        -webkit-overflow-scrolling: touch;
+        justify-content: flex-start;
+    }
+    
+    .bancos-dashboard .eerr-subnav .nav-link {
+        display: inline-flex;
+        flex: 0 0 auto;
+        min-width: auto;
+    }
+}
+
+@media (max-width: 768px) {
+    .bancos-dashboard .stats-grid {
+        grid-template-columns: 1fr;
+        gap: var(--spacing-md);
+    }
+    
+    .bancos-dashboard .stat-card {
+        padding: var(--spacing-md);
+    }
+    
+    .bancos-dashboard .stat-card .stat-icon {
+        width: 3rem;
+        height: 3rem;
+    }
+    
+    .bancos-dashboard .stat-card .stat-icon i {
+        font-size: 1.25rem;
+    }
+    
+    .bancos-dashboard .stat-card .stat-value {
+        font-size: 1.5rem;
+    }
+    
+    .bancos-dashboard .page-title-enhanced {
+        padding: var(--spacing-md);
+    }
+    
+    .bancos-dashboard .page-title-enhanced h1 {
+        font-size: 1.5rem;
+    }
+    
+    .bancos-dashboard .table-responsive {
+        font-size: 0.8125rem;
+    }
+    
+    .bancos-dashboard .filters-card .card-body {
+        padding: var(--spacing-md);
+    }
+}
+
+@media (max-width: 576px) {
+    .bancos-dashboard .page-title-enhanced h1 {
+        font-size: 1.25rem;
+    }
+    
+    .bancos-dashboard .page-title-enhanced p {
+        font-size: 0.875rem;
+    }
+    
+    .bancos-dashboard .eerr-subnav .nav-link {
+        font-size: 0.8125rem;
+        padding: var(--spacing-xs) var(--spacing-sm);
+    }
+    
+    .bancos-dashboard .stat-card .stat-label {
+        font-size: 0.6875rem;
+    }
+    
+    .bancos-dashboard .stat-card .stat-value {
+        font-size: 1.25rem;
+    }
+    
+    .bancos-dashboard .card-header h6 {
+        font-size: 0.875rem;
+    }
+}

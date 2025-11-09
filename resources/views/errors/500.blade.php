@@ -8,312 +8,210 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
         :root {
-            --danger-gradient: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
-            --warning-gradient: linear-gradient(135deg, #ffeaa7 0%, #fab1a0 100%);
-            --error-gradient: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
-            --dark-gradient: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
-            --glass-bg: rgba(255, 255, 255, 0.95);
-            --shadow-elegant: 0 20px 40px rgba(0, 0, 0, 0.1);
-            --border-radius: 15px;
+            --primary-color: #dc3545;
+            --secondary-color: #6c757d;
+            --danger-color: #dc3545;
+            --success-color: #198754;
+            --warning-color: #ffc107;
+            --light-gray: #f8f9fa;
+            --border-color: #dee2e6;
         }
 
         body {
-            background: var(--error-gradient);
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f5f5;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
             min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
-            position: relative;
+            padding: 2rem 1rem;
         }
 
-        /* Animación de fondo con circuito */
-        body::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="circuit" width="50" height="50" patternUnits="userSpaceOnUse"><path d="M10,10 L40,10 M10,25 L40,25 M10,40 L40,40 M10,25 L10,40 M40,10 L40,25 M25,10 L25,40" stroke="rgba(255,255,255,0.1)" stroke-width="0.5" fill="none"/><circle cx="10" cy="10" r="2" fill="rgba(255,107,107,0.3)"/><circle cx="40" cy="25" r="2" fill="rgba(255,107,107,0.3)"/><circle cx="25" cy="40" r="2" fill="rgba(255,107,107,0.3)"/></pattern></defs><rect width="100" height="100" fill="url(%23circuit)"/></svg>') repeat;
-            animation: pulse 8s ease-in-out infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 0.3; }
-            50% { opacity: 0.7; }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
         }
 
         .error-container {
-            background: var(--glass-bg);
-            border-radius: var(--border-radius);
-            box-shadow: var(--shadow-elegant);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            padding: 4rem;
-            text-align: center;
-            position: relative;
-            z-index: 2;
-            max-width: 700px;
-            width: 90%;
-            animation: slideIn 1.5s ease-out;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            border: 1px solid var(--border-color);
         }
 
-        @keyframes slideIn {
-            from {
-                opacity: 0;
-                transform: translateY(60px) scale(0.7) rotate(10deg);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0) scale(1) rotate(0deg);
-            }
+        .error-header {
+            background: linear-gradient(135deg, var(--danger-color) 0%, #c82333 100%);
+            color: white;
+            padding: 2rem;
+            text-align: center;
         }
 
         .error-icon {
-            width: 150px;
-            height: 150px;
+            width: 80px;
+            height: 80px;
             border-radius: 50%;
-            background: var(--error-gradient);
+            background: rgba(255, 255, 255, 0.2);
             display: flex;
             align-items: center;
             justify-content: center;
-            margin: 0 auto 2rem;
-            box-shadow: 0 25px 50px rgba(255, 107, 107, 0.4);
-            animation: explode 3s ease-in-out infinite;
-            position: relative;
-        }
-
-        .error-icon::before {
-            content: '';
-            position: absolute;
-            top: -20px;
-            left: -20px;
-            right: -20px;
-            bottom: -20px;
-            border-radius: 50%;
-            background: var(--error-gradient);
-            opacity: 0.3;
-            animation: shockwave 4s ease-out infinite;
-        }
-
-        @keyframes shockwave {
-            0% {
-                transform: scale(1);
-                opacity: 0.3;
-            }
-            50% {
-                transform: scale(1.5);
-                opacity: 0.6;
-            }
-            100% {
-                transform: scale(2);
-                opacity: 0;
-            }
+            margin: 0 auto 1rem;
         }
 
         .error-icon i {
-            font-size: 4.5rem;
+            font-size: 2.5rem;
             color: white;
-            animation: glitch 2s ease-in-out infinite;
-        }
-
-        @keyframes glitch {
-            0%, 100% { transform: translateX(0) rotate(0deg); }
-            10% { transform: translateX(-2px) rotate(-1deg); }
-            20% { transform: translateX(2px) rotate(1deg); }
-            30% { transform: translateX(-2px) rotate(-1deg); }
-            40% { transform: translateX(2px) rotate(1deg); }
-            50% { transform: translateX(-2px) rotate(-1deg); }
-        }
-
-        @keyframes explode {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.1); }
         }
 
         .error-code {
-            font-size: 8rem;
-            font-weight: 900;
-            background: var(--error-gradient);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+            font-size: 4rem;
+            font-weight: 700;
             margin: 0;
             line-height: 1;
-            text-shadow: 0 5px 15px rgba(255, 107, 107, 0.3);
-            animation: flicker 1.5s ease-in-out infinite;
-        }
-
-        @keyframes flicker {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.8; }
-            75% { opacity: 0.9; }
         }
 
         .error-title {
-            font-size: 2.3rem;
-            font-weight: 700;
-            color: #2c3e50;
-            margin: 1rem 0;
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin: 1rem 0 0;
+        }
+
+        .error-body {
+            padding: 2rem;
         }
 
         .error-message {
-            font-size: 1.3rem;
-            color: #6c757d;
+            font-size: 1.1rem;
+            color: var(--secondary-color);
             line-height: 1.6;
             margin-bottom: 2rem;
+            text-align: center;
         }
 
         .error-details {
-            background: rgba(255, 107, 107, 0.1);
-            border-radius: var(--border-radius);
-            padding: 2rem;
-            margin: 2rem 0;
-            border-left: 4px solid #ff6b6b;
-            text-align: left;
+            background: var(--light-gray);
+            border-radius: 6px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            border-left: 4px solid var(--danger-color);
         }
 
-        .error-details h5 {
-            color: #e74c3c;
+        .error-details h6 {
+            color: #212529;
             margin-bottom: 1rem;
             font-weight: 600;
-        }
-
-        .error-info {
-            background: #f8f9fa;
-            border-radius: 8px;
-            padding: 1rem;
-            margin: 1rem 0;
-            font-family: 'Courier New', monospace;
-            font-size: 0.9rem;
-            color: #495057;
-            border-left: 3px solid #ff6b6b;
-        }
-
-        .troubleshooting-section {
-            background: white;
-            border-radius: var(--border-radius);
-            padding: 2rem;
-            margin: 2rem 0;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-        }
-
-        .troubleshooting-section h5 {
-            color: #2c3e50;
-            margin-bottom: 1.5rem;
-            font-weight: 600;
-        }
-
-        .troubleshooting-steps {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-        }
-
-        .troubleshooting-steps li {
-            color: #495057;
-            margin-bottom: 1rem;
-            padding: 1rem;
-            background: rgba(102, 126, 234, 0.05);
-            border-radius: 8px;
-            border-left: 4px solid #667eea;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: flex-start;
-            gap: 1rem;
-        }
-
-        .troubleshooting-steps li:hover {
-            background: rgba(102, 126, 234, 0.1);
-            transform: translateX(5px);
-        }
-
-        .step-number {
-            width: 30px;
-            height: 30px;
-            background: var(--primary-gradient);
-            color: white;
-            border-radius: 50%;
             display: flex;
             align-items: center;
-            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .detail-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .detail-item {
+            background: white;
+            padding: 1rem;
+            border-radius: 4px;
+            border: 1px solid var(--border-color);
+        }
+
+        .detail-label {
+            font-size: 0.85rem;
             font-weight: 600;
-            font-size: 0.9rem;
-            flex-shrink: 0;
+            color: var(--secondary-color);
+            margin-bottom: 0.25rem;
+        }
+
+        .detail-value {
+            font-size: 0.95rem;
+            color: #212529;
+            word-break: break-all;
+            font-family: 'Courier New', monospace;
+            background: #f8f9fa;
+            padding: 0.25rem 0.5rem;
+            border-radius: 3px;
+        }
+
+        .url-value {
+            color: var(--danger-color);
+            font-weight: 500;
+        }
+
+        .error-stack {
+            background: #2c3e50;
+            color: #ecf0f1;
+            border-radius: 4px;
+            padding: 1rem;
+            margin-top: 1rem;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+            overflow-x: auto;
         }
 
         .action-buttons {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            display: flex;
             gap: 1rem;
-            margin-top: 3rem;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 2rem;
         }
 
-        .btn-error {
-            padding: 1rem 1.5rem;
-            border-radius: 50px;
-            border: none;
-            font-weight: 600;
-            font-size: 1rem;
-            transition: all 0.3s ease;
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: 6px;
+            font-weight: 500;
             text-decoration: none;
+            border: none;
+            cursor: pointer;
+            font-size: 0.95rem;
+            transition: all 0.2s ease;
             display: inline-flex;
             align-items: center;
-            justify-content: center;
             gap: 0.5rem;
-            position: relative;
-            overflow: hidden;
         }
 
-        .btn-primary-custom {
-            background: var(--primary-gradient);
-            color: white;
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
-        }
-
-        .btn-primary-custom:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 15px 30px rgba(102, 126, 234, 0.4);
+        .btn-primary {
+            background-color: var(--primary-color);
             color: white;
         }
 
-        .btn-danger-custom {
-            background: var(--error-gradient);
-            color: white;
-            box-shadow: 0 5px 15px rgba(255, 107, 107, 0.3);
-        }
-
-        .btn-danger-custom:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 15px 30px rgba(255, 107, 107, 0.4);
+        .btn-primary:hover {
+            background-color: #c82333;
             color: white;
         }
 
-        .btn-outline-custom {
-            background: transparent;
-            border: 2px solid #ff6b6b;
-            color: #ff6b6b;
+        .btn-secondary {
+            background-color: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--secondary-color);
         }
 
-        .btn-outline-custom:hover {
-            background: var(--error-gradient);
+        .btn-secondary:hover {
+            background-color: var(--light-gray);
+            color: #495057;
+        }
+
+        .btn-success {
+            background-color: var(--success-color);
             color: white;
-            transform: translateY(-3px);
-            box-shadow: 0 15px 30px rgba(255, 107, 107, 0.4);
         }
 
-        .system-status {
-            background: var(--warning-gradient);
-            border-radius: var(--border-radius);
+        .btn-success:hover {
+            background-color: #146c43;
+            color: white;
+        }
+
+        .system-info {
+            background: #e3f2fd;
+            border: 1px solid #bbdefb;
+            border-radius: 6px;
             padding: 1.5rem;
-            margin: 2rem 0;
-            text-align: left;
+            margin-top: 2rem;
         }
 
-        .system-status h6 {
-            color: #2c3e50;
+        .system-info h6 {
+            color: #0d47a1;
             margin-bottom: 1rem;
             font-weight: 600;
             display: flex;
@@ -321,344 +219,379 @@
             gap: 0.5rem;
         }
 
-        .status-indicators {
+        .system-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 1rem;
-            margin-top: 1rem;
+        }
+
+        .system-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem;
+            background: white;
+            border-radius: 4px;
+        }
+
+        .system-label {
+            font-size: 0.85rem;
+            color: var(--secondary-color);
+        }
+
+        .system-value {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #0d47a1;
+        }
+
+        .server-status {
+            background: #fff3e0;
+            border: 1px solid #ffcc02;
+            border-radius: 6px;
+            padding: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .server-status h6 {
+            color: #e65100;
+            margin-bottom: 1rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .status-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
         }
 
         .status-item {
             display: flex;
             align-items: center;
-            gap: 0.5rem;
+            gap: 0.75rem;
             padding: 0.75rem;
-            background: rgba(255, 255, 255, 0.5);
-            border-radius: 8px;
+            background: white;
+            border-radius: 4px;
+            border: 1px solid var(--border-color);
         }
 
-        .status-dot {
+        .status-indicator {
             width: 12px;
             height: 12px;
             border-radius: 50%;
-            animation: blink 2s ease-in-out infinite;
+            flex-shrink: 0;
         }
 
-        .status-dot.green {
-            background: #28a745;
+        .status-indicator.red {
+            background-color: var(--danger-color);
         }
 
-        .status-dot.red {
-            background: #dc3545;
+        .status-indicator.yellow {
+            background-color: var(--warning-color);
         }
 
-        .status-dot.yellow {
-            background: #ffc107;
+        .status-indicator.green {
+            background-color: var(--success-color);
         }
 
-        @keyframes blink {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.3; }
+        .status-info {
+            flex: 1;
         }
 
-        .contact-support {
-            background: white;
-            border-radius: var(--border-radius);
-            padding: 2rem;
+        .status-name {
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: #212529;
+        }
+
+        .status-description {
+            font-size: 0.8rem;
+            color: var(--secondary-color);
+        }
+
+        .troubleshooting-section {
+            background: #f1f8e9;
+            border: 1px solid #c8e6c9;
+            border-radius: 6px;
+            padding: 1.5rem;
             margin-top: 2rem;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
         }
 
-        .contact-support h6 {
-            color: #2c3e50;
+        .troubleshooting-section h6 {
+            color: #2e7d32;
             margin-bottom: 1rem;
             font-weight: 600;
         }
 
-        .support-options {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 1rem;
+        .troubleshooting-list {
+            margin: 0;
+            padding-left: 1.5rem;
         }
 
-        .support-option {
-            padding: 1rem;
-            background: rgba(102, 126, 234, 0.05);
-            border-radius: 10px;
-            text-decoration: none;
-            color: #667eea;
-            font-weight: 500;
-            transition: all 0.3s ease;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 0.5rem;
+        .troubleshooting-list li {
+            margin-bottom: 0.5rem;
+            color: #616161;
+            line-height: 1.4;
         }
 
-        .support-option:hover {
-            background: var(--primary-gradient);
-            color: white;
-            transform: translateY(-3px);
-            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        .contact-section {
+            background: #fafafa;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 1.5rem;
+            margin-top: 2rem;
+            text-align: center;
         }
 
-        .support-option i {
-            font-size: 1.5rem;
+        .contact-section h6 {
+            color: #212529;
+            margin-bottom: 1rem;
+            font-weight: 600;
         }
 
-        .floating-elements {
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            pointer-events: none;
-            overflow: hidden;
+        .contact-info {
+            color: var(--secondary-color);
+            font-size: 0.95rem;
+            margin-bottom: 1rem;
         }
 
-        .floating-element {
-            position: absolute;
-            background: rgba(255, 107, 107, 0.2);
-            border-radius: 50%;
-            animation: floatElement 12s ease-in-out infinite;
-        }
-
-        .floating-element:nth-child(1) {
-            width: 70px;
-            height: 70px;
-            top: 15%;
-            left: 10%;
-            animation-delay: 0s;
-        }
-
-        .floating-element:nth-child(2) {
-            width: 90px;
-            height: 90px;
-            top: 70%;
-            right: 15%;
-            animation-delay: 4s;
-        }
-
-        .floating-element:nth-child(3) {
-            width: 60px;
-            height: 60px;
-            bottom: 20%;
-            left: 75%;
-            animation-delay: 8s;
-        }
-
-        @keyframes floatElement {
-            0%, 100% { 
-                transform: translateY(0px) rotate(0deg) scale(1);
-                opacity: 0.3;
-            }
-            50% { 
-                transform: translateY(-50px) rotate(180deg) scale(1.3);
-                opacity: 0.7;
-            }
-        }
-
-        @media (max-width: 768px) {
-            .error-container {
-                padding: 2rem;
-                margin: 1rem;
+        @media (max-width: 576px) {
+            .error-header {
+                padding: 1.5rem;
             }
 
             .error-code {
-                font-size: 6rem;
+                font-size: 3rem;
             }
 
-            .error-title {
-                font-size: 1.8rem;
-            }
-
-            .error-message {
-                font-size: 1.1rem;
+            .error-body {
+                padding: 1.5rem;
             }
 
             .action-buttons {
-                grid-template-columns: 1fr;
+                flex-direction: column;
+                align-items: center;
             }
 
-            .btn-error {
+            .btn {
                 width: 100%;
+                max-width: 250px;
                 justify-content: center;
             }
 
-            .status-indicators {
-                grid-template-columns: 1fr;
-            }
-
-            .support-options {
+            .detail-grid,
+            .system-grid,
+            .status-grid {
                 grid-template-columns: 1fr;
             }
         }
     </style>
 </head>
 <body>
-    <!-- Elementos flotantes decorativos -->
-    <div class="floating-elements">
-        <div class="floating-element"></div>
-        <div class="floating-element"></div>
-        <div class="floating-element"></div>
-    </div>
-
     <div class="container">
         <div class="error-container">
-            <!-- Error Icon -->
-            <div class="error-icon">
-                <i class="fas fa-server"></i>
+            <!-- Error Header -->
+            <div class="error-header">
+                <div class="error-icon">
+                    <i class="fas fa-server"></i>
+                </div>
+                <h1 class="error-code">500</h1>
+                <h2 class="error-title">Error Interno del Servidor</h2>
             </div>
 
-            <!-- Error Code -->
-            <h1 class="error-code">500</h1>
-
-            <!-- Error Title -->
-            <h2 class="error-title">Error Interno del Servidor</h2>
-
-            <!-- Error Message -->
-            <p class="error-message">
-                Algo salió mal en nuestros servidores. Nuestro equipo técnico ha sido notificado automáticamente 
-                y está trabajando para resolver el problema lo antes posible.
-            </p>
-
-            <!-- Error Details -->
-            <div class="error-details">
-                <h5><i class="fas fa-exclamation-triangle me-2"></i>Detalles Técnicos</h5>
-                <p>
-                    <strong>Código de Error:</strong> HTTP 500 Internal Server Error<br>
-                    <strong>Timestamp:</strong> <span id="errorTime"></span><br>
-                    <strong>Request ID:</strong> 500-<span id="errorId"></span><br>
-                    <strong>Servidor:</strong> SIFANO-PROD-<span id="serverId"></span><br>
-                    <strong>URL:</strong> <span id="errorUrl"></span>
+            <!-- Error Body -->
+            <div class="error-body">
+                <!-- Error Message -->
+                <p class="error-message">
+                    Se ha producido un error interno en el servidor. Nuestro equipo técnico ha sido notificado automáticamente 
+                    y está trabajando para resolver el problema. Por favor, inténtelo de nuevo en unos minutos.
                 </p>
-                <div class="error-info">
-                    Exception: Internal Server Error<br>
-                    File: app/Http/Controllers/ErrorHandler.php<br>
-                    Line: 156<br>
-                    Message: Unexpected server exception
-                </div>
-            </div>
 
-            <!-- Troubleshooting Steps -->
-            <div class="troubleshooting-section">
-                <h5><i class="fas fa-tools me-2"></i>Pasos de Solución</h5>
-                <ul class="troubleshooting-steps">
-                    <li>
-                        <div class="step-number">1</div>
-                        <div>
-                            <strong>Espere un momento</strong><br>
-                            El problema puede ser temporal. Intente recargar la página en unos minutos.
+                <!-- Error Details -->
+                <div class="error-details">
+                    <h6>
+                        <i class="fas fa-exclamation-triangle"></i>
+                        Detalles del Error
+                    </h6>
+                    <div class="detail-grid">
+                        <div class="detail-item">
+                            <div class="detail-label">URL Solicitada</div>
+                            <div class="detail-value url-value" id="requestedUrl">-</div>
                         </div>
-                    </li>
-                    <li>
-                        <div class="step-number">2</div>
-                        <div>
-                            <strong>Verifique la URL</strong><br>
-                            Asegúrese de que la dirección web esté escrita correctamente sin espacios adicionales.
+                        <div class="detail-item">
+                            <div class="detail-label">Código de Estado</div>
+                            <div class="detail-value">500 Internal Server Error</div>
                         </div>
-                    </li>
-                    <li>
-                        <div class="step-number">3</div>
-                        <div>
-                            <strong>Intente una acción diferente</strong><br>
-                            Use los botones de navegación para acceder a otras secciones del sistema.
+                        <div class="detail-item">
+                            <div class="detail-label">Timestamp</div>
+                            <div class="detail-value" id="errorTimestamp">-</div>
                         </div>
-                    </li>
-                    <li>
-                        <div class="step-number">4</div>
-                        <div>
-                            <strong>Contacte soporte</strong><br>
-                            Si el problema persiste, contacte nuestro equipo de soporte técnico.
+                        <div class="detail-item">
+                            <div class="detail-label">ID de Error</div>
+                            <div class="detail-value" id="errorId">-</div>
                         </div>
-                    </li>
-                </ul>
-            </div>
-
-            <!-- System Status -->
-            <div class="system-status">
-                <h6>
-                    <i class="fas fa-heartbeat"></i>
-                    Estado del Sistema
-                </h6>
-                <div class="status-indicators">
-                    <div class="status-item">
-                        <div class="status-dot red"></div>
-                        <div>
-                            <strong>Base de Datos</strong><br>
-                            <small>Conectividad degradada</small>
+                        <div class="detail-item">
+                            <div class="detail-label">Servidor</div>
+                            <div class="detail-value" id="serverName">-</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">User Agent</div>
+                            <div class="detail-value" id="userAgent">-</div>
                         </div>
                     </div>
-                    <div class="status-item">
-                        <div class="status-dot yellow"></div>
-                        <div>
-                            <strong>API Services</strong><br>
-                            <small>Respuesta lenta</small>
-                        </div>
-                    </div>
-                    <div class="status-item">
-                        <div class="status-dot green"></div>
-                        <div>
-                            <strong>Autenticación</strong><br>
-                            <small>Funcionando correctamente</small>
-                        </div>
-                    </div>
-                    <div class="status-item">
-                        <div class="status-dot yellow"></div>
-                        <div>
-                            <strong>Cache System</strong><br>
-                            <small>En mantenimiento</small>
-                        </div>
+                    <div class="error-stack" id="errorStack">
+                        <strong>Stack Trace:</strong><br>
+                        Exception: Internal Server Error<br>
+                        File: app/Http/Controllers/ErrorHandler.php<br>
+                        Line: <span id="errorLine">156</span><br>
+                        Message: <span id="errorMessage">Unexpected server exception</span><br>
+                        <br>
+                        <strong>PHP Backtrace:</strong><br>
+                        #0 /var/www/html/app/Http/Controllers/BaseController.php(87): ErrorHandler->handle()<br>
+                        #1 /var/www/html/vendor/laravel/framework/src/Illuminate/Routing/Controller.php(54): BaseController->callAction()<br>
+                        #2 /var/www/html/vendor/laravel/framework/src/Illuminate/Routing/ControllerDispatcher.php(45): Controller->callAction()
                     </div>
                 </div>
-            </div>
 
-            <!-- Action Buttons -->
-            <div class="action-buttons">
-                <a href="{{ url('/') }}" class="btn-error btn-primary-custom">
-                    <i class="fas fa-home"></i>
-                    Ir al Inicio
-                </a>
-                <button onclick="history.back()" class="btn-error btn-outline-custom">
-                    <i class="fas fa-arrow-left"></i>
-                    Regresar
-                </button>
-                <button onclick="refreshPage()" class="btn-error btn-danger-custom">
-                    <i class="fas fa-sync-alt"></i>
-                    Reintentar
-                </button>
-                <a href="{{ url('/dashboard') }}" class="btn-error btn-outline-custom">
-                    <i class="fas fa-tachometer-alt"></i>
-                    Dashboard
-                </a>
-            </div>
+                <!-- System Information -->
+                <div class="system-info">
+                    <h6>
+                        <i class="fas fa-server"></i>
+                        Información del Servidor
+                    </h6>
+                    <div class="system-grid">
+                        <div class="system-item">
+                            <span class="system-label">Servidor</span>
+                            <span class="system-value" id="serverHostname">SIFANO-SERVER</span>
+                        </div>
+                        <div class="system-item">
+                            <span class="system-label">Versión PHP</span>
+                            <span class="system-value" id="phpVersion">8.2.15</span>
+                        </div>
+                        <div class="system-item">
+                            <span class="system-label">Memoria Límite</span>
+                            <span class="system-value" id="memoryLimit">256M</span>
+                        </div>
+                        <div class="system-item">
+                            <span class="system-label">Max Execution Time</span>
+                            <span class="system-value" id="maxExecutionTime">30s</span>
+                        </div>
+                        <div class="system-item">
+                            <span class="system-label">Zona Horaria</span>
+                            <span class="system-value" id="timezone">America/Lima</span>
+                        </div>
+                        <div class="system-item">
+                            <span class="system-label">Base de Datos</span>
+                            <span class="system-value" id="databaseVersion">MySQL 8.0.35</span>
+                        </div>
+                        <div class="system-item">
+                            <span class="system-label">Versión Laravel</span>
+                            <span class="system-value" id="laravelVersion">10.45.0</span>
+                        </div>
+                        <div class="system-item">
+                            <span class="system-label">Sistema Operativo</span>
+                            <span class="system-value" id="osVersion">Ubuntu 22.04</span>
+                        </div>
+                    </div>
+                </div>
 
-            <!-- Contact Support -->
-            <div class="contact-support">
-                <h6><i class="fas fa-headset me-2"></i>Soporte Técnico</h6>
-                <div class="support-options">
-                    <a href="tel:+5112345678" class="support-option">
-                        <i class="fas fa-phone"></i>
-                        <span>Llamar Soporte</span>
+                <!-- Server Status -->
+                <div class="server-status">
+                    <h6>
+                        <i class="fas fa-heartbeat"></i>
+                        Estado de Componentes del Sistema
+                    </h6>
+                    <div class="status-grid" id="systemStatus">
+                        <div class="status-item">
+                            <div class="status-indicator red" id="dbStatus"></div>
+                            <div class="status-info">
+                                <div class="status-name">Base de Datos</div>
+                                <div class="status-description" id="dbDescription">Error de conexión</div>
+                            </div>
+                        </div>
+                        <div class="status-item">
+                            <div class="status-indicator yellow" id="cacheStatus"></div>
+                            <div class="status-info">
+                                <div class="status-name">Sistema de Cache</div>
+                                <div class="status-description" id="cacheDescription">Respuesta lenta</div>
+                            </div>
+                        </div>
+                        <div class="status-item">
+                            <div class="status-indicator green" id="authStatus"></div>
+                            <div class="status-info">
+                                <div class="status-name">Autenticación</div>
+                                <div class="status-description" id="authDescription">Funcionando correctamente</div>
+                            </div>
+                        </div>
+                        <div class="status-item">
+                            <div class="status-indicator yellow" id="apiStatus"></div>
+                            <div class="status-info">
+                                <div class="status-name">Servicios API</div>
+                                <div class="status-description" id="apiDescription">Mantenimiento programado</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="action-buttons">
+                    <a href="/" class="btn btn-primary">
+                        <i class="fas fa-home"></i>
+                        Ir al Inicio
                     </a>
-                    <a href="mailto:soporte@sifano.com" class="support-option">
-                        <i class="fas fa-envelope"></i>
-                        <span>Email Técnico</span>
-                    </a>
-                    <button onclick="openChat()" class="support-option">
-                        <i class="fas fa-comments"></i>
-                        <span>Chat en Vivo</span>
+                    <button onclick="location.reload()" class="btn btn-success">
+                        <i class="fas fa-redo"></i>
+                        Reintentar
                     </button>
-                    <button onclick="submitTicket()" class="support-option">
-                        <i class="fas fa-ticket-alt"></i>
-                        <span>Crear Ticket</span>
-                    </a>
+                    <button onclick="history.back()" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i>
+                        Regresar
+                    </button>
                 </div>
-                <div class="mt-3 text-center">
-                    <small class="text-muted">
-                        <i class="fas fa-clock me-1"></i>
-                        Horario de atención: Lunes a Viernes 8:00 AM - 6:00 PM
-                    </small>
+
+                <!-- Troubleshooting Section -->
+                <div class="troubleshooting-section">
+                    <h6>
+                        <i class="fas fa-tools"></i>
+                        Posibles Causas y Soluciones
+                    </h6>
+                    <ul class="troubleshooting-list">
+                        <li><strong>Problema temporal del servidor:</strong> Espere unos minutos e intente recargar la página</li>
+                        <li><strong>Error de base de datos:</strong> El problema puede estar relacionado con la conectividad a la base de datos</li>
+                        <li><strong>Límite de recursos:</strong> El servidor puede haber excedido su límite de memoria o tiempo de ejecución</li>
+                        <li><strong>Configuración incorrecta:</strong> Puede haber un error en la configuración del servidor web</li>
+                        <li><strong>Dependencias faltantes:</strong> Faltan librerías o servicios necesarios para el funcionamiento</li>
+                    </ul>
+                </div>
+
+                <!-- Contact Section -->
+                <div class="contact-section">
+                    <h6>
+                        <i class="fas fa-headset"></i>
+                        ¿Necesita Ayuda Inmediata?
+                    </h6>
+                    <div class="contact-info">
+                        Si el problema persiste o necesita asistencia técnica, contacte a nuestro equipo de soporte:
+                    </div>
+                    <div class="action-buttons">
+                        <a href="mailto:soporte@sifano.com?subject=Error%20500&body=Error ID: ERR-500-[ID]" class="btn btn-primary">
+                            <i class="fas fa-envelope"></i>
+                            soporte@sifano.com
+                        </a>
+                        <a href="tel:+5112345678" class="btn btn-secondary">
+                            <i class="fas fa-phone"></i>
+                            +51 1 234-5678
+                        </a>
+                    </div>
+                    <div class="mt-3">
+                        <small class="text-muted">
+                            <i class="fas fa-clock me-1"></i>
+                            Horario de atención: Lunes a Viernes 8:00 AM - 6:00 PM
+                        </small>
+                    </div>
                 </div>
             </div>
         </div>
@@ -666,288 +599,138 @@
 
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.10.1/dist/sweetalert2.min.js"></script>
-
+    
     <script>
-        $(document).ready(function() {
-            // Mostrar información detallada del error
+        // Información dinámica del sistema y error
+        function getErrorInfo() {
+            // URL solicitada
+            document.getElementById('requestedUrl').textContent = window.location.href;
+            
+            // Timestamp actual
             const now = new Date();
-            document.getElementById('errorTime').textContent = now.toLocaleString('es-ES');
+            document.getElementById('errorTimestamp').textContent = now.toLocaleString('es-ES');
             
-            // Generar IDs únicos
-            const errorId = Math.random().toString(36).substr(2, 9).toUpperCase();
-            const serverId = Math.floor(Math.random() * 10) + 1;
-            
+            // Generar ID de error único
+            const errorId = '500-' + Math.random().toString(36).substr(2, 12).toUpperCase();
             document.getElementById('errorId').textContent = errorId;
-            document.getElementById('serverId').textContent = serverId;
-            document.getElementById('errorUrl').textContent = window.location.href;
-
-            // Animación de entrada escalonada
-            setTimeout(() => {
-                $('.error-icon').addClass('explode');
-            }, 500);
-
-            setTimeout(() => {
-                $('.error-code').addClass('flicker');
-            }, 1000);
-
-            setTimeout(() => {
-                $('.troubleshooting-steps li').each(function(index) {
-                    setTimeout(() => {
-                        $(this).addClass('show');
-                    }, index * 300);
-                });
-            }, 1500);
-
-            setTimeout(() => {
-                $('.status-item').each(function(index) {
-                    setTimeout(() => {
-                        $(this).addClass('show');
-                    }, index * 200);
-                });
-            }, 2500);
-
-            // Simular estado de sistema que cambia
-            setInterval(updateSystemStatus, 10000);
-        });
-
-        // Función para actualizar estado del sistema
+            
+            // User Agent resumido
+            const userAgent = navigator.userAgent;
+            let browserName = 'Unknown Browser';
+            if (userAgent.includes('Chrome')) browserName = 'Chrome';
+            else if (userAgent.includes('Firefox')) browserName = 'Firefox';
+            else if (userAgent.includes('Safari')) browserName = 'Safari';
+            else if (userAgent.includes('Edge')) browserName = 'Edge';
+            document.getElementById('userAgent').textContent = browserName;
+            
+            // Información del servidor
+            const systemInfo = {
+                serverHostname: 'SIFANO-SERVER',
+                phpVersion: '8.2.15',
+                memoryLimit: '256M',
+                maxExecutionTime: '30s',
+                timezone: 'America/Lima',
+                databaseVersion: 'MySQL 8.0.35',
+                laravelVersion: '10.45.0',
+                osVersion: 'Ubuntu 22.04'
+            };
+            
+            // Llenar información del sistema
+            Object.keys(systemInfo).forEach(key => {
+                const element = document.getElementById(key);
+                if (element) {
+                    element.textContent = systemInfo[key];
+                }
+            });
+        }
+        
+        // Simular cambios en el estado del sistema
         function updateSystemStatus() {
-            const statuses = ['green', 'yellow', 'red'];
-            const statusTexts = [
-                { name: 'Base de Datos', status: 'Funcionando correctamente', dot: 'green' },
-                { name: 'API Services', status: 'Respuesta lenta', dot: 'yellow' },
-                { name: 'Autenticación', status: 'Funcionando correctamente', dot: 'green' },
-                { name: 'Cache System', status: 'En mantenimiento', dot: 'yellow' }
-            ];
-
-            // Simular cambios aleatorios en el estado
-            statusTexts.forEach((item, index) => {
-                if (Math.random() > 0.7) {
-                    const statusItem = document.querySelectorAll('.status-item')[index];
-                    const dot = statusItem.querySelector('.status-dot');
-                    const text = statusItem.querySelector('small');
-                    
-                    // Cambiar estado
-                    const newStatus = statuses[Math.floor(Math.random() * statuses.length)];
-                    dot.className = `status-dot ${newStatus}`;
-                    
-                    if (newStatus === 'green') {
-                        text.textContent = 'Funcionando correctamente';
-                    } else if (newStatus === 'yellow') {
-                        text.textContent = 'Atención requerida';
-                    } else {
-                        text.textContent = 'Problema detectado';
-                    }
-                }
-            });
-        }
-
-        // Función para refrescar página
-        function refreshPage() {
-            Swal.fire({
-                icon: 'question',
-                title: 'Reintentar',
-                text: '¿Desea recargar la página para intentar nuevamente?',
-                showCancelButton: true,
-                confirmButtonText: 'Sí, recargar',
-                cancelButtonText: 'No, esperar',
-                confirmButtonColor: '#667eea'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    Swal.fire({
-                        icon: 'info',
-                        title: 'Recargando...',
-                        text: 'Por favor espere mientras recargamos la página',
-                        timer: 2000,
-                        showConfirmButton: false,
-                        willOpen: () => {
-                            Swal.showLoading();
-                        }
-                    }).then(() => {
-                        window.location.reload();
-                    });
-                }
-            });
-        }
-
-        // Función para abrir chat
-        function openChat() {
-            Swal.fire({
-                icon: 'info',
-                title: 'Chat en Vivo',
-                html: `
-                    <div class="text-start">
-                        <p>Conectando con un agente de soporte...</p>
-                        <div class="mt-3">
-                            <div class="chat-message">
-                                <strong>Agente:</strong> Hola, soy el agente de soporte #${Math.floor(Math.random() * 1000)}. ¿En qué puedo ayudarte?
-                            </div>
-                            <div class="mt-2">
-                                <textarea class="form-control" rows="3" placeholder="Escriba su consulta aquí..." id="chatMessage"></textarea>
-                            </div>
-                        </div>
-                    </div>
-                `,
-                showConfirmButton: true,
-                confirmButtonText: 'Enviar',
-                cancelButtonText: 'Cancelar',
-                confirmButtonColor: '#667eea',
-                width: '600px',
-                preConfirm: () => {
-                    const message = document.getElementById('chatMessage').value;
-                    if (!message.trim()) {
-                        Swal.showValidationMessage('Por favor escriba su consulta');
-                        return false;
-                    }
-                    return { message: message };
-                }
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Mensaje Enviado',
-                        html: `
-                            <div class="text-start">
-                                <p>Su mensaje ha sido enviado exitosamente.</p>
-                                <p><strong>Ticket ID:</strong> CHAT-${Date.now()}</p>
-                                <p>Un agente de soporte le responderá en breve.</p>
-                            </div>
-                        `,
-                        timer: 4000,
-                        showConfirmButton: true,
-                        confirmButtonText: 'Entendido'
-                    });
-                }
-            });
-        }
-
-        // Función para crear ticket
-        function submitTicket() {
-            Swal.fire({
-                icon: 'warning',
-                title: 'Crear Ticket de Soporte',
-                html: `
-                    <div class="text-start">
-                        <div class="mb-3">
-                            <label for="ticketTitle" class="form-label">Título del problema:</label>
-                            <input type="text" id="ticketTitle" class="form-control" placeholder="Ej: Error 500 al acceder a ventas">
-                        </div>
-                        <div class="mb-3">
-                            <label for="ticketCategory" class="form-label">Categoría:</label>
-                            <select id="ticketCategory" class="form-select">
-                                <option value="">Seleccionar categoría...</option>
-                                <option value="error-500">Error del servidor (500)</option>
-                                <option value="database">Problema de base de datos</option>
-                                <option value="performance">Rendimiento lento</option>
-                                <option value="login">Problema de acceso</option>
-                                <option value="feature">Funcionalidad específica</option>
-                                <option value="other">Otro</option>
-                            </select>
-                        </div>
-                        <div class="mb-3">
-                            <label for="ticketDescription" class="form-label">Descripción detallada:</label>
-                            <textarea id="ticketDescription" class="form-control" rows="4" placeholder="Describa paso a paso lo que estaba haciendo cuando ocurrió el error..."></textarea>
-                        </div>
-                        <div class="mb-3">
-                            <label for="ticketUrgency" class="form-label">Urgencia:</label>
-                            <select id="ticketUrgency" class="form-select">
-                                <option value="baja">Baja</option>
-                                <option value="media" selected>Media</option>
-                                <option value="alta">Alta</option>
-                                <option value="critica">Crítica</option>
-                            </select>
-                        </div>
-                        <div class="mt-3 p-3 bg-light rounded">
-                            <strong>Información del sistema:</strong><br>
-                            <small>
-                                URL: ${window.location.href}<br>
-                                Error: HTTP 500<br>
-                                Navegador: ${navigator.userAgent.split(' ').slice(-1)[0]}<br>
-                                Timestamp: ${new Date().toLocaleString('es-ES')}
-                            </small>
-                        </div>
-                    </div>
-                `,
-                showCancelButton: true,
-                confirmButtonText: 'Crear Ticket',
-                cancelButtonText: 'Cancelar',
-                confirmButtonColor: '#e74c3c',
-                width: '700px',
-                preConfirm: () => {
-                    const title = document.getElementById('ticketTitle').value;
-                    const category = document.getElementById('ticketCategory').value;
-                    const description = document.getElementById('ticketDescription').value;
-                    const urgency = document.getElementById('ticketUrgency').value;
-                    
-                    if (!title || !category || !description) {
-                        Swal.showValidationMessage('Por favor complete todos los campos obligatorios');
-                        return false;
-                    }
-                    
-                    return { title, category, description, urgency };
-                }
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Ticket Creado',
-                        html: `
-                            <div class="text-start">
-                                <p>Su ticket de soporte ha sido creado exitosamente.</p>
-                                <p><strong>Número de ticket:</strong> SIFANO-${Date.now()}</p>
-                                <p><strong>Prioridad:</strong> ${result.value.urgency.toUpperCase()}</p>
-                                <p>Recibirá actualizaciones por email y podrá rastrear el progreso en su panel de usuario.</p>
-                                <p><strong>Tiempo estimado de respuesta:</strong> 2-4 horas hábiles</p>
-                            </div>
-                        `,
-                        timer: 6000,
-                        showConfirmButton: true,
-                        confirmButtonText: 'Entendido'
-                    });
-                }
-            });
-        }
-
-        // Efectos de animación adicionales
-        document.addEventListener('DOMContentLoaded', function() {
-            // Efectos de hover en botones
-            const buttons = document.querySelectorAll('.btn-error');
-            buttons.forEach(button => {
-                button.addEventListener('mouseenter', function() {
-                    this.style.transform = 'translateY(-3px) scale(1.02)';
-                });
+            const statusOptions = {
+                db: { colors: ['red', 'yellow', 'green'], descriptions: ['Error de conexión', 'Respuesta lenta', 'Funcionando correctamente'] },
+                cache: { colors: ['yellow', 'green'], descriptions: ['Respuesta lenta', 'Funcionando correctamente'] },
+                auth: { colors: ['green', 'yellow'], descriptions: ['Funcionando correctamente', 'Mantenimiento menor'] },
+                api: { colors: ['yellow', 'red', 'green'], descriptions: ['Mantenimiento programado', 'Error temporal', 'Funcionando correctamente'] }
+            };
+            
+            Object.keys(statusOptions).forEach(key => {
+                const options = statusOptions[key];
+                const colorIndex = Math.floor(Math.random() * options.colors.length);
+                const color = options.colors[colorIndex];
+                const description = options.descriptions[colorIndex];
                 
-                button.addEventListener('mouseleave', function() {
-                    this.style.transform = 'translateY(0) scale(1)';
-                });
+                const indicator = document.getElementById(key + 'Status');
+                const descElement = document.getElementById(key + 'Description');
+                
+                if (indicator && descElement) {
+                    indicator.className = `status-indicator ${color}`;
+                    descElement.textContent = description;
+                }
             });
-
-            // Efecto de typing en el mensaje de error
-            const errorMessage = document.querySelector('.error-message');
-            if (errorMessage) {
-                const text = errorMessage.textContent;
-                errorMessage.textContent = '';
-                
-                let i = 0;
-                const typeWriter = () => {
-                    if (i < text.length) {
-                        errorMessage.textContent += text.charAt(i);
-                        i++;
-                        setTimeout(typeWriter, 25);
-                    }
-                };
-                
-                setTimeout(typeWriter, 2000);
-            }
-
-            // Auto-reload después de 5 minutos (opcional)
+        }
+        
+        // Función para copiar información del error
+        function copyErrorInfo() {
+            const errorInfo = {
+                url: window.location.href,
+                timestamp: new Date().toISOString(),
+                status: '500 Internal Server Error',
+                userAgent: navigator.userAgent,
+                server: 'SIFANO-SERVER',
+                errorId: document.getElementById('errorId').textContent
+            };
+            
+            const errorText = `Error SIFANO 500\n` +
+                `URL: ${errorInfo.url}\n` +
+                `Timestamp: ${errorInfo.timestamp}\n` +
+                `Status: ${errorInfo.status}\n` +
+                `Error ID: ${errorInfo.errorId}\n` +
+                `User Agent: ${errorInfo.userAgent}\n` +
+                `Server: ${errorInfo.server}`;
+            
+            navigator.clipboard.writeText(errorText).then(() => {
+                showNotification('Información del error copiada al portapapeles', 'success');
+            }).catch(() => {
+                showNotification('No se pudo copiar al portapapeles', 'error');
+            });
+        }
+        
+        // Mostrar notificación
+        function showNotification(message, type = 'info') {
+            const alertClass = type === 'success' ? 'alert-success' : 'alert-danger';
+            const notification = document.createElement('div');
+            notification.className = `alert ${alertClass} position-fixed`;
+            notification.style.cssText = 'top: 20px; right: 20px; z-index: 1050; min-width: 300px;';
+            notification.innerHTML = `
+                ${message}
+                <button type="button" class="btn-close" onclick="this.parentElement.remove()"></button>
+            `;
+            
+            document.body.appendChild(notification);
+            
             setTimeout(() => {
-                if (confirm('Han pasado 5 minutos. ¿Desea intentar recargar la página?')) {
-                    window.location.reload();
+                if (notification.parentElement) {
+                    notification.remove();
                 }
-            }, 300000);
+            }, 5000);
+        }
+        
+        // Inicializar al cargar la página
+        document.addEventListener('DOMContentLoaded', function() {
+            getErrorInfo();
+            
+            // Actualizar estado del sistema cada 30 segundos
+            setInterval(updateSystemStatus, 30000);
+            
+            // Agregar botón de copiar información del error
+            setTimeout(() => {
+                const copyButton = document.createElement('button');
+                copyButton.className = 'btn btn-outline-secondary';
+                copyButton.style.cssText = 'position: fixed; bottom: 20px; left: 20px; z-index: 1000;';
+                copyButton.innerHTML = '<i class="fas fa-copy"></i> Copiar Info Error';
+                copyButton.onclick = copyErrorInfo;
+                document.body.appendChild(copyButton);
+            }, 1000);
         });
     </script>
 </body>

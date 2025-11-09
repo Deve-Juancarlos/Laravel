@@ -122,4 +122,6 @@ class InventarioService
             ->orderBy('vencimiento', 'asc')
             ->get();
     }
+
+    
 }

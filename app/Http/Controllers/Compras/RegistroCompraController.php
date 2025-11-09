@@ -21,10 +21,7 @@ class RegistroCompraController extends Controller
         $this->contabilidadService = $contabilidadService;
     }
 
-    /**
-     * Muestra el formulario para registrar una compra,
-     * cargando datos de una O/C.
-     */
+    
     public function create(Request $request)
     {
         $ordenCompra = null;

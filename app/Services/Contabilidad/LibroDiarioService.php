@@ -388,12 +388,19 @@ class LibroDiarioService
         return ['labels' => $meses, 'data' => $datos];
     }
 
-    public function obtenerMovimientosPorCuenta()
+    public function obtenerMovimientosPorCuenta($fechaInicio = null, $fechaFin = null)
     {
-        return DB::table('libro_diario_detalles as d')
+        $query = DB::table('libro_diario_detalles as d')
             ->join('libro_diario as a', 'd.asiento_id', '=', 'a.id')
-            ->join('plan_cuentas as c', 'd.cuenta_contable', '=', 'c.codigo')
-            ->whereYear('a.fecha', now()->year)
+            ->join('plan_cuentas as c', 'd.cuenta_contable', '=', 'c.codigo');
+
+        if ($fechaInicio && $fechaFin) {
+            $query->whereBetween('a.fecha', [$fechaInicio, $fechaFin]);
+        } else {
+            $query->whereYear('a.fecha', now()->year);
+        }
+
+        return $query
             ->select(
                 'c.codigo', 'c.nombre',
                 DB::raw('SUM(d.debe + d.haber) as total_movimientos')
@@ -403,6 +410,7 @@ class LibroDiarioService
             ->limit(10)
             ->get();
     }
+
 
     public function generarAlertasContables()
     {
@@ -450,6 +458,8 @@ class LibroDiarioService
     public function generarExcel($asientos, $totales, $fechaInicio, $fechaFin)
     {
         $asientosCollection = $asientos instanceof \Illuminate\Support\Collection ? $asientos : collect($asientos);
+
+
         $fechaInicioSafe = $fechaInicio ?? 'inicio';
         $fechaFinSafe = $fechaFin ?? 'fin';
         $filenameCsv = "libro_diario_{$fechaInicioSafe}_a_{$fechaFinSafe}.csv";
