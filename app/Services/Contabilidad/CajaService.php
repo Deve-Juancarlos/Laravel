@@ -3,28 +3,23 @@
 namespace App\Services\Contabilidad;
 
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Auth; // <-- Importado
-use Illuminate\Support\Facades\Log;  // <-- Importado
+use Illuminate\Support\Facades\Auth; 
+use Illuminate\Support\Facades\Log;  
 use Illuminate\Support\Facades\Schema;
-use Carbon\Carbon; // <-- Importado
+use Carbon\Carbon; 
 use Illuminate\Support\Collection;
 
 class CajaService
 {
-    protected $connection = 'sqlsrv'; // <-- Conexión definida
+    protected $connection = 'sqlsrv'; 
 
-    /**
-     * ¡CORREGIDO!
-     * Ya no inyectamos LibroDiarioService
-     */
+   
     public function __construct()
     {
-        // Constructor vacío
+       
     }
 
-    /**
-     * Obtiene los datos para la vista index.
-     */
+   
     public function getIndexData(array $filters): array
     {
         $fechaInicio = $filters['fecha_inicio'] ?? Carbon::now()->startOfMonth()->format('Y-m-d');
@@ -96,10 +91,7 @@ class CajaService
             'usuario' => $usuario,
         ];
     }
-
-    /**
-     * Obtiene los datos necesarios para el formulario de creación.
-     */
+ 
     public function getCreateData(): array
     {
         $tiposMovimiento = collect(DB::connection($this->connection)->select("SELECT n_numero, c_describe FROM Tablas WHERE n_codtabla = 3 AND n_numero IN (1, 2)"));
@@ -122,25 +114,20 @@ class CajaService
         return compact('tiposMovimiento', 'clasesOperacion', 'cuentasCaja', 'cuentasContrapartida');
     }
 
-    /**
-     * ¡CORREGIDO!
-     * Guarda el movimiento en Caja y crea el Asiento Contable (Transaccional)
-     */
+   
     public function storeMovimiento(array $data)
     {
         return DB::connection($this->connection)->transaction(function () use ($data) {
             $monto = (float) $data['monto'];
             $tipo = (int) $data['tipo'];
             $glosa = $data['glosa'];
-            $fecha = $data['fecha']; // <-- La fecha del formulario
+            $fecha = $data['fecha']; 
             $usuarioId = Auth::id() ?? null;
             
             $cuentaCaja = $data['cuenta_caja'];
             $cuentaContrapartida = $data['razon_id'];
             $esIngreso = ($tipo == 1);
-            
-            // 2. ¡CORREGIDO! Generar Asiento Contable usando la fecha del formulario
-            $numeroAsiento = $this->obtenerSiguienteNumeroAsiento($fecha); // <-- Se pasa la fecha
+            $numeroAsiento = $this->obtenerSiguienteNumeroAsiento($fecha); 
             
             $asientoId = DB::connection($this->connection)->table('libro_diario')->insertGetId([
                 'numero' => $numeroAsiento,
@@ -155,7 +142,6 @@ class CajaService
                 'updated_at' => now(),
             ]);
 
-            // 3. Crear Detalles del Asiento (pasando números, no strings)
             DB::connection($this->connection)->table('libro_diario_detalles')->insert([
                 'asiento_id' => $asientoId,
                 'cuenta_contable' => $cuentaCaja,
@@ -164,7 +150,7 @@ class CajaService
                 'concepto' => $glosa,
                 'documento_referencia' => $data['documento'],
                 'created_at' => now(),
-                'updated_at' => now(), // <-- Añadido
+                'updated_at' => now(),
             ]);
             DB::connection($this->connection)->table('libro_diario_detalles')->insert([
                 'asiento_id' => $asientoId,
@@ -174,10 +160,9 @@ class CajaService
                 'concepto' => $glosa,
                 'documento_referencia' => $data['documento'],
                 'created_at' => now(),
-                'updated_at' => now(), // <-- Añadido
+                'updated_at' => now(),
             ]);
 
-            // 4. Crear Movimiento de Caja
             $cajaId = DB::connection($this->connection)->table('Caja')->insertGetId([
                 'Documento' => $data['documento'],
                 'Tipo' => $tipo,
@@ -190,7 +175,6 @@ class CajaService
                 'asiento_id' => $asientoId
             ]);
             
-            // 5. Devolver el objeto
             $movimiento = DB::connection($this->connection)->table('Caja')->where('Numero', $cajaId)->first();
             $movimiento->asiento_numero = $numeroAsiento;
             
@@ -198,9 +182,7 @@ class CajaService
         });
     }
 
-    /**
-     * Obtiene los datos para la vista show.
-     */
+    
     public function getShowData($id): array
     {
         $movimiento = DB::connection($this->connection)->table('Caja as c')
@@ -226,9 +208,7 @@ class CajaService
         return compact('movimiento', 'asiento', 'detalles');
     }
 
-    /**
-     * Obtiene los datos para la vista edit.
-     */
+    
     public function getEditData($id): array
     {
         $data = $this->getShowData($id);
@@ -236,9 +216,7 @@ class CajaService
         return array_merge($data, $formData);
     }
 
-    /**
-     * Actualiza el movimiento en Caja y el Asiento Contable (Transaccional)
-     */
+    
     public function updateMovimiento($id, array $data)
     {
         return DB::connection($this->connection)->transaction(function () use ($id, $data) {
@@ -271,9 +249,7 @@ class CajaService
         });
     }
 
-    /**
-     * Anula el movimiento en Caja y el Asiento Contable (Transaccional)
-     */
+    
     public function anularMovimiento($id)
     {
         return DB::connection($this->connection)->transaction(function () use ($id) {
@@ -306,33 +282,26 @@ class CajaService
         });
     }
     
-    /**
-     * ¡CORREGIDO!
-     * Genera el siguiente número de asiento (ej: 2024-0001)
-     * BASADO EN LA FECHA DEL FORMULARIO
-     */
+  
     public function obtenerSiguienteNumeroAsiento(string $fecha): string
     {
-        // 1. Obtenemos el año de la fecha del formulario
-        $anio = Carbon::parse($fecha)->year;
         
-        // 2. Buscamos el último asiento DE ESE AÑO
+        $anio = Carbon::parse($fecha)->year;
         $ultimoAsiento = DB::connection($this->connection)
             ->table('libro_diario')
-            ->whereYear('fecha', $anio) // <-- Filtra por el año correcto
-            ->where('numero', 'LIKE', $anio . '-%') // Asegura el formato AAAA-...
+            ->whereYear('fecha', $anio) 
+            ->where('numero', 'LIKE', $anio . '-%') 
             ->orderBy('numero', 'desc')
             ->first();
 
         $nuevoNumero = 1;
         if ($ultimoAsiento) {
             $partes = explode('-', $ultimoAsiento->numero);
-            if (isset($partes[1])) { // Comprobación de seguridad
+            if (isset($partes[1])) { 
                  $nuevoNumero = (int)$partes[1] + 1;
             }
         }
         
-        // 3. Devolvemos el nuevo número con el año correcto
         return $anio . '-' . str_pad($nuevoNumero, 4, '0', STR_PAD_LEFT);
     }
 }

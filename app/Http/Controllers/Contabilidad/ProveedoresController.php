@@ -16,9 +16,7 @@ class ProveedoresController extends Controller
         $this->middleware('auth');
     }
 
-    /**
-     * Muestra la lista de proveedores
-     */
+   
     public function index(Request $request)
     {
         $query = DB::connection($this->connection)->table('Proveedores');
@@ -38,17 +36,13 @@ class ProveedoresController extends Controller
         ]);
     }
 
-    /**
-     * Muestra el formulario para crear un nuevo proveedor
-     */
+   
     public function create()
     {
         return view('compras.proveedores.crear');
     }
 
-    /**
-     * Guarda el nuevo proveedor en la BD
-     */
+   
     public function store(Request $request)
     {
         $request->validate([

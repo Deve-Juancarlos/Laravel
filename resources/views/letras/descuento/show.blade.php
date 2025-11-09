@@ -33,7 +33,6 @@
     </div>
 </div>
 
-{{-- Formulario para AÑADIR letras (solo si no está procesada) --}}
 @if(!$planilla->Procesado)
 <div class="card shadow mb-4" id="divAgregarLetras">
     <div class="card-header">
@@ -56,7 +55,6 @@
 </div>
 @endif
 
-{{-- Lista de Letras en la Planilla (PllaDetLetras) --}}
 <div class="card shadow mb-4">
     <div class="card-header">
         <h5 class="card-title m-0">Letras Incluidas en esta Planilla</h5>
@@ -110,7 +108,7 @@
     </div>
 </div>
 
-{{-- Formulario para PROCESAR (El GOLAZO Contable) --}}
+
 @if(!$planilla->Procesado)
 <div class="card shadow">
     <div class="card-header bg-success text-white">
@@ -151,7 +149,7 @@
 <script>
 $(document).ready(function() {
     
-    // Solo activar Select2 si el formulario existe
+    
     if ($('#divAgregarLetras').length) {
         
         let letraSeleccionada = null;
@@ -169,7 +167,7 @@ $(document).ready(function() {
                     results: $.map(data, (letra) => ({
                         id: letra.Documento,
                         text: `${letra.Documento} - ${letra.Razon} (S/ ${letra.Saldo})`,
-                        data: letra // Guardamos el objeto completo
+                        data: letra 
                     }))
                 })
             }
@@ -177,7 +175,6 @@ $(document).ready(function() {
             letraSeleccionada = e.params.data.data;
         });
 
-        // Botón Añadir
         $('#btnAgregarLetra').on('click', function() {
             if (!letraSeleccionada) {
                 Swal.fire('Error', 'Debe seleccionar una letra.', 'error');
@@ -203,14 +200,13 @@ $(document).ready(function() {
                 headers: { 'X-CSRF-TOKEN': TOKEN },
                 success: (response) => {
                     if (response.success) {
-                        location.reload(); // Recargamos para ver el item
+                        location.reload(); 
                     }
                 },
                 error: (jqXHR) => Swal.fire('Error', jqXHR.responseJSON.message || 'Error al añadir item', 'error')
             });
         });
 
-        // Botón Quitar
         $('#tablaDetalles').on('click', '.btn-quitar', function() {
             const itemId = $(this).data('id');
             Swal.fire({
@@ -225,7 +221,7 @@ $(document).ready(function() {
                         type: 'DELETE',
                         headers: { 'X-CSRF-TOKEN': TOKEN },
                         success: (response) => {
-                             location.reload(); // Recargamos
+                             location.reload(); 
                         },
                         error: (jqXHR) => Swal.fire('Error', 'No se pudo quitar la letra', 'error')
                     });
