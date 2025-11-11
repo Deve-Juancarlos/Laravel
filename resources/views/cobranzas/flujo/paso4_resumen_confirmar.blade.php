@@ -8,7 +8,7 @@
     <li class="breadcrumb-item"><a href="{{ route('contador.flujo.cobranzas.paso1') }}">Paso 1</a></li>
     <li class="breadcrumb-item"><a href="{{ route('contador.flujo.cobranzas.paso2') }}">Paso 2</a></li>
     <li class="breadcrumb-item"><a href="{{ route('contador.flujo.cobranzas.paso3') }}">Paso 3</a></li>
-    <li class="breadcrumb-item active" aria-current="page">Paso 4: Confirmar</li>
+    <li class="breadcrumb-item active" aria-current="page"> Confirmar Pago</li>
 @endsection
 
 @section('content')

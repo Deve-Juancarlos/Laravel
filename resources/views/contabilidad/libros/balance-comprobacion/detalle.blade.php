@@ -4,7 +4,7 @@
 
 @push('styles')
     {{-- Referencia al CSS que creamos --}}
-    <link href="{{ asset('css/contabilidad/ver-detalle.css') }}" rel="stylesheet">
+    <link href="{{ asset('css/contabilidad/balance-comparacion/detalle.css') }}" rel="stylesheet">
 @endpush
 
 {{-- 1. Título de la Página --}}

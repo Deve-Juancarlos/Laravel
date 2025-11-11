@@ -27,7 +27,6 @@ class PDT621Export implements FromCollection, WithHeadings
             'Periodo',
             'RUC',
             'Razón Social',
-            // ... etc.
         ];
     }
 }

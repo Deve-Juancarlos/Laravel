@@ -21,14 +21,13 @@
 
 @section('breadcrumbs')
     <li class="breadcrumb-item">
-        <a href="{{ route('dashboard.contador') }}">Contabilidad</a>
+        <a href="{{ route('contador.dashboard.contador') }}">Contabilidad</a>
     </li>
     <li class="breadcrumb-item active" aria-current="page">Bancos</li>
 @endsection
 
 @section('content')
     <div class="bancos-dashboard">
-        {{-- =========== NAVEGACIÓN DEL MÓDULO =========== --}}
         <nav class="nav nav-tabs eerr-subnav mb-4">
             <a class="nav-link active" href="{{ route('contador.bancos.index') }}">
                 <i class="fas fa-tachometer-alt me-2"></i>

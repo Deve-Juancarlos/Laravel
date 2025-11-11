@@ -1,9 +1,3 @@
-{{-- 
-  Esta es la vista que se mostrará.
-  Asegúrate de que 'layouts.app' sea tu plantilla principal.
-  Si usas una plantilla diferente, cámbialo en @extends().
---}}
-
 @extends('layouts.app') 
 
 @section('title', 'Reporte de Rentabilidad por Cliente')

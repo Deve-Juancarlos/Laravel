@@ -13,7 +13,7 @@
         <div class="login-panel">
             <div class="logo-section">
                 <div class="logo">
-                    <img src="{{ asset('images/logo.png') }}"  >
+                    <img src="{{ asset('images/Logo.png') }}"  >
                     <div class="logo-text">
                         <h2>Farmacos del Norte SAC</h2>
                     </div>

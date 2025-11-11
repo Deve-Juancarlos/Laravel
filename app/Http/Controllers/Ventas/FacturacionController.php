@@ -12,7 +12,7 @@ use App\Services\ContabilidadService;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Auth;
 use App\Helpers\NumberToWords; 
-use Illuminate\Support\Facades\Mail; // <-- ¡AÑADIDO!
+use Illuminate\Support\Facades\Mail;
 use App\Mail\EnviarDocumentoMail;    
 use Barryvdh\DomPDF\Facade\Pdf;                         
 

@@ -5,7 +5,7 @@
 
 @section('breadcrumbs')
     <li class="breadcrumb-item"><a href="{{ route('contador.flujo.cobranzas.paso1') }}">Paso 1</a></li>
-    <li class="breadcrumb-item active" aria-current="page">Paso 2: Registrar Pago</li>
+    <li class="breadcrumb-item active" aria-current="page">Registrar Pago</li>
 @endsection
 
 @section('content')

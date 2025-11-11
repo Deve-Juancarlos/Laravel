@@ -3,7 +3,7 @@
 @section('title', 'Editar Cuenta - ' . $cuenta->codigo)
 
 @push('styles')
-    <link href="{{ asset('css/contabilidad/plan-cuentas.css') }}" rel="stylesheet">
+    <link href="{{ asset('css/contabilidad/plan-cuentas/edit.css') }}" rel="stylesheet">
 @endpush
 
 @section('page-title')
@@ -14,7 +14,13 @@
 @endsection
 
 @section('breadcrumbs')
-    <li class="breadcrumb-item"><a href="{{ route('dashboard.contador') }}">Contabilidad</a></li>
+    <li class="breadcrumb-item"><a href="{{ route('contador.dashboard.contador') }}">Contabilidad</a></li>
+    <li class="breadcrumb-item active" aria-current="page">Editar cuenta</li>
+@endsection
+
+
+@section('breadcrumbs')
+    <li class="breadcrumb-item"><a href="{{ route('contador.dashboard.contador') }}">Contabilidad</a></li>
     <li class="breadcrumb-item"><a href="{{ route('contador.plan-cuentas.index') }}">Plan de Cuentas</a></li>
     <li class="breadcrumb-item active" aria-current="page">Editar</li>
 @endsection

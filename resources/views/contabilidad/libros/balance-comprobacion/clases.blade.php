@@ -3,7 +3,7 @@
 @section('title', 'Balance por Clases - Balance de Comprobación')
 
 @push('styles')
-    <link href="{{ asset('css/contabilidad/balance-comprobacion-clases.css') }}" rel="stylesheet">
+    <link href="{{ asset('css/contabilidad/balance-comparacion/clases.css') }}" rel="stylesheet">
 @endpush
 
 @section('page-title')

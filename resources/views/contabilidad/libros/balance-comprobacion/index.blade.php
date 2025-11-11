@@ -3,7 +3,7 @@
 @section('title', 'Balance de Comprobación - SEIMCORP')
 
 @push('styles')
-    <link href="{{ asset('css/contabilidad/balance-comprobacion.css') }}" rel="stylesheet">
+    <link href="{{ asset('css/contabilidad/balance-comparacion/index.css') }}" rel="stylesheet">
 @endpush
 
 {{-- 1. Título de la Página --}}
@@ -16,7 +16,7 @@
 
 {{-- 2. Breadcrumbs --}}
 @section('breadcrumbs')
-    <li class="breadcrumb-item"><a href="{{ route('dashboard.contador') }}">Contabilidad</a></li>
+    <li class="breadcrumb-item"><a href="{{ route('contador.dashboard.contador') }}">Contabilidad</a></li>
     <li class="breadcrumb-item active" aria-current="page">Balance de Comprobación</li>
 @endsection
 

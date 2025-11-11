@@ -3,57 +3,44 @@
 @section('title', 'Reporte de Antigüedad de Cuentas por Cobrar')
 
 @push('styles')
-<style>
-    /* Estilos para los "buckets" de deuda */
-    .bucket-vigente { background-color: #e6f7ff; border-left: 3px solid #1890ff; }
-    .bucket-30 { background-color: #fffbe6; border-left: 3px solid #faad14; }
-    .bucket-60 { background-color: #fff2e8; border-left: 3px solid #fa8c16; }
-    .bucket-90 { background-color: #fff1f0; border-left: 3px solid #f5222d; }
-    .bucket-90mas { background-color: #fce7e6; border: 2px solid #a8071a; color: #a8071a; font-weight: bold; }
-    .total-general { background-color: #f0f5ff; font-size: 1.1rem; }
-    .table-hover tbody tr:hover { background-color: #fafafa; }
-</style>
+    <link href="{{ asset('css/contabilidad/reportes/aging.css') }}" rel="stylesheet">
 @endpush
 
 @section('content')
 <div class="container-fluid mt-4">
 
-    <div class="card shadow-sm border-0 mb-4">
+   <div class="card shadow-sm border-0 mb-4">
         <div class="card-header bg-white p-0">
-            <!-- 
-              Usamos nav-tabs. El helper 'request()->routeIs()' de Laravel 
-              pondrá la clase 'active' en la pestaña que estés visitando.
-            -->
             <ul class="nav nav-tabs nav-fill" id="reportesTab" role="tablist">
                 
                 <li class="nav-item" role="presentation">
                     <a class="nav-link fs-5 fw-bold p-3 {{ request()->routeIs('contador.reportes.index') ? 'active' : '' }}"
-                       id="aging-tab"
-                       href="{{ route('contador.reportes.index') }}">
+                    id="aging-tab"
+                    href="{{ route('contador.reportes.index') }}">
                         <i class="fas fa-hand-holding-usd me-1"></i> Cuentas por Cobrar
                     </a>
                 </li>
                 
                 <li class="nav-item" role="presentation">
                     <a class="nav-link fs-5 fw-bold p-3 {{ request()->routeIs('contador.reportes.ventas.rentabilidad') ? 'active' : '' }}"
-                       id="rentabilidad-tab"
-                       href="{{ route('contador.reportes.ventas.rentabilidad') }}">
+                    id="rentabilidad-tab"
+                    href="{{ route('contador.reportes.ventas.rentabilidad') }}">
                         <i class="fas fa-chart-line me-1"></i> Rentabilidad (Ventas)
                     </a>
                 </li>
                 
                 <li class="nav-item" role="presentation">
                     <a class="nav-link fs-5 fw-bold p-3 {{ request()->routeIs('contador.reportes.inventario.sugerencias') ? 'active' : '' }}"
-                       id="sugerencias-tab"
-                       href="{{ route('contador.reportes.inventario.sugerencias') }}">
+                    id="sugerencias-tab"
+                    href="{{ route('contador.reportes.inventario.sugerencias') }}">
                         <i class="fas fa-dolly-flatbed me-1"></i> Sugerencias (Compra)
                     </a>
                 </li>
                 
                 <li class="nav-item" role="presentation">
                     <a class="nav-link fs-5 fw-bold p-3 {{ request()->routeIs('contador.reportes.inventario.vencimientos') ? 'active' : '' }}"
-                       id="vencimientos-tab"
-                       href="{{ route('contador.reportes.inventario.vencimientos') }}">
+                    id="vencimientos-tab"
+                    href="{{ route('contador.reportes.inventario.vencimientos') }}">
                         <i class="fas fa-calendar-times me-1"></i> Productos por Vencer
                     </a>
                 </li>

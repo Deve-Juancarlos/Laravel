@@ -3,7 +3,7 @@
 @section('title', 'Estado de Resultados')
 
 @push('styles')
-    <link href="{{ asset('css/contabilidad/estado-resultados.css') }}" rel="stylesheet">
+    <link href="{{ asset('css/contabilidad/estado-resultados/index.css') }}" rel="stylesheet">
 @endpush
 
 @section('page-title')
@@ -14,14 +14,14 @@
 @endsection
 
 @section('breadcrumbs')
-    <li class="breadcrumb-item"><a href="{{ route('dashboard.contador') }}">Contabilidad</a></li>
+    <li class="breadcrumb-item"><a href="{{ route('contador.dashboard.contador') }}">Contabilidad</a></li>
     <li class="breadcrumb-item active" aria-current="page">Estado de Resultados</li>
 @endsection
 
 @section('content')
 <div class="container-fluid">
 
-    <!-- =========== NAVEGACIÓN DE REPORTES (AGREGADA) =========== -->
+    
     <nav class="nav nav-tabs eerr-subnav mb-4">
         <a class="nav-link active" href="{{ route('contador.estado-resultados.index') }}">
             <i class="fas fa-chart-line me-1"></i> Estado de Resultados
@@ -35,10 +35,11 @@
         <a class="nav-link" href="{{ route('contador.estado-resultados.balance-general') }}">
             <i class="fas fa-balance-scale-right me-1"></i> Balance General
         </a>
+        
     </nav>
-    <!-- ======================================================= -->
+  
 
-    <!-- Filtros -->
+   
     <div class="card shadow-sm filters-card mb-4">
         <div class="card-body">
             <form method="GET" action="{{ route('contador.estado-resultados.index') }}">

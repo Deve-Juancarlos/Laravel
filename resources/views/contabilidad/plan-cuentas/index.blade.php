@@ -3,21 +3,18 @@
 @section('title', 'Plan de Cuentas')
 
 @push('styles')
-    <link href="{{ asset('css/contabilidad/plan-cuentas.css') }}" rel="stylesheet">
+    <link href="{{ asset('css/contabilidad/plan-cuentas/index.css') }}" rel="stylesheet">
 @endpush
 
 @section('page-title')
     <div>
         <h1><i class="fas fa-sitemap me-2"></i>Plan de Cuentas</h1>
         <p class="text-muted">Administración de Cuentas Contables (PCGE)</p>
-    </div>
-    <a href="{{ route('contador.plan-cuentas.create') }}" class="btn btn-primary">
-        <i class="fas fa-plus me-1"></i> Nueva Cuenta
-    </a>
+    </div>    
 @endsection
 
 @section('breadcrumbs')
-    <li class="breadcrumb-item"><a href="{{ route('dashboard.contador') }}">Contabilidad</a></li>
+    <li class="breadcrumb-item"><a href="{{ route('contador.dashboard.contador') }}">Contabilidad</a></li>
     <li class="breadcrumb-item active" aria-current="page">Plan de Cuentas</li>
 @endsection
 
@@ -71,6 +68,9 @@
                             <i class="fas fa-filter me-1"></i> Filtrar
                         </button>
                     </div>
+                    <a href="{{ route('contador.plan-cuentas.create') }}" class="btn btn-primary">
+                        <i class="fas fa-plus me-1"></i> Nueva Cuenta
+                    </a>
                 </div>
             </form>
         </div>

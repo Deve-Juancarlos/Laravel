@@ -21,7 +21,7 @@
 
 @section('breadcrumbs')
     <li class="breadcrumb-item">
-        <a href="{{ route('dashboard.contador') }}">
+        <a href="{{ route('contador.dashboard.contador') }}">
             <i class="fas fa-calculator me-1"></i>
             Contabilidad
         </a>

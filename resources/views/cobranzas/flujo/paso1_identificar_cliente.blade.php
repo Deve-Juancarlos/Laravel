@@ -5,7 +5,7 @@
 
 @section('breadcrumbs')
     <li class="breadcrumb-item"><a href="#">Cobranzas</a></li>
-    <li class="breadcrumb-item active" aria-current="page">Paso 1: Identificar Cliente</li>
+    <li class="breadcrumb-item active" aria-current="page">Identificar Cliente</li>
 @endsection
 
 @section('content')
@@ -19,11 +19,7 @@
                 </h5>
             </div>
 
-            {{-- 
-              ¡CORRECCIÓN IMPORTANTE!
-              El 'action' debe apuntar a la ruta que PROCESA el paso 1 ('handlePaso1'),
-              no a la que MUESTRA el paso 2.
-            --}}
+            
             <form action="{{ route('contador.flujo.cobranzas.handlePaso1') }}" method="POST" id="formPaso1">
                 @csrf
 

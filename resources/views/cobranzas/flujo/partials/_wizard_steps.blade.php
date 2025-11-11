@@ -1,5 +1,4 @@
-{{-- Este partial muestra los 4 pasos del asistente --}}
-{{-- Recibe una variable: $paso_actual (1, 2, 3, o 4) --}}
+
 @php
     $pasos = [
         1 => ['titulo' => 'Identificar Cliente', 'icono' => 'fa-user-check'],
