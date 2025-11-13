@@ -30,7 +30,8 @@ use App\Http\Controllers\Reportes\ReporteVentasController;
 use App\Http\Controllers\Reportes\ReporteInventarioController;
 use App\Http\Controllers\Reportes\ReporteDashboardController;
 use App\Http\Controllers\Reportes\ReporteAuditoriaController;
-use App\Http\Controllers\Admin\SolicitudAsientoController; // <-- ¡¡IMPORTADO!!
+use App\Http\Controllers\Admin\SolicitudAsientoController; 
+
 
 //RUTAS PÚBLICAS
 Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
@@ -141,7 +142,9 @@ Route::prefix('contador')->name('contador.')->middleware(['auth', 'check.contado
     Route::get('/dashboard/contador', [ContadorDashboardController::class, 'contadorDashboard'])->name('dashboard.contador');
     Route::get('/dashboard/get-chart-data', [ContadorDashboardController::class, 'getChartData']);
     Route::get('/api/dashboard/stats', [ContadorDashboardController::class, 'getStats'])->name('api.dashboard.stats'); 
-    Route::post('/api/dashboard/clear-cache', [ContadorDashboardController::class, 'clearCache'])->name('api.dashboard.clearCache'); 
+    Route::get('/contador/api/clear-cache', [ContadorDashboardController::class, 'clearCache'])->name('contador.api.clear-cache');
+
+
     
     // Rutas "sueltas" (Podrían agruparse mejor en el futuro)
     Route::get('facturas', [App\Http\Controllers\Ventas\FacturacionController::class, 'index'])->name('facturas.index');
@@ -166,8 +169,6 @@ Route::prefix('contador')->name('contador.')->middleware(['auth', 'check.contado
         Route::put('/{id}', [ClientesController::class, 'update'])->name('update');
     });
     
-    // ▼▼▼ ERROR DE PREFIJO ANIDADO ELIMINADO ▼▼▼
-    // Route::prefix('contador')->name('contador.')->middleware(['auth', 'check.contador'])->group(function () {
  
     // --- MÓDULO LIBRO DIARIO ---
     Route::prefix('libro-diario')->name('libro-diario.')->group(function () {

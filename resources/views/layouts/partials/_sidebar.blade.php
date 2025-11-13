@@ -1,4 +1,3 @@
-
 <div class="nav-section">Principal</div>
 <a class="nav-link {{ request()->routeIs('contador.dashboard.contador') ? 'active' : '' }}" href="{{ route('contador.dashboard.contador') }}">
     <i class="fas fa-chart-pie"></i>

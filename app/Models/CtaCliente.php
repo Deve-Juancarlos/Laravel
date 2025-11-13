@@ -1,53 +1,44 @@
 <?php
-
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-/**
- * Modelo para SIFANO.CtaCliente (Cuentas por Cobrar)
- * ¡Maneja clave primaria compuesta!
- * * 🚀 VERSIÓN CORREGIDA 🚀
- */
 class CtaCliente extends Model
 {
     protected $table = 'CtaCliente';
-    
-    // 1. PK Compuesta [Documento, Tipo] (esto estaba bien)
-    protected $primaryKey = ['Documento', 'Tipo']; 
+
+
+    protected $primaryKey = 'Documento';
     public $incrementing = false;
     protected $keyType = 'string';
     public $timestamps = false;
 
-    protected $casts = [
-        'FechaF' => 'datetime',
-        'FechaV' => 'datetime',
-        'FechaP' => 'datetime',
-    ];
+    protected $fillable = ['Documento', 'Tipo', 'CodClie', 'FechaF', 'FechaV', 'Importe', 'Saldo'];
 
-    /**
-     * 🚀 ¡CORRECCIÓN! 🚀
-     * Sobrescribir métodos de Eloquent para que funcione la PK compuesta.
-     * Esta función ahora es correcta.
-     */
-    protected function setKeysForSaveQuery($query)
+  
+   
+   protected function setKeysForSaveQuery($query)
     {
-        // 1. Usamos la propiedad '$this->primaryKey' (que ES un array)
-        //    en lugar del método '$this->getKeyName()' (que devolvía un string).
-        $keys = $this->primaryKey;
-        
-        // 2. Ahora el 'foreach' funciona porque $keys es un array.
-        foreach($keys as $key){
-            $query->where($key, '=', $this->getAttribute($key));
-        }
+        $query
+            ->where('Documento', '=', $this->getAttribute('Documento'))
+            ->where('Tipo', '=', $this->getAttribute('Tipo'));
         return $query;
     }
 
-    /**
-     * Relación con Cliente
-     */
-    public function cliente()
+
+
+
+    public function cliente(): BelongsTo
     {
         return $this->belongsTo(Cliente::class, 'CodClie', 'Codclie');
     }
+
+ 
+    public function doccab(): BelongsTo
+    {
+        return $this->belongsTo(Doccab::class, 'Documento', 'Numero')
+                    ->whereColumn('Doccab.Tipo', 'CtaCliente.Tipo');
+    }
+
 }

@@ -3,33 +3,45 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Builder;
 
-/**
- * Modelo para SIFANO.Docdet (Detalle de Documentos)
- * (Este modelo no es usado por el Dashboard, pero es bueno tenerlo)
- */
 class Docdet extends Model
 {
     protected $table = 'Docdet';
+
     
-    protected $primaryKey = null;
+    protected $primaryKey = 'Numero'; 
     public $incrementing = false;
+    protected $keyType = 'string';
     public $timestamps = false;
 
-    protected $casts = [
-        'Vencimiento' => 'datetime',
+    protected $fillable = [
+        'Numero', 'Tipo', 'Codpro', 'Lote', 'Nbonif', 'Vencimiento', 'Unimed',
+        'Cantidad', 'Adicional', 'Precio', 'Unidades', 'Almacen', 'Descuento1',
+        'Descuento2', 'Descuento3', 'Subtotal', 'Costo'
     ];
 
-  
-    public function cabecera()
+   
+    protected function setKeysForSaveQuery($query)
     {
-        return $this->belongsTo(Doccab::class, ['Numero', 'Tipo'], ['Numero', 'Tipo']);
+        $query
+            ->where('Numero', '=', $this->getAttribute('Numero'))
+            ->where('Tipo', '=', $this->getAttribute('Tipo'))
+            ->where('Codpro', '=', $this->getAttribute('Codpro'))
+            ->where('Lote', '=', $this->getAttribute('Lote'))
+            ->where('Nbonif', '=', $this->getAttribute('Nbonif'));
+        return $query;
     }
 
-    /**
-     * Relación con el Producto
-     */
-    public function producto()
+
+    public function doccab(): BelongsTo
+    {
+        return $this->belongsTo(Doccab::class, 'Numero', 'Numero')
+                    ->whereColumn('Doccab.Tipo', 'Docdet.Tipo');
+    }
+
+    public function producto(): BelongsTo
     {
         return $this->belongsTo(Producto::class, 'Codpro', 'CodPro');
     }

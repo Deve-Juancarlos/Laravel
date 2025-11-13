@@ -1,31 +1,22 @@
 <?php
-
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Cliente extends Model
 {
     protected $table = 'Clientes';
-    protected $primaryKey = 'Codclie'; 
+    protected $primaryKey = 'Codclie';
     public $incrementing = true;
-    protected $keyType = 'int';
     public $timestamps = false;
 
     protected $casts = [
-        'Fecha' => 'datetime', 
+        'Activo' => 'boolean',
     ];
 
-    
-    public function cuentasPorCobrar()
+    public function cuentasPorCobrar(): HasMany
     {
         return $this->hasMany(CtaCliente::class, 'CodClie', 'Codclie');
-    }
-
-   
-    public function facturas()
-    {
-        return $this->hasMany(Doccab::class, 'CodClie', 'Codclie');
     }
 }

@@ -11,68 +11,63 @@ use App\Exports\VentasCobranzasExport;
 use Carbon\Carbon;
 
 
+use App\Models\Cliente;
+use App\Models\Doccab;
+use App\Models\NotaCredito;
+
 class ReporteVentasController extends Controller
 {
-    /**
-     * Muestra el reporte de Rentabilidad por Cliente
-     */
+    
     public function rentabilidadCliente(Request $request)
     {
-        // 1. Definir las fechas. Si el usuario no envía, poner un rango por defecto (ej. últimos 30 días)
-        $fechaInicio = $request->input('fecha_inicio', now()->subDays(30)->toDateString());
-        $fechaFin    = $request->input('fecha_fin', now()->toDateString());
-
-        // 2. La Consulta Mágica (Business Intelligence)
-        // Usamos la base de datos [SIFANO] que me diste
         
-        $reporte = DB::table('Clientes as c')
+        $fechaInicio = $request->input('fecha_inicio', now('America/Lima')->subDays(30)->toDateString());
+        $fechaFin    = $request->input('fecha_fin', now('America/Lima')->toDateString());
+
+        
+        
+        $reporte = Cliente::select('Codclie', 'Razon', 'Limite as LimiteCredito', 'Telefono1')
             // (A) Subconsulta para sumar todas las VENTAS (Doccab)
-            ->leftJoinSub(
-                DB::table('Doccab')
-                    ->select(
-                        'CodClie',
-                        DB::raw('COUNT(Numero) as CantidadFacturas'),
-                        DB::raw('SUM(Total) as TotalFacturado'),
-                        DB::raw('SUM(Descuento) as TotalDescuentos')
-                    )
-                    ->whereBetween('Fecha', [$fechaInicio, $fechaFin])
-                    ->where('Eliminado', 0)
-                    ->groupBy('CodClie'),
-                'ventas',
-                'ventas.CodClie', '=', 'c.Codclie'
-            )
+            ->withCount(['facturas as CantidadFacturas' => function ($query) use ($fechaInicio, $fechaFin) {
+                $query->whereBetween('Fecha', [$fechaInicio, $fechaFin])
+                      ->where('Eliminado', 0);
+            }])
+            ->withSum(['facturas as TotalFacturado' => function ($query) use ($fechaInicio, $fechaFin) {
+                $query->whereBetween('Fecha', [$fechaInicio, $fechaFin])
+                      ->where('Eliminado', 0);
+            }], 'Total')
+            ->withSum(['facturas as TotalDescuentos' => function ($query) use ($fechaInicio, $fechaFin) {
+                $query->whereBetween('Fecha', [$fechaInicio, $fechaFin])
+                      ->where('Eliminado', 0);
+            }], 'Descuento')
+            
             // (B) Subconsulta para sumar todas las DEVOLUCIONES (notas_credito)
-            ->leftJoinSub(
-                DB::table('notas_credito')
-                    ->select(
-                        'Codclie',
-                        DB::raw('SUM(Total) as TotalDevoluciones')
-                    )
-                    ->whereBetween('Fecha', [$fechaInicio, $fechaFin])
-                    ->where('Anulado', 0)
-                    ->groupBy('Codclie'),
-                'devoluciones',
-                'devoluciones.Codclie', '=', 'c.Codclie'
-            )
-            // (C) Seleccionamos y calculamos
-            ->select(
-                'c.Codclie',
-                'c.Razon',
-                'c.Limite as LimiteCredito',
-                'c.Telefono1',
-                DB::raw('ISNULL(ventas.CantidadFacturas, 0) as CantidadFacturas'),
-                DB::raw('ISNULL(ventas.TotalFacturado, 0) as TotalFacturado'),
-                DB::raw('ISNULL(ventas.TotalDescuentos, 0) as TotalDescuentos'),
-                DB::raw('ISNULL(devoluciones.TotalDevoluciones, 0) as TotalDevoluciones'),
-                DB::raw('ISNULL(ventas.TotalFacturado, 0) - ISNULL(devoluciones.TotalDevoluciones, 0) - ISNULL(ventas.TotalDescuentos, 0) as VentaNeta')
-            )
-            // Solo mostrar clientes que tuvieron movimiento
-            ->where(function($query) {
-                $query->where('ventas.CantidadFacturas', '>', 0)
-                      ->orWhere('devoluciones.TotalDevoluciones', '>', 0);
+            ->withSum(['notasCredito as TotalDevoluciones' => function ($query) use ($fechaInicio, $fechaFin) {
+                $query->whereBetween('Fecha', [$fechaInicio, $fechaFin])
+                      ->where('Anulado', 0);
+            }], 'Total')
+            
+            // (C) Obtenemos los resultados
+            ->get()
+            
+            // (D) Calculamos la Venta Neta en PHP
+            ->map(function ($cliente) {
+                $cliente->TotalFacturado = $cliente->TotalFacturado ?? 0;
+                $cliente->TotalDescuentos = $cliente->TotalDescuentos ?? 0;
+                $cliente->TotalDevoluciones = $cliente->TotalDevoluciones ?? 0;
+                
+                $cliente->VentaNeta = $cliente->TotalFacturado - $cliente->TotalDevoluciones - $cliente->TotalDescuentos;
+                return $cliente;
             })
-            ->orderBy('VentaNeta', 'desc') // <-- ¡El más rentable primero!
-            ->get();
+            
+            // (E) Filtramos clientes que SÍ tuvieron movimiento
+            ->filter(function ($cliente) {
+                return $cliente->CantidadFacturas > 0 || $cliente->TotalDevoluciones > 0;
+            })
+            
+            // (F) Ordenamos por el más rentable
+            ->sortByDesc('VentaNeta');
+
 
         // 3. Enviar los datos a la vista
         return view('reportes.ventas.rentabilidad_cliente', [
@@ -82,10 +77,12 @@ class ReporteVentasController extends Controller
         ]);
     }
 
+    /**
+     * Este método está PERFECTO. Reutiliza el servicio.
+     */
     public function flujoVentasCobranzas(Request $request, ContadorDashboardService $dashboardService)
     {
-        // 1. Aquí puedes obtener más datos, usando filtros del $request
-        // Por ahora, solo tomaremos los últimos 12 meses como ejemplo
+        // 1. (El servicio ya está corregido con la hora peruana y el GROUP BY)
         $labels = $dashboardService->obtenerMesesLabels(12);
         $ventas = $dashboardService->obtenerVentasPorMes(12);
         $cobranzas = $dashboardService->obtenerCobranzasPorMes(12);
@@ -99,7 +96,6 @@ class ReporteVentasController extends Controller
                 'cobranzas' => $cobranzas[$i],
             ];
         }
-
         
         return view('reportes.ventas-cobranzas', [
             'labels' => $labels,
@@ -109,15 +105,15 @@ class ReporteVentasController extends Controller
         ]);
     }
 
+    /**
+     * Este método también está PERFECTO.
+     */
     public function exportarVentasCobranzasExcel(Request $request, ContadorDashboardService $dashboardService)
     {
-        // 1. Obtenemos los mismos datos que en el reporte web
-        // (Eventualmente aquí leerás los filtros del $request)
         $labels = $dashboardService->obtenerMesesLabels(12);
         $ventas = $dashboardService->obtenerVentasPorMes(12);
         $cobranzas = $dashboardService->obtenerCobranzasPorMes(12);
 
-        // 2. Preparamos el array de la tabla
         $datosTabla = [];
         for ($i = 0; $i < count($labels); $i++) {
             $datosTabla[] = [
@@ -126,9 +122,8 @@ class ReporteVentasController extends Controller
                 'cobranzas' => $cobranzas[$i],
             ];
         }
-        $datosTabla = array_reverse($datosTabla); // Igual que en la web
+        $datosTabla = array_reverse($datosTabla);
 
-        // 3. Preparamos los totales
         $totalVentas = array_sum(array_column($datosTabla, 'ventas'));
         $totalCobranzas = array_sum(array_column($datosTabla, 'cobranzas'));
         $totales = [
@@ -137,11 +132,8 @@ class ReporteVentasController extends Controller
             'totalBrecha' => $totalCobranzas - $totalVentas,
         ];
 
-        // 4. Generamos el nombre del archivo
-        $fileName = 'Reporte_Ventas_vs_Cobranzas_' . Carbon::now()->format('Y-m-d') . '.xlsx';
+        $fileName = 'Reporte_Ventas_vs_Cobranzas_' . Carbon::now('America/Lima')->format('Y-m-d') . '.xlsx';
 
-        // 5. ¡LA MAGIA!
-        // Le pasamos los datos a nuestra clase de exportación y la descargamos.
         return Excel::download(new VentasCobranzasExport($datosTabla, $totales), $fileName);
     }
 }

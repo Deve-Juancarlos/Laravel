@@ -2,57 +2,53 @@
 
 namespace App\Models;
 
-use GuzzleHttp\Psr7\Query;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\HasMany; 
+use App\Models\Docdet; 
 
-/**
- * Modelo para SIFANO.Doccab (Cabecera de Facturas/Documentos)
- * ¡Maneja clave primaria compuesta!
- * * 🚀 VERSIÓN CORREGIDA 🚀
- */
 class Doccab extends Model
 {
     protected $table = 'Doccab';
-    
-    // 1. Definimos la clave primaria compuesta (esto estaba bien)
-    protected $primaryKey = ['Numero', 'Tipo'];
+   
+    protected $primaryKey = 'Numero'; 
     public $incrementing = false;
-    protected $keyType = 'string';
+    protected $keyType = 'string'; 
     public $timestamps = false;
 
-    protected $casts = [
-        'Fecha' => 'datetime',
-        'FechaV' => 'datetime',
+    protected $fillable = [
+        'Numero', 'Tipo', 'CodClie', 'Fecha', 'Total', 'Eliminado', 'estado_sunat',
+        'serie_sunat', 'correlativo_sunat', 'tipo_documento_sunat' 
     ];
 
-    
+   
     protected function setKeysForSaveQuery($query)
     {
-        
-        $keys = $this->primaryKey;      
-        foreach($keys as $key){
-            $query->where($key, '=', $this->getAttribute($key));
-        }
+        $query
+            ->where('Numero', '=', $this->getAttribute('Numero'))
+            ->where('Tipo', '=', $this->getAttribute('Tipo'));
         return $query;
     }
 
-    
-    public function cliente()
+
+
+    public function cliente(): BelongsTo
     {
         return $this->belongsTo(Cliente::class, 'CodClie', 'Codclie');
     }
 
-    public function detalles()
+    public function cuentaPorCobrar(): HasOne
     {
-        return $this->hasMany(Docdet::class, 'Numero', 'Numero')
-                    ->where('Tipo', $this->Tipo); // Condición extra para la PK compuesta
+        return $this->hasOne(CtaCliente::class, 'Documento', 'Numero')
+                    ->whereColumn('CtaCliente.Tipo', 'Doccab.Tipo');
     }
 
-    
-    public function cuentaPorCobrar()
+    public function detalles(): HasMany
     {
-        // Se une por Numero y Tipo
-        return $this->hasOne(CtaCliente::class, 'Documento', 'Numero')
-                    ->where('Tipo', $this->Tipo);
+        return $this->hasMany(Docdet::class, 'Numero', 'Numero')
+                    ->whereColumn('Docdet.Tipo', 'Doccab.Tipo');
     }
+
+   
 }

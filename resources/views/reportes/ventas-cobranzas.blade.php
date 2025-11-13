@@ -18,6 +18,7 @@
 @endsection
 
 @section('breadcrumbs')
+    {{-- 🚀 CORRECCIÓN 1: La ruta al dashboard principal es 'contador.dashboard' --}}
     <li class="breadcrumb-item"><a href="{{ route('contador.dashboard.contador') }}">Dashboard</a></li>
     <li class="breadcrumb-item active" aria-current="page">Reporte Ventas vs Cobranzas</li>
 @endsection
@@ -35,15 +36,16 @@
                     {{-- Sección de Filtros (¡Importante para el futuro!) --}}
                     <div class="d-flex flex-wrap align-items-center me-3">
                         <label for="date-range" class="form-label me-2 fw-600 mb-0">Rango de Fechas:</label>
-                        <input type="text" id="date-range" class="form-control" style="width: 250px;" placeholder="Seleccionar rango...">
-                        <button class="btn btn-primary ms-2"><i class="fas fa-filter me-1"></i> Aplicar</button>
+                        <input type="text" id="date-range" class="form-control" style="width: 250px;" placeholder="Seleccionar rango..." disabled>
+                        <button class="btn btn-primary ms-2" disabled><i class="fas fa-filter me-1"></i> Aplicar</button>
                     </div>
 
                     {{-- Sección de Exportación --}}
                     <div>
+                        {{-- 🚀 CORRECCIÓN 2: Usamos un nombre de ruta limpio que definiremos --}}
                         <a href="{{ route('contador.reportes.ventas.flujo-comparativo.excel') }}" class="btn btn-success-soft">
                             <i class="fas fa-file-excel me-1"></i> Exportar a Excel
-                        </a>                        
+                        </a>
                     </div>
 
                 </div>
@@ -111,7 +113,7 @@
                                                 <p>No hay información para el rango de fechas seleccionado.</p>
                                             </div>
                                         </td>
-                                    </tr>                            
+                                    </tr>                                    
                                 @endforelse 
                                 
                                 {{-- Fila de Totales --}}
@@ -142,6 +144,10 @@
 @endsection
 
 @push('scripts')
+    
+    {{-- 🚀 CORRECCIÓN 3: ¡El motor de gráficos! Esto es necesario para que 'new Chart' funcione. --}}
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
     {{-- 
       Script inline para esta página. 
       Dibuja el gráfico 'reporteChart' leyendo los datos del HTML.

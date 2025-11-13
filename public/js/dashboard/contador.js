@@ -1,104 +1,188 @@
 /**
- * JavaScript para el Dashboard del Contador
- * * Lee los datos del canvas y renderiza el gráfico de Ventas vs Cobranzas.
- * Asume que Chart.js (v3 o v4) ya está cargado en la página.
+ * =================================================================
+ * JAVASCRIPT PARA EL DASHBOARD DEL CONTADOR (contador.js)
+ * =================================================================
  */
 document.addEventListener('DOMContentLoaded', function () {
 
-    const ctx = document.getElementById('ventasChart');
+    // Inicia el gráfico del dashboard
+    initVentasChart();
+    
+    // Inicia el botón de limpiar caché
+    initCacheButton();
 
-    // Si el canvas no existe en esta página, no hacemos nada.
-    if (!ctx) {
-        console.warn('No se encontró el elemento canvas #ventasChart');
+});
+
+/**
+ * Dibuja el gráfico de Ventas vs Cobranzas
+ */
+function initVentasChart() {
+    const chartCanvas = document.getElementById('ventasChart');
+    
+    if (!chartCanvas) {
+        // console.log('No se encontró el canvas #ventasChart en esta página.');
         return;
     }
 
-    try {
-        // 1. Leer los datos desde los atributos 'data-*'
-        const labels = JSON.parse(ctx.dataset.labels);
-        const ventasData = JSON.parse(ctx.dataset.ventas);
-        const cobranzasData = JSON.parse(ctx.dataset.cobranzas);
+    // 1. Leer los datos desde los atributos data-*
+    // Usamos JSON.parse para convertir los strings de vuelta a arrays
+    const labels = JSON.parse(chartCanvas.dataset.labels || '[]');
+    const ventasData = JSON.parse(chartCanvas.dataset.ventas || '[]');
+    const cobranzasData = JSON.parse(chartCanvas.dataset.cobranzas || '[]');
 
-        // 2. Definir los colores (puedes personalizarlos)
-        const colorVentas = '#0d6efd'; // Azul (Primary)
-        const colorCobranzas = '#198754'; // Verde (Success)
+    const ctx = chartCanvas.getContext('2d');
 
-        // 3. Crear el gráfico
-        new Chart(ctx, {
-            type: 'bar', // Tipo de gráfico: barras
-            data: {
-                labels: labels,
-                datasets: [
-                    {
-                        label: 'Ventas',
-                        data: ventasData,
-                        backgroundColor: colorVentas,
-                        borderColor: colorVentas,
-                        borderWidth: 1,
-                        borderRadius: 4
-                    },
-                    {
-                        label: 'Cobranzas',
-                        data: cobranzasData,
-                        backgroundColor: colorCobranzas,
-                        borderColor: colorCobranzas,
-                        borderWidth: 1,
-                        borderRadius: 4
+    // Formateador para tooltips
+    const tooltipLabelFormatter = (context) => {
+        let label = context.dataset.label || '';
+        if (label) label += ': ';
+        if (context.parsed.y !== null) {
+            label += context.parsed.y.toLocaleString('es-PE', { style: 'currency', currency: 'PEN' });
+        }
+        return label;
+    };
+
+    // Formateador para el eje Y
+    const yAxisTickFormatter = (value) => 'S/ ' + value.toLocaleString('es-PE');
+
+    // 2. Crear el Gráfico
+    new Chart(ctx, {
+        type: 'line', // Tipo de gráfico: línea
+        data: {
+            labels: labels, // Etiquetas del eje X (Meses)
+            datasets: [
+                {
+                    label: 'Ventas (S/)',
+                    data: ventasData,
+                    borderColor: '#4F46E5', // Color Morado (Principal)
+                    backgroundColor: 'rgba(79, 70, 229, 0.1)',
+                    fill: true,
+                    tension: 0.4, // Curva suave
+                    borderWidth: 3,
+                    pointBackgroundColor: '#4F46E5',
+                    pointRadius: 4,
+                    pointHoverRadius: 6,
+                },
+                {
+                    label: 'Cobranzas (S/)',
+                    data: cobranzasData,
+                    borderColor: '#10B981', // Color Verde (Éxito)
+                    backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                    fill: true,
+                    tension: 0.4, // Curva suave
+                    borderWidth: 2,
+                    pointBackgroundColor: '#10B981',
+                    pointRadius: 4,
+                    pointHoverRadius: 6,
+                    borderDash: [5, 5], // Línea punteada
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false, // Permite que el gráfico llene el contenedor
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        // Formatear los números del eje Y como Moneda (S/)
+                        callback: yAxisTickFormatter,
+                        color: '#6c757d'
                     }
-                ]
+                },
+                x: {
+                    ticks: {
+                        color: '#6c757d'
+                    }
+                }
             },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false, // Permite que el gráfico llene el 'chart-area'
-                plugins: {
-                    legend: {
-                        position: 'top', // Leyenda arriba
-                    },
-                    tooltip: {
-                        mode: 'index',
-                        intersect: false,
-                        callbacks: {
-                            // Formatear el tooltip para que muestre "S/"
-                            label: function(context) {
-                                let label = context.dataset.label || '';
-                                if (label) {
-                                    label += ': ';
-                                }
-                                if (context.parsed.y !== null) {
-                                    label += new Intl.NumberFormat('es-PE', {
-                                        style: 'currency',
-                                        currency: 'PEN'
-                                    }).format(context.parsed.y);
-                                }
-                                return label;
-                            }
+            plugins: {
+                legend: {
+                    position: 'top', // Leyenda en la parte superior
+                    labels: {
+                        font: {
+                            size: 14
                         }
                     }
                 },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        ticks: {
-                            // Formatear el eje Y para que muestre "S/ 10k"
-                            callback: function(value, index, values) {
-                                if (value >= 1000) {
-                                    return 'S/ ' + (value / 1000) + 'k';
-                                }
-                                return 'S/ ' + value;
-                            }
-                        }
-                    },
-                    x: {
-                        grid: {
-                            display: false // Ocultar líneas de la cuadrícula X
-                        }
+                tooltip: {
+                    // Tooltips personalizados
+                    mode: 'index',
+                    intersect: false,
+                    callbacks: {
+                        label: tooltipLabelFormatter
                     }
                 }
-            }
-        });
+            },
+            interaction: {
+                intersect: false,
+                mode: 'index', // Mostrar tooltips para ambos datasets al pasar el mouse
+            },
+        }
+    });
+}
 
-    } catch (e) {
-        console.error('Error al parsear o renderizar el gráfico:', e);
-        ctx.parentElement.innerHTML = '<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><h5>Error al cargar el gráfico</h5><p>Los datos no pudieron ser procesados.</p></div>';
+/**
+ * 🚀 ¡FUNCIÓN CRÍTICA! 🚀
+ * Inicializa el botón para limpiar el caché.
+ */
+function initCacheButton() {
+    const btnClearCache = document.getElementById('btnClearCache');
+    if (!btnClearCache) {
+        // console.log('No se encontró el botón #btnClearCache en esta página.');
+        return;
     }
-});
+
+    const btnText = btnClearCache.querySelector('.btn-text');
+    const btnSpinner = btnClearCache.querySelector('.btn-spinner');
+
+    // 1. Obtenemos el Token CSRF que pusimos en el <head> de 'layouts/app.blade.php'
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+
+    btnClearCache.addEventListener('click', function() {
+        
+        if (!csrfToken) {
+            console.error('¡Error de CSRF! Token no encontrado. Asegúrate de tener la meta-tag "csrf-token" en tu layout.');
+            alert('Error de seguridad. No se pudo limpiar el caché. (Token CSRF no encontrado)');
+            return;
+        }
+
+        // 2. Mostrar spinner y deshabilitar
+        btnText.classList.add('d-none');
+        btnSpinner.classList.remove('d-none');
+        btnClearCache.disabled = true;
+
+        // 3. Llamar a la API que definimos en 'routes/web.php'
+        fetch('/contador/api/clear-cache', {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': csrfToken,
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Respuesta del servidor no fue OK: ' + response.statusText);
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.success) {
+                // 4. ¡Éxito! Recargar la página para ver los datos nuevos (tu venta).
+                location.reload();
+            } else {
+                throw new Error(data.message || 'Error desconocido al limpiar caché');
+            }
+        })
+        .catch(error => {
+            console.error('Error al limpiar caché:', error);
+            alert('Ocurrió un error al limpiar el caché. Revisa la consola.');
+            
+            // 5. En caso de error, restaurar el botón
+            btnText.classList.remove('d-none');
+            btnSpinner.classList.add('d-none');
+            btnClearCache.disabled = false;
+        });
+    });
+}
