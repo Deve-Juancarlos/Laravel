@@ -20,7 +20,7 @@
 @endsection
 
 @section('content')
-<div class="container-fluid">
+<div class="resultadosperiodos-page">
 
     <nav class="nav nav-tabs eerr-subnav mb-4">
         <a class="nav-link {{ request()->routeIs('contador.estado-resultados.index') ? 'active' : '' }}" href="{{ route('contador.estado-resultados.index') }}">

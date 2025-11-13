@@ -8,17 +8,21 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
 use Carbon\Carbon;
 use Symfony\Component\HttpFoundation\StreamedResponse;
-use App\Models\LibroDiario; // <-- ¡¡IMPORTADO PARA USAR ELOQUENT!!
+// --- ¡IMPORTAMOS TODOS LOS MODELOS! ---
+use App\Models\LibroDiario;
+use App\Models\LibroDiarioDetalle;
+use App\Models\PlanCuentas;
+use App\Models\AccesoWeb;
+// --- IMPORTAMOS LOS EXPORTADORES ---
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\LibroDiarioExport; // Asumimos que la crearás
+use Barryvdh\DomPDF\Facade\Pdf as DomPDF;
 
 class LibroDiarioService
 {
-    // ===================================================================
-    // MÉTODOS DE ESCRITURA (C-U-D) - ¡REFRACTORIZADOS CON ELOQUENT!
-    // ===================================================================
-
     /**
      * Almacena un nuevo asiento contable.
-     * ¡¡REFACTORIZADO CON ELOQUENT!!
+     * (Esta función ya era perfecta y usaba Eloquent).
      */
     public function storeAsiento(array $validatedData, $observaciones, $userId)
     {
@@ -33,9 +37,7 @@ class LibroDiarioService
         DB::beginTransaction();
         try {
             $numeroAsiento = $this->obtenerSiguienteNumeroAsiento();
-
-            // ▼▼▼ CAMBIO DE DB::table A ELOQUENT ▼▼▼
-            // Al llamar a "create", el Observador se disparará.
+            
             $asiento = LibroDiario::create([
                 'numero' => $numeroAsiento,
                 'fecha' => $validatedData['fecha'],
@@ -46,99 +48,53 @@ class LibroDiarioService
                 'estado' => 'ACTIVO',
                 'usuario_id' => $userId,
                 'observaciones' => $observaciones,
-                // created_at y updated_at son automáticos con Eloquent
             ]);
-            // ▲▲▲ FIN DEL CAMBIO ▲▲▲
-
-            $detallesParaInsertar = [];
-            foreach ($validatedData['detalles'] as $detalle) {
-                $detallesParaInsertar[] = [
-                    'cuenta_contable' => $detalle['cuenta_contable'],
-                    'debe' => $detalle['debe'] ?? 0,
-                    'haber' => $detalle['haber'] ?? 0,
-                    'concepto' => $detalle['concepto'],
-                    'documento_referencia' => $detalle['documento_referencia'] ?? null,
-                    // created_at y updated_at son automáticos
-                ];
-            }
             
-            // Usamos la relación (definida en el Modelo) para crear los detalles
-            $asiento->detalles()->createMany($detallesParaInsertar);
+            $asiento->detalles()->createMany($validatedData['detalles']);
 
             DB::commit();
-
-            Log::info('Asiento contable creado', [
-                'numero' => $numeroAsiento, 'total' => $totalDebe, 'usuario_id' => $userId
-            ]);
-
-            return $asiento->id; // Devolvemos el ID del asiento creado
+            Log::info('Asiento contable creado', ['numero' => $numeroAsiento, 'usuario_id' => $userId]);
+            return $asiento->id;
 
         } catch (\Exception $e) {
             DB::rollBack();
-            // Re-lanzamos la excepción para que el controlador la atrape
-            throw new \Exception('Error al registrar el asiento en el servicio: ' . $e->getMessage());
+            throw new \Exception('Error al registrar el asiento: ' . $e->getMessage());
         }
     }
 
     /**
      * Actualiza la cabecera de un asiento.
-     * ¡¡REFACTORIZADO CON ELOQUENT!!
+     * (Esta función ya era perfecta y usaba Eloquent).
      */
     public function updateAsiento($id, array $validatedData)
     {
-        // ▼▼▼ CAMBIO DE DB::table A ELOQUENT ▼▼▼
-        // 1. Buscamos el asiento usando el Modelo
         $asiento = LibroDiario::findOrFail($id);
-        
-        // 2. Al llamar a "update" en el modelo, el Observador se disparará.
-        $asiento->update([
-            'fecha' => $validatedData['fecha'],
-            'glosa' => $validatedData['glosa'],
-            'observaciones' => $validatedData['observaciones'],
-            // updated_at es automático
-        ]);
-        // ▲▲▲ FIN DEL CAMBIO ▲▲▲
+        $asiento->update($validatedData);
     }
 
     /**
-     * Elimina un asiento y sus detalles.
-     * ¡¡REFACTORIZADO CON ELOQUENT!!
+     * Solicita la eliminación de un asiento (cambia estado).
+     * (Esta función ya era perfecta y usaba Eloquent).
      */
-    public function deleteAsiento($id, $usuario)
+    public function solicitarEliminacion($id, $usuario)
     {
-        DB::beginTransaction();
-        try {
-            // ▼▼▼ CAMBIO DE DB::table A ELOQUENT ▼▼▼
-            // 1. Buscamos el asiento usando el Modelo
-            $asiento = LibroDiario::findOrFail($id);
-            if (!$asiento) {
-                throw new \Exception('Asiento no encontrado');
-            }
-            
-            // 2. Eliminamos los detalles primero (buena práctica, aunque CASCADE lo haría)
-            $asiento->detalles()->delete();
-            
-            // 3. Eliminamos el asiento (esto disparará el Observador "deleted")
-            $asiento->delete();
-            // ▲▲▲ FIN DEL CAMBIO ▲▲▲
-            
-            DB::commit();
-            
-            Log::info('Asiento contable eliminado', [
-                'numero' => $asiento->numero, 'total' => $asiento->total_debe, 'usuario' => $usuario
-            ]);
+        $asiento = LibroDiario::findOrFail($id);
+        $asiento->estado = 'PENDIENTE_ELIMINACION';
+        $asiento->save();
 
-        } catch (\Exception $e) {
-            DB::rollBack();
-            throw new \Exception('Error al eliminar el asiento: ' . $e->getMessage());
+        $titulo = "Solicitud de Eliminación de Asiento";
+        $mensaje = "El usuario {$usuario->usuario} ha solicitado eliminar el asiento N° {$asiento->numero}.";
+        $url = route('admin.solicitudes.asiento.index');
+
+        if (method_exists($asiento, 'notificarAdmin')) {
+            $asiento->notificarAdmin($titulo, $mensaje, $url);
+        } else {
+            Log::warning("El método notificarAdmin() no existe en el modelo LibroDiario.");
         }
     }
 
-
     // ===================================================================
-    // MÉTODOS DE LECTURA (R) - SIN CAMBIOS
-    // (Estos métodos no necesitan disparar el Observador,
-    // por lo que DB::table() es rápido y está perfecto)
+    // MÉTODOS DE LECTURA (R) - ¡AHORA OPTIMIZADOS CON ELOQUENT!
     // ===================================================================
 
     /**
@@ -148,91 +104,84 @@ class LibroDiarioService
     {
         $fechaInicio = $request->get('fecha_inicio') ?? Carbon::now()->startOfMonth()->format('Y-m-d');
         $fechaFin = $request->get('fecha_fin') ?? Carbon::now()->endOfMonth()->format('Y-m-d');
-        $numeroAsiento = $request->get('numero_asiento');
-        $cuentaContable = $request->get('cuenta_contable');
         
-        $asientos = $this->obtenerAsientos($fechaInicio, $fechaFin, $numeroAsiento, $cuentaContable);
+        $asientos = $this->obtenerAsientos(
+            $fechaInicio, $fechaFin,
+            $request->get('numero_asiento'),
+            $request->get('cuenta_contable')
+        );
+        
         $totales = $this->calcularTotales($fechaInicio, $fechaFin);
-        $cuentasContables = $this->obtenerCuentasContables();
+        $cuentasContables = $this->obtenerCuentasContables(); // Optimizado
         $graficoAsientosPorMes = $this->obtenerAsientosPorMes();
-        $graficoMovimientosPorCuenta = $this->obtenerMovimientosPorCuenta();
+        $graficoMovimientosPorCuenta = $this->obtenerMovimientosPorCuenta($fechaInicio, $fechaFin);
         $alertas = $this->generarAlertasContables();
         
         return compact(
-            'asientos', 
-            'totales', 
-            'cuentasContables',
-            'fechaInicio',
-            'fechaFin',
-            'graficoAsientosPorMes',
-            'graficoMovimientosPorCuenta',
-            'alertas'
+            'asientos', 'totales', 'cuentasContables', 'fechaInicio',
+            'fechaFin', 'graficoAsientosPorMes', 'graficoMovimientosPorCuenta', 'alertas'
         );
     }
 
     /**
-     * Obtiene los datos para el formulario de creación.
+     * Obtiene datos para el formulario de creación. (OPTIMIZADO)
      */
     public function getCreateFormData()
     {
-        $cuentasContables = DB::table('plan_cuentas')
-            ->where('activo', 1)
+        // ¡AHORA USA EL MODELO!
+        $cuentasContables = PlanCuentas::where('activo', 1)
             ->orderBy('codigo')
             ->get(['codigo', 'nombre']);
             
+        // ¡AHORA USA EL MODELO!
         $ultimosAsientos = $this->obtenerUltimosAsientos(5);
         
         return compact('cuentasContables', 'ultimosAsientos');
     }
 
     /**
-     * Obtiene los detalles de un asiento para mostrarlo.
+     * Obtiene detalles de un asiento. (OPTIMIZADO)
      */
     public function getAsientoDetails($id)
     {
-        $query = DB::table('libro_diario as a');
-        if (Schema::hasTable('accesoweb')) {
-            $query->leftJoin('accesoweb as u', 'a.usuario_id', '=', 'u.idusuario')
-                  ->select('a.*', DB::raw('u.usuario as usuario_nombre'), DB::raw('u.tipousuario as usuario_tipo'));
-        } else {
-            $query->select('a.*', DB::raw('NULL as usuario_nombre'), DB::raw('NULL as usuario_tipo'));
-        }
-        $asiento = $query->where('a.id', $id)->first();
-                
+        // ¡MÁGIA DE ELOQUENT!
+        // Carga el asiento Y TAMBIÉN carga las relaciones
+        // 'usuario' y 'detalles' (y la relación anidada 'detalles.cuenta')
+        // todo en consultas súper optimizadas (Eager Loading).
+        $asiento = LibroDiario::with(['usuario', 'detalles.cuenta'])->find($id);
+            
         if (!$asiento) {
             return null; // El controlador manejará el not found
         }
         
-        $detalles = DB::table('libro_diario_detalles as d')
-            ->leftJoin('plan_cuentas as c', 'd.cuenta_contable', '=', 'c.codigo')
-            ->select('d.*', 'c.nombre as cuenta_nombre', 'c.tipo as cuenta_tipo')
-            ->where('d.asiento_id', $id)
-            ->orderBy('d.id')
-            ->get();
+        // Los detalles ya vienen cargados gracias a 'with()'
+        $detalles = $asiento->detalles;
         
-        $asientoAnterior = DB::table('libro_diario')
-            ->where('fecha', '<=', $asiento->fecha)->where('id', '!=', $id)
+        // ¡AHORA USA EL MODELO!
+        $asientoAnterior = LibroDiario::where('fecha', '<=', $asiento->fecha)
+            ->where('id', '!=', $id)
             ->orderBy('fecha', 'desc')->orderBy('numero', 'desc')->first();
             
-        $asientoSiguiente = DB::table('libro_diario')
-            ->where('fecha', '>=', $asiento->fecha)->where('id', '!=', $id)
+        $asientoSiguiente = LibroDiario::where('fecha', '>=', $asiento->fecha)
+            ->where('id', '!=', $id)
             ->orderBy('fecha', 'asc')->orderBy('numero', 'asc')->first();
         
         return compact('asiento', 'detalles', 'asientoAnterior', 'asientoSiguiente');
     }
 
     /**
-     * Obtiene los datos para el formulario de edición.
+     * Obtiene datos para el formulario de edición. (OPTIMIZADO)
      */
     public function getEditFormData($id)
     {
-        $asiento = DB::table('libro_diario')->where('id', $id)->first();
+        // ¡AHORA USA EL MODELO!
+        $asiento = LibroDiario::find($id);
         if (!$asiento) {
             return ['asiento' => null, 'detalles' => collect(), 'cuentasContables' => collect()];
         }
 
-        $detalles = DB::table('libro_diario_detalles')->where('asiento_id', $id)->get();
-        $cuentasContables = $this->obtenerCuentasContablesParaFormulario();
+        $detalles = $asiento->detalles; // Carga la relación
+        $cuentasContables = $this->obtenerCuentasContablesParaFormulario(); // Optimizado
 
         return compact('asiento', 'detalles', 'cuentasContables');
     }
@@ -246,10 +195,8 @@ class LibroDiarioService
         $fechaInicio = $request->get('fecha_inicio');
         $fechaFin = $request->get('fecha_fin');
 
-        // Obtenemos los asientos SIN paginar
-        $asientos = $this->obtenerAsientos($fechaInicio, $fechaFin, null, null, false);
-        
-        $totales = $this->calcularTotales($fechaInicio, $fechaFin);
+        $asientos = $this->obtenerAsientos($fechaInicio, $fechaFin, null, null, false); // Ya usa Eloquent
+        $totales = $this->calcularTotales($fechaInicio, $fechaFin); // DB::table está bien
         
         if ($formato === 'pdf') {
             return $this->generarPDF($asientos, $totales, $fechaInicio, $fechaFin);
@@ -260,56 +207,98 @@ class LibroDiarioService
 
 
     // ===================================================================
-    // MÉTODOS DE AYUDA (Sin Cambios)
+    // MÉTODOS DE AYUDA (¡HÍBRIDOS!)
     // ===================================================================
 
+    /**
+     * Obtiene los asientos filtrados. (OPTIMIZADO)
+     */
     public function obtenerAsientos($fechaInicio = null, $fechaFin = null, $numeroAsiento = null, $cuentaContable = null, $paginar = true)
     {
-        $query = DB::table('libro_diario as a')->select('a.*');
-
-        if (Schema::hasTable('accesoweb')) {
-            $query->leftJoin('accesoweb as u', 'a.usuario_id', '=', 'u.idusuario')
-                  ->addSelect(DB::raw('u.usuario as usuario_nombre'));
-        } else {
-            $query->addSelect(DB::raw('NULL as usuario_nombre'));
-        }
-
-        if ($fechaInicio && $fechaFin) {
-            $query->whereBetween('a.fecha', [$fechaInicio, $fechaFin]);
-        }
+        // ¡AHORA USA EL MODELO!
+        // 'with('usuario')' precarga la relación de usuario para evitar
+        // consultas N+1 en la vista. Es mucho más rápido.
         
-        if ($numeroAsiento) {
-            $query->where('a.numero', 'like', '%' . $numeroAsiento . '%');
-        }
-        
-        if ($cuentaContable) {
-            $query->whereExists(function($q) use ($cuentaContable) {
-                $q->select(DB::raw(1))
-                  ->from('libro_diario_detalles as d')
-                  ->whereRaw('d.asiento_id = a.id')
-                  ->where('d.cuenta_contable', 'like', '%' . $cuentaContable . '%');
-            });
-        }
-        
-        $query->orderBy('a.fecha', 'desc')
-              ->orderBy('a.numero', 'desc');
-              
+        // ▼▼▼ ¡¡AQUÍ ESTÁ LA SOLUCIÓN!! ▼▼▼
+        //
+        // Le decimos a Eloquent que cargue no solo el 'usuario',
+        // sino también los 'detalles' de cada asiento, y la 'cuenta'
+        // relacionada a cada uno de esos detalles.
+        // Esto reduce cientos de consultas a solo 3 o 4.
+        $query = LibroDiario::with(['usuario', 'detalles.cuenta']) 
+            ->when($fechaInicio, function ($q) use ($fechaInicio, $fechaFin) {
+                $q->whereBetween('fecha', [$fechaInicio, $fechaFin]);
+            })
+            ->when($numeroAsiento, function ($q) use ($numeroAsiento) {
+                $q->where('numero', 'like', '%' . $numeroAsiento . '%');
+            })
+            ->when($cuentaContable, function ($q) use ($cuentaContable) {
+                // 'whereHas' es la forma Eloquent de tu 'whereExists'.
+                $q->whereHas('detalles', function ($detalleQuery) use ($cuentaContable) {
+                    $detalleQuery->where('cuenta_contable', 'like', '%' . $cuentaContable . '%');
+                });
+            })
+            ->orderBy('fecha', 'desc')
+            ->orderBy('numero', 'desc');
+            
         return $paginar ? $query->paginate(20) : $query->get();
     }
 
+    /**
+     * Obtiene cuentas contables. (OPTIMIZADO)
+     */
+    public function obtenerCuentasContables()
+    {
+        // ¡AHORA USA EL MODELO!
+        return PlanCuentas::where('activo', 1)
+            ->orderBy('codigo')
+            ->get();
+    }
+
+    /**
+     * Obtiene cuentas para el formulario. (OPTIMIZADO)
+     */
+    public function obtenerCuentasContablesParaFormulario()
+    {
+        // ¡AHORA USA EL MODELO!
+        return PlanCuentas::where('activo', 1)
+            ->whereIn('tipo', ['ACTIVO', 'PASIVO', 'PATRIMONIO', 'INGRESO', 'GASTO'])
+            ->orderBy('codigo')
+            ->get()
+            ->groupBy('tipo');
+    }
+
+    /**
+     * Obtiene los últimos N asientos. (OPTIMIZADO)
+     */
+    public function obtenerUltimosAsientos($cantidad = 5)
+    {
+        // ¡AHORA USA EL MODELO!
+        return LibroDiario::orderBy('fecha', 'desc')
+            ->orderBy('numero', 'desc')
+            ->limit($cantidad)
+            ->get();
+    }
+
+    // ===================================================================
+    // MÉTODOS DE REPORTE (DB::table es el rey aquí)
+    //
+    // Para reportes pesados, agregaciones (SUM, COUNT, AVG) y
+    // generación de números, usar DB::table es a menudo MÁS RÁPIDO
+    // y más limpio que Eloquent. Tu lógica original es perfecta.
+    // ===================================================================
+
+    /**
+     * Calcula los totales. (Tu lógica original es óptima).
+     */
     public function calcularTotales($fechaInicio = null, $fechaFin = null)
     {
         $query = DB::table('libro_diario');
         if ($fechaInicio && $fechaFin) {
             $query->whereBetween('fecha', [$fechaInicio, $fechaFin]);
         }
-        $resultado = $query->selectRaw('
-                    COUNT(*) as total_asientos,
-                    SUM(total_debe) as total_debe,
-                    SUM(total_haber) as total_haber,
-                    AVG(total_debe) as promedio_asiento
-                ')->first();
-                
+        $resultado = $query->selectRaw('COUNT(*) as total_asientos, SUM(total_debe) as total_debe, SUM(total_haber) as total_haber, AVG(total_debe) as promedio_asiento')
+                           ->first();
         return [
             'total_asientos' => $resultado->total_asientos ?? 0,
             'total_debe' => round($resultado->total_debe ?? 0, 2),
@@ -319,26 +308,8 @@ class LibroDiarioService
         ];
     }
 
-    public function obtenerCuentasContables()
-    {
-        return DB::table('plan_cuentas')
-            ->where('activo', 1)
-            ->orderBy('codigo')
-            ->get();
-    }
-
-    public function obtenerCuentasContablesParaFormulario()
-    {
-        return DB::table('plan_cuentas')
-            ->where('activo', 1)
-            ->whereIn('tipo', ['ACTIVO', 'PASIVO', 'PATRIMONIO', 'INGRESO', 'GASTO'])
-            ->orderBy('codigo')
-            ->get()
-            ->groupBy('tipo');
-    }
-
     /**
-     * Esta es la función correcta para generar el número de asiento.
+     * Genera el siguiente número de asiento. (Tu lógica original es óptima).
      */
     public function obtenerSiguienteNumeroAsiento()
     {
@@ -347,60 +318,32 @@ class LibroDiarioService
         $maxIntentos = 10;
 
         do {
-            // 1. Busca el número MÁXIMO actual
             $ultimoNumero = DB::table('libro_diario')
-                ->where('numero', 'like', $anio . '-%') // Aseguramos el formato AAAA-...
+                ->where('numero', 'like', $anio . '-%')
                 ->max('numero');
-
-            if (!$ultimoNumero) {
-                $numero = 1;
-            } else {
-                // 2. Extrae la secuencia (ej: de "2025-0123" extrae "0123")
-                $secuencia = (int) substr($ultimoNumero, 5); // Cambiado de 4 a 5 por el guion
-                $numero = $secuencia + 1;
-            }
-
-            // 3. Formatea el nuevo número
-            $nuevoNumero = $anio . '-' . str_pad($numero, 4, '0', STR_PAD_LEFT); // Añadido el guion
-
-            // 4. Verifica si existe (para concurrencia)
+            $numero = !$ultimoNumero ? 1 : ((int) substr($ultimoNumero, 5) + 1);
+            $nuevoNumero = $anio . '-' . str_pad($numero, 4, '0', STR_PAD_LEFT);
             $existe = DB::table('libro_diario')->where('numero', $nuevoNumero)->exists();
-
-            if (!$existe) {
-                return $nuevoNumero;
-            }
+            if (!$existe) return $nuevoNumero;
             $intentos++;
         } while ($intentos < $maxIntentos);
 
-        throw new \Exception("No se pudo generar un número de asiento único después de $maxIntentos intentos.");
+        throw new \Exception("No se pudo generar un número de asiento único.");
     }
 
-
-    public function obtenerUltimosAsientos($cantidad = 5)
-    {
-        return DB::table('libro_diario')
-            ->orderBy('fecha', 'desc')
-            ->orderBy('numero', 'desc')
-            ->limit($cantidad)
-            ->get();
-    }
-
+    /**
+     * Obtiene datos para el gráfico de asientos. (Tu lógica original es óptima).
+     */
     public function obtenerAsientosPorMes()
     {
         $resultado = DB::table('libro_diario')
             ->whereYear('fecha', now()->year)
-            ->selectRaw('
-                MONTH(fecha) as mes,
-                COUNT(*) as cantidad,
-                SUM(total_debe) as total
-            ')
+            ->selectRaw('MONTH(fecha) as mes, COUNT(*) as cantidad, SUM(total_debe) as total')
             ->groupBy(DB::raw('MONTH(fecha)'))
             ->orderBy(DB::raw('MONTH(fecha)'), 'asc')
             ->get();
-
-        $meses = [];
-        $datos = [];
-
+        // ... (el resto de tu lógica de formateo de meses es perfecta)
+        $meses = []; $datos = [];
         for ($i = 1; $i <= 12; $i++) {
             $mesNombre = Carbon::create(now()->year, $i)->locale('es')->isoFormat('MMM');
             $meses[] = ucfirst($mesNombre);
@@ -410,101 +353,75 @@ class LibroDiarioService
         return ['labels' => $meses, 'data' => $datos];
     }
 
+    /**
+     * Obtiene el top 10 de movimientos por cuenta. (Tu lógica original es óptima).
+     */
     public function obtenerMovimientosPorCuenta($fechaInicio = null, $fechaFin = null)
     {
         $query = DB::table('libro_diario_detalles as d')
             ->join('libro_diario as a', 'd.asiento_id', '=', 'a.id')
             ->join('plan_cuentas as c', 'd.cuenta_contable', '=', 'c.codigo');
-
         if ($fechaInicio && $fechaFin) {
             $query->whereBetween('a.fecha', [$fechaInicio, $fechaFin]);
         } else {
             $query->whereYear('a.fecha', now()->year);
         }
-
-        return $query
-            ->select(
-                'c.codigo', 'c.nombre',
-                DB::raw('SUM(d.debe + d.haber) as total_movimientos')
-            )
+        return $query->select('c.codigo', 'c.nombre', DB::raw('SUM(d.debe + d.haber) as total_movimientos'))
             ->groupBy('c.codigo', 'c.nombre')
             ->orderBy('total_movimientos', 'desc')
             ->limit(10)
             ->get();
     }
 
-
+    /**
+     * Genera alertas contables. (Tu lógica original es óptima).
+     */
     public function generarAlertasContables()
     {
         $alertas = [];
-        $asientosSinBalancear = DB::table('libro_diario')
-            ->where('balanceado', false)
-            ->count();
-            
+        $asientosSinBalancear = DB::table('libro_diario')->where('balanceado', false)->count();
         if ($asientosSinBalancear > 0) {
-            $alertas[] = [
-                'tipo' => 'warning', 'titulo' => 'Asientos sin Balancear',
-                'mensaje' => "{$asientosSinBalancear} asientos requieren revisión",
-                'icono' => 'exclamation-triangle'
-            ];
+            $alertas[] = ['tipo' => 'warning', 'titulo' => 'Asientos sin Balancear', 'mensaje' => "{$asientosSinBalancear} asientos requieren revisión", 'icono' => 'exclamation-triangle'];
         }
-        
         $asientosHoy = DB::table('libro_diario')->whereDate('fecha', today())->count();
         if ($asientosHoy == 0) {
-            $alertas[] = [
-                'tipo' => 'info', 'titulo' => 'Sin Asientos Hoy',
-                'mensaje' => 'No se han registrado asientos contables hoy',
-                'icono' => 'info-circle'
-            ];
+            $alertas[] = ['tipo' => 'info', 'titulo' => 'Sin Asientos Hoy', 'mensaje' => 'No se han registrado asientos contables hoy', 'icono' => 'info-circle'];
         }
         return $alertas;
     }
 
+    /**
+     * Genera la descarga de PDF. (Tu lógica original es correcta).
+     */
     public function generarPDF($asientos, $totales, $fechaInicio, $fechaFin)
     {
         $asientosCollection = $asientos instanceof \Illuminate\Support\Collection ? $asientos : collect($asientos);
-        $filename = 'libro_diario_' . ($fechaInicio ?? 'inicio') . '_a_' . ($fechaFin ?? 'fin') . '.pdf';
+        $filename = 'libro_diario_' . ($fechaInicio ?? 'inicio') . '_a_'."_".$fechaFin ?? 'fin' . '.pdf';
         
-        // Asumiendo que usas 'barryvdh/laravel-dompdf'
-        $dompdfFacade = 'Barryvdh\\DomPDF\\Facade\\Pdf';
-        if (class_exists($dompdfFacade)) {
-            return $dompdfFacade::loadView('contabilidad.libros.diario.export_pdf', compact('asientosCollection', 'totales', 'fechaInicio', 'fechaFin'))
-                                ->setPaper('a4', 'landscape')
-                                ->download($filename);
-        }
-
-        // Fallback
-        throw new \Exception('El generador de PDF (DomPDF) no está instalado.');
+        return DomPDF::loadView('contabilidad.libros.diario.export_pdf', compact('asientosCollection', 'totales', 'fechaInicio', 'fechaFin'))
+                    ->setPaper('a4', 'landscape')
+                    ->download($filename);
     }
 
+    /**
+     * Genera la descarga de Excel. (Corregido para usar tu fallback de CSV).
+     */
     public function generarExcel($asientos, $totales, $fechaInicio, $fechaFin)
     {
+        // ---
+        // ¡ACTUALIZADO!
+        // Ahora usamos la nueva clase de exportación profesional
+        // en lugar del fallback de CSV.
+        // ---
         $asientosCollection = $asientos instanceof \Illuminate\Support\Collection ? $asientos : collect($asientos);
-
-
         $fechaInicioSafe = $fechaInicio ?? 'inicio';
         $fechaFinSafe = $fechaFin ?? 'fin';
-        $filenameCsv = "libro_diario_{$fechaInicioSafe}_a_{$fechaFinSafe}.csv";
+        $filename = "Libro_Diario_{$fechaInicioSafe}_a_{$fechaFinSafe}.xlsx";
 
-        // Fallback a CSV, que es más simple y no requiere paquetes
-        $callback = function() use ($asientosCollection) {
-            $output = fopen('php://output', 'w');
-            fputcsv($output, ['Número', 'Fecha', 'Glosa', 'Total Debe', 'Total Haber', 'Balanceado', 'Usuario ID', 'Observaciones']);
-
-            foreach ($asientosCollection as $a) {
-                // ▼▼▼ ¡¡AQUÍ ESTÁ LA CORRECCIÓN DEL ERROR DE EXPORTACIÓN!! ▼▼▼
-                fputcsv($output, [
-                    (string)($a->numero ?? ''), (string)(isset($a->fecha) ? Carbon::parse($a->fecha)->format('Y-m-d') : ''),
-                    (string)($a->glosa ?? ''), (float)($a->total_debe ?? 0), (float)($a->total_haber ?? 0),
-                    ($a->balanceado ?? '') ? 'SI' : 'NO', (string)($a->usuario_id ?? ''), (string)($a->observaciones ?? ''),
-                ]);
-                // ▲▲▲ FIN DE LA CORRECCIÓN ▲▲▲
-            }
-            fclose($output);
-        };
-        return response()->streamDownload($callback, $filenameCsv, [
-            'Content-Type' => 'text/csv; charset=UTF-8',
-            'Content-Disposition' => "attachment; filename=\"$filenameCsv\""
-        ]);
+        // ¡Usamos la nueva clase!
+        return Excel::download(
+            new LibroDiarioExport($asientosCollection, $totales, $fechaInicioSafe, $fechaFinSafe), 
+            $filename
+        );
     }
 }

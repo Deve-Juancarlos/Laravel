@@ -13,11 +13,19 @@ class CompraCarritoService
     // Inicia un carrito nuevo
     public function iniciar($proveedor)
     {
+        // Aseguramos que CodProv sea un string limpio y sin espacios
+        $codProv = trim((string) $proveedor->CodProv);
+
+        // Opcional: crea una versión normalizada del proveedor
+        $proveedorNormalizado = (object) array_merge((array) $proveedor, [
+            'CodProv' => $codProv
+        ]);
+
         $carrito = [
-            'proveedor' => $proveedor,
+            'proveedor' => $proveedorNormalizado,
             'items' => collect(),
             'pago' => [
-                'moneda' => 1, // Soles
+                'moneda' => 1,
                 'fecha_entrega' => now()->addDays(3)->format('Y-m-d'),
             ],
             'totales' => [
@@ -26,6 +34,7 @@ class CompraCarritoService
                 'total' => 0,
             ]
         ];
+
         Session::put($this->sessionKey, $carrito);
         return $carrito;
     }

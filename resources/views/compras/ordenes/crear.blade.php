@@ -14,7 +14,10 @@
         .select2-container--default .select2-selection--single { height: 38px; border: 1px solid #ced4da; padding: 6px 12px; }
         .select2-container--default .select2-selection--single .select2-selection__arrow { height: 36px; }
         .select2-container { width: 100% !important; }
-        .form-section { display: none; }
+        /* * ¡CORRECCIÓN!
+         * Hemos eliminado la línea ".form-section { display: none; }"
+         * para evitar que el CSS oculte lo que el PHP ya hizo visible.
+         */
     </style>
 @endpush
 
@@ -43,6 +46,10 @@
                 </div>
             </div>
 
+            {{-- 
+              Ahora, la visibilidad inicial de este 'div' 
+              depende ÚNICAMENTE del PHP, eliminando el parpadeo.
+            --}}
             <div class="card shadow mb-4 form-section" id="paso2_items"
                  style="{{ $carrito ? '' : 'display: none;' }}">
                 <div class="card-header">
@@ -123,8 +130,8 @@
                         <div class="col-md-4 mb-3">
                             <label for="moneda" class="form-label fw-bold">Moneda</label>
                             <select class="form-select" id="moneda" name="moneda">
-                                <option value="1">Soles (PEN)</option>
-                                <option value="2">Dólares (USD)</option>
+                                <option value="1" {{ ($carrito['pago']['moneda'] ?? 1) == 1 ? 'selected' : '' }}>Soles (PEN)</option>
+                                <option value="2" {{ ($carrito['pago']['moneda'] ?? 1) == 2 ? 'selected' : '' }}>Dólares (USD)</option>
                             </select>
                         </div>
                     </div>
@@ -199,6 +206,8 @@
         // Al seleccionar un Proveedor (Paso 1)
         $('#selectProveedor').on('select2:select', function (e) {
             const proveedor = e.params.data.data;
+            // Esta recarga de página es correcta porque el controlador
+            // optimizado ya sabe cómo manejarla.
             window.location.href = "{{ route('contador.compras.create') }}?proveedor_id=" + proveedor.CodProv;
         });
 
@@ -291,7 +300,9 @@
                 return;
             }
 
+            // Asegura que los pasos correctos sean visibles
             $('#paso2_items').show();
+            
             const $tablaItems = $('#tablaItems');
             $tablaItems.empty();
             
@@ -308,10 +319,10 @@
                             <td class="text-center"><button type="button" class="btn btn-danger btn-sm btn-eliminar-item" data-item-id="${itemId}"><i class="fas fa-trash"></i></button></td>
                         </tr>`);
                 });
-                $('#paso3_pago').show();
+                $('#paso3_pago').show(); // Muestra el paso 3 si hay items
             } else {
                 $tablaItems.append('<tr><td colspan="6" class="text-center text-muted p-3">El carrito está vacío</td></tr>');
-                $('#paso3_pago').hide();
+                $('#paso3_pago').hide(); // Oculta el paso 3 si no hay items
             }
 
             $('#totalSubtotal').text(formatCurrency(carrito.totales.subtotal));
@@ -322,7 +333,8 @@
         // Cargar carrito si ya existe en la sesión
         @if($carrito)
             actualizarVistaCarrito(@json($carrito));
-            $('#fecha_entrega').val("{{ $carrito['pago']['fecha_entrega'] ?? '' }}");
+            // Aseguramos que los valores del formulario de pago se carguen
+            $('#fecha_entrega').val("{{ $carrito['pago']['fecha_entrega'] ?? now()->addDays(3)->format('Y-m-d') }}");
             $('#moneda').val("{{ $carrito['pago']['moneda'] ?? 1 }}");
         @endif
 

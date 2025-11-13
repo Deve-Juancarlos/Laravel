@@ -1,4 +1,14 @@
-:root {
+/*
+ * =====================================================
+ * MÓDULO DE ESTADO DE RESULTADOS - SISTEMA CONTABLE
+ * Estilos profesionales para análisis financiero
+ * =====================================================
+ */
+
+/* =====================================================
+   1. VARIABLES Y CONFIGURACIÓN BASE
+   ===================================================== */
+.estadosfinancieros-container {
     --er-primary: #2d8d8d;
     --er-primary-dark: #236d6d;
     --er-primary-light: #3da8a8;
@@ -9,164 +19,218 @@
     --er-info: #3b82f6;
     --er-dark: #1f2937;
     --er-muted: #6b7280;
+    --er-border: #e5e7eb;
+    --er-bg-light: #f9fafb;
 }
 
-.eerr-subnav {
+/* =====================================================
+   2. NAVEGACIÓN SECUNDARIA (PESTAÑAS)
+   ===================================================== */
+.estadosfinancieros-container .eerr-subnav {
     background-color: #ffffff;
     padding: 0.5rem;
     border-radius: 8px;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-    border-bottom: 2px solid #e5e7eb;
+    border-bottom: 2px solid var(--er-border);
+    display: flex;
+    justify-content: space-between;
 }
 
-.eerr-subnav .nav-link {
-    padding: 0.75rem 1.25rem;
+.estadosfinancieros-container .eerr-subnav .nav-link {
+    padding: 0.75rem 0.5rem;
     color: var(--er-muted);
     border-radius: 6px;
     font-weight: 500;
+    font-size: 0.875rem;
     transition: all 0.3s ease;
     border: 1px solid transparent;
+    flex: 1;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.375rem;
+    white-space: nowrap;
 }
 
-.eerr-subnav .nav-link:hover {
+.estadosfinancieros-container .eerr-subnav .nav-link i {
+    font-size: 0.875rem;
+    flex-shrink: 0;
+}
+
+.estadosfinancieros-container .eerr-subnav .nav-link:hover {
     color: var(--er-primary);
     background-color: rgba(45, 141, 141, 0.05);
     border-color: rgba(45, 141, 141, 0.2);
 }
 
-.eerr-subnav .nav-link.active {
+.estadosfinancieros-container .eerr-subnav .nav-link.active {
     color: #ffffff;
     background: linear-gradient(135deg, var(--er-primary) 0%, var(--er-primary-dark) 100%);
     box-shadow: 0 2px 4px rgba(45, 141, 141, 0.2);
 }
 
-.filters-card {
+/* =====================================================
+   3. TARJETA DE FILTROS
+   ===================================================== */
+.estadosfinancieros-container .filters-card {
     background: linear-gradient(135deg, #ffffff 0%, #fafafa 100%);
     border-left: 4px solid var(--er-primary);
     border-radius: 8px;
 }
 
-.filters-card .form-control {
+.estadosfinancieros-container .filters-card .card-body {
+    padding: 1.5rem;
+}
+
+.estadosfinancieros-container .filters-card .form-label {
+    font-weight: 600;
+    font-size: 0.8125rem;
+    color: var(--er-dark);
+    margin-bottom: 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+.estadosfinancieros-container .filters-card .form-control {
     border: 1px solid #d1d5db;
     border-radius: 6px;
     padding: 0.5rem 0.75rem;
     transition: all 0.2s ease;
 }
 
-.filters-card .form-control:focus {
+.estadosfinancieros-container .filters-card .form-control:focus {
     border-color: var(--er-primary);
     box-shadow: 0 0 0 3px rgba(45, 141, 141, 0.1);
     outline: 0;
 }
 
-.filters-card .btn-primary {
+.estadosfinancieros-container .filters-card .btn-primary {
     background: linear-gradient(135deg, var(--er-primary) 0%, var(--er-primary-dark) 100%);
     border-color: var(--er-primary);
     font-weight: 500;
     transition: all 0.3s ease;
 }
 
-.filters-card .btn-primary:hover {
+.estadosfinancieros-container .filters-card .btn-primary:hover {
     background: linear-gradient(135deg, var(--er-primary-dark) 0%, #1a5555 100%);
     transform: translateY(-1px);
     box-shadow: 0 4px 8px rgba(45, 141, 141, 0.3);
 }
 
-.filters-card .btn-success {
+.estadosfinancieros-container .filters-card .btn-success {
     background-color: var(--er-success);
     border-color: var(--er-success);
     transition: all 0.3s ease;
 }
 
-.filters-card .btn-success:hover {
+.estadosfinancieros-container .filters-card .btn-success:hover {
     background-color: #059669;
     transform: translateY(-1px);
     box-shadow: 0 4px 8px rgba(16, 185, 129, 0.3);
 }
 
-.er-card {
+/* =====================================================
+   4. TARJETA PRINCIPAL DE RESULTADOS
+   ===================================================== */
+.estadosfinancieros-container .er-card {
     border-top: 3px solid var(--er-primary);
     border-radius: 8px;
     overflow: hidden;
 }
 
-.er-card .card-header {
-    background: linear-gradient(90deg, #ffffff 0%, #f9fafb 100%);
-    border-bottom: 2px solid #e5e7eb;
+.estadosfinancieros-container .er-card .card-header {
+    background: linear-gradient(90deg, #ffffff 0%, var(--er-bg-light) 100%);
+    border-bottom: 2px solid var(--er-border);
     padding: 1.25rem 1.5rem;
 }
 
-.er-card .card-header h5 {
+.estadosfinancieros-container .er-card .card-header h5 {
     color: var(--er-primary);
     font-weight: 600;
     font-size: 1.125rem;
     margin: 0;
 }
 
-.er-card .card-header .text-muted {
+.estadosfinancieros-container .er-card .card-header .text-muted {
     font-size: 0.875rem;
     color: var(--er-muted);
 }
 
-.er-line-item {
+/* =====================================================
+   5. LÍNEAS DEL ESTADO DE RESULTADOS
+   ===================================================== */
+.estadosfinancieros-container .er-line-item {
     padding: 0.875rem 1.5rem;
     transition: background-color 0.2s ease;
     border-bottom: 1px solid #f3f4f6;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 
-.er-line-item:hover {
+.estadosfinancieros-container .er-line-item:hover {
     background-color: #fafafa;
 }
 
-.er-line-item:last-child {
+.estadosfinancieros-container .er-line-item:last-child {
     border-bottom: none;
 }
 
-.er-total {
+.estadosfinancieros-container .er-total {
     background: linear-gradient(90deg, #ecfdf5 0%, #f0fdfa 100%);
     padding: 1rem 1.5rem;
     font-weight: 600;
     border-left: 4px solid var(--er-primary);
     margin: 0.25rem 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 
-.er-grand-total {
+.estadosfinancieros-container .er-grand-total {
     background: linear-gradient(135deg, var(--er-primary) 0%, var(--er-primary-dark) 100%);
     color: #ffffff;
     padding: 1.25rem 1.5rem;
     font-weight: 700;
     font-size: 1.125rem;
     box-shadow: inset 0 -2px 0 rgba(0, 0, 0, 0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 
-.bg-success-soft {
+/* =====================================================
+   6. TARJETAS DE DETALLE (INGRESOS Y GASTOS)
+   ===================================================== */
+.estadosfinancieros-container .bg-success-soft {
     background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
     border-left: 3px solid var(--er-success);
 }
 
-.bg-success-soft h6 {
+.estadosfinancieros-container .bg-success-soft h6 {
     color: var(--er-success);
     font-weight: 600;
 }
 
-.bg-danger-soft {
+.estadosfinancieros-container .bg-danger-soft {
     background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
     border-left: 3px solid var(--er-danger);
 }
 
-.bg-danger-soft h6 {
+.estadosfinancieros-container .bg-danger-soft h6 {
     color: var(--er-danger);
     font-weight: 600;
 }
 
-.bg-success-soft .list-group-item,
-.bg-danger-soft .list-group-item {
+.estadosfinancieros-container .bg-success-soft .list-group-item,
+.estadosfinancieros-container .bg-danger-soft .list-group-item {
     background-color: transparent;
     border-color: rgba(0, 0, 0, 0.05);
     padding: 0.75rem 1rem;
 }
 
-.bg-success-soft .badge {
+.estadosfinancieros-container .bg-success-soft .badge {
     background-color: rgba(16, 185, 129, 0.1) !important;
     color: var(--er-success) !important;
     font-weight: 600;
@@ -174,7 +238,7 @@
     border-radius: 6px;
 }
 
-.bg-danger-soft .badge {
+.estadosfinancieros-container .bg-danger-soft .badge {
     background-color: rgba(239, 68, 68, 0.1) !important;
     color: var(--er-danger) !important;
     font-weight: 600;
@@ -182,110 +246,173 @@
     border-radius: 6px;
 }
 
-.progress {
+/* =====================================================
+   7. BARRAS DE PROGRESO (MÁRGENES)
+   ===================================================== */
+.estadosfinancieros-container .progress {
     height: 10px;
     border-radius: 6px;
-    background-color: #e5e7eb;
+    background-color: var(--er-border);
     overflow: hidden;
 }
 
-.progress-bar.bg-primary {
+.estadosfinancieros-container .progress-bar.bg-primary {
     background: linear-gradient(90deg, var(--er-primary) 0%, var(--er-primary-light) 100%);
     transition: width 0.6s ease;
 }
 
-.progress-bar.bg-info {
+.estadosfinancieros-container .progress-bar.bg-info {
     background: linear-gradient(90deg, var(--er-info) 0%, #60a5fa 100%);
     transition: width 0.6s ease;
 }
 
-.progress-bar.bg-success {
+.estadosfinancieros-container .progress-bar.bg-success {
     background: linear-gradient(90deg, var(--er-success) 0%, #34d399 100%);
     transition: width 0.6s ease;
 }
 
-.comp-item {
+/* =====================================================
+   8. SECCIÓN DE COMPARACIÓN
+   ===================================================== */
+.estadosfinancieros-container .comp-item {
     padding: 0.875rem 0;
 }
 
-.comp-item:not(:last-child) {
+.estadosfinancieros-container .comp-item:not(:last-child) {
     border-bottom: 1px solid #f3f4f6;
 }
 
-.comp-value {
+.estadosfinancieros-container .comp-value {
     font-weight: 600;
     font-size: 1rem;
     color: var(--er-dark);
 }
 
-.comp-item .badge {
+.estadosfinancieros-container .comp-item .badge {
     font-size: 0.75rem;
     padding: 0.35rem 0.6rem;
     border-radius: 4px;
     font-weight: 600;
 }
 
-.comp-item .badge.bg-success-soft.text-success {
+.estadosfinancieros-container .comp-item .badge.bg-success-soft.text-success {
     background-color: rgba(16, 185, 129, 0.1) !important;
     color: var(--er-success) !important;
 }
 
-.comp-item .badge.bg-danger-soft.text-danger {
+.estadosfinancieros-container .comp-item .badge.bg-danger-soft.text-danger {
     background-color: rgba(239, 68, 68, 0.1) !important;
     color: var(--er-danger) !important;
 }
 
-.card.shadow-sm {
+/* =====================================================
+   9. TARJETAS GENERALES
+   ===================================================== */
+.estadosfinancieros-container .card.shadow-sm {
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
     border-radius: 8px;
     border: 1px solid rgba(0, 0, 0, 0.05);
     transition: all 0.3s ease;
 }
 
-.card.shadow-sm:hover {
+.estadosfinancieros-container .card.shadow-sm:hover {
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     transform: translateY(-2px);
 }
 
+.estadosfinancieros-container .card-header {
+    padding: 1rem 1.5rem;
+}
+
+.estadosfinancieros-container .card-body {
+    padding: 1.5rem;
+}
+
+/* =====================================================
+   10. UTILIDADES
+   ===================================================== */
+.estadosfinancieros-container .fw-bold {
+    font-weight: 700 !important;
+}
+
+.estadosfinancieros-container .text-danger {
+    color: var(--er-danger) !important;
+}
+
+.estadosfinancieros-container .text-success {
+    color: var(--er-success) !important;
+}
+
+.estadosfinancieros-container .text-muted {
+    color: var(--er-muted) !important;
+}
+
+/* =====================================================
+   11. RESPONSIVE DESIGN
+   ===================================================== */
 @media (max-width: 991px) {
-    .eerr-subnav {
-        flex-wrap: wrap;
+    .estadosfinancieros-container .eerr-subnav {
+        overflow-x: auto;
+        white-space: nowrap;
+        -webkit-overflow-scrolling: touch;
+        justify-content: flex-start;
     }
     
-    .eerr-subnav .nav-link {
-        flex: 1 1 auto;
-        text-align: center;
+    .estadosfinancieros-container .eerr-subnav .nav-link {
+        flex: 0 0 auto;
         font-size: 0.875rem;
         padding: 0.6rem 0.8rem;
     }
     
-    .er-card .card-header {
+    .estadosfinancieros-container .er-card .card-header {
         flex-direction: column;
         align-items: flex-start;
     }
 }
 
 @media (max-width: 767px) {
-    .filters-card .btn {
+    .estadosfinancieros-container .filters-card .btn {
         font-size: 0.875rem;
     }
     
-    .er-line-item,
-    .er-total,
-    .er-grand-total {
+    .estadosfinancieros-container .er-line-item,
+    .estadosfinancieros-container .er-total,
+    .estadosfinancieros-container .er-grand-total {
         font-size: 0.875rem;
         padding-left: 1rem;
         padding-right: 1rem;
     }
+    
+    .estadosfinancieros-container .card-body {
+        padding: 1rem;
+    }
 }
 
+@media (max-width: 576px) {
+    .estadosfinancieros-container .eerr-subnav .nav-link {
+        font-size: 0.8125rem;
+        padding: 0.5rem 0.6rem;
+    }
+    
+    .estadosfinancieros-container .er-line-item,
+    .estadosfinancieros-container .er-total,
+    .estadosfinancieros-container .er-grand-total {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+}
+
+/* =====================================================
+   12. IMPRESIÓN
+   ===================================================== */
 @media print {
-    .eerr-subnav,
-    .filters-card {
+    .estadosfinancieros-container .eerr-subnav,
+    .estadosfinancieros-container .filters-card {
         display: none;
     }
     
-    .card.shadow-sm {
+    .estadosfinancieros-container .card.shadow-sm {
         box-shadow: none !important;
         border: 1px solid #ddd;
     }

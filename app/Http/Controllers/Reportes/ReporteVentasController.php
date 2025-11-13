@@ -5,6 +5,11 @@ namespace App\Http\Controllers\Reportes;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use App\Services\Contabilidad\ContadorDashboardService;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\VentasCobranzasExport;
+use Carbon\Carbon;
+
 
 class ReporteVentasController extends Controller
 {
@@ -75,5 +80,68 @@ class ReporteVentasController extends Controller
             'fechaInicio' => $fechaInicio,
             'fechaFin' => $fechaFin,
         ]);
+    }
+
+    public function flujoVentasCobranzas(Request $request, ContadorDashboardService $dashboardService)
+    {
+        // 1. Aquí puedes obtener más datos, usando filtros del $request
+        // Por ahora, solo tomaremos los últimos 12 meses como ejemplo
+        $labels = $dashboardService->obtenerMesesLabels(12);
+        $ventas = $dashboardService->obtenerVentasPorMes(12);
+        $cobranzas = $dashboardService->obtenerCobranzasPorMes(12);
+
+        // 2. Preparamos un array con la tabla de datos
+        $datosTabla = [];
+        for ($i = 0; $i < count($labels); $i++) {
+            $datosTabla[] = [
+                'mes' => $labels[$i],
+                'ventas' => $ventas[$i],
+                'cobranzas' => $cobranzas[$i],
+            ];
+        }
+
+        
+        return view('reportes.ventas-cobranzas', [
+            'labels' => $labels,
+            'ventasData' => $ventas,
+            'cobranzasData' => $cobranzas,
+            'datosTabla' => array_reverse($datosTabla) // Revertimos para ver el más reciente arriba
+        ]);
+    }
+
+    public function exportarVentasCobranzasExcel(Request $request, ContadorDashboardService $dashboardService)
+    {
+        // 1. Obtenemos los mismos datos que en el reporte web
+        // (Eventualmente aquí leerás los filtros del $request)
+        $labels = $dashboardService->obtenerMesesLabels(12);
+        $ventas = $dashboardService->obtenerVentasPorMes(12);
+        $cobranzas = $dashboardService->obtenerCobranzasPorMes(12);
+
+        // 2. Preparamos el array de la tabla
+        $datosTabla = [];
+        for ($i = 0; $i < count($labels); $i++) {
+            $datosTabla[] = [
+                'mes' => $labels[$i],
+                'ventas' => $ventas[$i],
+                'cobranzas' => $cobranzas[$i],
+            ];
+        }
+        $datosTabla = array_reverse($datosTabla); // Igual que en la web
+
+        // 3. Preparamos los totales
+        $totalVentas = array_sum(array_column($datosTabla, 'ventas'));
+        $totalCobranzas = array_sum(array_column($datosTabla, 'cobranzas'));
+        $totales = [
+            'totalVentas' => $totalVentas,
+            'totalCobranzas' => $totalCobranzas,
+            'totalBrecha' => $totalCobranzas - $totalVentas,
+        ];
+
+        // 4. Generamos el nombre del archivo
+        $fileName = 'Reporte_Ventas_vs_Cobranzas_' . Carbon::now()->format('Y-m-d') . '.xlsx';
+
+        // 5. ¡LA MAGIA!
+        // Le pasamos los datos a nuestra clase de exportación y la descargamos.
+        return Excel::download(new VentasCobranzasExport($datosTabla, $totales), $fileName);
     }
 }

@@ -19,7 +19,7 @@
 @endsection
 
 @section('content')
-<div class="container-fluid">
+<div class="estadosfinancieros-container">
 
     
     <nav class="nav nav-tabs eerr-subnav mb-4">

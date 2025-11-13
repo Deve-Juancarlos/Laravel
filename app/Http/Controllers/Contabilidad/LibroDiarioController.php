@@ -165,31 +165,16 @@ class LibroDiarioController extends Controller
     public function destroy($id)
     {
         try {
-            // 1. Busca el asiento con Eloquent
-            $asiento = LibroDiario::findOrFail($id);
-            $usuarioActual = auth()->user()->usuario ?? 'Sistema';
-
-            // 2. Cambia el estado a "Pendiente"
-            $asiento->estado = 'PENDIENTE_ELIMINACION';
-            $asiento->save(); // ¡Esto disparará el Observer y auditará el CAMBIO DE ESTADO!
-
-            // 3. Prepara la notificación para el Admin
-            $titulo = "Solicitud de Eliminación de Asiento";
-            $mensaje = "El usuario {$usuarioActual} ha solicitado eliminar el asiento N° {$asiento->numero}.";
-            
-            // ¡Esta URL apuntará a la nueva página de aprobación del Admin!
-            $url = route('admin.solicitudes.index'); 
-
-            // 4. Llama a la nueva función del Modelo para notificar
-            $asiento->notificarAdmin($titulo, $mensaje, $url);
+            // ¡El controlador ahora solo llama al servicio!
+            $this->libroDiarioService->solicitarEliminacion($id, auth()->user());
             
             return redirect()->route('contador.libro-diario.index')
                 ->with('success', 'Solicitud de eliminación enviada al Administrador.');
                 
         } catch (\Exception $e) {
-            Log::error('Error al solicitar eliminación de asiento: ' + $e->getMessage());
+            Log::error('Error al solicitar eliminación de asiento: ' . $e->getMessage()); // Corregido
             return redirect()->route('contador.libro-diario.index')
-                ->with('error', 'Error al enviar la solicitud: ' + $e->getMessage());
+                ->with('error', 'Error al enviar la solicitud: ' . $e->getMessage()); // Corregido
         }
     }
 

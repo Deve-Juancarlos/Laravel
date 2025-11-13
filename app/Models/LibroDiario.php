@@ -4,38 +4,21 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+
 
 class LibroDiario extends Model
 {
     use HasFactory;
 
-    /**
-     * La tabla asociada con el modelo.
-     *
-     * @var string
-     */
     protected $table = 'libro_diario';
 
-    /**
-     * La clave primaria asociada con la tabla.
-     *
-     * @var string
-     */
-    protected $primaryKey = 'id';
+    protected $primaryKey = 'id'; 
 
-    /**
-     * Indica si el modelo debe tener timestamps (created_at, updated_at).
-     * Tu esquema SÍ los tiene.
-     *
-     * @var bool
-     */
-    public $timestamps = true;
+    public $timestamps = true; 
 
-    /**
-     * Los atributos que se pueden asignar masivamente.
-     *
-     * @var array
-     */
+    
     protected $fillable = [
         'numero',
         'fecha',
@@ -47,4 +30,39 @@ class LibroDiario extends Model
         'usuario_id',
         'observaciones',
     ];
+
+    
+    protected $casts = [
+        'fecha' => 'date',
+        'total_debe' => 'decimal:2',
+        'total_haber' => 'decimal:2',
+        'balanceado' => 'boolean',
+    ];
+
+    
+    public function detalles(): HasMany
+    {
+       
+        return $this->hasMany(LibroDiarioDetalle::class, 'asiento_id', 'id');
+    }
+
+    
+    public function usuario(): BelongsTo
+    {
+       
+        return $this->belongsTo(AccesoWeb::class, 'usuario_id', 'idusuario');
+    }
+
+
+    public function isActivo(): bool
+    {
+        return $this->estado === 'ACTIVO';
+    }
+
+    public function isPendienteEliminacion(): bool
+    {
+        return $this->estado === 'PENDIENTE_ELIMINACION';
+    }
+
+  
 }

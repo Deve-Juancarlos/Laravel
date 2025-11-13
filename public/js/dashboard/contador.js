@@ -1,142 +1,104 @@
-document.addEventListener('DOMContentLoaded', function() {
+/**
+ * JavaScript para el Dashboard del Contador
+ * * Lee los datos del canvas y renderiza el gráfico de Ventas vs Cobranzas.
+ * Asume que Chart.js (v3 o v4) ya está cargado en la página.
+ */
+document.addEventListener('DOMContentLoaded', function () {
 
-    initVentasChart();
-    initKpiObserver();
+    const ctx = document.getElementById('ventasChart');
 
-});
-
-function initVentasChart() {
-    const ctxVentas = document.getElementById('ventasChart');
-    
-    if (!ctxVentas) {
-        return; 
+    // Si el canvas no existe en esta página, no hacemos nada.
+    if (!ctx) {
+        console.warn('No se encontró el elemento canvas #ventasChart');
+        return;
     }
 
-    const labels = JSON.parse(ctxVentas.dataset.labels || '[]');
-    const ventasData = JSON.parse(ctxVentas.dataset.ventas || '[]');
-    const cobranzasData = JSON.parse(ctxVentas.dataset.cobranzas || '[]');
-    new Chart(ctxVentas, {
-        type: 'line',
-        data: {
-            labels: labels,
-            datasets: [
-                {
-                    label: 'Ventas',
-                    data: ventasData,
-                    borderColor: '#667eea',
-                    backgroundColor: 'rgba(102, 126, 234, 0.1)',
-                    fill: true,
-                    tension: 0.4,
-                    pointBackgroundColor: '#667eea',
-                    pointBorderColor: '#ffffff',
-                    pointBorderWidth: 2,
-                    pointRadius: 6,
-                    pointHoverRadius: 8
-                },
-                {
-                    label: 'Cobranzas',
-                    data: cobranzasData,
-                    borderColor: '#28a745',
-                    backgroundColor: 'rgba(40, 167, 69, 0.1)',
-                    fill: true,
-                    tension: 0.4,
-                    pointBackgroundColor: '#28a745',
-                    pointBorderColor: '#ffffff',
-                    pointBorderWidth: 2,
-                    pointRadius: 6,
-                    pointHoverRadius: 8
-                }
-            ]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    ticks: {
-                        callback: function(value, index, values) {
-                            return 'S/ ' + value.toLocaleString('es-PE');
-                        },
-                        color: '#6c757d'
+    try {
+        // 1. Leer los datos desde los atributos 'data-*'
+        const labels = JSON.parse(ctx.dataset.labels);
+        const ventasData = JSON.parse(ctx.dataset.ventas);
+        const cobranzasData = JSON.parse(ctx.dataset.cobranzas);
+
+        // 2. Definir los colores (puedes personalizarlos)
+        const colorVentas = '#0d6efd'; // Azul (Primary)
+        const colorCobranzas = '#198754'; // Verde (Success)
+
+        // 3. Crear el gráfico
+        new Chart(ctx, {
+            type: 'bar', // Tipo de gráfico: barras
+            data: {
+                labels: labels,
+                datasets: [
+                    {
+                        label: 'Ventas',
+                        data: ventasData,
+                        backgroundColor: colorVentas,
+                        borderColor: colorVentas,
+                        borderWidth: 1,
+                        borderRadius: 4
                     },
-                    grid: {
-                        color: 'rgba(0, 0, 0, 0.05)'
+                    {
+                        label: 'Cobranzas',
+                        data: cobranzasData,
+                        backgroundColor: colorCobranzas,
+                        borderColor: colorCobranzas,
+                        borderWidth: 1,
+                        borderRadius: 4
                     }
-                },
-                x: {
-                    ticks: {
-                        color: '#6c757d'
-                    },
-                    grid: {
-                        color: 'rgba(0, 0, 0, 0.05)'
-                    }
-                }
+                ]
             },
-            plugins: {
-                legend: {
-                    position: 'top',
-                    labels: {
-                        usePointStyle: true,
-                        padding: 20,
-                        font: {
-                            weight: 600
+            options: {
+                responsive: true,
+                maintainAspectRatio: false, // Permite que el gráfico llene el 'chart-area'
+                plugins: {
+                    legend: {
+                        position: 'top', // Leyenda arriba
+                    },
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false,
+                        callbacks: {
+                            // Formatear el tooltip para que muestre "S/"
+                            label: function(context) {
+                                let label = context.dataset.label || '';
+                                if (label) {
+                                    label += ': ';
+                                }
+                                if (context.parsed.y !== null) {
+                                    label += new Intl.NumberFormat('es-PE', {
+                                        style: 'currency',
+                                        currency: 'PEN'
+                                    }).format(context.parsed.y);
+                                }
+                                return label;
+                            }
                         }
                     }
                 },
-                tooltip: {
-                    mode: 'index',
-                    intersect: false,
-                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                    titleColor: '#ffffff',
-                    bodyColor: '#ffffff',
-                    borderColor: '#667eea',
-                    borderWidth: 1,
-                    cornerRadius: 8,
-                    displayColors: true,
-                    callbacks: {
-                        label: function(context) {
-                            let label = context.dataset.label || '';
-                            if (label) {
-                                label += ': ';
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            // Formatear el eje Y para que muestre "S/ 10k"
+                            callback: function(value, index, values) {
+                                if (value >= 1000) {
+                                    return 'S/ ' + (value / 1000) + 'k';
+                                }
+                                return 'S/ ' + value;
                             }
-                            if (context.parsed.y !== null) {
-                                label += 'S/ ' + context.parsed.y.toLocaleString('es-PE', { minimumFractionDigits: 2 });
-                            }
-                            return label;
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false // Ocultar líneas de la cuadrícula X
                         }
                     }
                 }
-            },
-            interaction: {
-                mode: 'index',
-                intersect: false,
-            }
-        }
-    });
-}
-
-function initKpiObserver() {
-    const kpiCards = document.querySelectorAll('.kpi-card');
-    
-    if (kpiCards.length === 0) return;
-
-    const observer = new IntersectionObserver((entries) => {
-        entries.forEach((entry, index) => {
-            if (entry.isIntersecting) {
-                setTimeout(() => {
-                    entry.target.style.opacity = '1';
-                    entry.target.style.transform = 'translateY(0)';
-                }, index * 100); 
             }
         });
-    });
 
-    
-    kpiCards.forEach(card => {
-        card.style.opacity = '0';
-        card.style.transform = 'translateY(20px)';
-        card.style.transition = 'all 0.6s ease';
-        observer.observe(card);
-    });
-}
+    } catch (e) {
+        console.error('Error al parsear o renderizar el gráfico:', e);
+        ctx.parentElement.innerHTML = '<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><h5>Error al cargar el gráfico</h5><p>Los datos no pudieron ser procesados.</p></div>';
+    }
+});

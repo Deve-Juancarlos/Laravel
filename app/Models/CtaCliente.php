@@ -2,72 +2,52 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * Modelo para SIFANO.CtaCliente (Cuentas por Cobrar)
+ * ¡Maneja clave primaria compuesta!
+ * * 🚀 VERSIÓN CORREGIDA 🚀
+ */
 class CtaCliente extends Model
 {
-    use HasFactory;
-
-    /**
-     * Nombre real de la tabla
-     */
-    protected $table = 'ctacliente';
-
-    /**
-     * Clave primaria
-     */
-    protected $primaryKey = 'NroDeuda';
-
-    /**
-     * Indicar si la clave primaria es autoincremental
-     */
+    protected $table = 'CtaCliente';
+    
+    // 1. PK Compuesta [Documento, Tipo] (esto estaba bien)
+    protected $primaryKey = ['Documento', 'Tipo']; 
     public $incrementing = false;
-
-    /**
-     * Tipo de clave primaria
-     */
-    protected $keyType = 'int';
-
-    /**
-     * Desactivar timestamps (ya que no existen created_at/updated_at)
-     */
+    protected $keyType = 'string';
     public $timestamps = false;
 
-    /**
-     * Campos que se pueden asignar masivamente
-     */
-    protected $fillable = [
-        'Documento',
-        'Tipo',
-        'CodClie',
-        'FechaF',
-        'FechaV',
-        'Importe',
-        'Saldo',
-        'NroDeuda',
-        'cliente_id'
-    ];
-
-    /**
-     * Casts automáticos
-     */
     protected $casts = [
-        'Tipo' => 'integer',
-        'CodClie' => 'integer',
-        'Importe' => 'decimal:2',
-        'Saldo' => 'decimal:2',
-        'NroDeuda' => 'integer',
-        'cliente_id' => 'integer',
         'FechaF' => 'datetime',
         'FechaV' => 'datetime',
+        'FechaP' => 'datetime',
     ];
 
     /**
-     * Relación con el modelo Cliente (si existe)
+     * 🚀 ¡CORRECCIÓN! 🚀
+     * Sobrescribir métodos de Eloquent para que funcione la PK compuesta.
+     * Esta función ahora es correcta.
+     */
+    protected function setKeysForSaveQuery($query)
+    {
+        // 1. Usamos la propiedad '$this->primaryKey' (que ES un array)
+        //    en lugar del método '$this->getKeyName()' (que devolvía un string).
+        $keys = $this->primaryKey;
+        
+        // 2. Ahora el 'foreach' funciona porque $keys es un array.
+        foreach($keys as $key){
+            $query->where($key, '=', $this->getAttribute($key));
+        }
+        return $query;
+    }
+
+    /**
+     * Relación con Cliente
      */
     public function cliente()
     {
-        return $this->belongsTo(Cliente::class, 'cliente_id', 'id');
+        return $this->belongsTo(Cliente::class, 'CodClie', 'Codclie');
     }
 }

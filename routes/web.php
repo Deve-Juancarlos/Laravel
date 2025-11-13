@@ -139,6 +139,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'check.admin'])->gro
 Route::prefix('contador')->name('contador.')->middleware(['auth', 'check.contador'])->group(function () {
 
     Route::get('/dashboard/contador', [ContadorDashboardController::class, 'contadorDashboard'])->name('dashboard.contador');
+    Route::get('/dashboard/get-chart-data', [ContadorDashboardController::class, 'getChartData']);
     Route::get('/api/dashboard/stats', [ContadorDashboardController::class, 'getStats'])->name('api.dashboard.stats'); 
     Route::post('/api/dashboard/clear-cache', [ContadorDashboardController::class, 'clearCache'])->name('api.dashboard.clearCache'); 
     
@@ -361,7 +362,10 @@ Route::prefix('contador')->name('contador.')->middleware(['auth', 'check.contado
         Route::get('/auditoria/sistema-general', [ReporteAuditoriaController::class, 'sistemaGeneral'])->name('auditoria.sistema_general');
         // Rutas con parámetros al final
         Route::post('/enviar-recordatorio-cobranza/{clienteId}', [ReporteDashboardController::class, 'enviarRecordatorioEmail'])->name('enviarRecordatorioCobranza');
+        Route::get('/ventas/flujo-comparativo', [ReporteVentasController::class, 'flujoVentasCobranzas'])->name('ventas.flujo-comparativo');
+        Route::get('/ventas/flujo-comparativo/excel', [ReporteVentasController::class, 'exportarVentasCobranzasExcel'])->name('ventas.flujo-comparativo.excel');
     });
+    
 
     // --- MÓDULO REGISTRO DE COMPRA (FACTURA DE COMPRA) ---
     Route::prefix('registro-compra')->name('compras.registro.')->group(function () {
@@ -395,8 +399,8 @@ Route::prefix('contador')->name('contador.')->middleware(['auth', 'check.contado
         Route::get('/detalle/{cuenta}', [EstadoResultadosController::class, 'detalleCuenta'])->name('detalle');
     });
     
-}); // <-- FIN DEL GRUPO 'contador' PRINCIPAL
-// }); // <-- Esta es la llave que ELIMINÉ (Línea 143 de tu archivo)
+}); 
+
 
 Route::get('/acceso-denegado', function () {
     return view('errors.403');

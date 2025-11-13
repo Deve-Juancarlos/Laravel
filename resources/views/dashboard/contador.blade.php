@@ -27,14 +27,6 @@
     <li class="breadcrumb-item active" aria-current="page">Dashboard</li>
 @endsection
 
-{{-- 
-    El @section('page-title') que tenías antes ya no es necesario aquí,
-    porque el layout lo maneja de forma diferente.
-    Si quisieras mantenerlo, tendrías que sacar el <h1> de 'header-content'
-    y ponerlo en @section('page-title').
---}}
-
-
 @section('content')
 
 <div class="container-fluid">
@@ -109,7 +101,13 @@
             <div class="card modern-card">
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <h6><i class="fas fa-chart-line me-2"></i>Ventas vs Cobranzas (Últimos 6 Meses)</h6>
-                    <a href="#" class="btn-gradient"><i class="fas fa-file-alt me-1"></i> Ver Reporte</a>
+                    {{-- 
+                        NOTA: Asumo que esta ruta existe en tu 'routes/web.php'.
+                        Si no existe, deberás crearla o eliminar el botón.
+                    --}}
+                    <a href="{{ route('contador.reportes.ventas.flujo-comparativo') }}" target="_blank" class="btn-gradient">
+                        <i class="fas fa-file-alt me-1"></i> Ver Reporte
+                    </a> 
                 </div>
                 <div class="card-body">
                     <div class="chart-area">
@@ -137,6 +135,7 @@
                 </div>
                 <div class="card-body alert-list">
                     @forelse($alertas as $alerta)
+                        {{-- Asumo que la ruta 'accion' existe, si no, usamos '#' --}}
                         <a href="{{ $alerta['accion'] ?? '#' }}" class="list-group-item list-group-item-action alert-item alert-item-{{ $alerta['tipo'] }}">
                             <div class="d-flex align-items-center">
                                 <div class="alert-icon alert-icon-{{ $alerta['tipo'] }}">
@@ -175,8 +174,10 @@
                         <li class="list-group-item top-client-item">
                             <div class="d-flex align-items-center justify-content-between">
                                 <div class="d-flex align-items-center">
-                                    <div class="top-client-avatar" style="background: linear-gradient(135deg, {{ $cliente['avatar_color'] }});">
-                                        {{ substr($cliente['cliente'], 0, 1) }}
+                                    {{-- El avatar usa el color 'primary' (CSS) y lo modifica --}}
+                                    <div class="top-client-avatar" 
+                                         style="--avatar-color: var(--color-{{ $cliente['avatar_color'] }});">
+                                        {{ $cliente['initial'] }}
                                     </div>
                                     <div>
                                         <div class="top-client-name">{{ $cliente['cliente'] }}</div>
@@ -225,19 +226,17 @@
                                 <td>{{ $venta['cliente'] }}</td>
                                 <td class="text-end fw-600">S/ {{ number_format($venta['total'], 2) }}</td>
                                 <td class="text-center">
-                                    @if($venta['estado'] == 'Pagado')
-                                        <span class="status-badge status-pagado">
-                                            <i class="fas fa-check me-1"></i>{{ $venta['estado'] }}
-                                        </span>
-                                    @elseif($venta['estado'] == 'Pendiente')
-                                        <span class="status-badge status-pendiente">
-                                            <i class="fas fa-clock me-1"></i>{{ $venta['estado'] }}
-                                        </span>
-                                    @else
-                                        <span class="status-badge status-vencido">
-                                            <i class="fas fa-exclamation me-1"></i>{{ $venta['estado'] }}
-                                        </span>
-                                    @endif
+                                    @php
+                                        
+                                        $icon = 'fa-question-circle'; // Icono por defecto
+                                        if ($venta['estado'] == 'PAGADA') $icon = 'fa-check-circle';
+                                        if ($venta['estado'] == 'VENCIDA') $icon = 'fa-exclamation-triangle';
+                                        if ($venta['estado'] == 'PENDIENTE') $icon = 'fa-clock';
+                                    @endphp
+                                    <span class="status-badge status-{{ $venta['estado_class'] }}">
+                                        <i class="fas {{ $icon }} me-1"></i>
+                                        {{ $venta['estado'] }}
+                                    </span>
                                 </td>
                             </tr>
                             @empty
@@ -343,6 +342,7 @@
 @endsection
 
 @push('scripts')
-  
+ 
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>  
     <script src="{{ asset('js/dashboard/contador.js') }}"></script>
 @endpush
