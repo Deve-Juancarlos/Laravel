@@ -1,27 +1,75 @@
-// Funciones de exportación (requieren los parámetros de filtro)
-function getFilterParams() {
-    return new URLSearchParams(window.location.search);
-}
+document.addEventListener('DOMContentLoaded', function () {
+  
+    document.querySelectorAll('.stat-value').forEach(element => {
+        const value = parseFloat(element.getAttribute('data-value')) || 0;
+        const startValue = 0;
+        
+        if (element.textContent.startsWith('S/ ')) {
+            element.textContent = 'S/ 0.00';
+            animateValue(element, startValue, value, 1000); 
+        } else {
+            element.textContent = '0';
+            animateValue(element, startValue, value, 1000); 
+        }
+    });
+
+});
 
 function exportarExcel() {
-    const params = getFilterParams();
-    params.set('formato', 'excel');
-    // Asegúrate de que la ruta 'contador.libro-diario.exportar' exista en tus rutas de Laravel
-    window.location.href = `/contador/libro-diario/exportar?${params.toString()}`;
+    const form = document.getElementById('filter-form');
+    const params = new URLSearchParams(new FormData(form)).toString();
+    const url = `/contador/libro-diario/exportar?${params}&formato=excel`;
+    window.location.href = url;
 }
 
 function exportarPDF() {
-    const params = getFilterParams();
-    params.set('formato', 'pdf');
-    // Asegúrate de que la ruta 'contador.libro-diario.exportar' exista
-    window.location.href = `/contador/libro-diario/exportar?${params.toString()}`;
+
+    const form = document.getElementById('filter-form');
+    const params = new URLSearchParams(new FormData(form)).toString();
+    const url = `/contador/libro-diario/exportar?${params}&formato=pdf`;
+    window.location.href = url;
 }
 
-// Animación de números al cargar
+function confirmarEliminacion(asientoId) {
+    if (typeof Swal !== 'undefined') {
+        Swal.fire({
+            title: '¿Estás seguro?',
+            text: "Esta acción enviará una SOLICITUD al Administrador para eliminar el asiento. ¿Continuar?",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Sí, solicitar eliminación',
+            cancelButtonText: 'Cancelar'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                if(typeof showLoading === 'function') showLoading();
+                
+                const form = document.getElementById(`delete-form-${asientoId}`);
+                if (form) {
+                    form.submit();
+                }
+            }
+        });
+    } else {
+
+        if (confirm('¿Estás seguro de enviar la solicitud de eliminación?')) {
+            if(typeof showLoading === 'function') showLoading();
+            const form = document.getElementById(`delete-form-${asientoId}`);
+            if (form) {
+                form.submit();
+            }
+        }
+    }
+}
+
+
 function animateValue(element, start, end, duration) {
     const range = end - start;
     if (range === 0) {
         let formattedValue = (end.toString().includes('.')) ? end.toFixed(2) : end.toString();
+        formattedValue = formattedValue.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+        
         if (element.textContent.startsWith('S/ ')) {
             element.textContent = 'S/ ' + formattedValue;
         } else {
@@ -49,55 +97,3 @@ function animateValue(element, start, end, duration) {
         element.textContent = isCurrency ? 'S/ ' + formattedValue : formattedValue;
     }, 16);
 }
-
-// Listener para ejecutar las animaciones cuando la página cargue
-window.addEventListener('load', function() {
-    document.querySelectorAll('.stat-value').forEach(element => {
-        const value = parseFloat(element.getAttribute('data-value')) || 0;
-        const startValue = 0;
-        
-        if (element.textContent.startsWith('S/ ')) {
-            element.textContent = 'S/ 0.00';
-            animateValue(element, startValue, value, 1000);
-        } else {
-            element.textContent = '0';
-            animateValue(element, startValue, value, 1000);
-        }
-    });
-});
-
-
-// Confirmación de eliminación (SweetAlert2)
-function confirmarEliminacion(id) {
-    if (typeof Swal !== 'undefined') {
-        Swal.fire({
-            title: '¿Estás seguro?',
-            text: "Esta acción eliminará el asiento contable permanentemente. No se puede deshacer.",
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#d33',
-            cancelButtonColor: '#6c757d',
-            confirmButtonText: 'Sí, eliminar',
-            cancelButtonText: 'Cancelar'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                // Muestra el overlay de carga (función global de tu layout)
-                if(typeof showLoading === 'function') showLoading();
-                document.getElementById('delete-form-' + id).submit();
-            }
-        });
-    } else {
-        // Fallback si SweetAlert no carga
-        if (confirm('¿Estás seguro de eliminar este asiento? Esta acción no se puede deshacer.')) {
-            if(typeof showLoading === 'function') showLoading();
-            document.getElementById('delete-form-' + id).submit();
-        }
-    }
-}
-
-/* Nota: En el JS he reemplazado las rutas de Blade {{ route(...) }} por rutas relativas
-   como '/contador/libro-diario/exportar'. 
-   Si tus rutas son diferentes, deberás ajustar estas URLs en el JS.
-   La función 'confirmarEliminacion' no necesita cambios porque es llamada
-   directamente desde el HTML de Blade.
-*/

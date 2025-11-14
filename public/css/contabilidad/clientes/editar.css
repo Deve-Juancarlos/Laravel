@@ -1,0 +1,678 @@
+/*
+ * =====================================================
+ * MÓDULO DE EDICIÓN DE CLIENTES - SISTEMA CONTABLE
+ * Estilos profesionales para formularios de edición
+ * =====================================================
+ */
+
+/* =====================================================
+   1. VARIABLES Y CONFIGURACIÓN BASE
+   ===================================================== */
+:root {
+    /* Paleta Profesional Empresarial */
+    --color-primary: #1e3a5f;
+    --color-primary-dark: #152a45;
+    --color-primary-light: #2d4d7a;
+    --color-accent: #0277bd;
+    
+    /* Colores semánticos */
+    --color-success: #2e7d32;
+    --color-success-light: #e8f5e9;
+    --color-danger: #c62828;
+    --color-danger-light: #ffebee;
+    --color-warning: #f57c00;
+    --color-warning-light: #fff3e0;
+    --color-info: #0277bd;
+    --color-info-light: #e1f5fe;
+    
+    /* Colores neutros */
+    --color-text-primary: #212529;
+    --color-text-secondary: #6c757d;
+    --color-text-muted: #868e96;
+    --color-border: #dee2e6;
+    --color-border-light: #e9ecef;
+    --color-bg-light: #f8f9fa;
+    --color-bg-white: #ffffff;
+    --color-bg-dark: #f1f3f5;
+    
+    /* Espaciado */
+    --spacing-xs: 0.5rem;
+    --spacing-sm: 0.75rem;
+    --spacing-md: 1rem;
+    --spacing-lg: 1.5rem;
+    --spacing-xl: 2rem;
+    
+    /* Bordes y sombras */
+    --border-radius: 8px;
+    --border-radius-lg: 12px;
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
+    --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.1);
+    --shadow-lg: 0 4px 16px rgba(0, 0, 0, 0.12);
+    
+    /* Transiciones */
+    --transition-base: all 0.2s ease;
+}
+
+/* =====================================================
+   2. CONTENEDOR PRINCIPAL
+   ===================================================== */
+.clienteeditar-container {
+    width: 100%;
+    padding: 0;
+}
+
+/* =====================================================
+   3. CAJA DE INFORMACIÓN DEL CLIENTE
+   ===================================================== */
+.clienteeditar-container .info-box {
+    background: linear-gradient(135deg, #1e3a5f, #2d4d7a);
+    border-radius: var(--border-radius-lg);
+    padding: var(--spacing-xl);
+    margin-bottom: var(--spacing-xl);
+    box-shadow: var(--shadow-md);
+    color: var(--color-bg-white);
+}
+
+.clienteeditar-container .info-box h5 {
+    color: var(--color-bg-white);
+    font-weight: 700;
+    font-size: 1.5rem;
+    margin-bottom: var(--spacing-sm);
+    letter-spacing: -0.025em;
+}
+
+.clienteeditar-container .info-box h5 i {
+    opacity: 0.9;
+}
+
+.clienteeditar-container .info-box p {
+    color: rgba(255, 255, 255, 0.95);
+    font-size: 0.9375rem;
+    margin: 0;
+}
+
+.clienteeditar-container .info-box p i {
+    opacity: 0.8;
+}
+
+.clienteeditar-container .info-box .btn-light {
+    background-color: rgba(255, 255, 255, 0.95);
+    border: none;
+    color: var(--color-primary);
+    font-weight: 600;
+    padding: 0.625rem 1.25rem;
+    border-radius: var(--border-radius);
+    transition: var(--transition-base);
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+    font-size: 0.875rem;
+}
+
+.clienteeditar-container .info-box .btn-light:hover {
+    background-color: var(--color-bg-white);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+/* =====================================================
+   4. SECCIONES DEL FORMULARIO
+   ===================================================== */
+.clienteeditar-container .form-section {
+    background: var(--color-bg-white);
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radius-lg);
+    padding: var(--spacing-xl);
+    margin-bottom: var(--spacing-lg);
+    box-shadow: var(--shadow-sm);
+    position: relative;
+    overflow: hidden;
+}
+
+.clienteeditar-container .form-section::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    background: linear-gradient(180deg, var(--color-primary), var(--color-accent));
+}
+
+.clienteeditar-container .form-section-title {
+    color: var(--color-text-primary);
+    font-weight: 700;
+    font-size: 1.125rem;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+    margin-bottom: var(--spacing-lg);
+    padding-bottom: var(--spacing-sm);
+    border-bottom: 2px solid var(--color-border);
+    display: flex;
+    align-items: center;
+}
+
+.clienteeditar-container .form-section-title i {
+    color: var(--color-primary);
+    font-size: 1.25rem;
+}
+
+/* =====================================================
+   5. CAMPOS DEL FORMULARIO
+   ===================================================== */
+.clienteeditar-container .form-label {
+    font-weight: 600;
+    font-size: 0.875rem;
+    color: var(--color-text-primary);
+    margin-bottom: var(--spacing-xs);
+    letter-spacing: 0.025em;
+}
+
+.clienteeditar-container .form-label i {
+    color: var(--color-text-secondary);
+    font-size: 0.875rem;
+}
+
+.clienteeditar-container .form-label .text-danger {
+    color: var(--color-danger) !important;
+    font-weight: 700;
+}
+
+.clienteeditar-container .form-control,
+.clienteeditar-container .form-select {
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radius);
+    padding: 0.625rem var(--spacing-sm);
+    font-size: 0.9375rem;
+    color: var(--color-text-primary);
+    transition: var(--transition-base);
+    background-color: var(--color-bg-white);
+}
+
+.clienteeditar-container .form-control:focus,
+.clienteeditar-container .form-select:focus {
+    border-color: var(--color-accent);
+    box-shadow: 0 0 0 0.2rem rgba(52, 152, 219, 0.15);
+    outline: none;
+    background-color: var(--color-bg-white);
+}
+
+.clienteeditar-container .form-control::placeholder {
+    color: var(--color-text-muted);
+    opacity: 1;
+}
+
+/* Estados de validación */
+.clienteeditar-container .form-control.is-valid,
+.clienteeditar-container .form-select.is-valid {
+    border-color: var(--color-success);
+    padding-right: calc(1.5em + 0.75rem);
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8'%3e%3cpath fill='%2327ae60' d='M2.3 6.73L.6 4.53c-.4-1.04.46-1.4 1.1-.8l1.1 1.4 3.4-3.8c.6-.63 1.6-.27 1.2.7l-4 4.6c-.43.5-.8.4-1.1.1z'/%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right calc(0.375em + 0.1875rem) center;
+    background-size: calc(0.75em + 0.375rem) calc(0.75em + 0.375rem);
+}
+
+.clienteeditar-container .form-control.is-invalid,
+.clienteeditar-container .form-select.is-invalid {
+    border-color: var(--color-danger);
+    padding-right: calc(1.5em + 0.75rem);
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' width='12' height='12' fill='none' stroke='%23c0392b'%3e%3ccircle cx='6' cy='6' r='4.5'/%3e%3cpath stroke-linejoin='round' d='M5.8 3.6h.4L6 6.5z'/%3e%3ccircle cx='6' cy='8.2' r='.6' fill='%23c0392b' stroke='none'/%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right calc(0.375em + 0.1875rem) center;
+    background-size: calc(0.75em + 0.375rem) calc(0.75em + 0.375rem);
+}
+
+.clienteeditar-container .invalid-feedback {
+    display: none;
+    width: 100%;
+    margin-top: 0.25rem;
+    font-size: 0.8125rem;
+    color: var(--color-danger);
+    font-weight: 500;
+}
+
+.clienteeditar-container .is-invalid ~ .invalid-feedback {
+    display: block;
+}
+
+/* =====================================================
+   6. CONTADORES Y TEXTOS DE AYUDA
+   ===================================================== */
+.clienteeditar-container .char-counter {
+    font-size: 0.75rem;
+    color: var(--color-text-muted);
+    text-align: right;
+    margin-top: 0.25rem;
+    font-weight: 500;
+}
+
+.clienteeditar-container .char-counter.text-danger,
+.clienteeditar-container .char-counter .text-danger {
+    color: var(--color-danger) !important;
+    font-weight: 600;
+}
+
+.clienteeditar-container .help-text {
+    display: block;
+    margin-top: 0.25rem;
+    font-size: 0.8125rem;
+    color: var(--color-text-secondary);
+    font-style: italic;
+}
+
+.clienteeditar-container .help-text i {
+    color: var(--color-info);
+    font-size: 0.75rem;
+}
+
+/* =====================================================
+   7. BOTONES
+   ===================================================== */
+.clienteeditar-container .btn {
+    border-radius: var(--border-radius);
+    font-weight: 600;
+    font-size: 0.875rem;
+    padding: 0.625rem 1.25rem;
+    transition: var(--transition-base);
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    border: none;
+}
+
+.clienteeditar-container .btn i {
+    font-size: 0.875rem;
+}
+
+/* Botón cancelar */
+.clienteeditar-container .btn-outline-secondary {
+    background-color: transparent;
+    border: 1px solid var(--color-border);
+    color: var(--color-text-secondary);
+}
+
+.clienteeditar-container .btn-outline-secondary:hover {
+    background-color: var(--color-secondary);
+    border-color: var(--color-secondary);
+    color: var(--color-bg-white);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-sm);
+}
+
+/* Botón verificar RENIEC */
+.clienteeditar-container .btn-outline-info {
+    background-color: transparent;
+    border: 1px solid var(--color-info);
+    color: var(--color-info);
+}
+
+.clienteeditar-container .btn-outline-info:hover {
+    background-color: var(--color-info);
+    border-color: var(--color-info);
+    color: var(--color-bg-white);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-sm);
+}
+
+/* Botón guardar */
+.clienteeditar-container .btn-save {
+    background: linear-gradient(135deg, #1e3a5f, #2d4d7a);
+    color: var(--color-bg-white);
+    box-shadow: var(--shadow-sm);
+}
+
+.clienteeditar-container .btn-save:hover {
+    background: linear-gradient(135deg, #152a45, #1e3a5f);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.clienteeditar-container .btn-save:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* Botón secundario */
+.clienteeditar-container .btn-secondary {
+    background-color: #6c757d;
+    color: var(--color-bg-white);
+}
+
+.clienteeditar-container .btn-secondary:hover {
+    background-color: #5a6268;
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-sm);
+}
+
+/* Botón primario */
+.clienteeditar-container .btn-primary {
+    background-color: var(--color-primary);
+    color: var(--color-bg-white);
+}
+
+.clienteeditar-container .btn-primary:hover {
+    background-color: var(--color-primary-dark);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-sm);
+}
+
+/* =====================================================
+   8. MODAL DE VERIFICACIÓN RENIEC
+   ===================================================== */
+.clienteeditar-container .modal-content {
+    border: none;
+    border-radius: var(--border-radius-lg);
+    box-shadow: var(--shadow-lg);
+}
+
+.clienteeditar-container .modal-header {
+    background-color: var(--color-bg-light);
+    border-bottom: 2px solid var(--color-border);
+    padding: var(--spacing-lg);
+}
+
+.clienteeditar-container .modal-title {
+    font-weight: 700;
+    font-size: 1.125rem;
+    color: var(--color-text-primary);
+}
+
+.clienteeditar-container .modal-title i {
+    color: var(--color-primary);
+}
+
+.clienteeditar-container .modal-body {
+    padding: var(--spacing-xl);
+}
+
+.clienteeditar-container .modal-footer {
+    border-top: 1px solid var(--color-border);
+    padding: var(--spacing-md) var(--spacing-lg);
+    background-color: var(--color-bg-light);
+}
+
+/* Spinner de carga */
+.clienteeditar-container .spinner-border {
+    width: 3rem;
+    height: 3rem;
+    border-width: 0.3rem;
+}
+
+.clienteeditar-container .spinner-border.text-primary {
+    border-color: var(--color-primary);
+    border-right-color: transparent;
+}
+
+/* Resultados de RENIEC */
+.clienteeditar-container .table {
+    margin-bottom: 0;
+}
+
+.clienteeditar-container .table-bordered {
+    border: 1px solid var(--color-border);
+}
+
+.clienteeditar-container .table-bordered th,
+.clienteeditar-container .table-bordered td {
+    border: 1px solid var(--color-border);
+    padding: var(--spacing-sm) var(--spacing-md);
+}
+
+.clienteeditar-container .table th {
+    background-color: var(--color-bg-light);
+    color: var(--color-text-primary);
+    font-weight: 600;
+    font-size: 0.875rem;
+}
+
+.clienteeditar-container .table td {
+    color: var(--color-text-primary);
+    font-size: 0.9375rem;
+}
+
+/* =====================================================
+   9. ALERTAS
+   ===================================================== */
+.clienteeditar-container .alert {
+    border: none;
+    border-radius: var(--border-radius);
+    padding: var(--spacing-md);
+    border-left: 4px solid;
+    margin-bottom: var(--spacing-md);
+}
+
+.clienteeditar-container .alert-success {
+    background-color: var(--color-success-light);
+    border-left-color: var(--color-success);
+    color: #1e7e34;
+}
+
+.clienteeditar-container .alert-success i {
+    color: var(--color-success);
+}
+
+.clienteeditar-container .alert-danger {
+    background-color: var(--color-danger-light);
+    border-left-color: var(--color-danger);
+    color: #721c24;
+}
+
+.clienteeditar-container .alert-danger i {
+    color: var(--color-danger);
+}
+
+.clienteeditar-container .alert strong {
+    font-weight: 700;
+}
+
+/* =====================================================
+   10. UTILIDADES ADICIONALES
+   ===================================================== */
+.clienteeditar-container .text-danger {
+    color: var(--color-danger) !important;
+}
+
+.clienteeditar-container .text-muted {
+    color: var(--color-text-muted) !important;
+}
+
+.clienteeditar-container .text-primary {
+    color: var(--color-primary) !important;
+}
+
+.clienteeditar-container .text-uppercase {
+    text-transform: uppercase !important;
+}
+
+.clienteeditar-container .mb-0 {
+    margin-bottom: 0 !important;
+}
+
+.clienteeditar-container .mb-3 {
+    margin-bottom: var(--spacing-md) !important;
+}
+
+.clienteeditar-container .mb-4 {
+    margin-bottom: var(--spacing-lg) !important;
+}
+
+.clienteeditar-container .mt-3 {
+    margin-top: var(--spacing-md) !important;
+}
+
+.clienteeditar-container .me-1,
+.clienteeditar-container .me-2 {
+    margin-right: var(--spacing-xs) !important;
+}
+
+.clienteeditar-container .d-flex {
+    display: flex !important;
+}
+
+.clienteeditar-container .justify-content-between {
+    justify-content: space-between !important;
+}
+
+.clienteeditar-container .align-items-center {
+    align-items: center !important;
+}
+
+.clienteeditar-container .text-center {
+    text-align: center !important;
+}
+
+.clienteeditar-container .visually-hidden {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    padding: 0 !important;
+    margin: -1px !important;
+    overflow: hidden !important;
+    clip: rect(0, 0, 0, 0) !important;
+    white-space: nowrap !important;
+    border: 0 !important;
+}
+
+/* =====================================================
+   11. ANIMACIONES
+   ===================================================== */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.clienteeditar-container .form-section {
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.clienteeditar-container .fa-spin {
+    animation: spin 1s linear infinite;
+}
+
+/* =====================================================
+   12. RESPONSIVE DESIGN
+   ===================================================== */
+@media (max-width: 992px) {
+    .clienteeditar-container .info-box {
+        padding: var(--spacing-lg);
+    }
+    
+    .clienteeditar-container .info-box h5 {
+        font-size: 1.25rem;
+    }
+    
+    .clienteeditar-container .form-section {
+        padding: var(--spacing-lg);
+    }
+    
+    .clienteeditar-container .form-section-title {
+        font-size: 1rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .clienteeditar-container .info-box {
+        padding: var(--spacing-md);
+    }
+    
+    .clienteeditar-container .info-box .d-flex {
+        flex-direction: column;
+        gap: var(--spacing-md);
+    }
+    
+    .clienteeditar-container .info-box h5 {
+        font-size: 1.125rem;
+    }
+    
+    .clienteeditar-container .form-section {
+        padding: var(--spacing-md);
+    }
+    
+    .clienteeditar-container .form-section::before {
+        width: 3px;
+    }
+    
+    .clienteeditar-container .btn {
+        padding: 0.5rem 1rem;
+        font-size: 0.8125rem;
+    }
+    
+    .clienteeditar-container .modal-body {
+        padding: var(--spacing-md);
+    }
+}
+
+@media (max-width: 576px) {
+    .clienteeditar-container .info-box {
+        padding: var(--spacing-md);
+        border-radius: var(--border-radius);
+    }
+    
+    .clienteeditar-container .info-box h5 {
+        font-size: 1rem;
+    }
+    
+    .clienteeditar-container .info-box p {
+        font-size: 0.8125rem;
+    }
+    
+    .clienteeditar-container .info-box .btn-light {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .clienteeditar-container .form-section {
+        padding: var(--spacing-sm) var(--spacing-md);
+        border-radius: var(--border-radius);
+    }
+    
+    .clienteeditar-container .form-section-title {
+        font-size: 0.9375rem;
+    }
+    
+    .clienteeditar-container .form-label {
+        font-size: 0.8125rem;
+    }
+    
+    .clienteeditar-container .form-control,
+    .clienteeditar-container .form-select {
+        font-size: 0.875rem;
+        padding: 0.5rem var(--spacing-xs);
+    }
+    
+    .clienteeditar-container .btn {
+        padding: 0.5rem 0.875rem;
+        font-size: 0.75rem;
+        width: 100%;
+        justify-content: center;
+        margin-bottom: var(--spacing-xs);
+    }
+    
+    .clienteeditar-container .d-flex.justify-content-between {
+        flex-direction: column;
+        gap: var(--spacing-sm);
+    }
+    
+    .clienteeditar-container .d-flex.justify-content-between > div {
+        width: 100%;
+    }
+    
+    .clienteeditar-container .modal-dialog {
+        margin: var(--spacing-sm);
+    }
+}

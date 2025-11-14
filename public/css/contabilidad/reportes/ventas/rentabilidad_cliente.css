@@ -1,0 +1,478 @@
+/*
+ * =====================================================
+ * MÓDULO DE REPORTES - RENTABILIDAD POR CLIENTE
+ * Estilos profesionales para análisis de ventas
+ * =====================================================
+ */
+
+/* =====================================================
+   1. VARIABLES Y CONFIGURACIÓN BASE
+   ===================================================== */
+:root {
+    /* Paleta Profesional Empresarial */
+    --rent-primary: #1e3a5f;
+    --rent-primary-dark: #152a45;
+    --rent-primary-light: #2d4d7a;
+    --rent-secondary: #455a64;
+    
+    /* Colores Funcionales */
+    --rent-success: #2e7d32;
+    --rent-success-light: #e8f5e9;
+    --rent-danger: #c62828;
+    --rent-danger-light: #ffebee;
+    --rent-info: #0277bd;
+    --rent-info-light: #e1f5fe;
+    --rent-warning: #f57c00;
+    --rent-warning-light: #fff3e0;
+    
+    /* Colores Neutros */
+    --rent-text-primary: #212529;
+    --rent-text-secondary: #6c757d;
+    --rent-text-muted: #868e96;
+    --rent-border: #dee2e6;
+    --rent-border-light: #e9ecef;
+    --rent-bg: #f8f9fa;
+    --rent-bg-white: #ffffff;
+    --rent-bg-dark: #f1f3f5;
+    
+    /* Espaciado Consistente */
+    --spacing-xs: 0.5rem;
+    --spacing-sm: 0.75rem;
+    --spacing-md: 1rem;
+    --spacing-lg: 1.5rem;
+    --spacing-xl: 2rem;
+    
+    /* Bordes y Sombras Sutiles */
+    --radius-sm: 4px;
+    --radius-md: 6px;
+    --radius-lg: 8px;
+    --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.05);
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
+    --shadow-md: 0 2px 6px rgba(0, 0, 0, 0.1);
+    --shadow-lg: 0 4px 12px rgba(0, 0, 0, 0.12);
+    
+    /* Transiciones */
+    --transition: all 0.2s ease;
+}
+
+/* =====================================================
+   2. CONTENEDOR PRINCIPAL
+   ===================================================== */
+.rentabilidad-container {
+    padding: 0;
+}
+
+/* =====================================================
+   3. TARJETA PRINCIPAL
+   ===================================================== */
+.rentabilidad-container .card {
+    border: 1px solid var(--rent-border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    background-color: var(--rent-bg-white);
+}
+
+.rentabilidad-container .card-header {
+    background: linear-gradient(135deg, #1e3a5f 0%, #152a45 100%);
+    border-bottom: none;
+    padding: var(--spacing-lg) var(--spacing-xl);
+}
+
+.rentabilidad-container .card-header h4 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--rent-bg-white);
+    margin: 0;
+    display: flex;
+    align-items: center;
+}
+
+.rentabilidad-container .card-header h4 i {
+    font-size: 1.25rem;
+    color: var(--rent-bg-white);
+}
+
+.rentabilidad-container .card-body {
+    padding: var(--spacing-lg);
+}
+
+/* =====================================================
+   4. FILTROS (ESTILO BANCOS)
+   ===================================================== */
+.rentabilidad-container .filters-card {
+    background-color: var(--rent-bg);
+    border: 1px solid var(--rent-border);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-lg);
+    margin-bottom: var(--spacing-lg);
+}
+
+.rentabilidad-container .form-label {
+    font-weight: 600;
+    font-size: 0.8125rem;
+    color: var(--rent-text-primary);
+    margin-bottom: var(--spacing-xs);
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+.rentabilidad-container .form-control {
+    border: 1px solid var(--rent-border);
+    border-radius: var(--radius-md);
+    padding: 0.5rem var(--spacing-sm);
+    font-size: 0.9375rem;
+    color: var(--rent-text-primary);
+    transition: var(--transition);
+    background-color: var(--rent-bg-white);
+}
+
+.rentabilidad-container .form-control:focus {
+    border-color: var(--rent-primary);
+    box-shadow: 0 0 0 0.2rem rgba(30, 58, 95, 0.1);
+    outline: none;
+}
+
+.rentabilidad-container .btn-primary {
+    background-color: var(--rent-primary);
+    border: none;
+    padding: 0.5rem var(--spacing-md);
+    font-weight: 600;
+    border-radius: var(--radius-md);
+    transition: var(--transition);
+    font-size: 0.875rem;
+}
+
+.rentabilidad-container .btn-primary:hover {
+    background-color: var(--rent-primary-dark);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+}
+
+.rentabilidad-container .btn-outline-secondary {
+    border: 1px solid var(--rent-border);
+    color: var(--rent-text-secondary);
+    padding: 0.5rem var(--spacing-md);
+    font-weight: 600;
+    border-radius: var(--radius-md);
+    transition: var(--transition);
+    background-color: var(--rent-bg-white);
+    font-size: 0.875rem;
+}
+
+.rentabilidad-container .btn-outline-secondary:hover {
+    background-color: var(--rent-text-secondary);
+    color: var(--rent-bg-white);
+    border-color: var(--rent-text-secondary);
+    transform: translateY(-1px);
+}
+
+/* =====================================================
+   5. TABLA (ESTILO BANCOS)
+   ===================================================== */
+.rentabilidad-container .table-responsive {
+    border-radius: var(--radius-md);
+    overflow: hidden;
+}
+
+.rentabilidad-container .table {
+    margin-bottom: 0;
+}
+
+.rentabilidad-container .table thead th {
+    background-color: var(--rent-bg-dark);
+    color: var(--rent-text-primary);
+    font-weight: 600;
+    font-size: 0.8125rem;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    padding: var(--spacing-md) var(--spacing-md);
+    border-bottom: 2px solid var(--rent-border);
+    white-space: nowrap;
+    vertical-align: middle;
+}
+
+.rentabilidad-container .table thead .table-dark th {
+    background-color: var(--rent-primary-dark);
+    color: var(--rent-bg-white);
+}
+
+.rentabilidad-container .table thead .bg-primary {
+    background: linear-gradient(135deg, var(--rent-primary) 0%, var(--rent-primary-dark) 100%) !important;
+    color: var(--rent-bg-white) !important;
+}
+
+.rentabilidad-container .table tbody td {
+    padding: var(--spacing-md) var(--spacing-md);
+    vertical-align: middle;
+    font-size: 0.875rem;
+    color: var(--rent-text-primary);
+    border-bottom: 1px solid var(--rent-border-light);
+    background-color: var(--rent-bg-white);
+}
+
+.rentabilidad-container .table tbody tr:hover {
+    background-color: var(--rent-bg);
+}
+
+.rentabilidad-container .table tbody tr:hover td {
+    background-color: var(--rent-bg);
+}
+
+.rentabilidad-container .table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.rentabilidad-container .table-bordered {
+    border: 1px solid var(--rent-border);
+}
+
+.rentabilidad-container .table-bordered th,
+.rentabilidad-container .table-bordered td {
+    border: 1px solid var(--rent-border-light);
+}
+
+/* =====================================================
+   6. COLORES DE TEXTO Y BACKGROUNDS
+   ===================================================== */
+.rentabilidad-container .text-success {
+    color: var(--rent-success) !important;
+}
+
+.rentabilidad-container .text-danger {
+    color: var(--rent-danger) !important;
+}
+
+.rentabilidad-container .text-warning {
+    color: var(--rent-warning) !important;
+}
+
+.rentabilidad-container .text-muted {
+    color: var(--rent-text-muted) !important;
+}
+
+.rentabilidad-container .bg-light {
+    background-color: var(--rent-bg) !important;
+}
+
+.rentabilidad-container .bg-primary {
+    background-color: var(--rent-primary) !important;
+}
+
+/* =====================================================
+   7. ESTILOS ESPECÍFICOS DE CONTENIDO
+   ===================================================== */
+.rentabilidad-container .text-end {
+    text-align: right !important;
+}
+
+.rentabilidad-container .text-center {
+    text-align: center !important;
+}
+
+.rentabilidad-container .fw-bold {
+    font-weight: 600 !important;
+}
+
+.rentabilidad-container .fs-5 {
+    font-size: 1.125rem !important;
+}
+
+.rentabilidad-container small {
+    font-size: 0.8125rem;
+}
+
+/* =====================================================
+   8. ESTADO VACÍO
+   ===================================================== */
+.rentabilidad-container .table tbody td[colspan] {
+    text-align: center;
+    padding: var(--spacing-xl) !important;
+    color: var(--rent-text-muted);
+    font-size: 1rem;
+    background-color: var(--rent-bg) !important;
+}
+
+.rentabilidad-container .table tbody td[colspan] i {
+    color: var(--rent-info);
+    margin-right: var(--spacing-xs);
+    font-size: 1.125rem;
+}
+
+/* =====================================================
+   9. PAGINACIÓN (ESTILO BANCOS)
+   ===================================================== */
+.rentabilidad-container .pagination {
+    margin-top: var(--spacing-lg);
+    margin-bottom: 0;
+}
+
+.rentabilidad-container .pagination .page-link {
+    color: var(--rent-primary);
+    border-color: var(--rent-border);
+    padding: var(--spacing-xs) var(--spacing-sm);
+    font-size: 0.875rem;
+    transition: var(--transition);
+}
+
+.rentabilidad-container .pagination .page-link:hover {
+    background-color: var(--rent-bg);
+    border-color: var(--rent-border);
+}
+
+.rentabilidad-container .pagination .page-item.active .page-link {
+    background-color: var(--rent-primary);
+    border-color: var(--rent-primary);
+}
+
+.rentabilidad-container .pagination .page-item.disabled .page-link {
+    color: var(--rent-text-muted);
+    border-color: var(--rent-border);
+}
+
+/* =====================================================
+   10. UTILIDADES
+   ===================================================== */
+.rentabilidad-container .shadow-sm {
+    box-shadow: var(--shadow-sm) !important;
+}
+
+.rentabilidad-container .mb-0 {
+    margin-bottom: 0 !important;
+}
+
+.rentabilidad-container .mb-4 {
+    margin-bottom: var(--spacing-lg) !important;
+}
+
+.rentabilidad-container .mt-4 {
+    margin-top: var(--spacing-lg) !important;
+}
+
+.rentabilidad-container .p-3 {
+    padding: var(--spacing-md) !important;
+}
+
+.rentabilidad-container .p-4 {
+    padding: var(--spacing-lg) !important;
+}
+
+.rentabilidad-container .border {
+    border: 1px solid var(--rent-border) !important;
+}
+
+.rentabilidad-container .rounded {
+    border-radius: var(--radius-md) !important;
+}
+
+/* =====================================================
+   11. RESPONSIVE DESIGN
+   ===================================================== */
+@media (max-width: 992px) {
+    .rentabilidad-container .card-header {
+        padding: var(--spacing-md) var(--spacing-lg);
+    }
+    
+    .rentabilidad-container .card-header h4 {
+        font-size: 1.125rem;
+    }
+    
+    .rentabilidad-container .filters-card {
+        padding: var(--spacing-md);
+    }
+}
+
+@media (max-width: 768px) {
+    .rentabilidad-container .card-header {
+        padding: var(--spacing-md);
+    }
+    
+    .rentabilidad-container .card-header h4 {
+        font-size: 1rem;
+    }
+    
+    .rentabilidad-container .card-body {
+        padding: var(--spacing-md);
+    }
+    
+    .rentabilidad-container .table thead th,
+    .rentabilidad-container .table tbody td {
+        padding: var(--spacing-xs) var(--spacing-sm);
+        font-size: 0.8125rem;
+    }
+    
+    .rentabilidad-container .btn-primary,
+    .rentabilidad-container .btn-outline-secondary {
+        font-size: 0.8125rem;
+        padding: var(--spacing-xs) var(--spacing-sm);
+    }
+}
+
+@media (max-width: 576px) {
+    .rentabilidad-container .card-header h4 {
+        font-size: 0.9375rem;
+    }
+    
+    .rentabilidad-container .form-label {
+        font-size: 0.75rem;
+    }
+    
+    .rentabilidad-container .form-control {
+        font-size: 0.875rem;
+    }
+    
+    .rentabilidad-container .table thead th {
+        font-size: 0.75rem;
+    }
+    
+    .rentabilidad-container .fs-5 {
+        font-size: 1rem !important;
+    }
+}
+
+/* =====================================================
+   3. NAVEGACIÓN DE REPORTES (ESTILO BANCOS)
+   ===================================================== */
+.rentabilidad-container .reportes-nav-wrapper {
+    background-color: var(--rent-bg-white);
+    border: 1px solid var(--rent-border);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-xs);
+    box-shadow: var(--shadow-xs);
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: var(--spacing-lg);
+}
+
+.rentabilidad-container .reportes-nav-wrapper .nav-item {
+    color: var(--rent-text-secondary);
+    font-weight: 500;
+    font-size: 0.8125rem;
+    padding: var(--spacing-sm) var(--spacing-xs);
+    border-radius: var(--radius-md);
+    transition: var(--transition);
+    border: none;
+    white-space: nowrap;
+    flex: 1;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.375rem;
+    text-decoration: none;
+}
+
+.rentabilidad-container .reportes-nav-wrapper .nav-item:hover {
+    background-color: var(--rent-bg);
+    color: var(--rent-primary);
+}
+
+.rentabilidad-container .reportes-nav-wrapper .nav-item.active {
+    background-color: var(--rent-primary);
+    color: var(--rent-bg-white);
+    font-weight: 600;
+}
+
+.rentabilidad-container .reportes-nav-wrapper .nav-item i {
+    font-size: 0.8125rem;
+    flex-shrink: 0;
+}

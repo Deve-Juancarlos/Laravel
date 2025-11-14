@@ -16,10 +16,6 @@
 @push('styles')
     <link href="{{ asset('css/contabilidad/libro-diario-create.css') }}" rel="stylesheet">
     <link href="{{ asset('css/contabilidad/asiento-form.css') }}" rel="stylesheet">
-    <link href="{{ asset('css/contabilidad/detalles-animations.css') }}" rel="stylesheet">
-    <link href="{{ asset('css/contabilidad/detalles-interactivity.css') }}" rel="stylesheet">
-    <link href="{{ asset('css/contabilidad/detalles-accessibility.css') }}" rel="stylesheet">
-    <link href="{{ asset('css/contabilidad/detalles-master.css') }}" rel="stylesheet">
 @endpush
 
 <!-- 4. Contenido Principal -->

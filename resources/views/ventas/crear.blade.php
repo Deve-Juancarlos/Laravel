@@ -10,163 +10,11 @@
 
 @push('styles')
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-    <style>
-        /* Select2 Personalizado */
-        .select2-container--default .select2-selection--single {
-            height: 45px;
-            border: 2px solid #e0e0e0;
-            border-radius: 10px;
-            padding: 8px 15px;
-            transition: all 0.3s ease;
-        }
-        .select2-container--default .select2-selection--single:hover {
-            border-color: #667eea;
-        }
-        .select2-container--default .select2-selection--single .select2-selection__arrow {
-            height: 43px;
-        }
-        .select2-container { width: 100% !important; }
-        .select2-dropdown {
-            border: 2px solid #667eea;
-            border-radius: 10px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
-        }
-
-        /* Tarjetas de Paso */
-        .paso-card {
-            border: none;
-            border-radius: 15px;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.08);
-            transition: all 0.3s ease;
-            opacity: 0.5;
-            pointer-events: none;
-        }
-        .paso-card.active {
-            opacity: 1;
-            pointer-events: all;
-            box-shadow: 0 8px 30px rgba(102, 126, 234, 0.2);
-        }
-        .paso-card .card-header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border-radius: 15px 15px 0 0 !important;
-            padding: 1.25rem;
-        }
-        .paso-card.active .card-header {
-            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
-        }
-
-        /* Resumen Cliente */
-        #resumenCliente {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            border-radius: 15px;
-            padding: 1.5rem;
-            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.3);
-        }
-
-        /* Formulario de Productos */
-        .producto-form-card {
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-            border: none;
-            border-radius: 15px;
-            padding: 1.5rem;
-        }
-
-        /* Tabla de Items */
-        .table-items {
-            border-radius: 10px;
-            overflow: hidden;
-        }
-        .table-items thead {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-        }
-        .table-items tbody tr {
-            transition: all 0.2s ease;
-        }
-        .table-items tbody tr:hover {
-            background-color: #f8f9fa;
-            transform: scale(1.01);
-        }
-        .table-items tfoot {
-            background-color: #f8f9fa;
-            font-weight: bold;
-        }
-
-        /* Botones */
-        .btn-eliminar-item {
-            padding: 0.35rem 0.65rem;
-            font-size: 0.8rem;
-            border-radius: 8px;
-        }
-        .btn-submit-final {
-            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
-            border: none;
-            padding: 1rem 3rem;
-            font-size: 1.1rem;
-            border-radius: 50px;
-            box-shadow: 0 5px 20px rgba(56, 239, 125, 0.4);
-            transition: all 0.3s ease;
-        }
-        .btn-submit-final:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 30px rgba(56, 239, 125, 0.6);
-        }
-
-        /* Indicador de Pasos */
-        .paso-indicator {
-            display: flex;
-            justify-content: center;
-            margin-bottom: 2rem;
-        }
-        .paso-indicator-item {
-            flex: 1;
-            max-width: 200px;
-            text-align: center;
-            position: relative;
-        }
-        .paso-indicator-item .numero {
-            width: 50px;
-            height: 50px;
-            background: #e0e0e0;
-            border-radius: 50%;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            font-size: 1.2rem;
-            color: #999;
-            transition: all 0.3s ease;
-        }
-        .paso-indicator-item.active .numero {
-            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
-            color: white;
-            box-shadow: 0 5px 15px rgba(56, 239, 125, 0.4);
-        }
-        .paso-indicator-item .texto {
-            display: block;
-            margin-top: 0.5rem;
-            font-size: 0.9rem;
-            color: #999;
-        }
-        .paso-indicator-item.active .texto {
-            color: #11998e;
-            font-weight: bold;
-        }
-
-        /* Stock Disponible */
-        #stockDisponible {
-            color: #38ef7d;
-            font-weight: bold;
-        }
-    </style>
+    <link rel="stylesheet" href="{{ asset('css/ventas/crear.css') }}">    
 @endpush
 
 @section('content')
 
-{{-- Indicador de Pasos --}}
 <div class="paso-indicator">
     <div class="paso-indicator-item {{ $carrito && $carrito['cliente'] ? 'active' : '' }}" id="indicador-paso1">
         <span class="numero">1</span>
@@ -187,7 +35,6 @@
         <form action="{{ route('contador.facturas.store') }}" method="POST" id="formVentaFinal">
             @csrf
 
-            {{-- PASO 1: Seleccionar Cliente --}}
             <div class="card paso-card active mb-4" id="paso1_cliente">
                 <div class="card-header">
                     <h5 class="card-title m-0">
@@ -239,7 +86,6 @@
                 </div>
             </div>
 
-            {{-- PASO 2: Añadir Productos --}}
             <div class="card paso-card {{ $carrito ? 'active' : '' }} mb-4" id="paso2_items">
                 <div class="card-header">
                     <h5 class="card-title m-0">
@@ -249,7 +95,6 @@
                 </div>
                 <div class="card-body">
                     
-                    {{-- Formulario para Añadir Productos --}}
                     <div class="producto-form-card mb-4">
                         <div class="row g-3">
                             <div class="col-md-6">
@@ -305,14 +150,12 @@
                                 </button>
                             </div>
                             
-                            {{-- Campos ocultos --}}
                             <input type="hidden" id="itemCosto">
                             <input type="hidden" id="itemVencimiento">
                             <input type="hidden" id="itemUnimed">
                         </div>
                     </div>
 
-                    {{-- Tabla de Items del Carrito --}}
                     <div class="table-responsive">
                         <table class="table table-items table-sm mb-0">
                             <thead>
@@ -375,8 +218,7 @@
                     </div>
                 </div>
             </div>
-
-            {{-- PASO 3: Condiciones de Venta y Finalizar --}}
+       
             <div class="card paso-card {{ $carrito && $carrito['items']->isNotEmpty() ? 'active' : '' }} mb-4" id="paso3_pago">
                 <div class="card-header">
                     <h5 class="card-title m-0">
@@ -470,17 +312,13 @@
         const URL_CARRITO_PAGO = "{{ route('contador.facturas.carrito.pago') }}";
         const TOKEN = '{{ csrf_token() }}';
 
-        // Variable global para almacenar información del cliente
         let clienteActual = null;
 
-        // Inicializar cliente si existe en el carrito
         @if($carrito && $carrito['cliente'])
             clienteActual = @json($carrito['cliente']);
         @endif
 
-        // ========================================
-        // 1. BUSCADOR DE CLIENTES
-        // ========================================
+        
         $('#selectCliente').select2({
             placeholder: 'Escriba para buscar cliente...',
             minimumInputLength: 3,

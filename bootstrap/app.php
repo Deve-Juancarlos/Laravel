@@ -24,8 +24,6 @@ return Application::configure(basePath: dirname(__DIR__))
             'security' => SecurityMiddleware::class,
         ]);
 
-        
-        $middleware->prepend(SecurityMiddleware::class);
 
     })
     ->withExceptions(function (Exceptions $exceptions): void {

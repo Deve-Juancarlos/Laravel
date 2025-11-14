@@ -7,10 +7,17 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Config;
 use Carbon\Carbon;
+use App\Services\Contabilidad\CajaService;
 
 class ContabilidadService
+
 {
+    public function __construct(CajaService $cajaService)
+    {
+        $this->cajaService = $cajaService;
+    }
     protected $connection = 'sqlsrv';
+    protected $cajaService;
 
     
     protected function generarNumeroAsiento(Carbon $fecha): string
@@ -309,17 +316,19 @@ class ContabilidadService
         int $userId
     ): int {
         
-        // 1. --- OBTENER CUENTAS ---
-        $ctaCompra     = Config::get('contabilidad.cuentas.compras.compras_mercaderia');
-        $ctaIgv        = Config::get('contabilidad.cuentas.compras.igv_compras');
-        $ctaPorPagar   = Config::get('contabilidad.cuentas.compras.facturas_por_pagar');
-        $ctaAlmacen    = Config::get('contabilidad.cuentas.compras.almacen_mercaderia');
-        $ctaVariacion  = Config::get('contabilidad.cuentas.compras.variacion_stock');
+        Log::info("Motor Contable (Compra): Iniciando asiento para Factura {$nroFacturaProveedor}");
+
+        // 1. --- OBTENER CUENTAS (Asumidas) ---
+        $ctaCompra    = '601101'; // Compras Mercadería
+        $ctaIgv       = '401101'; // IGV Compras
+        $ctaPorPagar  = '421201'; // Facturas por Pagar
+        $ctaAlmacen   = '201101'; // Mercadería Almacén
+        $ctaVariacion = '611101'; // Variación de Stock
 
         // 2. --- Glosa y Totales ---
         $glosa = "Provisión Compra s/ Factura {$nroFacturaProveedor} - Prov: {$proveedor->RazonSocial}";
         
-        // El asiento contable completo (provisión + destino) debe sumar:
+        // El asiento (provisión + destino) suma:
         $totalDebe  = round($subtotal + $igv + $subtotal, 2);
         $totalHaber = round($total + $subtotal, 2);
 
@@ -333,84 +342,80 @@ class ContabilidadService
 
         try {
             // 3. --- Insertar Cabecera (libro_diario) ---
-            $sqlCabecera = "
-                INSERT INTO libro_diario 
-                (numero, fecha, glosa, total_debe, total_haber, balanceado, estado, usuario_id, created_at, updated_at) 
-                OUTPUT INSERTED.id
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-                
-            $paramsCabecera = [
-                $this->generarNumeroAsiento($fechaFactura),
-                $fechaFactura,
-                substr($glosa, 0, 500),
-                (float) $totalDebe,
-                (float) $totalHaber,
-                1, 'ACTIVO', $userId,
-                now(), now()
-            ];
+            $numeroAsiento = $this->cajaService->obtenerSiguienteNumeroAsiento($fechaFactura->format('Y-m-d'));
             
-            $resultado = DB::connection($this->connection)->select($sqlCabecera, $paramsCabecera);
-            $asientoId = $resultado[0]->id;
+            $asientoId = DB::connection($this->connection)->table('libro_diario')->insertGetId([
+                'numero' => $numeroAsiento,
+                'fecha' => $fechaFactura,
+                'glosa' => substr($glosa, 0, 500),
+                'total_debe' => (float) $totalDebe,
+                'total_haber' => (float) $totalHaber,
+                'balanceado' => 1,
+                'estado' => 'ACTIVO',
+                'usuario_id' => $userId,
+                'created_at' => now(),
+                'updated_at' => now()
+            ]);
 
             if (!$asientoId) throw new \Exception("No se pudo obtener el ID del asiento de compra.");
 
             // 4. --- Insertar Detalles (libro_diario_detalles) ---
-            $detallesAsiento = [];
-
-            // --- Asiento 1: Provisión (60/40/42) ---
-            $detallesAsiento[] = [
-                'asiento_id' => $asientoId, 'cuenta_contable' => $ctaCompra,
-                'debe' => (float) $subtotal, 'haber' => 0.0,
-                'concepto' => "Compra de Mercadería s/ Factura {$nroFacturaProveedor}"
-            ];
-            $detallesAsiento[] = [
-                'asiento_id' => $asientoId, 'cuenta_contable' => $ctaIgv,
-                'debe' => (float) $igv, 'haber' => 0.0,
-                'concepto' => "IGV Crédito Fiscal s/ Factura {$nroFacturaProveedor}"
-            ];
-            $detallesAsiento[] = [
-                'asiento_id' => $asientoId, 'cuenta_contable' => $ctaPorPagar,
-                'debe' => 0.0, 'haber' => (float) $total,
-                'concepto' => "Provisión por Pagar s/ Factura {$nroFacturaProveedor}"
+            $now = now();
+            $detallesAsiento = [
+                // --- Asiento 1: Provisión (60/40/42) ---
+                [
+                    'asiento_id' => $asientoId, 'cuenta_contable' => $ctaCompra,
+                    'debe' => (float) $subtotal, 'haber' => 0.0,
+                    'concepto' => "Compra Mercadería s/ F/{$nroFacturaProveedor}",
+                    'documento_referencia' => $nroFacturaProveedor,
+                    'created_at' => $now, 'updated_at' => $now
+                ],
+                [
+                    'asiento_id' => $asientoId, 'cuenta_contable' => $ctaIgv,
+                    'debe' => (float) $igv, 'haber' => 0.0,
+                    'concepto' => "IGV Crédito Fiscal s/ F/{$nroFacturaProveedor}",
+                    'documento_referencia' => $nroFacturaProveedor,
+                    'created_at' => $now, 'updated_at' => $now
+                ],
+                [
+                    'asiento_id' => $asientoId, 'cuenta_contable' => $ctaPorPagar,
+                    'debe' => 0.0, 'haber' => (float) $total,
+                    'concepto' => "Provisión por Pagar s/ F/{$nroFacturaProveedor}",
+                    'documento_referencia' => $nroFacturaProveedor,
+                    'created_at' => $now, 'updated_at' => $now
+                ],
+                
+                
+                [
+                    'asiento_id' => $asientoId, 'cuenta_contable' => $ctaAlmacen,
+                    'debe' => (float) $subtotal, 'haber' => 0.0,
+                    'concepto' => "Ingreso a Almacén s/ F/{$nroFacturaProveedor}",
+                    'documento_referencia' => $nroFacturaProveedor,
+                    'created_at' => $now, 'updated_at' => $now
+                ],
+                [
+                    'asiento_id' => $asientoId, 'cuenta_contable' => $ctaVariacion,
+                    'debe' => 0.0, 'haber' => (float) $subtotal,
+                    'concepto' => "Variación de Existencias s/ F/{$nroFacturaProveedor}",
+                    'documento_referencia' => $nroFacturaProveedor,
+                    'created_at' => $now, 'updated_at' => $now
+                ]
             ];
             
-            // --- Asiento 2: Destino (20/61) ---
-            $detallesAsiento[] = [
-                'asiento_id' => $asientoId, 'cuenta_contable' => $ctaAlmacen,
-                'debe' => (float) $subtotal, 'haber' => 0.0,
-                'concepto' => "Ingreso a Almacén s/ Factura {$nroFacturaProveedor}"
-            ];
-            $detallesAsiento[] = [
-                'asiento_id' => $asientoId, 'cuenta_contable' => $ctaVariacion,
-                'debe' => 0.0, 'haber' => (float) $subtotal,
-                'concepto' => "Variación de Existencias s/ Factura {$nroFacturaProveedor}"
-            ];
-
-            // 5. --- Guardar Detalles ---
-            $now = now();
-            foreach ($detallesAsiento as &$detalle) {
-                // Filtramos líneas con 0 (ej. compras exoneradas)
-                if ($detalle['debe'] > 0 || $detalle['haber'] > 0) {
-                    $detalle['created_at'] = $now;
-                    $detalle['updated_at'] = $now;
-                    $detalle['documento_referencia'] = $nroFacturaProveedor;
-                } else {
-                    $detalle = null; // Marcamos para eliminar
-                }
-            }
-            $detallesFiltrados = array_filter($detallesAsiento);
+          
+            $detallesFiltrados = array_filter($detallesAsiento, function($d) {
+                return $d['debe'] > 0 || $d['haber'] > 0;
+            });
 
             DB::connection($this->connection)->table('libro_diario_detalles')->insert($detallesFiltrados);
             
-            Log::info("Motor Contable: Asiento {$asientoId} creado para Compra {$nroFacturaProveedor}");
+            Log::info("Motor Contable: Asiento {$numeroAsiento} ({$asientoId}) creado para Compra {$nroFacturaProveedor}");
+
 
             return $asientoId;
 
         } catch (\Exception $e) {
-            Log::error("Error en Motor Contable (Compra): " . $e->getMessage(), [
-                'factura' => $nroFacturaProveedor, 
-                'trace' => $e->getTraceAsString()
-            ]);
+            Log::error("Error en Motor Contable (Compra): " . $e->getMessage(), ['factura' => $nroFacturaProveedor]);
             throw new \Exception("Error al registrar asiento contable de compra: " . $e->getMessage());
         }
     }

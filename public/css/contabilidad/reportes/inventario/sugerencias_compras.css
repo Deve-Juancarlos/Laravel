@@ -1,0 +1,425 @@
+/*
+ * =====================================================
+ * MÓDULO DE REPORTES - SUGERENCIAS DE COMPRA
+ * Estilos profesionales para reposición de stock
+ * =====================================================
+ */
+
+/* =====================================================
+   1. VARIABLES Y CONFIGURACIÓN BASE
+   ===================================================== */
+:root {
+    /* Paleta Profesional Empresarial */
+    --sug-primary: #1e3a5f;
+    --sug-primary-dark: #152a45;
+    --sug-primary-light: #2d4d7a;
+    --sug-secondary: #455a64;
+    
+    /* Colores Funcionales */
+    --sug-success: #2e7d32;
+    --sug-success-light: #e8f5e9;
+    --sug-danger: #c62828;
+    --sug-danger-light: #ffebee;
+    --sug-info: #0277bd;
+    --sug-info-light: #e1f5fe;
+    --sug-warning: #f57c00;
+    --sug-warning-light: #fff3e0;
+    
+    /* Colores Neutros */
+    --sug-text-primary: #212529;
+    --sug-text-secondary: #6c757d;
+    --sug-text-muted: #868e96;
+    --sug-border: #dee2e6;
+    --sug-border-light: #e9ecef;
+    --sug-bg: #f8f9fa;
+    --sug-bg-white: #ffffff;
+    --sug-bg-dark: #f1f3f5;
+    
+    /* Espaciado Consistente */
+    --spacing-xs: 0.5rem;
+    --spacing-sm: 0.75rem;
+    --spacing-md: 1rem;
+    --spacing-lg: 1.5rem;
+    --spacing-xl: 2rem;
+    
+    /* Bordes y Sombras Sutiles */
+    --radius-sm: 4px;
+    --radius-md: 6px;
+    --radius-lg: 8px;
+    --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.05);
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
+    --shadow-md: 0 2px 6px rgba(0, 0, 0, 0.1);
+    --shadow-lg: 0 4px 12px rgba(0, 0, 0, 0.12);
+    
+    /* Transiciones */
+    --transition: all 0.2s ease;
+}
+
+/* =====================================================
+   2. CONTENEDOR PRINCIPAL
+   ===================================================== */
+.sugerenciascompra-container {
+    padding: 0;
+}
+
+/* =====================================================
+   3. TARJETA PRINCIPAL
+   ===================================================== */
+.sugerenciascompra-container .card {
+    border: 1px solid var(--sug-border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    background-color: var(--sug-bg-white);
+}
+
+.sugerenciascompra-container .card-header {
+    background: linear-gradient(135deg, #1e3a5f 0%, #152a45 100%);
+    border-bottom: none;
+    padding: var(--spacing-lg) var(--spacing-xl);
+}
+
+.sugerenciascompra-container .card-header h4 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--sug-bg-white);
+    margin: 0 0 var(--spacing-xs) 0;
+    display: flex;
+    align-items: center;
+}
+
+.sugerenciascompra-container .card-header h4 i {
+    font-size: 1.25rem;
+    color: var(--sug-bg-white);
+}
+
+.sugerenciascompra-container .card-header small {
+    color: var(--sug-bg-white) !important;
+    font-size: 0.875rem;
+    display: block;
+    margin-top: var(--spacing-xs);
+}
+
+.sugerenciascompra-container .card-header .text-muted {
+    color: var(--sug-bg-white) !important;
+}
+
+.sugerenciascompra-container .card-body {
+    padding: var(--spacing-lg);
+}
+
+/* =====================================================
+   4. TABLA (ESTILO BANCOS)
+   ===================================================== */
+.sugerenciascompra-container .table-responsive {
+    border-radius: var(--radius-md);
+    overflow: hidden;
+}
+
+.sugerenciascompra-container .table {
+    margin-bottom: 0;
+}
+
+.sugerenciascompra-container .table thead th {
+    background-color: var(--sug-bg-dark);
+    color: var(--sug-text-primary);
+    font-weight: 600;
+    font-size: 0.8125rem;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    padding: var(--spacing-md) var(--spacing-md);
+    border-bottom: 2px solid var(--sug-border);
+    white-space: nowrap;
+    vertical-align: middle;
+}
+
+.sugerenciascompra-container .table thead .table-dark th {
+    background-color: var(--sug-primary-dark);
+    color: var(--sug-bg-white);
+}
+
+.sugerenciascompra-container .table thead .bg-primary {
+    background: linear-gradient(135deg, var(--sug-primary) 0%, var(--sug-primary-dark) 100%) !important;
+    color: var(--sug-bg-white) !important;
+}
+
+.sugerenciascompra-container .table tbody td {
+    padding: var(--spacing-md) var(--spacing-md);
+    vertical-align: middle;
+    font-size: 0.875rem;
+    color: var(--sug-text-primary);
+    border-bottom: 1px solid var(--sug-border-light);
+    background-color: var(--sug-bg-white);
+}
+
+.sugerenciascompra-container .table tbody tr:hover {
+    background-color: var(--sug-bg);
+}
+
+.sugerenciascompra-container .table tbody tr:hover td {
+    background-color: var(--sug-bg);
+}
+
+.sugerenciascompra-container .table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.sugerenciascompra-container .table-bordered {
+    border: 1px solid var(--sug-border);
+}
+
+.sugerenciascompra-container .table-bordered th,
+.sugerenciascompra-container .table-bordered td {
+    border: 1px solid var(--sug-border-light);
+}
+
+/* =====================================================
+   5. COLORES DE TEXTO Y BACKGROUNDS
+   ===================================================== */
+.sugerenciascompra-container .text-success {
+    color: var(--sug-success) !important;
+}
+
+.sugerenciascompra-container .text-danger {
+    color: var(--sug-danger) !important;
+}
+
+.sugerenciascompra-container .text-warning {
+    color: var(--sug-warning) !important;
+}
+
+.sugerenciascompra-container .text-muted {
+    color: var(--sug-text-muted) !important;
+}
+
+.sugerenciascompra-container .bg-light {
+    background-color: var(--sug-bg) !important;
+}
+
+.sugerenciascompra-container .bg-primary {
+    background-color: var(--sug-primary) !important;
+}
+
+/* =====================================================
+   6. ESTILOS ESPECÍFICOS DE CONTENIDO
+   ===================================================== */
+.sugerenciascompra-container .text-end {
+    text-align: right !important;
+}
+
+.sugerenciascompra-container .text-center {
+    text-align: center !important;
+}
+
+.sugerenciascompra-container .fw-bold {
+    font-weight: 600 !important;
+}
+
+.sugerenciascompra-container .fs-5 {
+    font-size: 1.125rem !important;
+}
+
+.sugerenciascompra-container small {
+    font-size: 0.8125rem;
+}
+
+/* =====================================================
+   7. ESTADO VACÍO
+   ===================================================== */
+.sugerenciascompra-container .table tbody td[colspan] {
+    text-align: center;
+    padding: var(--spacing-xl) !important;
+    color: var(--sug-text-muted);
+    font-size: 1rem;
+    background-color: var(--sug-bg) !important;
+}
+
+.sugerenciascompra-container .table tbody td[colspan] i {
+    margin-right: var(--spacing-xs);
+    font-size: 1.125rem;
+}
+
+.sugerenciascompra-container .table tbody td[colspan] i.text-success {
+    color: var(--sug-success) !important;
+}
+
+/* =====================================================
+   8. PAGINACIÓN (ESTILO BANCOS)
+   ===================================================== */
+.sugerenciascompra-container .pagination {
+    margin-top: var(--spacing-lg);
+    margin-bottom: 0;
+}
+
+.sugerenciascompra-container .pagination .page-link {
+    color: var(--sug-primary);
+    border-color: var(--sug-border);
+    padding: var(--spacing-xs) var(--spacing-sm);
+    font-size: 0.875rem;
+    transition: var(--transition);
+}
+
+.sugerenciascompra-container .pagination .page-link:hover {
+    background-color: var(--sug-bg);
+    border-color: var(--sug-border);
+}
+
+.sugerenciascompra-container .pagination .page-item.active .page-link {
+    background-color: var(--sug-primary);
+    border-color: var(--sug-primary);
+}
+
+.sugerenciascompra-container .pagination .page-item.disabled .page-link {
+    color: var(--sug-text-muted);
+    border-color: var(--sug-border);
+}
+
+/* =====================================================
+   9. UTILIDADES
+   ===================================================== */
+.sugerenciascompra-container .shadow-sm {
+    box-shadow: var(--shadow-sm) !important;
+}
+
+.sugerenciascompra-container .mb-0 {
+    margin-bottom: 0 !important;
+}
+
+.sugerenciascompra-container .mb-4 {
+    margin-bottom: var(--spacing-lg) !important;
+}
+
+.sugerenciascompra-container .mt-3 {
+    margin-top: var(--spacing-md) !important;
+}
+
+.sugerenciascompra-container .mt-4 {
+    margin-top: var(--spacing-lg) !important;
+}
+
+.sugerenciascompra-container .p-3 {
+    padding: var(--spacing-md) !important;
+}
+
+.sugerenciascompra-container .p-4 {
+    padding: var(--spacing-lg) !important;
+}
+
+.sugerenciascompra-container .border {
+    border: 1px solid var(--sug-border) !important;
+}
+
+.sugerenciascompra-container .rounded {
+    border-radius: var(--radius-md) !important;
+}
+
+.sugerenciascompra-container .d-flex {
+    display: flex !important;
+}
+
+.sugerenciascompra-container .justify-content-center {
+    justify-content: center !important;
+}
+
+/* =====================================================
+   10. RESPONSIVE DESIGN
+   ===================================================== */
+@media (max-width: 992px) {
+    .sugerenciascompra-container .card-header {
+        padding: var(--spacing-md) var(--spacing-lg);
+    }
+    
+    .sugerenciascompra-container .card-header h4 {
+        font-size: 1.125rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .sugerenciascompra-container .card-header {
+        padding: var(--spacing-md);
+    }
+    
+    .sugerenciascompra-container .card-header h4 {
+        font-size: 1rem;
+    }
+    
+    .sugerenciascompra-container .card-header small {
+        font-size: 0.8125rem;
+    }
+    
+    .sugerenciascompra-container .card-body {
+        padding: var(--spacing-md);
+    }
+    
+    .sugerenciascompra-container .table thead th,
+    .sugerenciascompra-container .table tbody td {
+        padding: var(--spacing-xs) var(--spacing-sm);
+        font-size: 0.8125rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .sugerenciascompra-container .card-header h4 {
+        font-size: 0.9375rem;
+    }
+    
+    .sugerenciascompra-container .card-header small {
+        font-size: 0.75rem;
+    }
+    
+    .sugerenciascompra-container .table thead th {
+        font-size: 0.75rem;
+    }
+    
+    .sugerenciascompra-container .fs-5 {
+        font-size: 1rem !important;
+    }
+}
+
+
+/* =====================================================
+   3. NAVEGACIÓN DE REPORTES (ESTILO BANCOS)
+   ===================================================== */
+.sugerenciascompra-container .reportes-nav-wrapper {
+    background-color: var(--sug-bg-white);
+    border: 1px solid var(--sug-border);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-xs);
+    box-shadow: var(--shadow-xs);
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: var(--spacing-lg);
+}
+
+.sugerenciascompra-container .reportes-nav-wrapper .nav-item {
+    color: var(--sug-text-secondary);
+    font-weight: 500;
+    font-size: 0.8125rem;
+    padding: var(--spacing-sm) var(--spacing-xs);
+    border-radius: var(--radius-md);
+    transition: var(--transition);
+    border: none;
+    white-space: nowrap;
+    flex: 1;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.375rem;
+    text-decoration: none;
+}
+
+.sugerenciascompra-container .reportes-nav-wrapper .nav-item:hover {
+    background-color: var(--sug-bg);
+    color: var(--sug-primary);
+}
+
+.sugerenciascompra-container .reportes-nav-wrapper .nav-item.active {
+    background-color: var(--sug-primary);
+    color: var(--sug-bg-white);
+    font-weight: 600;
+}
+
+.sugerenciascompra-container .reportes-nav-wrapper .nav-item i {
+    font-size: 0.8125rem;
+    flex-shrink: 0;
+}

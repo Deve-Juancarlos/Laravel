@@ -8,48 +8,7 @@
 @endsection
 
 @push('styles')
-<style>
-    .stat-card {
-        border-left: 4px solid #0d6efd;
-        transition: all 0.3s ease;
-    }
-    .stat-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 8px 20px rgba(0,0,0,0.15);
-    }
-    .stat-icon {
-        font-size: 2.5rem;
-        opacity: 0.3;
-    }
-    .badge-documento {
-        font-size: 0.85rem;
-        padding: 0.35rem 0.65rem;
-    }
-    .table-ventas tbody tr {
-        transition: all 0.2s ease;
-    }
-    .table-ventas tbody tr:hover {
-        background-color: #f8f9fa;
-        transform: scale(1.01);
-    }
-    .btn-action {
-        padding: 0.4rem 0.8rem;
-        font-size: 0.875rem;
-    }
-    .search-section {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        border-radius: 15px;
-        padding: 2rem;
-        color: white;
-        margin-bottom: 2rem;
-    }
-    .search-section .form-control,
-    .search-section .form-select {
-        border: none;
-        border-radius: 10px;
-        padding: 0.75rem;
-    }
-</style>
+    <link rel="stylesheet" href="{{ asset('css/ventas/index.css') }}">
 @endpush
 
 @section('content')

@@ -100,7 +100,6 @@ class InventarioController extends Controller
         $request->validate([
             // Campos de Productos
             'CodPro' => 'required|string|max:10|unique:sqlsrv.Productos,CodPro',
-            'CodBar' => 'nullable|string|max:15',
             'Nombre' => 'required|string|max:70',
             'CodProv' => 'nullable|string|max:4', // (Debería validar contra Proveedores si existe)
             'Costo' => 'required|numeric|min:0',

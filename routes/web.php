@@ -40,6 +40,30 @@ Route::get('/register', [RegisterController::class, 'showRegistrationForm'])->na
 Route::post('/register', [RegisterController::class, 'register'])->name('register.post');
 Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
+//RUTA PARA CARD DE DESPEDIDA AL CERRAR SESION
+Route::post('/logout', function () {
+    $user = Auth::user(); 
+    $nombre = $user->usuario ?? $user->name ?? 'usuario'; 
+
+    Auth::logout();
+
+    return redirect()->route('logout.message')
+                     ->with('user_name', $nombre);
+})->middleware('auth')->name('logout');
+
+Route::get('/logout-message', function () {
+    return view('auth.logout-message');
+})->name('logout.message');
+
+//RUTA PARA EL MENSAJE DE BIENVENIDA
+Route::get('/welcome-message', function () {
+    return view('auth.welcome-message');
+})->name('welcome.message');
+
+Route::get('/welcome-message', function () {
+    return view('auth.welcome-message');
+})->name('welcome.message');
+
 //RUTAS GENERALES AUTENTICADAS
 Route::middleware('auth')->group(function () {
     Route::get('/dashboard', [ContadorDashboardController::class, 'index'])->name('dashboard');
@@ -56,7 +80,7 @@ Route::middleware('auth')->group(function () {
 });
 
 //RUTAS ADMINISTRADOR
-Route::prefix('admin')->name('admin.')->middleware(['auth', 'check.admin'])->group(function () {
+Route::prefix('admin')->name('admin.')->middleware(['auth'])->group(function () {
     
     // Dashboard Administrativo
     Route::get('/dashboard', [App\Http\Controllers\Admin\DashboardController::class, 'index'])->name('dashboard');
@@ -137,20 +161,20 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'check.admin'])->gro
 });
 
 //RUTAS CONTADOR
-Route::prefix('contador')->name('contador.')->middleware(['auth', 'check.contador'])->group(function () {
+Route::prefix('contador')->name('contador.')->middleware(['auth'])->group(function () {
+
 
     Route::get('/dashboard/contador', [ContadorDashboardController::class, 'contadorDashboard'])->name('dashboard.contador');
     Route::get('/dashboard/get-chart-data', [ContadorDashboardController::class, 'getChartData']);
     Route::get('/api/dashboard/stats', [ContadorDashboardController::class, 'getStats'])->name('api.dashboard.stats'); 
     Route::get('/contador/api/clear-cache', [ContadorDashboardController::class, 'clearCache'])->name('contador.api.clear-cache');
+    Route::post('/contador/api/clear-cache', [ContadorDashboardController::class, 'clearCache'])
+    ->name('contador.clearCache');
 
 
     
     // Rutas "sueltas" (Podrían agruparse mejor en el futuro)
-    Route::get('facturas', [App\Http\Controllers\Ventas\FacturacionController::class, 'index'])->name('facturas.index');
-    Route::get('facturas/create', [App\Http\Controllers\Ventas\FacturacionController::class, 'create'])->name('facturas.create');
-    Route::post('facturas', [App\Http\Controllers\Ventas\FacturacionController::class, 'store'])->name('facturas.store');
-    Route::get('facturas/export', [App\Http\Controllers\Ventas\FacturacionController::class, 'exportar'])->name('facturas.export');
+    
     Route::get('configuracion/usuarios', [App\Http\Controllers\Admin\UsuarioController::class, 'index'])->name('configuracion.usuarios');
     Route::get('configuracion/parametros', [App\Http\Controllers\Admin\UsuarioController::class, 'index'])->name('configuracion.parametros');
     Route::get('configuracion/cambiar-password', [ContadorDashboardController::class, 'index'])->name('configuracion.cambiar-password');
@@ -293,6 +317,7 @@ Route::prefix('contador')->name('contador.')->middleware(['auth', 'check.contado
         Route::post('/guardar', [App\Http\Controllers\Ventas\FacturacionController::class, 'store'])->name('store');
         Route::post('/carrito/agregar', [App\Http\Controllers\Ventas\FacturacionController::class, 'carritoAgregar'])->name('carrito.agregar');
         Route::post('/carrito/pago', [App\Http\Controllers\Ventas\FacturacionController::class, 'carritoActualizarPago'])->name('carrito.pago');
+        Route::post('/carrito/iniciar', [App\Http\Controllers\Ventas\FacturacionController::class, 'carritoIniciar'])->name('carrito.iniciar');
         Route::get('/api/buscar-clientes', [App\Http\Controllers\Ventas\FacturacionController::class, 'buscarClientes'])->name('api.buscarClientes');
         Route::get('/api/buscar-productos', [App\Http\Controllers\Ventas\FacturacionController::class, 'buscarProductos'])->name('api.buscarProductos'); 
         // Rutas con parámetros al final

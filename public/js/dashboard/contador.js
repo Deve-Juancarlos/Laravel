@@ -153,7 +153,8 @@ function initCacheButton() {
         btnClearCache.disabled = true;
 
         // 3. Llamar a la API que definimos en 'routes/web.php'
-        fetch('/contador/api/clear-cache', {
+        fetch('/contador/contador/api/clear-cache', {
+
             method: 'POST',
             headers: {
                 'X-CSRF-TOKEN': csrfToken,

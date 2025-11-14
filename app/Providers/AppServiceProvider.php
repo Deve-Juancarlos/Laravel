@@ -17,14 +17,26 @@ class AppServiceProvider extends ServiceProvider
         
     }
 
-     public function boot(): void
-    {
-        setlocale(LC_TIME, 'es_ES.UTF-8', 'Spanish_Spain', 'es_PE', 'es_ES'); 
-        Carbon::setLocale('es');
-        CarbonImmutable::setLocale('es');
-        CarbonInterval::setLocale('es');
-        CarbonPeriod::setLocale('es');
+    public function boot(): void
+{
+    setlocale(LC_TIME, 'es_ES.UTF-8', 'Spanish_Spain', 'es_PE', 'es_ES');
+    Carbon::setLocale('es');
+    CarbonImmutable::setLocale('es');
+    CarbonInterval::setLocale('es');
+    CarbonPeriod::setLocale('es');
 
-        LibroDiario::observe(LibroDiarioObserver::class);
+    
+    LibroDiario::observe(LibroDiarioObserver::class);
+
+    
+    if ($this->app->environment('local')) {
+        \Illuminate\Support\Facades\Route::get('/clear-cache', function () {
+            \Artisan::call('optimize:clear');
+            return response()->json([
+                'success' => true,
+                'message' => 'Caché limpiada correctamente.'
+            ]);
+        });
     }
+}
 }

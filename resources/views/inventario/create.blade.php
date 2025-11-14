@@ -23,10 +23,6 @@
                             <label for="CodPro" class="form-label">Código Producto <span class="text-danger">*</span></label>
                             <input type="text" class="form-control" id="CodPro" name="CodPro" value="{{ old('CodPro') }}" maxlength="10" required>
                         </div>
-                        <div class="col-md-3 mb-3">
-                            <label for="CodBar" class="form-label">Código de Barras</label>
-                            <input type="text" class="form-control" id="CodBar" name="CodBar" value="{{ old('CodBar') }}" maxlength="15">
-                        </div>
                          <div class="col-md-6 mb-3">
                             <label for="Nombre" class="form-label">Nombre Comercial <span class="text-danger">*</span></label>
                             <input type="text" class="form-control" id="Nombre" name="Nombre" value="{{ old('Nombre') }}" maxlength="70" required>

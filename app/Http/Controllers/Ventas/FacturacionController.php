@@ -36,33 +36,46 @@ class FacturacionController extends Controller
      */
     public function index(Request $request)
     {
-        $query = DB::connection($this->connection)->table('Doccab as dc')
+        $query = DB::connection($this->connection)
+            ->table('Doccab as dc')
             ->join('Clientes as c', 'dc.CodClie', '=', 'c.Codclie')
-            ->whereIn('dc.Tipo', [1, 3]); // Tipo 1=Factura, 3=Boleta
+            ->whereIn('dc.Tipo', [1, 3]);
 
         if ($request->filled('q')) {
-            $query->where('c.Razon', 'like', '%' . $request->q . '%')
-                  ->orWhere('dc.Numero', 'like', '%' . $request->q . '%');
+            $query->where(function($q) use ($request) {
+                $q->where('c.Razon', 'like', '%' . $request->q . '%')
+                ->orWhere('dc.Numero', 'like', '%' . $request->q . '%');
+            });
         }
         if ($request->filled('estado') && $request->estado == 'anuladas') {
             $query->where('dc.Eliminado', 1);
         } else {
-            $query->where('dc.Eliminado', 0); // Por defecto solo activas
+            $query->where('dc.Eliminado', 0);
         }
 
         $facturas = $query->select(
-                'dc.Numero', 'dc.Tipo', 'dc.Fecha', 'dc.FechaV', 'c.Razon as Cliente',
-                'dc.Total', 'dc.Moneda', 'dc.Eliminado'
-            )
-            ->orderBy('dc.Fecha', 'desc')
-            ->orderBy('dc.Numero', 'desc')
-            ->paginate(25);
+            'dc.Numero', 'dc.Tipo', 'dc.Fecha', 'dc.FechaV', 'c.Razon as Cliente',
+            'dc.Total', 'dc.Moneda', 'dc.Eliminado'
+        )
+        ->orderBy('dc.Fecha', 'desc')
+        ->orderBy('dc.Numero', 'desc')
+        ->paginate(25);
+
+        // Estadísticas de ejemplo:
+        $estadisticas = [
+        'ventas_hoy' => 0, // Cambia a tu consulta si quieres
+        'total_mes' => 0,
+        'ventas_anuladas' => 0
+        ];
 
         return view('ventas.index', [
             'facturas' => $facturas,
-            'filtros' => $request->only(['q', 'estado'])
+            'filtros' => $request->only(['q', 'estado']),
+            'estadisticas' => $estadisticas // <- agregado
         ]);
     }
+
+
 
     /**
      * Muestra la vista de "Nueva Venta"
@@ -438,7 +451,8 @@ class FacturacionController extends Controller
     public function carritoEliminar($itemId)
     {
         $carrito = $this->carritoService->eliminarItem($itemId);
-        return response()->json(['success' => true, 'message' => 'Producto eliminado', 'carrito' => $carrito]);
+        return response()->json(['success' => true, 'message' => 'Producto eliminado', 'carrito' => $carrito])
+        ;
     }
     
     public function carritoActualizarPago(Request $request)
@@ -447,4 +461,70 @@ class FacturacionController extends Controller
         $carrito = $this->carritoService->actualizarPago($pagoData);
         return response()->json(['success' => true, 'message' => 'Datos de pago actualizados', 'carrito' => $carrito]);
     }
+/**
+ * ✅ NUEVO: Iniciar carrito vía AJAX (sin recargar página)
+ */
+    public function carritoIniciar(Request $request)
+    {
+        try {
+            $clienteId = $request->input('cliente_id');
+            
+            if (!$clienteId) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'ID de cliente es requerido'
+                ], 400);
+            }
+            
+            // Buscar cliente (usa tu misma conexión)
+            $cliente = DB::connection($this->connection)
+                ->table('Clientes')
+                ->where('Codclie', $clienteId)
+                ->first();
+            
+            if (!$cliente) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Cliente no encontrado'
+                ], 404);
+            }
+            
+            // Iniciar carrito usando tu servicio
+            $carrito = $this->carritoService->iniciar($cliente);
+            
+            // Determinar tipo de documento (tu lógica)
+            $tipoDocAutomatico = 1;
+            if ($cliente->Documento) {
+                $longitudDoc = strlen(trim($cliente->Documento));
+                if ($longitudDoc === 8) {
+                    $tipoDocAutomatico = 3; // Boleta
+                }
+            }
+            
+            // Actualizar pago usando tu servicio
+            $carrito = $this->carritoService->actualizarPago([
+                'tipo_doc' => $tipoDocAutomatico,
+                'condicion' => 'contado',
+                'fecha_venc' => now()->addDays(30)->format('Y-m-d'),
+                'vendedor_id' => $cliente->Vendedor ?? null,
+                'moneda' => 1
+            ]);
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'Carrito iniciado correctamente',
+                'carrito' => $carrito,
+                'cliente' => $cliente
+            ]);
+            
+        } catch (\Exception $e) {
+            Log::error('Error al iniciar carrito: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al iniciar carrito: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+
 }

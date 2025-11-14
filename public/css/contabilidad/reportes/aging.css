@@ -1,336 +1,840 @@
+/*
+ * =====================================================
+ * MÓDULO DE REPORTES - ANTIGÜEDAD DE CUENTAS POR COBRAR
+ * Estilos profesionales para gestión de cartera
+ * =====================================================
+ */
+
+/* =====================================================
+   1. VARIABLES Y CONFIGURACIÓN BASE
+   ===================================================== */
 :root {
-    --color-teal-start: #26a69a;
-    --color-teal-light: #4fbbb2;
-    --color-blue-end: #1d4472;
-    --color-button-bg: #00c289;
-    --color-button-hover: #00a87a;
-    --color-text-light: #ffffff;
-    --color-text-muted: #e8f4f2;
-    --color-shadow: rgba(0, 0, 0, 0.15);
-    --color-shadow-hover: rgba(0, 0, 0, 0.25);
-    --color-nav-bg: linear-gradient(135deg, var(--color-teal-start) 0%, var(--color-blue-end) 100%);
-    --color-nav-active: linear-gradient(135deg, #00897b 0%, #1565c0 100%);
-    --color-border-light: rgba(255, 255, 255, 0.1);
+    /* Paleta Profesional Empresarial */
+    --aging-primary: #1e3a5f;
+    --aging-primary-dark: #152a45;
+    --aging-primary-light: #2d4d7a;
+    --aging-secondary: #455a64;
+    
+    /* Colores por Estado de Antigüedad */
+    --aging-vigente: #2e7d32;
+    --aging-vigente-light: #e8f5e9;
+    --aging-rango1: #0277bd;
+    --aging-rango1-light: #e1f5fe;
+    --aging-rango2: #f57c00;
+    --aging-rango2-light: #fff3e0;
+    --aging-rango3: #d32f2f;
+    --aging-rango3-light: #ffebee;
+    --aging-rango4: #6a1b9a;
+    --aging-rango4-light: #f3e5f5;
+    
+    /* Colores Funcionales */
+    --aging-success: #2e7d32;
+    --aging-success-light: #e8f5e9;
+    --aging-danger: #c62828;
+    --aging-danger-light: #ffebee;
+    --aging-info: #0277bd;
+    --aging-info-light: #e1f5fe;
+    --aging-warning: #f57c00;
+    --aging-warning-light: #fff3e0;
+    
+    /* Colores Neutros */
+    --aging-text-primary: #212529;
+    --aging-text-secondary: #6c757d;
+    --aging-text-muted: #868e96;
+    --aging-border: #dee2e6;
+    --aging-border-light: #e9ecef;
+    --aging-bg: #f8f9fa;
+    --aging-bg-white: #ffffff;
+    --aging-bg-dark: #f1f3f5;
+    
+    /* Espaciado Consistente */
+    --spacing-xs: 0.5rem;
+    --spacing-sm: 0.75rem;
+    --spacing-md: 1rem;
+    --spacing-lg: 1.5rem;
+    --spacing-xl: 2rem;
+    --spacing-xxl: 3rem;
+    
+    /* Bordes y Sombras Sutiles */
+    --radius-sm: 4px;
+    --radius-md: 6px;
+    --radius-lg: 8px;
+    --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.05);
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
+    --shadow-md: 0 2px 6px rgba(0, 0, 0, 0.1);
+    --shadow-lg: 0 4px 12px rgba(0, 0, 0, 0.12);
+    
+    /* Transiciones */
+    --transition: all 0.2s ease;
 }
 
-.card {
-    border-radius: 12px;
-    box-shadow: 0 4px 12px var(--color-shadow);
-    overflow: hidden;
-}
-
-#reportesTab {
-    background: var(--color-nav-bg);
-    border-radius: 12px;
-    margin: 0;
+/* =====================================================
+   2. CONTENEDOR PRINCIPAL
+   ===================================================== */
+.reportes-container {
     padding: 0;
-    box-shadow: 0 2px 8px var(--color-shadow);
+    max-width: 100%;
 }
 
-.nav-tabs {
+.reportes-container .container-fluid {
+    padding-left: 0;
+    padding-right: 0;
+}
+
+/* =====================================================
+   3. NAVEGACIÓN DE REPORTES (ESTILO BANCOS)
+   ===================================================== */
+.reportes-nav-wrapper {
+    background-color: var(--aging-bg-white);
+    border: 1px solid var(--aging-border);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-xs);
+    box-shadow: var(--shadow-xs);
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: var(--spacing-lg);
+    width: 100%;
+}
+
+.reportes-nav-wrapper .nav-item {
+    color: var(--aging-text-secondary);
+    font-weight: 500;
+    font-size: 0.8125rem;
+    padding: var(--spacing-sm) var(--spacing-xs);
+    border-radius: var(--radius-md);
+    transition: var(--transition);
     border: none;
-    margin: 0;
-    padding: 0;
-}
-
-.nav-item {
+    white-space: nowrap;
     flex: 1;
-    border: none;
-}
-
-.nav-link {
-    color: var(--color-text-muted) !important;
-    border: none;
-    border-radius: 0;
-    padding: 1.25rem 1rem;
-    margin: 0;
-    font-weight: 600;
-    font-size: 1rem;
-    text-decoration: none;
-    transition: all 0.3s ease;
-    position: relative;
-    background: transparent;
+    text-align: center;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 0.5rem;
+    gap: 0.375rem;
+    text-decoration: none;
 }
 
-.nav-link::after {
+.reportes-nav-wrapper .nav-item:hover {
+    background-color: var(--aging-bg);
+    color: var(--aging-primary);
+}
+
+.reportes-nav-wrapper .nav-item.active {
+    background-color: var(--aging-primary);
+    color: var(--aging-bg-white);
+    font-weight: 600;
+}
+
+.reportes-nav-wrapper .nav-item i {
+    font-size: 0.8125rem;
+    flex-shrink: 0;
+}
+
+/* =====================================================
+   4. SECCIÓN DE RESUMEN (KPIs)
+   ===================================================== */
+.resumen-section {
+    margin-bottom: var(--spacing-md);
+}
+
+.resumen-section .section-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--aging-text-primary);
+    margin-bottom: var(--spacing-lg);
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+
+.resumen-section .section-title::before {
+    content: '';
+    width: 4px;
+    height: 2rem;
+    background: linear-gradient(135deg, var(--aging-primary) 0%, var(--aging-primary-dark) 100%);
+    border-radius: var(--radius-sm);
+}
+
+.totales-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: var(--spacing-md);
+}
+
+.total-card {
+    background-color: var(--aging-bg-white);
+    border: 1px solid var(--aging-border);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-md);
+    position: relative;
+    overflow: hidden;
+    transition: var(--transition);
+    box-shadow: var(--shadow-sm);
+}
+
+.total-card::before {
     content: '';
     position: absolute;
-    bottom: 0;
     left: 0;
-    right: 0;
-    height: 3px;
-    background: transparent;
-    transition: all 0.3s ease;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    transition: width 0.3s ease;
 }
 
-.nav-link:hover {
-    color: var(--color-text-light) !important;
-    background: rgba(255, 255, 255, 0.1);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px var(--color-shadow-hover);
+.total-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
 }
 
-.nav-link:hover::after {
-    background: var(--color-button-bg);
+.total-card:hover::before {
+    width: 8px;
 }
 
-.nav-link.active {
-    color: var(--color-text-light) !important;
-    background: var(--color-nav-active);
-    box-shadow: 0 4px 12px var(--color-shadow-hover);
-    transform: translateY(-1px);
+.total-card .card-label {
+    font-size: 0.75rem;
+    color: var(--aging-text-secondary);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: var(--spacing-sm);
+}
+
+.total-card .card-amount {
+    font-size: 1.75rem;
     font-weight: 700;
+    color: var(--aging-text-primary);
+    line-height: 1.2;
 }
 
-.nav-link.active::after {
-    background: var(--color-text-light);
-    height: 4px;
+/* Estilos específicos por tipo de tarjeta */
+.total-card.card-principal::before {
+    background: linear-gradient(135deg, var(--aging-primary) 0%, var(--aging-primary-dark) 100%);
 }
 
-.nav-link i {
-    font-size: 1.1rem;
-    width: 20px;
+.total-card.card-vigente::before {
+    background-color: var(--aging-vigente);
+}
+
+.total-card.card-rango-1::before {
+    background-color: var(--aging-rango1);
+}
+
+.total-card.card-rango-2::before {
+    background-color: var(--aging-rango2);
+}
+
+.total-card.card-vencido::before {
+    background-color: var(--aging-danger);
+}
+
+/* =====================================================
+   5. TARJETAS GENERALES (ESTILO BANCOS)
+   ===================================================== */
+.reportes-container .card {
+    border: 1px solid var(--aging-border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    background-color: var(--aging-bg-white);
+}
+
+.reportes-container .card-header {
+    background: linear-gradient(135deg, #1e3a5f 0%, #152a45 100%);
+    border-bottom: none;
+    padding: var(--spacing-lg) var(--spacing-xl);
+}
+
+.reportes-container .card-header h4 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--aging-bg-white);
+    margin: 0 0 var(--spacing-xs) 0;
+    display: flex;
+    align-items: center;
+}
+
+.reportes-container .card-header h4 i {
+    font-size: 1.25rem;
+    color: var(--aging-bg-white);
+}
+
+.reportes-container .card-header h6 {
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: var(--aging-bg-white);
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+.reportes-container .card-header small {
+    color: var(--aging-bg-white) !important;
+    font-size: 0.875rem;
+    display: block;
+    margin-top: var(--spacing-xs);
+}
+
+.reportes-container .card-header .text-muted {
+    color: var(--aging-bg-white) !important;
+}
+
+.reportes-container .card-body {
+    padding: var(--spacing-lg);
+}
+
+.reportes-container .card-footer {
+    background-color: var(--aging-bg-dark);
+    border-top: 1px solid var(--aging-border);
+    padding: var(--spacing-md) var(--spacing-lg);
+}
+
+/* =====================================================
+   6. SECCIÓN DE TABLA
+   ===================================================== */
+.tabla-section {
+    background-color: var(--aging-bg-white);
+    border: 1px solid var(--aging-border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    overflow: hidden;
+}
+
+.tabla-header {
+    background: linear-gradient(135deg, var(--aging-primary) 0%, var(--aging-primary-dark) 100%);
+    padding: var(--spacing-lg) var(--spacing-xl);
+    border-bottom: 1px solid var(--aging-border);
+}
+
+.tabla-title {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--aging-bg-white);
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+
+.tabla-title i {
+    font-size: 1.125rem;
+}
+
+.tabla-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* =====================================================
+   7. TABLA DE AGING (ESTILO BANCOS)
+   ===================================================== */
+.reportes-container .tabla-aging {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    margin: 0;
+}
+
+.reportes-container .tabla-aging thead {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background-color: var(--aging-bg-dark);
+}
+
+.reportes-container .tabla-aging thead th {
+    background-color: var(--aging-bg-dark);
+    color: var(--aging-text-secondary);
+    font-weight: 600;
+    font-size: 0.8125rem;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    padding: var(--spacing-md) var(--spacing-md);
+    text-align: left;
+    border-bottom: 2px solid var(--aging-border);
+    white-space: nowrap;
+}
+
+.reportes-container .tabla-aging thead th.col-numero {
+    text-align: right;
+}
+
+.reportes-container .tabla-aging thead th.col-accion {
     text-align: center;
 }
 
-.nav-link.active i {
-    transform: scale(1.1);
+/* Estilos específicos para columnas de rangos */
+.reportes-container .tabla-aging .col-vigente {
+    background-color: var(--aging-vigente-light);
+    color: var(--aging-vigente);
+}
+
+.reportes-container .tabla-aging .col-rango-1 {
+    background-color: var(--aging-rango1-light);
+    color: var(--aging-rango1);
+}
+
+.reportes-container .tabla-aging .col-rango-2 {
+    background-color: var(--aging-rango2-light);
+    color: var(--aging-rango2);
+}
+
+.reportes-container .tabla-aging .col-rango-3 {
+    background-color: var(--aging-rango3-light);
+    color: var(--aging-rango3);
+}
+
+.reportes-container .tabla-aging .col-rango-4 {
+    background-color: var(--aging-rango4-light);
+    color: var(--aging-rango4);
+}
+
+.reportes-container .tabla-aging tbody td {
+    padding: var(--spacing-md) var(--spacing-md);
+    vertical-align: middle;
+    font-size: 0.875rem;
+    color: var(--aging-text-primary);
+    border-bottom: 1px solid var(--aging-border-light);
+}
+
+.reportes-container .tabla-aging tbody tr:hover {
+    background-color: var(--aging-bg);
+}
+
+.reportes-container .tabla-aging tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.reportes-container .tabla-aging tbody td.col-numero {
+    text-align: right;
+    font-weight: 600;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.reportes-container .tabla-aging tbody td.col-total {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: var(--aging-primary);
+}
+
+.reportes-container .tabla-aging .table-sm tbody td,
+.reportes-container .tabla-aging .table-sm thead th {
+    padding: 0.5rem var(--spacing-sm);
+    font-size: 0.8125rem;
+}
+
+/* =====================================================
+   8. INFORMACIÓN DEL CLIENTE
+   ===================================================== */
+.reportes-container .cliente-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.reportes-container .cliente-nombre {
+    font-weight: 600;
+    font-size: 0.9375rem;
+    color: var(--aging-text-primary);
+}
+
+.reportes-container .cliente-email {
+    font-size: 0.8125rem;
+    color: var(--aging-text-muted);
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+}
+
+.reportes-container .cliente-email::before {
+    content: '\f0e0';
+    font-family: 'Font Awesome 5 Free';
+    font-weight: 400;
+    font-size: 0.75rem;
+}
+
+/* =====================================================
+   9. BOTÓN DE RECORDATORIO
+   ===================================================== */
+.reportes-container .btn-recordatorio {
+    background: linear-gradient(135deg, var(--aging-success) 0%, #1b5e20 100%);
+    color: var(--aging-bg-white);
+    border: none;
+    padding: var(--spacing-sm) var(--spacing-md);
+    border-radius: var(--radius-md);
+    font-weight: 600;
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: var(--transition);
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    box-shadow: var(--shadow-sm);
+    white-space: nowrap;
+}
+
+.reportes-container .btn-recordatorio:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+    background: linear-gradient(135deg, #1b5e20 0%, var(--aging-success) 100%);
+}
+
+.reportes-container .btn-recordatorio:active {
+    transform: translateY(0);
+}
+
+.reportes-container .btn-recordatorio i {
+    font-size: 0.875rem;
+}
+
+/* =====================================================
+   10. ESTADO VACÍO
+   ===================================================== */
+.reportes-container .tabla-vacia {
+    text-align: center;
+    padding: var(--spacing-xl) !important;
+    color: var(--aging-text-muted);
+}
+
+.reportes-container .tabla-vacia i {
+    font-size: 3rem;
+    color: var(--aging-success);
+    margin-bottom: var(--spacing-md);
+    display: block;
+}
+
+.reportes-container .tabla-vacia span {
+    font-size: 1.125rem;
+    font-weight: 500;
+    display: block;
+}
+
+/* =====================================================
+   11. MODAL DE RECORDATORIO (ESTILO BANCOS)
+   ===================================================== */
+.reportes-container .modal-content {
+    border: none;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+}
+
+.reportes-container .modal-header {
+    background: linear-gradient(135deg, var(--aging-primary) 0%, var(--aging-primary-dark) 100%);
+    color: var(--aging-bg-white);
+    border-bottom: none;
+    padding: var(--spacing-lg) var(--spacing-xl);
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+}
+
+.reportes-container .modal-header .modal-title {
+    font-weight: 600;
+    font-size: 1.25rem;
+}
+
+.reportes-container .modal-header .btn-close {
+    filter: brightness(0) invert(1);
+    opacity: 0.8;
+}
+
+.reportes-container .modal-header .btn-close:hover {
+    opacity: 1;
+}
+
+.reportes-container .modal-body {
+    padding: var(--spacing-xl);
+}
+
+.reportes-container .modal-body .form-label {
+    font-weight: 600;
+    font-size: 0.8125rem;
+    color: var(--aging-text-primary);
+    margin-bottom: var(--spacing-xs);
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+.reportes-container .modal-body .form-control,
+.reportes-container .modal-body .form-select {
+    border: 1px solid var(--aging-border);
+    border-radius: var(--radius-md);
+    padding: 0.5rem var(--spacing-sm);
+    font-size: 0.9375rem;
+    color: var(--aging-text-primary);
+    transition: var(--transition);
+    background-color: var(--aging-bg-white);
+}
+
+.reportes-container .modal-body .form-control:focus,
+.reportes-container .modal-body .form-select:focus {
+    border-color: var(--aging-primary);
+    box-shadow: 0 0 0 0.2rem rgba(30, 58, 95, 0.1);
+    outline: none;
+}
+
+.reportes-container .modal-body textarea.form-control {
+    resize: vertical;
+    min-height: 150px;
+}
+
+.reportes-container .modal-footer {
+    padding: var(--spacing-lg) var(--spacing-xl);
+    background-color: var(--aging-bg);
+    border-top: 1px solid var(--aging-border);
+    border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+}
+
+.reportes-container .modal-footer .btn {
+    padding: 0.5rem var(--spacing-md);
+    font-weight: 600;
+    border-radius: var(--radius-md);
+    transition: var(--transition);
+}
+
+.reportes-container .modal-footer .btn-secondary {
+    background-color: var(--aging-text-secondary);
+    border: none;
+}
+
+.reportes-container .modal-footer .btn-secondary:hover {
+    background-color: var(--aging-text-primary);
+    transform: translateY(-1px);
+}
+
+.reportes-container .modal-footer .btn-success {
+    background: linear-gradient(135deg, var(--aging-success) 0%, #1b5e20 100%);
+    border: none;
+}
+
+.reportes-container .modal-footer .btn-success:hover {
+    background: linear-gradient(135deg, #1b5e20 0%, var(--aging-success) 100%);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+}
+
+/* =====================================================
+   12. BADGES Y ETIQUETAS (ESTILO BANCOS)
+   ===================================================== */
+.reportes-container .badge {
+    padding: 0.35rem 0.65rem;
+    font-weight: 600;
+    font-size: 0.75rem;
+    border-radius: var(--radius-sm);
+    letter-spacing: 0.3px;
+}
+
+.reportes-container .bg-primary-soft {
+    background-color: rgba(30, 58, 95, 0.1);
+    color: var(--aging-primary);
+}
+
+.reportes-container .badge.bg-light {
+    background-color: var(--aging-bg-dark);
+    color: var(--aging-text-secondary);
+    border: 1px solid var(--aging-border);
+}
+
+/* =====================================================
+   13. COLORES DE TEXTO (ESTILO BANCOS)
+   ===================================================== */
+.reportes-container .text-success {
+    color: var(--aging-success) !important;
+}
+
+.reportes-container .text-danger {
+    color: var(--aging-danger) !important;
+}
+
+.reportes-container .text-primary {
+    color: var(--aging-primary) !important;
+}
+
+.reportes-container .text-muted {
+    color: var(--aging-text-muted) !important;
+}
+
+/* =====================================================
+   14. UTILIDADES (ESTILO BANCOS)
+   ===================================================== */
+.reportes-container .fw-medium {
+    font-weight: 500 !important;
+}
+
+.reportes-container .fw-500 {
+    font-weight: 500 !important;
+}
+
+.reportes-container .fw-bold {
+    font-weight: 600 !important;
+}
+
+.reportes-container .shadow-sm {
+    box-shadow: var(--shadow-sm) !important;
+}
+
+.reportes-container .d-block {
+    display: block !important;
+}
+
+.reportes-container .fs-5 {
+    font-size: 1.25rem !important;
+}
+
+/* =====================================================
+   15. RESPONSIVE DESIGN
+   ===================================================== */
+@media (max-width: 1200px) {
+    .totales-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+@media (max-width: 992px) {
+    .reportes-nav-wrapper {
+        overflow-x: auto;
+        white-space: nowrap;
+        -webkit-overflow-scrolling: touch;
+        justify-content: flex-start;
+    }
+    
+    .reportes-nav-wrapper .nav-item {
+        display: inline-flex;
+        flex: 0 0 auto;
+        min-width: auto;
+    }
+    
+    .totales-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .reportes-container .card-header {
+        padding: var(--spacing-md) var(--spacing-lg);
+    }
+    
+    .reportes-container .card-header h4 {
+        font-size: 1.125rem;
+    }
+    
+    .tabla-header {
+        padding: var(--spacing-md) var(--spacing-lg);
+    }
 }
 
 @media (max-width: 768px) {
-    .nav-link {
-        padding: 1rem 0.75rem;
-        font-size: 0.9rem;
+    .totales-grid {
+        grid-template-columns: 1fr;
+        gap: var(--spacing-md);
     }
     
-    .nav-link i {
+    .total-card {
+        padding: var(--spacing-md);
+    }
+    
+    .total-card .card-label {
+        font-size: 0.6875rem;
+    }
+    
+    .total-card .card-amount {
+        font-size: 1.5rem;
+    }
+    
+    .reportes-container .card-header {
+        padding: var(--spacing-md);
+    }
+    
+    .reportes-container .card-header h4 {
         font-size: 1rem;
+    }
+    
+    .reportes-container .card-header small {
+        font-size: 0.8125rem;
+    }
+    
+    .reportes-container .card-body {
+        padding: var(--spacing-md);
+    }
+    
+    .tabla-header {
+        padding: var(--spacing-md);
+    }
+    
+    .tabla-title {
+        font-size: 1rem;
+    }
+    
+    .reportes-container .tabla-aging thead th,
+    .reportes-container .tabla-aging tbody td {
+        padding: var(--spacing-xs) var(--spacing-sm);
+        font-size: 0.8125rem;
+    }
+    
+    .reportes-container .btn-recordatorio {
+        padding: var(--spacing-xs) var(--spacing-sm);
+        font-size: 0.8125rem;
+    }
+    
+    .reportes-container .btn-recordatorio span {
+        display: none;
+    }
+    
+    .reportes-container .modal-body,
+    .reportes-container .modal-footer {
+        padding: var(--spacing-lg);
+    }
+    
+    .reportes-container .table-responsive {
+        font-size: 0.8125rem;
     }
 }
 
 @media (max-width: 576px) {
-    #reportesTab {
-        flex-direction: column;
+    .resumen-section .section-title {
+        font-size: 1.25rem;
     }
     
-    .nav-item {
-        width: 100%;
+    .total-card .card-label {
+        font-size: 0.6875rem;
     }
     
-    .nav-link {
-        padding: 1rem;
-        text-align: left;
-        justify-content: flex-start;
-    }
-}
-
-.card-shadow-sm {
-    box-shadow: 0 2px 8px var(--color-shadow) !important;
-}
-
-.border-0 {
-    border: none !important;
-}
-
-.mb-4 {
-    margin-bottom: 1.5rem !important;
-}
-
-.mt-4 {
-    margin-top: 1.5rem !important;
-}
-
-.p-0 {
-    padding: 0 !important;
-}
-
-.fs-5 {
-    font-size: 1.25rem !important;
-}
-
-.fw-bold {
-    font-weight: 700 !important;
-}
-
-.p-3 {
-    padding: 1rem !important;
-}
-
-.me-1 {
-    margin-right: 0.25rem !important;
-}
-
-.nav-fill .nav-item {
-    text-align: center;
-}
-
-.nav-fill .nav-link {
-    width: 100%;
-}
-
-[role="tablist"] {
-    background: var(--color-nav-bg);
-    border-radius: 12px;
-    overflow: hidden;
-}
-
-[role="tablist"] .nav-item {
-    position: relative;
-}
-
-[role="tablist"] .nav-item:not(:last-child)::after {
-    content: '';
-    position: absolute;
-    right: 0;
-    top: 20%;
-    bottom: 20%;
-    width: 1px;
-    background: var(--color-border-light);
-    z-index: 1;
-}
-
-[role="tablist"] .nav-item:not(:last-child):hover::after {
-    background: rgba(255, 255, 255, 0.3);
-}
-
-@media (max-width: 768px) {
-    [role="tablist"] .nav-item:not(:last-child)::after {
-        content: '';
-        position: absolute;
-        bottom: 0;
-        left: 20%;
-        right: 20%;
-        height: 1px;
-        width: auto;
-        background: var(--color-border-light);
-        z-index: 1;
-    }
-}
-
-.reportes-header-banner {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    width: 100%;
-    max-width: 100%;
-    padding: 24px 32px;
-    border-radius: 12px;
-    background: linear-gradient(135deg, var(--color-teal-start) 0%, var(--color-blue-end) 100%);
-    box-shadow: 0 4px 16px var(--color-shadow);
-    margin-bottom: 24px;
-    color: var(--color-text-light);
-}
-
-.banner-left-content {
-    display: flex;
-    align-items: center;
-    gap: 20px;
-}
-
-.banner-icon-wrapper {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 64px;
-    height: 64px;
-    border-radius: 50%;
-    background-color: var(--color-teal-light);
-    box-shadow: 0 2px 8px var(--color-shadow);
-}
-
-.banner-icon {
-    font-size: 28px;
-    color: var(--color-text-light);
-}
-
-.banner-text-group {
-    display: flex;
-    flex-direction: column;
-}
-
-.banner-title {
-    font-size: 28px;
-    font-weight: 700;
-    margin: 0 0 4px 0;
-    color: var(--color-text-light);
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-}
-
-.banner-subtitle {
-    font-size: 16px;
-    font-weight: 400;
-    margin: 0;
-    color: var(--color-text-muted);
-    opacity: 0.95;
-}
-
-.banner-right-actions {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-
-.banner-button {
-    display: flex;
-    align-items: center;
-    padding: 14px 24px;
-    border-radius: 8px;
-    background: var(--color-button-bg);
-    color: var(--color-text-light);
-    font-size: 16px;
-    font-weight: 600;
-    text-decoration: none;
-    border: none;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    box-shadow: 0 2px 8px rgba(0, 194, 137, 0.3);
-}
-
-.banner-button:hover {
-    background: var(--color-button-hover);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 194, 137, 0.4);
-    color: var(--color-text-light);
-    text-decoration: none;
-}
-
-.banner-button:active {
-    transform: translateY(0);
-}
-
-@media (max-width: 768px) {
-    .reportes-header-banner {
-        flex-direction: column;
-        gap: 20px;
-        padding: 20px 24px;
-        text-align: center;
+    .total-card .card-amount {
+        font-size: 1.25rem;
     }
     
-    .banner-left-content {
-        flex-direction: column;
-        gap: 16px;
+    .reportes-container .card-header h4 {
+        font-size: 0.9375rem;
     }
     
-    .banner-title {
-        font-size: 24px;
+    .reportes-container .card-header small {
+        font-size: 0.75rem;
     }
     
-    .banner-subtitle {
-        font-size: 14px;
+    .tabla-title {
+        font-size: 0.9375rem;
     }
     
-    .banner-right-actions {
-        width: 100%;
-        justify-content: center;
+    .tabla-title i {
+        font-size: 1rem;
     }
     
-    .banner-button {
-        width: 100%;
-        max-width: 280px;
-        justify-content: center;
+    .reportes-container .cliente-nombre {
+        font-size: 0.875rem;
+    }
+    
+    .reportes-container .cliente-email {
+        font-size: 0.75rem;
+    }
+    
+    .reportes-container .tabla-aging tbody td.col-total {
+        font-size: 1rem;
+    }
+    
+    .reportes-container .tabla-aging thead th {
+        font-size: 0.75rem;
+    }
+    
+    .reportes-container .fs-5 {
+        font-size: 1rem !important;
+    }
+    
+    .reportes-nav-wrapper .nav-item {
+        font-size: 0.8125rem;
+        padding: var(--spacing-xs) var(--spacing-sm);
     }
 }

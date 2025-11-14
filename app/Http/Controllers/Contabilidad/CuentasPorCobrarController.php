@@ -54,8 +54,6 @@ class CuentasPorCobrarController extends Controller
 
         $documentos = $query->orderBy('dias_vencidos', 'desc')->paginate(50);
 
-        // --- 4. Calcular KPIs y Aging Report ---
-        // Usamos una consulta separada para los totales (más eficiente que cargar todo)
         $kpisQuery = DB::connection($this->connection)->table('CtaCliente')
             ->where('Saldo', '>', 0)
             ->select(

@@ -1,0 +1,779 @@
+/*
+ * =====================================================
+ * MÓDULO DE DETALLE DE CLIENTES - SISTEMA CONTABLE
+ * Estilos profesionales para gestión de clientes
+ * =====================================================
+ */
+
+/* =====================================================
+   1. VARIABLES Y CONFIGURACIÓN BASE
+   ===================================================== */
+:root {
+    /* Paleta Profesional Empresarial */
+    --color-primary: #1e3a5f;
+    --color-primary-dark: #152a45;
+    --color-primary-light: #2d4d7a;
+    --color-secondary: #2d4d7a;
+    --color-accent: #0277bd;
+    
+    /* Colores semánticos */
+    --color-success: #2e7d32;
+    --color-success-light: #e8f5e9;
+    --color-danger: #c62828;
+    --color-danger-light: #ffebee;
+    --color-warning: #f57c00;
+    --color-warning-light: #fff3e0;
+    --color-info: #0277bd;
+    --color-info-light: #e1f5fe;
+    
+    /* Colores neutros */
+    --color-text-primary: #212529;
+    --color-text-secondary: #6c757d;
+    --color-text-muted: #868e96;
+    --color-border: #dee2e6;
+    --color-border-light: #e9ecef;
+    --color-bg-light: #f8f9fa;
+    --color-bg-white: #ffffff;
+    --color-bg-dark: #f1f3f5;
+    
+    /* Espaciado */
+    --spacing-xs: 0.5rem;
+    --spacing-sm: 0.75rem;
+    --spacing-md: 1rem;
+    --spacing-lg: 1.5rem;
+    --spacing-xl: 2rem;
+    
+    /* Bordes y sombras */
+    --border-radius: 8px;
+    --border-radius-lg: 12px;
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
+    --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.1);
+    --shadow-lg: 0 4px 16px rgba(0, 0, 0, 0.12);
+    
+    /* Transiciones */
+    --transition-base: all 0.2s ease;
+}
+
+/* =====================================================
+   2. CONTENEDOR PRINCIPAL
+   ===================================================== */
+.clientesshow-container {
+    width: 100%;
+    padding: 0;
+}
+
+/* =====================================================
+   3. TARJETA DE INFORMACIÓN PRINCIPAL
+   ===================================================== */
+.clientesshow-container .info-card {
+    background: var(--color-bg-white);
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radius-lg);
+    padding: var(--spacing-xl);
+    margin-bottom: var(--spacing-xl);
+    box-shadow: var(--shadow-sm);
+    position: relative;
+    overflow: hidden;
+}
+
+.clientesshow-container .info-card::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    background: linear-gradient(180deg, var(--color-primary), var(--color-info));
+}
+
+.clientesshow-container .info-card h3 {
+    color: var(--color-text-primary);
+    font-weight: 700;
+    font-size: 1.75rem;
+    margin-bottom: var(--spacing-sm);
+    letter-spacing: -0.025em;
+}
+
+.clientesshow-container .info-card p {
+    color: var(--color-text-secondary);
+    font-size: 0.9375rem;
+}
+
+.clientesshow-container .info-card p i {
+    color: var(--color-text-muted);
+}
+
+/* Badges en info card */
+.clientesshow-container .info-card .badge {
+    padding: 0.5rem 0.875rem;
+    font-weight: 600;
+    font-size: 0.75rem;
+    border-radius: 6px;
+    letter-spacing: 0.025em;
+    text-transform: uppercase;
+}
+
+.clientesshow-container .info-card .badge.bg-light {
+    background-color: var(--color-bg-light) !important;
+    color: var(--color-text-secondary) !important;
+    border: 1px solid var(--color-border);
+}
+
+.clientesshow-container .info-card .badge.bg-success {
+    background-color: var(--color-success) !important;
+}
+
+.clientesshow-container .info-card .badge.bg-danger {
+    background-color: var(--color-danger) !important;
+}
+
+/* Botones de acción */
+.clientesshow-container .action-btn {
+    padding: 0.625rem 1.25rem;
+    font-weight: 600;
+    font-size: 0.875rem;
+    border-radius: var(--border-radius);
+    transition: var(--transition-base);
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.clientesshow-container .btn-light.action-btn {
+    background-color: var(--color-bg-light);
+    border: 1px solid var(--color-border);
+    color: var(--color-text-primary);
+}
+
+.clientesshow-container .btn-light.action-btn:hover {
+    background-color: var(--color-primary);
+    border-color: var(--color-primary);
+    color: var(--color-bg-white);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.clientesshow-container .btn-danger.action-btn {
+    background-color: var(--color-danger);
+    border: none;
+}
+
+.clientesshow-container .btn-danger.action-btn:hover {
+    background-color: #a82222;
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+/* =====================================================
+   4. TARJETAS DE ESTADÍSTICAS
+   ===================================================== */
+.clientesshow-container .stats-card {
+    background: var(--color-bg-white);
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radius-lg);
+    padding: var(--spacing-lg);
+    box-shadow: var(--shadow-sm);
+    transition: var(--transition-base);
+    position: relative;
+    overflow: hidden;
+    height: 100%;
+    text-align: center;
+}
+
+.clientesshow-container .stats-card::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    height: 4px;
+    background: var(--color-border);
+    transition: var(--transition-base);
+}
+
+.clientesshow-container .stats-card:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-md);
+}
+
+.clientesshow-container .stats-card:hover::before {
+    height: 6px;
+}
+
+/* Iconos de estadísticas */
+.clientesshow-container .stats-icon {
+    width: 3.5rem;
+    height: 3.5rem;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto var(--spacing-md);
+    font-size: 1.5rem;
+    color: var(--color-bg-white);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    transition: var(--transition-base);
+}
+
+.clientesshow-container .stats-card:hover .stats-icon {
+    transform: scale(1.05);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.clientesshow-container .stats-icon.bg-primary {
+    background: linear-gradient(135deg, var(--color-primary), var(--color-primary-light));
+}
+
+.clientesshow-container .stats-icon.bg-success {
+    background: linear-gradient(135deg, #2e7d32, #43a047);
+}
+
+.clientesshow-container .stats-icon.bg-info {
+    background: linear-gradient(135deg, var(--color-info), #039be5);
+}
+
+.clientesshow-container .stats-icon.bg-warning {
+    background: linear-gradient(135deg, var(--color-warning), #fb8c00);
+}
+
+/* Labels y valores de estadísticas */
+.clientesshow-container .stats-label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--color-text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: var(--spacing-xs);
+}
+
+.clientesshow-container .stats-value {
+    font-size: 1.875rem;
+    font-weight: 700;
+    color: var(--color-text-primary);
+    line-height: 1.2;
+    margin-bottom: var(--spacing-xs);
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+}
+
+.clientesshow-container .stats-card small {
+    font-size: 0.8125rem;
+    color: var(--color-text-muted);
+}
+
+/* =====================================================
+   5. TARJETAS GENERALES
+   ===================================================== */
+.clientesshow-container .card {
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radius-lg);
+    box-shadow: var(--shadow-sm);
+    margin-bottom: var(--spacing-lg);
+}
+
+.clientesshow-container .card-header {
+    background-color: var(--color-bg-light);
+    border-bottom: 2px solid var(--color-border);
+    padding: var(--spacing-md) var(--spacing-lg);
+}
+
+.clientesshow-container .card-header.bg-white {
+    background-color: var(--color-bg-white) !important;
+}
+
+.clientesshow-container .card-header h6 {
+    color: var(--color-text-primary);
+    font-weight: 700;
+    font-size: 0.9375rem;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+    margin: 0;
+}
+
+.clientesshow-container .card-header h6 i {
+    font-size: 1rem;
+}
+
+.clientesshow-container .card-header .text-primary {
+    color: var(--color-primary) !important;
+}
+
+.clientesshow-container .card-header .text-success {
+    color: var(--color-success) !important;
+}
+
+.clientesshow-container .card-header .text-info {
+    color: var(--color-info) !important;
+}
+
+.clientesshow-container .card-body {
+    padding: var(--spacing-lg);
+}
+
+/* =====================================================
+   6. INFORMACIÓN DE CONTACTO
+   ===================================================== */
+.clientesshow-container .contact-item {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--spacing-md);
+    padding: var(--spacing-md) 0;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.clientesshow-container .contact-item:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+.clientesshow-container .contact-item:first-child {
+    padding-top: 0;
+}
+
+.clientesshow-container .contact-item > i {
+    width: 2.5rem;
+    height: 2.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--color-bg-light);
+    color: var(--color-text-secondary);
+    border-radius: var(--border-radius);
+    font-size: 1.125rem;
+    flex-shrink: 0;
+}
+
+.clientesshow-container .contact-item .flex-grow-1 {
+    flex-grow: 1;
+    min-width: 0;
+}
+
+.clientesshow-container .contact-item .label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--color-text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.25rem;
+}
+
+.clientesshow-container .contact-item .value {
+    font-size: 0.9375rem;
+    color: var(--color-text-primary);
+    font-weight: 500;
+    word-break: break-word;
+}
+
+/* =====================================================
+   7. ESTADO DE CRÉDITO
+   ===================================================== */
+.clientesshow-container .credit-progress {
+    height: 1.5rem;
+    background-color: var(--color-bg-light);
+    border-radius: var(--border-radius);
+    overflow: hidden;
+    position: relative;
+    border: 1px solid var(--color-border);
+}
+
+.clientesshow-container .credit-progress-bar {
+    height: 100%;
+    transition: width 0.6s ease;
+    position: relative;
+}
+
+.clientesshow-container .credit-progress-bar.bg-success {
+    background: linear-gradient(90deg, #2e7d32, #43a047);
+}
+
+.clientesshow-container .credit-progress-bar.bg-warning {
+    background: linear-gradient(90deg, #f57c00, #fb8c00);
+}
+
+.clientesshow-container .credit-progress-bar.bg-danger {
+    background: linear-gradient(90deg, #c62828, #d32f2f);
+}
+
+/* Alertas de riesgo */
+.clientesshow-container .alert {
+    border: none;
+    border-radius: var(--border-radius);
+    padding: var(--spacing-md);
+    border-left: 4px solid;
+}
+
+.clientesshow-container .alert-success {
+    background-color: var(--color-success-light);
+    border-left-color: var(--color-success);
+    color: #1b5e20;
+}
+
+.clientesshow-container .alert-warning {
+    background-color: var(--color-warning-light);
+    border-left-color: var(--color-warning);
+    color: #e65100;
+}
+
+.clientesshow-container .alert-danger {
+    background-color: var(--color-danger-light);
+    border-left-color: var(--color-danger);
+    color: #b71c1c;
+}
+
+.clientesshow-container .alert .fw-bold {
+    font-weight: 700 !important;
+}
+
+.clientesshow-container .alert small {
+    font-size: 0.8125rem;
+}
+
+/* =====================================================
+   8. HISTORIAL DE COMPRAS
+   ===================================================== */
+.clientesshow-container .purchase-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--spacing-md) var(--spacing-lg);
+    border-bottom: 1px solid var(--color-border);
+    transition: var(--transition-base);
+}
+
+.clientesshow-container .purchase-item:last-child {
+    border-bottom: none;
+}
+
+.clientesshow-container .purchase-item:hover {
+    background-color: rgba(30, 58, 95, 0.04);
+}
+
+.clientesshow-container .purchase-item .fw-bold {
+    font-weight: 700 !important;
+    color: var(--color-text-primary);
+    font-size: 0.9375rem;
+    margin-bottom: 0.25rem;
+}
+
+.clientesshow-container .purchase-item .text-primary {
+    color: var(--color-primary) !important;
+}
+
+.clientesshow-container .purchase-item small {
+    font-size: 0.8125rem;
+    color: var(--color-text-muted);
+}
+
+/* Scrollbar personalizado */
+.clientesshow-container .card-body > div[style*="overflow-y"] {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-border) transparent;
+}
+
+.clientesshow-container .card-body > div[style*="overflow-y"]::-webkit-scrollbar {
+    width: 6px;
+}
+
+.clientesshow-container .card-body > div[style*="overflow-y"]::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.clientesshow-container .card-body > div[style*="overflow-y"]::-webkit-scrollbar-thumb {
+    background-color: var(--color-border);
+    border-radius: 3px;
+}
+
+.clientesshow-container .card-body > div[style*="overflow-y"]::-webkit-scrollbar-thumb:hover {
+    background-color: var(--color-text-muted);
+}
+
+/* Estado vacío */
+.clientesshow-container .text-center.p-5 i {
+    color: var(--color-border);
+}
+
+.clientesshow-container .text-center.p-5 p {
+    color: var(--color-text-muted);
+    margin: 0;
+}
+
+/* =====================================================
+   9. BOTONES GENERALES
+   ===================================================== */
+.clientesshow-container .btn {
+    border-radius: var(--border-radius);
+    font-weight: 600;
+    font-size: 0.875rem;
+    padding: 0.5rem 1rem;
+    transition: var(--transition-base);
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+}
+
+.clientesshow-container .btn-sm {
+    padding: 0.375rem 0.75rem;
+    font-size: 0.8125rem;
+}
+
+.clientesshow-container .btn-outline-primary {
+    border: 1px solid var(--color-primary);
+    color: var(--color-primary);
+    background-color: transparent;
+}
+
+.clientesshow-container .btn-outline-primary:hover {
+    background-color: var(--color-primary);
+    color: var(--color-bg-white);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-sm);
+}
+
+.clientesshow-container .btn i {
+    font-size: 0.875rem;
+}
+
+/* =====================================================
+   10. MODAL DE CONFIRMACIÓN
+   ===================================================== */
+.clientesshow-container .modal-content {
+    border: none;
+    border-radius: var(--border-radius-lg);
+    box-shadow: var(--shadow-lg);
+}
+
+.clientesshow-container .modal-header {
+    border-bottom: 2px solid var(--color-border);
+    padding: var(--spacing-lg);
+}
+
+.clientesshow-container .modal-header.bg-danger {
+    background-color: var(--color-danger) !important;
+}
+
+.clientesshow-container .modal-header.bg-danger .modal-title {
+    color: var(--color-bg-white);
+}
+
+.clientesshow-container .modal-title {
+    font-weight: 700;
+    font-size: 1.125rem;
+}
+
+.clientesshow-container .modal-body {
+    padding: var(--spacing-xl);
+}
+
+.clientesshow-container .modal-body h5 {
+    color: var(--color-text-primary);
+    font-weight: 600;
+    margin-bottom: var(--spacing-sm);
+}
+
+.clientesshow-container .modal-body .text-danger {
+    color: var(--color-danger) !important;
+}
+
+.clientesshow-container .modal-footer {
+    border-top: 1px solid var(--color-border);
+    padding: var(--spacing-md) var(--spacing-lg);
+}
+
+.clientesshow-container .modal-footer .btn-secondary {
+    background-color: var(--color-secondary);
+    border: none;
+}
+
+.clientesshow-container .modal-footer .btn-secondary:hover {
+    background-color: var(--color-primary-dark);
+}
+
+.clientesshow-container .modal-footer .btn-danger {
+    background-color: var(--color-danger);
+    border: none;
+}
+
+.clientesshow-container .modal-footer .btn-danger:hover {
+    background-color: #a82222;
+}
+
+/* =====================================================
+   11. UTILIDADES ADICIONALES
+   ===================================================== */
+.clientesshow-container .text-muted {
+    color: var(--color-text-muted) !important;
+}
+
+.clientesshow-container .text-primary {
+    color: var(--color-primary) !important;
+}
+
+.clientesshow-container .text-success {
+    color: var(--color-success) !important;
+}
+
+.clientesshow-container .text-danger {
+    color: var(--color-danger) !important;
+}
+
+.clientesshow-container .text-dark {
+    color: var(--color-text-primary) !important;
+}
+
+.clientesshow-container .fw-bold {
+    font-weight: 700 !important;
+}
+
+.clientesshow-container .text-end {
+    text-align: right !important;
+}
+
+.clientesshow-container .text-center {
+    text-align: center !important;
+}
+
+.clientesshow-container .mb-0 {
+    margin-bottom: 0 !important;
+}
+
+.clientesshow-container .mb-2 {
+    margin-bottom: 0.5rem !important;
+}
+
+.clientesshow-container .mb-3 {
+    margin-bottom: var(--spacing-md) !important;
+}
+
+.clientesshow-container .mb-4 {
+    margin-bottom: var(--spacing-lg) !important;
+}
+
+.clientesshow-container .mt-2 {
+    margin-top: 0.5rem !important;
+}
+
+.clientesshow-container .ms-2 {
+    margin-left: 0.5rem !important;
+}
+
+.clientesshow-container .me-1,
+.clientesshow-container .me-2,
+.clientesshow-container .me-3 {
+    margin-right: var(--spacing-xs) !important;
+}
+
+/* =====================================================
+   12. RESPONSIVE DESIGN
+   ===================================================== */
+@media (max-width: 1200px) {
+    .clientesshow-container .stats-value {
+        font-size: 1.5rem;
+    }
+}
+
+@media (max-width: 992px) {
+    .clientesshow-container .info-card {
+        padding: var(--spacing-lg);
+    }
+    
+    .clientesshow-container .info-card h3 {
+        font-size: 1.5rem;
+    }
+    
+    .clientesshow-container .stats-card {
+        margin-bottom: var(--spacing-md);
+    }
+    
+    .clientesshow-container .stats-icon {
+        width: 3rem;
+        height: 3rem;
+        font-size: 1.25rem;
+    }
+    
+    .clientesshow-container .stats-value {
+        font-size: 1.375rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .clientesshow-container .info-card {
+        padding: var(--spacing-md);
+    }
+    
+    .clientesshow-container .info-card .d-flex {
+        flex-direction: column;
+        gap: var(--spacing-md);
+    }
+    
+    .clientesshow-container .info-card h3 {
+        font-size: 1.25rem;
+    }
+    
+    .clientesshow-container .stats-icon {
+        width: 2.5rem;
+        height: 2.5rem;
+        font-size: 1.125rem;
+    }
+    
+    .clientesshow-container .stats-label {
+        font-size: 0.6875rem;
+    }
+    
+    .clientesshow-container .stats-value {
+        font-size: 1.25rem;
+    }
+    
+    .clientesshow-container .card-header,
+    .clientesshow-container .card-body {
+        padding: var(--spacing-md);
+    }
+    
+    .clientesshow-container .purchase-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--spacing-sm);
+    }
+    
+    .clientesshow-container .purchase-item .text-end {
+        text-align: left !important;
+        width: 100%;
+    }
+}
+
+@media (max-width: 576px) {
+    .clientesshow-container .info-card::before {
+        width: 3px;
+    }
+    
+    .clientesshow-container .stats-card::before {
+        height: 3px;
+    }
+    
+    .clientesshow-container .stats-icon {
+        width: 2.25rem;
+        height: 2.25rem;
+        font-size: 1rem;
+    }
+    
+    .clientesshow-container .stats-value {
+        font-size: 1.125rem;
+    }
+    
+    .clientesshow-container .action-btn {
+        padding: 0.5rem 0.875rem;
+        font-size: 0.8125rem;
+    }
+    
+    .clientesshow-container .contact-item > i {
+        width: 2rem;
+        height: 2rem;
+        font-size: 0.875rem;
+    }
+    
+    .clientesshow-container .modal-body {
+        padding: var(--spacing-lg);
+    }
+}

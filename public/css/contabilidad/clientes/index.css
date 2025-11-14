@@ -1,0 +1,467 @@
+/* ==============================================
+   VARIABLES Y COLORES BASE - ESTILO CORPORATIVO
+   ============================================== */
+:root {
+    /* Paleta Profesional Empresarial */
+    --primary: #1e3a5f;
+    --primary-dark: #152a45;
+    --primary-light: #2d4d7a;
+    --success: #2e7d32;
+    --success-light: #e8f5e9;
+    --danger: #c62828;
+    --danger-light: #ffebee;
+    --warning: #f57c00;
+    --warning-light: #fff3e0;
+    --info: #0277bd;
+    --info-light: #e1f5fe;
+    
+    /* Colores Neutros */
+    --text-primary: #212529;
+    --text-secondary: #6c757d;
+    --text-muted: #868e96;
+    --border: #dee2e6;
+    --border-light: #e9ecef;
+    --bg: #f8f9fa;
+    --bg-white: #ffffff;
+    --bg-dark: #f1f3f5;
+    
+    /* Bordes y Sombras Sutiles */
+    --radius-sm: 4px;
+    --radius-md: 6px;
+    --radius-lg: 8px;
+    --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.05);
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
+    --shadow-md: 0 2px 6px rgba(0, 0, 0, 0.1);
+    
+    /* Transiciones */
+    --transition: all 0.2s ease;
+}
+
+/* ==============================================
+   CONTENEDOR PRINCIPAL
+   ============================================== */
+.clientes-container {
+    padding: 2rem;
+    background-color: var(--bg);
+    min-height: 100vh;
+}
+
+/* ==============================================
+   TARJETAS Y SOMBRAS
+   ============================================== */
+.clientes-container .card {
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border);
+    background: var(--bg-white);
+    transition: var(--transition);
+    overflow: hidden;
+}
+
+.clientes-container .card.shadow-sm {
+    box-shadow: var(--shadow-sm);
+}
+
+.clientes-container .card:hover {
+    box-shadow: var(--shadow-md);
+}
+
+.clientes-container .card-header {
+    background-color: var(--bg-dark);
+    border-bottom: 1px solid var(--border);
+    padding: 1.25rem 1.5rem;
+}
+
+.clientes-container .card-header h5 {
+    color: var(--text-primary);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    font-size: 0.9375rem;
+}
+
+.clientes-container .card-body {
+    background-color: var(--bg-white);
+    padding: 1.5rem;
+}
+
+/* ==============================================
+   RESUMEN DE ESTADÍSTICAS
+   ============================================== */
+.clientes-container .resumen-card {
+    background-color: var(--bg-white);
+    border: 1px solid var(--border);
+}
+
+.clientes-container .resumen-item {
+    padding: 0.5rem;
+    transition: var(--transition);
+}
+
+.clientes-container .resumen-item:hover {
+    background-color: var(--bg);
+}
+
+.clientes-container .icon-wrapper {
+    width: 52px;
+    height: 52px;
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.4rem;
+    flex-shrink: 0;
+}
+
+.clientes-container .bg-primary-light {
+    background-color: rgba(30, 58, 95, 0.1);
+}
+
+.clientes-container .bg-success-light {
+    background-color: var(--success-light);
+}
+
+.clientes-container .bg-danger-light {
+    background-color: var(--danger-light);
+}
+
+.clientes-container .bg-warning-light {
+    background-color: var(--warning-light);
+}
+
+.clientes-container .resumen-item small {
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+}
+
+.clientes-container .resumen-item h3 {
+    font-size: 1.875rem;
+    line-height: 1;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.clientes-container .resumen-item h6 {
+    font-size: 0.875rem;
+    line-height: 1.3;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+/* ==============================================
+   COLORES DE TEXTO
+   ============================================== */
+.clientes-container .text-primary {
+    color: var(--primary) !important;
+}
+
+.clientes-container .text-success {
+    color: var(--success) !important;
+}
+
+.clientes-container .text-danger {
+    color: var(--danger) !important;
+}
+
+.clientes-container .text-warning {
+    color: var(--warning) !important;
+}
+
+.clientes-container .text-info {
+    color: var(--info) !important;
+}
+
+.clientes-container .text-muted {
+    color: var(--text-muted) !important;
+}
+
+/* ==============================================
+   BOTÓN NUEVO CLIENTE
+   ============================================== */
+.clientes-container .btn-nuevo-cliente {
+    background-color: var(--primary);
+    border: none;
+    border-radius: var(--radius-lg);
+    padding: 2rem 1rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-decoration: none;
+    color: white;
+    transition: var(--transition);
+    height: 100%;
+    min-height: 150px;
+    box-shadow: var(--shadow-sm);
+}
+
+.clientes-container .btn-nuevo-cliente:hover {
+    background-color: var(--primary-dark);
+    color: white;
+    box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
+}
+
+.clientes-container .btn-nuevo-cliente i {
+    transition: var(--transition);
+}
+
+.clientes-container .btn-nuevo-cliente:hover i {
+    transform: scale(1.05);
+}
+
+/* ==============================================
+   FORMULARIO DE BÚSQUEDA
+   ============================================== */
+.clientes-container .form-control-lg {
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border);
+    padding: 0.75rem 1rem;
+    font-size: 1rem;
+    transition: var(--transition);
+    background-color: var(--bg-white);
+}
+
+.clientes-container .form-control-lg:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 0.2rem rgba(30, 58, 95, 0.1);
+    outline: none;
+}
+
+.clientes-container .form-label {
+    margin-bottom: 0.5rem;
+    color: var(--text-primary);
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.clientes-container .btn {
+    border-radius: var(--radius-md);
+    font-weight: 500;
+    transition: var(--transition);
+}
+
+.clientes-container .btn:hover {
+    transform: translateY(-1px);
+}
+
+.clientes-container .btn-lg {
+    padding: 0.75rem 1.5rem;
+}
+
+.clientes-container .btn-primary {
+    background-color: var(--primary);
+    border-color: var(--primary);
+}
+
+.clientes-container .btn-primary:hover {
+    background-color: var(--primary-dark);
+    border-color: var(--primary-dark);
+}
+
+.clientes-container .btn-outline-secondary {
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+    background-color: var(--bg-white);
+}
+
+.clientes-container .btn-outline-secondary:hover {
+    background-color: var(--bg-dark);
+    border-color: var(--border);
+    color: var(--text-primary);
+}
+
+/* ==============================================
+   TABLA DE CLIENTES
+   ============================================== */
+.clientes-container .table-responsive {
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+}
+
+.clientes-container .tabla-clientes {
+    margin-bottom: 0;
+}
+
+.clientes-container .tabla-clientes thead {
+    background-color: var(--bg-dark);
+}
+
+.clientes-container .tabla-clientes thead th {
+    padding: 1rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-secondary);
+    border-bottom: 1px solid var(--border);
+}
+
+.clientes-container .tabla-clientes tbody tr {
+    border-bottom: 1px solid var(--border-light);
+    transition: var(--transition);
+}
+
+.clientes-container .tabla-clientes tbody tr:hover {
+    background-color: var(--bg);
+}
+
+.clientes-container .tabla-clientes tbody td {
+    padding: 1rem;
+    vertical-align: middle;
+    color: var(--text-primary);
+}
+
+
+/* ==============================================
+   BADGES Y ETIQUETAS
+   ============================================== */
+.clientes-container .badge {
+    padding: 0.4rem 0.8rem;
+    border-radius: var(--radius-sm);
+    font-weight: 500;
+    font-size: 0.85rem;
+}
+
+.clientes-container .badge.bg-light {
+    background-color: var(--bg-dark) !important;
+    border: 1px solid var(--border);
+    color: var(--text-secondary) !important;
+}
+
+.clientes-container .badge.bg-warning-light {
+    background-color: var(--warning-light) !important;
+    color: var(--warning) !important;
+}
+
+.clientes-container .badge.bg-danger-light {
+    background-color: var(--danger-light) !important;
+    color: var(--danger) !important;
+}
+
+.clientes-container .badge.bg-success-light {
+    background-color: var(--success-light) !important;
+    color: var(--success) !important;
+}
+
+/* ==============================================
+   BOTONES DE ACCIÓN
+   ============================================== */
+.clientes-container .btn-group {
+    gap: 0.25rem;
+    display: flex;
+}
+
+.clientes-container .btn-sm {
+    padding: 0.4rem 0.8rem;
+    font-size: 0.875rem;
+    border-radius: var(--radius-sm);
+}
+
+.clientes-container .btn-outline-info {
+    border-color: var(--info);
+    color: var(--info);
+}
+
+.clientes-container .btn-outline-info:hover {
+    background-color: var(--info);
+    border-color: var(--info);
+    color: white;
+}
+
+.clientes-container .btn-outline-warning {
+    border-color: var(--warning);
+    color: var(--warning);
+}
+
+.clientes-container .btn-outline-warning:hover {
+    background-color: var(--warning);
+    border-color: var(--warning);
+    color: white;
+}
+
+/* ==============================================
+   ESTADO VACÍO
+   ============================================== */
+.clientes-container .empty-state {
+    padding: 2rem;
+}
+
+.clientes-container .empty-state i {
+    opacity: 0.5;
+    color: var(--border);
+}
+
+.clientes-container .empty-state h5 {
+    margin-top: 1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.clientes-container .empty-state p {
+    color: var(--text-muted);
+}
+
+/* ==============================================
+   RESPONSIVE
+   ============================================== */
+@media (max-width: 768px) {
+    .clientes-container {
+        padding: 1rem;
+    }
+    
+    .clientes-container .resumen-item h3 {
+        font-size: 1.5rem;
+    }
+    
+    .clientes-container .resumen-item small {
+        font-size: 0.65rem;
+    }
+    
+    .clientes-container .icon-wrapper {
+        width: 40px;
+        height: 40px;
+        font-size: 1.2rem;
+    }
+    
+    .clientes-container .btn-nuevo-cliente {
+        padding: 1.5rem 1rem;
+        min-height: 120px;
+    }
+    
+    .clientes-container .btn-nuevo-cliente i {
+        font-size: 1.5rem;
+    }
+    
+    .clientes-container .btn-nuevo-cliente .h5 {
+        font-size: 1rem;
+    }
+    
+    .clientes-container .tabla-clientes thead th {
+        font-size: 0.75rem;
+        padding: 0.75rem 0.5rem;
+    }
+    
+    .clientes-container .tabla-clientes tbody td {
+        padding: 0.75rem 0.5rem;
+        font-size: 0.85rem;
+    }
+}
+
+/* ==============================================
+   UTILIDADES
+   ============================================== */
+.clientes-container .fw-bold {
+    font-weight: 700 !important;
+}
+
+.clientes-container .fw-medium {
+    font-weight: 500 !important;
+}
+
+.clientes-container .text-uppercase {
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}

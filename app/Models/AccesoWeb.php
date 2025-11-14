@@ -37,4 +37,10 @@ class AccesoWeb extends Authenticatable
         
         return $this->hasMany(LibroDiario::class, 'usuario_id', 'idusuario');
     }
+
+    public function notificaciones(): HasMany
+    {
+        return $this->hasMany(Notificacion::class, 'usuario_id', 'idusuario')
+                    ->orderBy('created_at', 'desc');
+    }
 }

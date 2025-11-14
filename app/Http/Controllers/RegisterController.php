@@ -13,26 +13,24 @@ class RegisterController extends Controller
         return view('register');
     }
 
-    public function register(Request $request)
-    {
-        // ✅ 1. Valida contra la tabla real 'accesoweb'
+    public function register(Request $request) {
         $request->validate([
             'usuario' => 'required|string|max:50|unique:accesoweb,usuario',
             'tipousuario' => 'required|string|in:administrador,vendedor,contador',
             'password' => 'required|string|min:4|max:255|confirmed',
         ]);
 
-        // ✅ 2. Calcula el nuevo idusuario manualmente (porque no es autoincremental)
         $maxId = AccesoWeb::max('idusuario') ?? 0;
 
-        // ✅ 3. Crea el registro
-        AccesoWeb::create([
+        $user = AccesoWeb::create([
             'usuario'     => $request->usuario,
             'tipousuario' => $request->tipousuario,
             'idusuario'   => $maxId + 1,
             'password'    => Hash::make($request->password),
         ]);
 
-        return redirect()->route('login')->with('success', '✅ Registro exitoso. Ahora puedes iniciar sesión.');
+        // REDIRIGIR AL MENSAJE BONITO
+        return redirect()->route('welcome.message')
+                        ->with('user_name', $request->usuario); // Tu campo es 'usuario'
     }
 }

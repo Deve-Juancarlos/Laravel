@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail; 
-use App\Mail\EnviarDocumentoMail;  
+use App\Mail\EnviarDocumentoMail;   
 use Barryvdh\DomPDF\Facade\Pdf as PDF;
 
 class OrdenCompraController extends Controller
@@ -42,51 +42,27 @@ class OrdenCompraController extends Controller
         }
 
         $ordenes = $query->select('oc.*', 'p.RazonSocial as ProveedorNombre')
-                            ->orderBy('oc.FechaEmision', 'desc')
-                            ->paginate(25);
+                         ->orderBy('oc.FechaEmision', 'desc')
+                         ->paginate(25);
 
         return view('compras.ordenes.index', [
             'ordenes' => $ordenes,
             'filtros' => $request->only(['q', 'estado']) // Añadido filtro
         ]);
     }
-
     
     public function create(Request $request)
     {
-        // Normalizamos el ID del proveedor desde la URL
-        $proveedorIdUrl = trim((string) $request->query('proveedor_id'));
-        
-        // Si no hay ID en la URL, redirigimos o mostramos error según tu flujo
-        if (empty($proveedorIdUrl)) {
-            // Opcional: redirigir a selección de proveedor
-            return redirect()->route('contador.compras.api.buscarProveedores')
-                            ->with('error', 'Debe seleccionar un proveedor.');
-        }
-
+        $proveedorId = $request->query('proveedor_id');
         $carrito = $this->carritoService->get();
 
-        // Buscamos el proveedor en la base de datos (usamos RTRIM si CodProv es CHAR)
-        $proveedor = DB::connection($this->connection)
-            ->table('Proveedores')
-            ->selectRaw("RTRIM(CodProv) as CodProv, RazonSocial, Ruc, Direccion, Activo")
-            ->where(DB::raw("RTRIM(CodProv)"), $proveedorIdUrl)
-            ->first();
-
-        if (!$proveedor) {
-            return redirect()->back()->with('error', 'Proveedor no encontrado.');
+        if ($proveedorId) {
+            $proveedor = DB::connection($this->connection)->table('Proveedores')->where('CodProv', $proveedorId)->first();
+            if ($proveedor) {
+                $carrito = $this->carritoService->iniciar($proveedor);
+            }
         }
-
-        // Verificamos si el carrito ya existe y pertenece al mismo proveedor
-        $carritoTieneProveedor = $carrito && isset($carrito['proveedor']);
-        $mismoProveedor = $carritoTieneProveedor && 
-                        trim((string) ($carrito['proveedor']->CodProv ?? '')) === $proveedorIdUrl;
-
-        if (!$carritoTieneProveedor || !$mismoProveedor) {
-            // Iniciamos un nuevo carrito con este proveedor
-            $carrito = $this->carritoService->iniciar($proveedor);
-        }
-
+        
         return view('compras.ordenes.crear', [
             'carrito' => $carrito
         ]);

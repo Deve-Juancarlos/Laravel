@@ -2,204 +2,214 @@
 
 @section('title', 'Reporte de Antigüedad de Cuentas por Cobrar')
 
+@section('breadcrumbs')
+    <li class="breadcrumb-item active" aria-current="page">Reportes</li>
+@endsection
+
+
 @push('styles')
     <link href="{{ asset('css/contabilidad/reportes/aging.css') }}" rel="stylesheet">
 @endpush
 
 @section('content')
-<div class="container-fluid mt-4">
+<div class="reportes-container">    
+    <div class="container-fluid">
+        
+        {{-- =========== NAVEGACIÓN DE REPORTES =========== --}}
+        <nav class="nav nav-tabs reportes-nav-wrapper mb-4">
+            <a href="{{ route('contador.reportes.index') }}" 
+               class="nav-item {{ request()->routeIs('contador.reportes.index') ? 'active' : '' }}">
+                <i class="fas fa-hand-holding-usd me-2"></i>
+                Cuentas por Cobrar
+            </a>
+            
+            <a href="{{ route('contador.reportes.ventas.rentabilidad') }}" 
+               class="nav-item {{ request()->routeIs('contador.reportes.ventas.rentabilidad') ? 'active' : '' }}">
+                <i class="fas fa-chart-line me-2"></i>
+                Rentabilidad (Ventas)
+            </a>
+            
+            <a href="{{ route('contador.reportes.inventario.sugerencias') }}" 
+               class="nav-item {{ request()->routeIs('contador.reportes.inventario.sugerencias') ? 'active' : '' }}">
+                <i class="fas fa-dolly-flatbed me-2"></i>
+                Sugerencias (Compra)
+            </a>
+            
+            <a href="{{ route('contador.reportes.inventario.vencimientos') }}" 
+               class="nav-item {{ request()->routeIs('contador.reportes.inventario.vencimientos') ? 'active' : '' }}">
+                <i class="fas fa-calendar-times me-2"></i>
+                Productos por Vencer
+            </a>
+        </nav>
+        {{-- =========== FIN NAVEGACIÓN =========== --}}
 
-   <div class="card shadow-sm border-0 mb-4">
-        <div class="card-header bg-white p-0">
-            <ul class="nav nav-tabs nav-fill" id="reportesTab" role="tablist">
+        {{-- =========== CONTENIDO DEL REPORTE =========== --}}
+        <div class="tab-content">
+            @yield('report-content')
+        </div>
+
+        {{-- =========== SECCIÓN DE RESUMEN =========== --}}
+        <div class="resumen-section">
+            <div class="totales-grid">
+                <div class="total-card card-principal shadow-sm">
+                    <div class="card-label">Deuda Total</div>
+                    <div class="card-amount">S/ {{ number_format($totales['Total'], 2) }}</div>
+                </div>
                 
-                <li class="nav-item" role="presentation">
-                    <a class="nav-link fs-5 fw-bold p-3 {{ request()->routeIs('contador.reportes.index') ? 'active' : '' }}"
-                    id="aging-tab"
-                    href="{{ route('contador.reportes.index') }}">
-                        <i class="fas fa-hand-holding-usd me-1"></i> Cuentas por Cobrar
-                    </a>
-                </li>
+                <div class="total-card card-vigente shadow-sm">
+                    <div class="card-label">Vigente</div>
+                    <div class="card-amount">S/ {{ number_format($totales['Vigente'], 2) }}</div>
+                </div>
                 
-                <li class="nav-item" role="presentation">
-                    <a class="nav-link fs-5 fw-bold p-3 {{ request()->routeIs('contador.reportes.ventas.rentabilidad') ? 'active' : '' }}"
-                    id="rentabilidad-tab"
-                    href="{{ route('contador.reportes.ventas.rentabilidad') }}">
-                        <i class="fas fa-chart-line me-1"></i> Rentabilidad (Ventas)
-                    </a>
-                </li>
+                <div class="total-card card-rango-1 shadow-sm">
+                    <div class="card-label">1-30 Días</div>
+                    <div class="card-amount">S/ {{ number_format($totales['Rango1_30'], 2) }}</div>
+                </div>
                 
-                <li class="nav-item" role="presentation">
-                    <a class="nav-link fs-5 fw-bold p-3 {{ request()->routeIs('contador.reportes.inventario.sugerencias') ? 'active' : '' }}"
-                    id="sugerencias-tab"
-                    href="{{ route('contador.reportes.inventario.sugerencias') }}">
-                        <i class="fas fa-dolly-flatbed me-1"></i> Sugerencias (Compra)
-                    </a>
-                </li>
+                <div class="total-card card-rango-2 shadow-sm">
+                    <div class="card-label">31-60 Días</div>
+                    <div class="card-amount">S/ {{ number_format($totales['Rango31_60'], 2) }}</div>
+                </div>
                 
-                <li class="nav-item" role="presentation">
-                    <a class="nav-link fs-5 fw-bold p-3 {{ request()->routeIs('contador.reportes.inventario.vencimientos') ? 'active' : '' }}"
-                    id="vencimientos-tab"
-                    href="{{ route('contador.reportes.inventario.vencimientos') }}">
-                        <i class="fas fa-calendar-times me-1"></i> Productos por Vencer
-                    </a>
-                </li>
-
-            </ul>
-        </div>
-    </div>
-
-    <div class="tab-content">
-        @yield('report-content')
-    </div>
-
-    <!-- Tarjetas de Totales -->
-    <div class="row g-3 mb-4">
-        <div class="col-lg-3 col-md-6">
-            <div class="card shadow-sm border-0">
-                <div class="card-body total-general">
-                    <h5 class="card-title text-primary">DEUDA TOTAL</h5>
-                    <p class="display-6 fw-bold mb-0">S/ {{ number_format($totales['Total'], 2) }}</p>
+                <div class="total-card card-vencido shadow-sm">
+                    <div class="card-label">Vencido (+60 Días)</div>
+                    <div class="card-amount">S/ {{ number_format($totales['Rango61_90'] + $totales['Rango90Mas'], 2) }}</div>
                 </div>
             </div>
         </div>
-        <div class="col-lg-2 col-md-6">
-            <div class="card shadow-sm border-0">
-                <div class="card-body bucket-vigente">
-                    <h5 class="card-title">Vigente</h5>
-                    <p class="h5 fw-bold mb-0">S/ {{ number_format($totales['Vigente'], 2) }}</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-lg-2 col-md-4">
-            <div class="card shadow-sm border-0">
-                <div class="card-body bucket-30">
-                    <h5 class="card-title">1-30 Días</h5>
-                    <p class="h5 fw-bold mb-0">S/ {{ number_format($totales['Rango1_30'], 2) }}</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-lg-2 col-md-4">
-            <div class="card shadow-sm border-0">
-                <div class="card-body bucket-60">
-                    <h5 class="card-title">31-60 Días</h5>
-                    <p class="h5 fw-bold mb-0">S/ {{ number_format($totales['Rango31_60'], 2) }}</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-lg-3 col-md-4">
-            <div class="card shadow-sm border-0">
-                <div class="card-body bucket-90mas">
-                    <h5 class="card-title text-danger">Vencido (+60 Días)</h5>
-                    <p class="h5 fw-bold mb-0">S/ {{ number_format($totales['Rango61_90'] + $totales['Rango90Mas'], 2) }}</p>
-                </div>
-            </div>
-        </div>
-    </div>
 
-    <!-- Tabla Principal del Reporte -->
-    <div class="card shadow-sm border-0">
-        <div class="card-header bg-white">
-            <h4 class="mb-0">
-                <i class="fas fa-hand-holding-usd me-2 text-success"></i>
-                Antigüedad de Cuentas por Cobrar (Aging de Cartera)
-            </h4>
-        </div>
-        <div class="card-body">
-            <div class="table-responsive">
-                <table class="table table-hover align-middle">
-                    <thead class="table-light">
-                        <tr>
-                            <th>Cliente</th>
-                            <th class="text-end">Deuda Total</th>
-                            <th class="text-end bucket-vigente">Vigente</th>
-                            <th class="text-end bucket-30">1-30 Días</th>
-                            <th class="text-end bucket-60">31-60 Días</th>
-                            <th class="text-end bucket-90">61-90 Días</th>
-                            <th class="text-end bucket-90mas">90+ Días</th>
-                            <th class="text-center">Acción</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse($reporte as $cliente)
-                            <tr>
-                                <td>
-                                    <strong>{{ $cliente->Razon }}</strong>
-                                    <br><small class="text-muted">{{ $cliente->ClienteEmail ?? 'Sin Email' }}</small>
-                                </td>
-                                <td class="text-end fw-bold fs-5">S/ {{ number_format($cliente->DeudaTotal, 2) }}</td>
-                                <td class="text-end bucket-vigente">S/ {{ number_format($cliente->Vigente, 2) }}</td>
-                                <td class="text-end bucket-30">S/ {{ number_format($cliente->Rango1_30, 2) }}</td>
-                                <td class="text-end bucket-60">S/ {{ number_format($cliente->Rango31_60, 2) }}</td>
-                                <td class="text-end bucket-90">S/ {{ number_format($cliente->Rango61_90, 2) }}</td>
-                                <td class="text-end bucket-90mas">S/ {{ number_format($cliente->Rango90Mas, 2) }}</td>
-                                <td class="text-center">
-                                    <button class="btn btn-success btn-sm" 
-                                            data-bs-toggle="modal" 
-                                            data-bs-target="#modalEnviarRecordatorio"
-                                            data-cliente-id="{{ $cliente->CodClie }}"
-                                            data-cliente-nombre="{{ $cliente->Razon }}"
-                                            data-cliente-email="{{ $cliente->ClienteEmail }}"
-                                            data-cliente-deuda="{{ $cliente->DeudaTotal }}">
-                                        <i class="fas fa-envelope me-1"></i> Enviar Recordatorio
-                                    </button>
-                                </td>
-                            </tr>
-                        @empty
-                            <tr>
-                                <td colspan="8" class="text-center p-4">
-                                    <i class="fas fa-check-circle text-success me-1"></i>
-                                    ¡Felicidades! No hay cuentas por cobrar.
-                                </td>
-                            </tr>
-                        @endforelse
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-</div>
-
-
-<!-- ▼▼▼ EL MODAL PARA ENVIAR EL CORREO ▼▼▼ -->
-<div class="modal fade" id="modalEnviarRecordatorio" tabindex="-1" aria-labelledby="modalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="modalLabel">Enviar Recordatorio de Cobranza</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        {{-- =========== TABLA DE DETALLE =========== --}}
+        <div class="card shadow-sm tabla-section">
+            <div class="tabla-header">
+                <h2 class="tabla-title mb-0">
+                    <i class="fas fa-hand-holding-usd"></i>
+                    Antigüedad de Cuentas por Cobrar (Aging de Cartera)
+                </h2>
             </div>
             
-            <!-- El 'action' del formulario se llenará con JavaScript -->
-            <form id="formRecordatorio" method="POST">
-                @csrf
-                <div class="modal-body">
-                    <p>Se enviará un recordatorio con su estado de cuenta adjunto al cliente:
-                        <strong id="modalClienteNombre" class="d-block fs-5 text-primary"></strong>
-                    </p>
-
-                    <div class="mb-3">
-                        <label for="email_destino" class="form-label fw-bold">Para:</label>
-                        <input type="email" class="form-control" id="modalEmailDestino" name="email_destino" required>
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="email_asunto" class="form-label fw-bold">Asunto:</label>
-                        <input type="text" class="form-control" id="modalEmailAsunto" name="email_asunto" required>
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="email_cuerpo" class="form-label fw-bold">Mensaje:</label>
-                        <textarea class="form-control" id="modalEmailCuerpo" name="email_cuerpo" rows="6" required></textarea>
+            <div class="card-body p-0">
+                <div class="tabla-wrapper">
+                    <div class="table-responsive">
+                        <table class="table tabla-aging table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th class="col-cliente">
+                                        <i class="fas fa-user me-2"></i>
+                                        Cliente
+                                    </th>
+                                    <th class="col-numero">
+                                        <i class="fas fa-dollar-sign me-2"></i>
+                                        Deuda Total
+                                    </th>
+                                    <th class="col-numero col-vigente">
+                                        <i class="fas fa-check me-2"></i>
+                                        Vigente
+                                    </th>
+                                    <th class="col-numero col-rango-1">
+                                        <i class="fas fa-calendar-day me-2"></i>
+                                        1-30 Días
+                                    </th>
+                                    <th class="col-numero col-rango-2">
+                                        <i class="fas fa-calendar-week me-2"></i>
+                                        31-60 Días
+                                    </th>
+                                    <th class="col-numero col-rango-3">
+                                        <i class="fas fa-calendar-alt me-2"></i>
+                                        61-90 Días
+                                    </th>
+                                    <th class="col-numero col-rango-4">
+                                        <i class="fas fa-calendar-times me-2"></i>
+                                        90+ Días
+                                    </th>
+                                    <th class="col-accion">
+                                        <i class="fas fa-cog me-2"></i>
+                                        Acción
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @forelse($reporte as $cliente)
+                                    <tr>
+                                        <td class="col-cliente">
+                                            <div class="cliente-info">
+                                                <div class="cliente-nombre">{{ $cliente->Razon }}</div>
+                                                <div class="cliente-email">{{ $cliente->ClienteEmail ?? 'Sin Email' }}</div>
+                                            </div>
+                                        </td>
+                                        <td class="col-numero col-total">S/ {{ number_format($cliente->DeudaTotal, 2) }}</td>
+                                        <td class="col-numero col-vigente">S/ {{ number_format($cliente->Vigente, 2) }}</td>
+                                        <td class="col-numero col-rango-1">S/ {{ number_format($cliente->Rango1_30, 2) }}</td>
+                                        <td class="col-numero col-rango-2">S/ {{ number_format($cliente->Rango31_60, 2) }}</td>
+                                        <td class="col-numero col-rango-3">S/ {{ number_format($cliente->Rango61_90, 2) }}</td>
+                                        <td class="col-numero col-rango-4">S/ {{ number_format($cliente->Rango90Mas, 2) }}</td>
+                                        <td class="col-accion">
+                                            <button class="btn-recordatorio" 
+                                                    data-bs-toggle="modal" 
+                                                    data-bs-target="#modalEnviarRecordatorio"
+                                                    data-cliente-id="{{ $cliente->CodClie }}"
+                                                    data-cliente-nombre="{{ $cliente->Razon }}"
+                                                    data-cliente-email="{{ $cliente->ClienteEmail }}"
+                                                    data-cliente-deuda="{{ $cliente->DeudaTotal }}">
+                                                <i class="fas fa-envelope"></i>
+                                                <span>Enviar Recordatorio</span>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                @empty
+                                    <tr>
+                                        <td colspan="8" class="tabla-vacia">
+                                            <i class="fas fa-check-circle"></i>
+                                            <span>¡Felicidades! No hay cuentas por cobrar.</span>
+                                        </td>
+                                    </tr>
+                                @endforelse
+                            </tbody>
+                        </table>
                     </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="submit" class="btn btn-success">
-                        <i class="fas fa-paper-plane me-1"></i> Enviar Correo
-                    </button>
+            </div>
+        </div>
+    </div>
+
+    {{-- =========== MODAL DE ENVÍO DE RECORDATORIO =========== --}}
+    <div class="modal fade" id="modalEnviarRecordatorio" tabindex="-1" aria-labelledby="modalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalLabel">Enviar Recordatorio de Cobranza</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-            </form>
+                
+                <form id="formRecordatorio" method="POST">
+                    @csrf
+                    <div class="modal-body">
+                        <p>Se enviará un recordatorio con su estado de cuenta adjunto al cliente:
+                            <strong id="modalClienteNombre" class="d-block fs-5 text-primary"></strong>
+                        </p>
+
+                        <div class="mb-3">
+                            <label for="email_destino" class="form-label fw-bold">Para:</label>
+                            <input type="email" class="form-control" id="modalEmailDestino" name="email_destino" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="email_asunto" class="form-label fw-bold">Asunto:</label>
+                            <input type="text" class="form-control" id="modalEmailAsunto" name="email_asunto" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="email_cuerpo" class="form-label fw-bold">Mensaje:</label>
+                            <textarea class="form-control" id="modalEmailCuerpo" name="email_cuerpo" rows="6" required></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-success">
+                            <i class="fas fa-paper-plane me-1"></i> Enviar Correo
+                        </button>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
 </div>

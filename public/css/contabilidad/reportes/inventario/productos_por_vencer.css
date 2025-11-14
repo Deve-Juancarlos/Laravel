@@ -1,0 +1,603 @@
+/*
+ * =====================================================
+ * MÓDULO DE REPORTES - PRODUCTOS POR VENCER
+ * Estilos profesionales para control de vencimientos
+ * =====================================================
+ */
+
+/* =====================================================
+   1. VARIABLES Y CONFIGURACIÓN BASE
+   ===================================================== */
+:root {
+    /* Paleta Profesional Empresarial */
+    --venc-primary: #1e3a5f;
+    --venc-primary-dark: #152a45;
+    --venc-primary-light: #2d4d7a;
+    --venc-secondary: #455a64;
+    
+    /* Colores Funcionales */
+    --venc-success: #2e7d32;
+    --venc-success-light: #e8f5e9;
+    --venc-danger: #c62828;
+    --venc-danger-light: #ffebee;
+    --venc-info: #0277bd;
+    --venc-info-light: #e1f5fe;
+    --venc-warning: #f57c00;
+    --venc-warning-light: #fff3e0;
+    
+    /* Colores Neutros */
+    --venc-text-primary: #212529;
+    --venc-text-secondary: #6c757d;
+    --venc-text-muted: #868e96;
+    --venc-border: #dee2e6;
+    --venc-border-light: #e9ecef;
+    --venc-bg: #f8f9fa;
+    --venc-bg-white: #ffffff;
+    --venc-bg-dark: #f1f3f5;
+    
+    /* Espaciado Consistente */
+    --spacing-xs: 0.5rem;
+    --spacing-sm: 0.75rem;
+    --spacing-md: 1rem;
+    --spacing-lg: 1.5rem;
+    --spacing-xl: 2rem;
+    
+    /* Bordes y Sombras Sutiles */
+    --radius-sm: 4px;
+    --radius-md: 6px;
+    --radius-lg: 8px;
+    --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.05);
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
+    --shadow-md: 0 2px 6px rgba(0, 0, 0, 0.1);
+    --shadow-lg: 0 4px 12px rgba(0, 0, 0, 0.12);
+    
+    /* Transiciones */
+    --transition: all 0.2s ease;
+}
+
+/* =====================================================
+   2. CONTENEDOR PRINCIPAL
+   ===================================================== */
+.productosporvencer-container {
+    padding: 0;
+}
+
+/* =====================================================
+   3. TARJETA DE TOTALES (ALERTA)
+   ===================================================== */
+.productosporvencer-container .card.bg-danger {
+    background-color: #da1d30 !important;
+    border: none;
+    border-radius: var(--radius-lg);
+}
+
+.productosporvencer-container .card.bg-danger .card-body {
+    padding: var(--spacing-lg);
+}
+
+.productosporvencer-container .card.bg-danger .card-title {
+    font-size: 1rem;
+    font-weight: 400;
+    margin-bottom: var(--spacing-sm) !important;
+    opacity: 0.95;
+}
+
+.productosporvencer-container .card.bg-danger .display-5 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin: var(--spacing-sm) 0;
+}
+
+.productosporvencer-container .card.bg-danger small {
+    font-size: 0.875rem;
+    opacity: 0.9;
+}
+
+.productosporvencer-container .mb-3 {
+    margin-bottom: var(--spacing-md) !important;
+}
+
+/* =====================================================
+   4. TARJETA PRINCIPAL
+   ===================================================== */
+.productosporvencer-container .card {
+    border: 1px solid var(--venc-border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    background-color: var(--venc-bg-white);
+}
+
+.productosporvencer-container .card-header {
+    background: linear-gradient(135deg, #1e3a5f 0%, #152a45 100%);
+    border-bottom: none;
+    padding: var(--spacing-lg) var(--spacing-xl);
+}
+
+.productosporvencer-container .card-header h4 {
+    font-size: 1.25rem;
+    font-weight: 400;
+    color: var(--venc-bg-white);
+    margin: 0;
+    display: flex;
+    align-items: center;
+}
+
+.productosporvencer-container .card-header h4 i {
+    font-size: 1.25rem;
+    color: var(--venc-bg-white) !important;
+}
+
+.productosporvencer-container .card-header .text-danger {
+    color: var(--venc-bg-white) !important;
+}
+
+.productosporvencer-container .card-body {
+    padding: var(--spacing-lg);
+}
+
+/* =====================================================
+   5. FILTROS (ESTILO BANCOS)
+   ===================================================== */
+.productosporvencer-container .filters-card {
+    background-color: var(--venc-bg);
+    border: 1px solid var(--venc-border);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-lg);
+    margin-bottom: var(--spacing-lg);
+}
+
+.productosporvencer-container .form-label {
+    font-weight: 600;
+    font-size: 0.8125rem;
+    color: var(--venc-text-primary);
+    margin-bottom: var(--spacing-xs);
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+.productosporvencer-container .form-select,
+.productosporvencer-container .form-control {
+    border: 1px solid var(--venc-border);
+    border-radius: var(--radius-md);
+    padding: 0.5rem var(--spacing-sm);
+    font-size: 0.9375rem;
+    color: var(--venc-text-primary);
+    transition: var(--transition);
+    background-color: var(--venc-bg-white);
+}
+
+.productosporvencer-container .form-select:focus,
+.productosporvencer-container .form-control:focus {
+    border-color: var(--venc-primary);
+    box-shadow: 0 0 0 0.2rem rgba(30, 58, 95, 0.1);
+    outline: none;
+}
+
+.productosporvencer-container .btn-primary {
+    background-color: var(--venc-primary);
+    border: none;
+    padding: 0.5rem var(--spacing-md);
+    font-weight: 600;
+    border-radius: var(--radius-md);
+    transition: var(--transition);
+    font-size: 0.875rem;
+}
+
+.productosporvencer-container .btn-primary:hover {
+    background-color: var(--venc-primary-dark);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+}
+
+.productosporvencer-container .btn-outline-secondary {
+    border: 1px solid var(--venc-border);
+    color: var(--venc-text-secondary);
+    padding: 0.5rem var(--spacing-md);
+    font-weight: 600;
+    border-radius: var(--radius-md);
+    transition: var(--transition);
+    background-color: var(--venc-bg-white);
+    font-size: 0.875rem;
+}
+
+.productosporvencer-container .btn-outline-secondary:hover {
+    background-color: var(--venc-text-secondary);
+    color: var(--venc-bg-white);
+    border-color: var(--venc-text-secondary);
+    transform: translateY(-1px);
+}
+
+/* =====================================================
+   6. TABLA (ESTILO BANCOS)
+   ===================================================== */
+.productosporvencer-container .table-responsive {
+    border-radius: var(--radius-md);
+    overflow: hidden;
+}
+
+.productosporvencer-container .table {
+    margin-bottom: 0;
+}
+
+.productosporvencer-container .table thead th {
+    background-color: var(--venc-bg-dark);
+    color: var(--venc-text-primary);
+    font-weight: 600;
+    font-size: 0.8125rem;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    padding: var(--spacing-md) var(--spacing-md);
+    border-bottom: 2px solid var(--venc-border);
+    white-space: nowrap;
+    vertical-align: middle;
+}
+
+.productosporvencer-container .table thead .table-dark th {
+    background-color: var(--venc-primary-dark);
+    color: var(--venc-bg-white);
+}
+
+.productosporvencer-container .table thead .bg-primary {
+    background: linear-gradient(135deg, var(--venc-primary) 0%, var(--venc-primary-dark) 100%) !important;
+    color: var(--venc-bg-white) !important;
+}
+
+.productosporvencer-container .table tbody td {
+    padding: var(--spacing-md) var(--spacing-md);
+    vertical-align: middle;
+    font-size: 0.875rem;
+    color: var(--venc-text-primary);
+    border-bottom: 1px solid var(--venc-border-light);
+    background-color: var(--venc-bg-white);
+}
+
+.productosporvencer-container .table tbody tr:hover {
+    background-color: var(--venc-bg);
+}
+
+.productosporvencer-container .table tbody tr:hover td {
+    background-color: var(--venc-bg);
+}
+
+.productosporvencer-container .table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.productosporvencer-container .table-bordered {
+    border: 1px solid var(--venc-border);
+}
+
+.productosporvencer-container .table-bordered th,
+.productosporvencer-container .table-bordered td {
+    border: 1px solid var(--venc-border-light);
+}
+
+/* =====================================================
+   7. COLORES DE FILAS SEGÚN ESTADO
+   ===================================================== */
+.productosporvencer-container .table-danger {
+    background-color: var(--venc-danger-light) !important;
+}
+
+.productosporvencer-container .table-danger td {
+    background-color: var(--venc-danger-light) !important;
+}
+
+.productosporvencer-container .table-warning {
+    background-color: var(--venc-warning-light) !important;
+}
+
+.productosporvencer-container .table-warning td {
+    background-color: var(--venc-warning-light) !important;
+}
+
+.productosporvencer-container .table-dark {
+    background-color: #495057 !important;
+}
+
+.productosporvencer-container .table-dark td {
+    background-color: #495057 !important;
+    color: var(--venc-bg-white) !important;
+}
+
+.productosporvencer-container .table-dark .text-muted {
+    color: rgba(255, 255, 255, 0.7) !important;
+}
+
+/* Hover states para filas coloreadas */
+.productosporvencer-container .table tbody tr.table-danger:hover,
+.productosporvencer-container .table tbody tr.table-danger:hover td {
+    background-color: #ffcdd2 !important;
+}
+
+.productosporvencer-container .table tbody tr.table-warning:hover,
+.productosporvencer-container .table tbody tr.table-warning:hover td {
+    background-color: #ffe0b2 !important;
+}
+
+.productosporvencer-container .table tbody tr.table-dark:hover,
+.productosporvencer-container .table tbody tr.table-dark:hover td {
+    background-color: #3a3f44 !important;
+}
+
+/* =====================================================
+   8. COLORES DE TEXTO Y BACKGROUNDS
+   ===================================================== */
+.productosporvencer-container .text-success {
+    color: var(--venc-success) !important;
+}
+
+.productosporvencer-container .text-danger {
+    color: var(--venc-danger) !important;
+}
+
+.productosporvencer-container .text-warning {
+    color: var(--venc-warning) !important;
+}
+
+.productosporvencer-container .text-muted {
+    color: var(--venc-text-muted) !important;
+}
+
+.productosporvencer-container .text-white {
+    color: var(--venc-bg-white) !important;
+}
+
+.productosporvencer-container .bg-light {
+    background-color: var(--venc-bg) !important;
+}
+
+.productosporvencer-container .bg-primary {
+    background-color: var(--venc-primary) !important;
+}
+
+/* =====================================================
+   9. ESTILOS ESPECÍFICOS DE CONTENIDO
+   ===================================================== */
+.productosporvencer-container .text-end {
+    text-align: right !important;
+}
+
+.productosporvencer-container .text-center {
+    text-align: center !important;
+}
+
+.productosporvencer-container .fw-bold {
+    font-weight: 600 !important;
+}
+
+.productosporvencer-container .fs-5 {
+    font-size: 1.125rem !important;
+}
+
+.productosporvencer-container small {
+    font-size: 0.8125rem;
+}
+
+/* =====================================================
+   10. ESTADO VACÍO
+   ===================================================== */
+.productosporvencer-container .table tbody td[colspan] {
+    text-align: center;
+    padding: var(--spacing-xl) !important;
+    color: var(--venc-text-muted);
+    font-size: 1rem;
+    background-color: var(--venc-bg) !important;
+}
+
+.productosporvencer-container .table tbody td[colspan] i {
+    margin-right: var(--spacing-xs);
+    font-size: 1.125rem;
+}
+
+.productosporvencer-container .table tbody td[colspan] i.text-success {
+    color: var(--venc-success) !important;
+}
+
+/* =====================================================
+   11. PAGINACIÓN (ESTILO BANCOS)
+   ===================================================== */
+.productosporvencer-container .pagination {
+    margin-top: var(--spacing-lg);
+    margin-bottom: 0;
+}
+
+.productosporvencer-container .pagination .page-link {
+    color: var(--venc-primary);
+    border-color: var(--venc-border);
+    padding: var(--spacing-xs) var(--spacing-sm);
+    font-size: 0.875rem;
+    transition: var(--transition);
+}
+
+.productosporvencer-container .pagination .page-link:hover {
+    background-color: var(--venc-bg);
+    border-color: var(--venc-border);
+}
+
+.productosporvencer-container .pagination .page-item.active .page-link {
+    background-color: var(--venc-primary);
+    border-color: var(--venc-primary);
+}
+
+.productosporvencer-container .pagination .page-item.disabled .page-link {
+    color: var(--venc-text-muted);
+    border-color: var(--venc-border);
+}
+
+/* =====================================================
+   12. UTILIDADES
+   ===================================================== */
+.productosporvencer-container .shadow-sm {
+    box-shadow: var(--shadow-sm) !important;
+}
+
+.productosporvencer-container .mb-0 {
+    margin-bottom: 0 !important;
+}
+
+.productosporvencer-container .mb-4 {
+    margin-bottom: var(--spacing-lg) !important;
+}
+
+.productosporvencer-container .mt-3 {
+    margin-top: var(--spacing-md) !important;
+}
+
+.productosporvencer-container .mt-4 {
+    margin-top: var(--spacing-lg) !important;
+}
+
+.productosporvencer-container .p-3 {
+    padding: var(--spacing-md) !important;
+}
+
+.productosporvencer-container .p-4 {
+    padding: var(--spacing-lg) !important;
+}
+
+.productosporvencer-container .border {
+    border: 1px solid var(--venc-border) !important;
+}
+
+.productosporvencer-container .rounded {
+    border-radius: var(--radius-md) !important;
+}
+
+.productosporvencer-container .d-flex {
+    display: flex !important;
+}
+
+.productosporvencer-container .justify-content-center {
+    justify-content: center !important;
+}
+
+/* =====================================================
+   13. RESPONSIVE DESIGN
+   ===================================================== */
+@media (max-width: 992px) {
+    .productosporvencer-container .card-header {
+        padding: var(--spacing-md) var(--spacing-lg);
+    }
+    
+    .productosporvencer-container .card-header h4 {
+        font-size: 1.125rem;
+    }
+    
+    .productosporvencer-container .filters-card {
+        padding: var(--spacing-md);
+    }
+    
+    .productosporvencer-container .card.bg-danger .display-5 {
+        font-size: 2rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .productosporvencer-container .card-header {
+        padding: var(--spacing-md);
+    }
+    
+    .productosporvencer-container .card-header h4 {
+        font-size: 1rem;
+    }
+    
+    .productosporvencer-container .card-body {
+        padding: var(--spacing-md);
+    }
+    
+    .productosporvencer-container .table thead th,
+    .productosporvencer-container .table tbody td {
+        padding: var(--spacing-xs) var(--spacing-sm);
+        font-size: 0.8125rem;
+    }
+    
+    .productosporvencer-container .btn-primary,
+    .productosporvencer-container .btn-outline-secondary {
+        font-size: 0.8125rem;
+        padding: var(--spacing-xs) var(--spacing-sm);
+    }
+    
+    .productosporvencer-container .card.bg-danger .display-5 {
+        font-size: 1.75rem;
+    }
+    
+    .productosporvencer-container .card.bg-danger .card-title {
+        font-size: 0.9375rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .productosporvencer-container .card-header h4 {
+        font-size: 0.9375rem;
+    }
+    
+    .productosporvencer-container .form-label {
+        font-size: 0.75rem;
+    }
+    
+    .productosporvencer-container .form-select,
+    .productosporvencer-container .form-control {
+        font-size: 0.875rem;
+    }
+    
+    .productosporvencer-container .table thead th {
+        font-size: 0.75rem;
+    }
+    
+    .productosporvencer-container .fs-5 {
+        font-size: 1rem !important;
+    }
+    
+    .productosporvencer-container .card.bg-danger .display-5 {
+        font-size: 1.5rem;
+    }
+}
+
+/* =====================================================
+   14. NAVEGACIÓN DE REPORTES (ESTILO BANCOS)
+   ===================================================== */
+.productosporvencer-container .reportes-nav-wrapper {
+    background-color: var(--venc-bg-white);
+    border: 1px solid var(--venc-border);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-xs);
+    box-shadow: var(--shadow-xs);
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: var(--spacing-lg);
+}
+
+.productosporvencer-container .reportes-nav-wrapper .nav-item {
+    color: var(--venc-text-secondary);
+    font-weight: 500;
+    font-size: 0.8125rem;
+    padding: var(--spacing-sm) var(--spacing-xs);
+    border-radius: var(--radius-md);
+    transition: var(--transition);
+    border: none;
+    white-space: nowrap;
+    flex: 1;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.375rem;
+    text-decoration: none;
+}
+
+.productosporvencer-container .reportes-nav-wrapper .nav-item:hover {
+    background-color: var(--venc-bg);
+    color: var(--venc-primary);
+}
+
+.productosporvencer-container .reportes-nav-wrapper .nav-item.active {
+    background-color: var(--venc-primary);
+    color: var(--venc-bg-white);
+    font-weight: 600;
+}
+
+.productosporvencer-container .reportes-nav-wrapper .nav-item i {
+    font-size: 0.8125rem;
+    flex-shrink: 0;
+}

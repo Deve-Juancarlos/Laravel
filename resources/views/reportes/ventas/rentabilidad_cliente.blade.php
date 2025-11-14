@@ -2,8 +2,49 @@
 
 @section('title', 'Reporte de Rentabilidad por Cliente')
 
+@section('breadcrumbs')
+    <li class="breadcrumb-item">
+        <a href="{{ route('contador.reportes.index') }}">Reportes</a>
+    </li>
+    <li class="breadcrumb-item active" aria-current="page">Rentabilidad(Ventas)</li>
+@endsection
+
+@push('styles')
+    <link href="{{ asset('css/contabilidad/reportes/ventas/rentabilidad_cliente.css') }}" rel="stylesheet">
+@endpush
+
 @section('content')
-<div class="container-fluid mt-4">
+<div class="rentabilidad-container">
+
+    {{-- =========== NAVEGACIÓN =========== --}}
+    <nav class="nav nav-tabs reportes-nav-wrapper mb-4">
+        <a href="{{ route('contador.reportes.index') }}" 
+            class="nav-item {{ request()->routeIs('contador.reportes.index') ? 'active' : '' }}">
+            <i class="fas fa-hand-holding-usd me-2"></i>
+            Cuentas por Cobrar
+        </a>
+        
+        <a href="{{ route('contador.reportes.ventas.rentabilidad') }}" 
+            class="nav-item {{ request()->routeIs('contador.reportes.ventas.rentabilidad') ? 'active' : '' }}">
+            <i class="fas fa-chart-line me-2"></i>
+            Rentabilidad (Ventas)
+        </a>
+        
+        <a href="{{ route('contador.reportes.inventario.sugerencias') }}" 
+            class="nav-item {{ request()->routeIs('contador.reportes.inventario.sugerencias') ? 'active' : '' }}">
+            <i class="fas fa-dolly-flatbed me-2"></i>
+            Sugerencias (Compra)
+        </a>
+        
+        <a href="{{ route('contador.reportes.inventario.vencimientos') }}" 
+            class="nav-item {{ request()->routeIs('contador.reportes.inventario.vencimientos') ? 'active' : '' }}">
+            <i class="fas fa-calendar-times me-2"></i>
+            Productos por Vencer
+        </a>
+    </nav>
+    {{-- =========== FIN NAVEGACIÓN =========== --}}
+
+
     <div class="card shadow-sm">
         <div class="card-header bg-white">
             <h4 class="mb-0">

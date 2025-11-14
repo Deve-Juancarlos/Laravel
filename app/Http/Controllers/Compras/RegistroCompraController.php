@@ -7,9 +7,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
-use App\Services\ContabilidadService;
+use App\Services\ContabilidadService; // ¡EL CEREBRO!
 use Carbon\Carbon;
-use PDF;
+// Quitamos 'PDF', no se usa aquí
 
 class RegistroCompraController extends Controller
 {
@@ -36,7 +36,7 @@ class RegistroCompraController extends Controller
                 ->join('Proveedores as p', 'oc.CodProv', '=', 'p.CodProv')
                 ->where('oc.Id', $ordenId)
                 ->where('oc.Estado', 'PENDIENTE') // Solo O/C pendientes
-                ->select('oc.*', 'p.RazonSocial', 'p.Ruc')
+                ->select('oc.*', 'p.RazonSocial', 'p.Ruc', 'p.CodProv as ProveedorCodProv') // Pasamos el CodProv
                 ->first();
 
             if ($ordenCompra) {
@@ -46,18 +46,17 @@ class RegistroCompraController extends Controller
                     ->select('od.CodPro', 'p.Nombre', 'od.Cantidad', 'od.CostoUnitario')
                     ->get();
                 
-                $proveedor = (object)[
-                    'CodProv' => $ordenCompra->CodProv,
-                    'RazonSocial' => $ordenCompra->RazonSocial,
-                    'Ruc' => $ordenCompra->Ruc,
-                ];
+                // Pasamos el proveedor completo
+                $proveedor = DB::connection($this->connection)->table('Proveedores')
+                    ->where('CodProv', $ordenCompra->CodProv)->first();
+                    
             } else {
-                return redirect()->route('contador.compras.index')
+                return redirect()->route('contador.compras.index') // Asumiendo que esta es la ruta de O/C
                     ->with('error', 'Orden de Compra no encontrada o ya fue procesada.');
             }
         } else {
-             return redirect()->route('contador.compras.index')
-                    ->with('error', 'Debe seleccionar una Orden de Compra para registrar.');
+             return redirect()->route('contador.compras.index') // Asumiendo que esta es la ruta de O/C
+                 ->with('error', 'Debe seleccionar una Orden de Compra para registrar.');
         }
         
         // Vista para el formulario de registro de compra
@@ -69,14 +68,16 @@ class RegistroCompraController extends Controller
     }
 
     /**
+     * ¡CORREGIDO!
      * Guarda la Compra, afecta Inventario, Cuentas por Pagar y Contabilidad.
      */
-   public function store(Request $request)
+    public function store(Request $request)
     {
         // 1. Validar datos del formulario
         $request->validate([
             'orden_id' => 'required|integer|exists:sqlsrv.OrdenCompraCab,Id',
             'proveedor_id' => 'required|integer|exists:sqlsrv.Proveedores,CodProv',
+            'serie_factura' => 'required|string|max:10', // ¡CORREGIDO!
             'nro_factura' => 'required|string|max:20',
             'fecha_emision' => 'required|date',
             'fecha_vencimiento' => 'required|date|after_or_equal:fecha_emision',
@@ -96,7 +97,9 @@ class RegistroCompraController extends Controller
 
         $ordenId = $request->input('orden_id');
         $proveedorId = $request->input('proveedor_id');
+        $serieFactura = $request->input('serie_factura');
         $nroFactura = $request->input('nro_factura');
+        $nroFacturaCompleto = $serieFactura . '-' . $nroFactura; // Ej: F001-1234
         $fechaEmision = Carbon::parse($request->input('fecha_emision'));
         $fechaVencimiento = Carbon::parse($request->input('fecha_vencimiento'));
         $almacenId = $request->input('almacen_id');
@@ -106,16 +109,38 @@ class RegistroCompraController extends Controller
             
             // 2. Verificar que la O/C esté PENDIENTE
             $orden = DB::connection($this->connection)->table('OrdenCompraCab')
-                        ->where('Id', $ordenId)->lockForUpdate()->first();
-                        
+                            ->where('Id', $ordenId)->lockForUpdate()->first();
+                            
             if ($orden->Estado !== 'PENDIENTE') {
                 throw new \Exception("La Orden de Compra {$orden->Serie}-{$orden->Numero} ya fue procesada.");
             }
+            
+            // 3. Crear la Factura de Compra (CompraCab)
+            $compraId = DB::connection($this->connection)->table('CompraCab')->insertGetId([
+                'Serie' => $serieFactura,
+                'Numero' => $nroFactura,
+                'TipoDoc' => '01', // 01 = Factura (Debe venir de tu tabla TiposDocumentoSUNAT)
+                'CodProv' => $proveedorId,
+                'FechaEmision' => $fechaEmision,
+                'FechaVencimiento' => $fechaVencimiento,
+                'Moneda' => 1, // Asumimos Soles
+                'Cambio' => 1.0,
+                'BaseAfecta' => $request->input('subtotal'),
+                'BaseInafecta' => 0,
+                'Igv' => $request->input('igv'),
+                'Total' => $request->input('total'),
+                'Estado' => 'REGISTRADA',
+                'Glosa' => "Recepción de O/C {$orden->Serie}-{$orden->Numero}",
+                'OrdenCompraId' => $ordenId,
+                'UsuarioId' => Auth::id(),
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
 
-            // 3. Crear la Deuda (CtaProveedor)
+            // 4. Crear la Deuda (CtaProveedor)
             DB::connection($this->connection)->table('CtaProveedor')->insert([
-                'Documento' => $nroFactura,
-                'Tipo' => 1, // Asumimos 1 = Factura de Proveedor
+                'Documento' => $nroFacturaCompleto,
+                'Tipo' => 1, // Asumimos 1 = Factura de Proveedor (Debe venir de tu tabla Tablas)
                 'CodProv' => $proveedorId,
                 'FechaF' => $fechaEmision,
                 'FechaV' => $fechaVencimiento,
@@ -125,11 +150,24 @@ class RegistroCompraController extends Controller
                 'created_at' => now(),
             ]);
 
-            // 4. Aumentar el Stock (Saldos) - (Esta es la versión que ya corregimos)
+            // 5. Aumentar el Stock (Saldos) y guardar Detalle (CompraDet)
             foreach ($request->input('items') as $item) {
                 $cantidad = (float) $item['cantidad'];
                 $vencimiento = Carbon::parse($item['vencimiento']);
                 $protocolo = $item['protocolo'] ?? 0;
+                
+                // 5A. Guardar Detalle de Compra
+                DB::connection($this->connection)->table('CompraDet')->insert([
+                    'CompraId' => $compraId,
+                    'CodPro' => $item['codpro'],
+                    'Cantidad' => $cantidad,
+                    'CostoUnitario' => (float) $item['costo'],
+                    'Subtotal' => $cantidad * (float) $item['costo'],
+                    'Lote' => $item['lote'],
+                    'Vencimiento' => $vencimiento,
+                ]);
+
+                // 5B. Actualizar/Crear el Saldo (Inventario)
                 $conditions = [
                     'codpro' => $item['codpro'],
                     'almacen' => $almacenId,
@@ -137,23 +175,17 @@ class RegistroCompraController extends Controller
                 ];
 
                 $existingSaldo = DB::connection($this->connection)
-                    ->table('Saldos')
-                    ->where($conditions)
-                    ->first();
+                    ->table('Saldos')->where($conditions)->first();
 
                 if ($existingSaldo) {
-                    // SI EXISTE: Hacemos UPDATE
-                    DB::connection($this->connection)
-                        ->table('Saldos')
+                    DB::connection($this->connection)->table('Saldos')
                         ->where($conditions)
                         ->update([
                             'saldo' => DB::raw("saldo + {$cantidad}"), 
                             'vencimiento' => $vencimiento
                         ]);
                 } else {
-                    // NO EXISTE: Hacemos INSERT
-                    DB::connection($this->connection)
-                        ->table('Saldos')
+                    DB::connection($this->connection)->table('Saldos')
                         ->insert([
                             'codpro' => $item['codpro'],
                             'almacen' => $almacenId,
@@ -165,22 +197,17 @@ class RegistroCompraController extends Controller
                 }
             }
             
-            // =================================================================
-            // 5. Actualizar la Orden de Compra a 'COMPLETADA' - ¡CORREGIDO!
-            // =================================================================
+            // 6. Actualizar la Orden de Compra a 'COMPLETADA'
             DB::connection($this->connection)->table('OrdenCompraCab')
                 ->where('Id', $ordenId)
-                ->update([
-                    'Estado' => 'COMPLETADA'
-                    // Se quitó la línea 'NroGuia' => $nroFactura que causaba el error
-                ]);
+                ->update([ 'Estado' => 'COMPLETADA' ]); // O 'RECIBIDO'
 
-            // 6. 👨‍💼 LLAMAR AL MOTOR CONTABLE (COMPRA) 👨‍💼
+            // 7. 👨‍💼 LLAMAR AL MOTOR CONTABLE (COMPRA) 👨‍💼
             $proveedor = DB::connection($this->connection)->table('Proveedores')
                             ->where('CodProv', $proveedorId)->first();
-                            
-            $this->contabilidadService->registrarAsientoCompra(
-                $nroFactura,
+            
+            $asientoId = $this->contabilidadService->registrarAsientoCompra(
+                $nroFacturaCompleto,
                 $proveedor,
                 (float) $request->input('subtotal'),
                 (float) $request->input('igv'),
@@ -189,17 +216,21 @@ class RegistroCompraController extends Controller
                 Auth::id()
             );
 
-            // 7. ¡Todo listo!
+            // 8. Vincular Asiento a la Compra
+            DB::connection($this->connection)->table('CompraCab')
+                ->where('Id', $compraId)
+                ->update(['asiento_id' => $asientoId]);
+
+            // 9. ¡Todo listo!
             DB::connection($this->connection)->commit();
 
-            // Redirigimos a la lista de Cuentas por Pagar (Flujo 3)
-            return redirect()->route('contador.cxp.index') 
-                ->with('success', "Factura de Compra {$nroFactura} registrada. Stock actualizado y asiento contable generado.");
+            return redirect()->route('contador.cxp.index') // Ruta de Cuentas por Pagar
+                ->with('success', "Factura de Compra {$nroFacturaCompleto} registrada. Stock actualizado y Asiento {$asientoId} generado.");
 
         } catch (\Exception $e) {
             DB::connection($this->connection)->rollBack();
             Log::error("Error al registrar Compra: " . $e->getMessage(), [
-                'factura' => $nroFactura,
+                'factura' => $nroFacturaCompleto ?? 'N/A',
                 'trace' => $e->getTraceAsString()
             ]);
             return redirect()->back()->with('error', 'Error crítico al registrar la compra: ' . $e->getMessage())->withInput();

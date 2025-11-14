@@ -9,176 +9,40 @@
 @endsection
 
 @push('styles')
-    {{-- Estilos para los KPIs (los mismos de tu dashboard) --}}
-    <style>
-        /* === KPIS CARDS === */
-        .kpi-card { 
-            display: flex; 
-            align-items: center; 
-            background: #fff; 
-            border-radius: 12px; 
-            padding: 1.5rem; 
-            box-shadow: 0 4px 12px rgba(0,0,0,0.06);
-        }
-
-        .kpi-icon { 
-            width: 50px; 
-            height: 50px; 
-            border-radius: 50%; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            margin-right: 1.25rem; 
-            font-size: 1.5rem; 
-            color: #fff; 
-        }
-
-        .kpi-content .kpi-label { 
-            font-size: 0.875rem; 
-            font-weight: 600; 
-            color: #6c757d; 
-            text-transform: uppercase; 
-            margin-bottom: 0.25rem; 
-        }
-
-        .kpi-content .kpi-value { 
-            font-size: 1.5rem; 
-            font-weight: 700; 
-            color: #343a40; 
-        }
-
-        /* === RESUMEN CARD === */
-        .resumen-card .card-body {
-            padding: 2rem;
-        }
-
-        .resumen-item {
-            text-align: center;
-            padding: 1rem;
-        }
-
-        .resumen-item h6 {
-            margin-bottom: 0.5rem;
-            font-weight: 500;
-        }
-
-        .resumen-item h4 {
-            margin-bottom: 0;
-            font-size: 1.5rem;
-        }
-
-        /* === BOTÓN NUEVO CLIENTE === */
-        .btn-nuevo-cliente {
-            min-height: 150px;
-            text-decoration: none;
-            transition: all 0.3s ease;
-        }
-
-        .btn-nuevo-cliente:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(0,123,255,0.3);
-        }
-
-        /* === TABLE IMPROVEMENTS === */
-        .table th {
-            font-weight: 600;
-            text-transform: uppercase;
-            font-size: 0.875rem;
-            letter-spacing: 0.5px;
-        }
-
-        .table td {
-            vertical-align: middle;
-            padding: 0.75rem;
-        }
-
-        /* === ACCIONES BUTTONS === */
-        .btn-group-actions {
-            gap: 0.5rem;
-        }
-
-        /* === RESPONSIVE === */
-        @media (max-width: 768px) {
-            .resumen-card .card-body {
-                padding: 1.5rem;
-            }
-            
-            .resumen-item {
-                padding: 0.75rem;
-            }
-            
-            .resumen-item h4 {
-                font-size: 1.25rem;
-            }
-            
-            .btn-group-actions {
-                display: flex;
-                flex-direction: column;
-            }
-        }
-    </style>
+    <link href="{{ asset('css/contabilidad/clientes/index.css') }}" rel="stylesheet">
 @endpush
 
 @section('content')
     {{-- === DASHBOARD RESUMEN === --}}
-    <div class="row mb-4">
-        <div class="col-md-9">
-            <div class="card shadow">
-                <div class="card-body resumen-card">
-                    <div class="row">
-                        <div class="col">
-                            <div class="resumen-item">
-                                <h6 class="text-muted">
-                                    <i class="fas fa-users me-1"></i>
-                                    Total Clientes
-                                </h6>
-                                <h4 class="fw-bold">
-                                    {{ $resumenGeneral['total_clientes'] }}
-                                </h4>
+<div class="clientes-container">
+    {{-- === HEADER CON BOTÓN === --}}
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold mb-1">
+                <i class="fas fa-address-book me-2 text-primary"></i>
+                Gestión de Clientes
+            </h2>
+            <p class="text-muted mb-0">Administra tu cartera de clientes</p>
+        </div>
+        <a href="{{ route('contador.clientes.crear') }}" class="btn btn-primary btn-lg btn-nuevo-cliente-header shadow-sm">
+            <i class="fas fa-plus-circle me-2"></i>
+            Nuevo Cliente
+        </a>
+    </div>
+
+    {{-- === RESUMEN DE ESTADÍSTICAS === --}}
+    <div class="row mb-4 g-3">
+        <div class="col-lg-3 col-md-6">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body resumen-card p-4">
+                    <div class="resumen-item">
+                        <div class="d-flex align-items-center">
+                            <div class="icon-wrapper bg-primary-light me-3">
+                                <i class="fas fa-users text-primary"></i>
                             </div>
-                        </div>
-                        
-                        <div class="col">
-                            <div class="resumen-item">
-                                <h6 class="text-muted">
-                                    <i class="fas fa-user-check me-1"></i>
-                                    Clientes Activos
-                                </h6>
-                                <h4 class="fw-bold text-success">
-                                    {{ $resumenGeneral['clientes_activos'] }}
-                                </h4>
-                            </div>
-                        </div>
-                        
-                        <div class="col">
-                            <div class="resumen-item">
-                                <h6 class="text-muted">
-                                    <i class="fas fa-wallet me-1"></i>
-                                    Total Cartera (Deuda)
-                                </h6>
-                                <h4 class="fw-bold text-danger">
-                                    S/ {{ number_format($resumenGeneral['total_cartera'], 2) }}
-                                </h4>
-                            </div>
-                        </div>
-                        
-                        <div class="col">
-                            <div class="resumen-item">
-                                <h6 class="text-muted">
-                                    <i class="fas fa-crown me-1"></i>
-                                    Mayor Comprador
-                                </h6>
-                                
-                                @if($resumenGeneral['mayor_deudor'])
-                                    <h4 
-                                        class="fw-bold" 
-                                        title="{{ $resumenGeneral['mayor_deudor']->Razon }} (S/ {{ number_format($resumenGeneral['mayor_deudor']->SaldoTotal, 0) }})"
-                                    >
-                                        {{ Str::limit($resumenGeneral['mayor_deudor']->Razon, 15) }}
-                                    </h4>
-                                @else
-                                    <h4 class="fw-bold">N/A</h4>
-                                @endif
+                            <div>
+                                <small class="text-muted d-block text-uppercase">Total Clientes</small>
+                                <h3 class="fw-bold mb-0">{{ $resumenGeneral['total_clientes'] }}</h3>
                             </div>
                         </div>
                     </div>
@@ -186,54 +50,104 @@
             </div>
         </div>
         
-        <div class="col-md-3 d-flex">
-            <a 
-                href="{{ route('contador.clientes.crear') }}" 
-                class="btn btn-primary btn-lg w-100 btn-nuevo-cliente d-flex flex-column justify-content-center align-items-center"
-            >
-                <i class="fas fa-plus-circle fa-2x mb-2"></i>
-                <span class="h5 mb-0">Nuevo Cliente</span>
-            </a>
+        <div class="col-lg-3 col-md-6">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body resumen-card p-4">
+                    <div class="resumen-item">
+                        <div class="d-flex align-items-center">
+                            <div class="icon-wrapper bg-success-light me-3">
+                                <i class="fas fa-user-check text-success"></i>
+                            </div>
+                            <div>
+                                <small class="text-muted d-block text-uppercase">Clientes Activos</small>
+                                <h3 class="fw-bold mb-0 text-success">{{ $resumenGeneral['clientes_activos'] }}</h3>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-3 col-md-6">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body resumen-card p-4">
+                    <div class="resumen-item">
+                        <div class="d-flex align-items-center">
+                            <div class="icon-wrapper bg-danger-light me-3">
+                                <i class="fas fa-wallet text-danger"></i>
+                            </div>
+                            <div>
+                                <small class="text-muted d-block text-uppercase">Total Cartera</small>
+                                <h3 class="fw-bold mb-0 text-danger">S/ {{ number_format($resumenGeneral['total_cartera'], 2) }}</h3>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-3 col-md-6">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body resumen-card p-4">
+                    <div class="resumen-item">
+                        <div class="d-flex align-items-center">
+                            <div class="icon-wrapper bg-warning-light me-3">
+                                <i class="fas fa-crown text-warning"></i>
+                            </div>
+                            <div>
+                                <small class="text-muted d-block text-uppercase">Mayor Comprador</small>
+                                @if($resumenGeneral['mayor_deudor'])
+                                    <h6 class="fw-bold mb-0" title="{{ $resumenGeneral['mayor_deudor']->Razon }} (S/ {{ number_format($resumenGeneral['mayor_deudor']->SaldoTotal, 0) }})">
+                                        {{ Str::limit($resumenGeneral['mayor_deudor']->Razon, 15) }}
+                                    </h6>
+                                @else
+                                    <h6 class="fw-bold mb-0">N/A</h6>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
     {{-- === TABLA DE CLIENTES === --}}
-    <div class="card shadow">
-        <div class="card-header">
-            <h5 class="card-title m-0">
-                <i class="fas fa-address-book me-2"></i>
+    <div class="card shadow-sm border-0">
+        <div class="card-header bg-white border-bottom py-3">
+            <h5 class="card-title m-0 fw-bold">
+                <i class="fas fa-address-book me-2 text-primary"></i>
                 Lista de Clientes Registrados
             </h5>
         </div>
         
-        <div class="card-body">
+        <div class="card-body p-4">
             {{-- === FILTROS === --}}
             <form method="GET" action="{{ route('contador.clientes.index') }}" class="mb-4">
                 <div class="row g-3 align-items-end">
                     <div class="col-md-8">
-                        <label for="busqueda" class="form-label">
+                        <label for="busqueda" class="form-label fw-medium">
                             <i class="fas fa-search me-1"></i>
-                            Buscar (Razón Social o RUC)
+                            Buscar Cliente
                         </label>
                         <input 
                             type="text" 
-                            class="form-control" 
+                            class="form-control form-control-lg" 
                             name="busqueda" 
                             id="busqueda" 
                             value="{{ $filtros['busqueda'] ?? '' }}"
-                            placeholder="Escriba el nombre o documento del cliente..."
+                            placeholder="Escriba la razón social o documento del cliente..."
                         >
                     </div>
                     
                     <div class="col-md-2">
-                        <button type="submit" class="btn btn-primary w-100">
-                            <i class="fas fa-filter"></i>
-                            <span class="ms-1">Filtrar</span>
+                        <button type="submit" class="btn btn-primary btn-lg w-100">
+                            <i class="fas fa-filter me-1"></i>
+                            Filtrar
                         </button>
                     </div>
                     
                     <div class="col-md-2">
-                        <a href="{{ route('contador.clientes.index') }}" class="btn btn-secondary w-100">
+                        <a href="{{ route('contador.clientes.index') }}" class="btn btn-outline-secondary btn-lg w-100">
                             <i class="fas fa-eraser me-1"></i>
                             Limpiar
                         </a>
@@ -243,30 +157,30 @@
 
             {{-- === TABLA === --}}
             <div class="table-responsive">
-                <table class="table table-hover table-sm align-middle">
-                    <thead class="table-light">
+                <table class="table table-hover align-middle tabla-clientes">
+                    <thead>
                         <tr>
-                            <th>
+                            <th class="border-0">
                                 <i class="fas fa-building me-1"></i>
                                 Razón Social
                             </th>
-                            <th>
+                            <th class="border-0">
                                 <i class="fas fa-id-card me-1"></i>
-                                Documento (RUC/DNI)
+                                Documento
                             </th>
-                            <th>
+                            <th class="border-0">
                                 <i class="fas fa-phone me-1"></i>
                                 Contacto
                             </th>
-                            <th>
+                            <th class="border-0">
                                 <i class="fas fa-user-tie me-1"></i>
                                 Vendedor
                             </th>
-                            <th class="text-end">
+                            <th class="text-end border-0">
                                 <i class="fas fa-money-bill-wave me-1"></i>
                                 Deuda Pendiente
                             </th>
-                            <th class="text-center">
+                            <th class="text-center border-0">
                                 <i class="fas fa-cogs me-1"></i>
                                 Acciones
                             </th>
@@ -281,9 +195,7 @@
                             
                             <tr>
                                 <td>
-                                    <div class="fw-bold">
-                                        {{ $cli->Razon }}
-                                    </div>
+                                    <div class="fw-bold mb-1">{{ $cli->Razon }}</div>
                                     <small class="text-muted">
                                         <i class="fas fa-map-marker-alt me-1"></i>
                                         {{ $cli->Direccion ?? 'Sin dirección' }}
@@ -291,48 +203,42 @@
                                 </td>
                                 
                                 <td>
-                                    <div class="d-flex align-items-center">
-                                        <i class="fas fa-id-badge me-2 text-primary"></i>
-                                        <span class="fw-medium">
-                                            {{ $cli->Documento }}
-                                        </span>
-                                    </div>
+                                    <span class="badge bg-light text-dark border fw-medium">
+                                        <i class="fas fa-id-badge me-1"></i>
+                                        {{ $cli->Documento }}
+                                    </span>
                                 </td>
                                 
                                 <td>
                                     <div class="mb-1">
                                         <i class="fas fa-phone me-1 text-success"></i>
-                                        <span class="small">
-                                            {{ $cli->Telefono1 ?? $cli->Celular ?? 'Sin teléfono' }}
-                                        </span>
+                                        <span>{{ $cli->Telefono1 ?? $cli->Celular ?? 'Sin teléfono' }}</span>
                                     </div>
                                     <div>
                                         <i class="fas fa-envelope me-1 text-info"></i>
-                                        <small class="text-muted">
-                                            {{ $cli->Email ?? 'Sin email' }}
-                                        </small>
+                                        <small class="text-muted">{{ $cli->Email ?? 'Sin email' }}</small>
                                     </div>
                                 </td>
                                 
                                 <td>
-                                    <div class="fw-medium">
-                                        <i class="fas fa-user me-1 text-warning"></i>
+                                    <span class="badge bg-warning-light text-warning fw-medium">
+                                        <i class="fas fa-user me-1"></i>
                                         {{ $cli->Vendedor ?? 'N/A' }}
-                                    </div>
+                                    </span>
                                 </td>
                                 
                                 <td class="text-end">
-                                    <div class="fw-bold {{ $saldo->saldo_pendiente > 0 ? 'text-danger' : 'text-success' }}">
+                                    <span class="badge {{ $saldo->saldo_pendiente > 0 ? 'bg-danger-light text-danger' : 'bg-success-light text-success' }} fs-6 fw-bold px-3 py-2">
                                         <i class="fas fa-{{ $saldo->saldo_pendiente > 0 ? 'exclamation-triangle' : 'check-circle' }} me-1"></i>
                                         S/ {{ number_format($saldo->saldo_pendiente, 2) }}
-                                    </div>
+                                    </span>
                                 </td>
                                 
                                 <td class="text-center">
-                                    <div class="btn-group-actions d-flex justify-content-center">
+                                    <div class="btn-group" role="group">
                                         <a 
                                             href="{{ route('contador.clientes.show', $cli->Codclie) }}" 
-                                            class="btn btn-sm btn-info" 
+                                            class="btn btn-sm btn-outline-info"
                                             title="Ver Estado de Cuenta"
                                         >
                                             <i class="fas fa-eye"></i>
@@ -340,7 +246,7 @@
                                         
                                         <a 
                                             href="{{ route('contador.clientes.editar', $cli->Codclie) }}" 
-                                            class="btn btn-sm btn-warning" 
+                                            class="btn btn-sm btn-outline-warning"
                                             title="Editar Cliente"
                                         >
                                             <i class="fas fa-edit"></i>
@@ -350,11 +256,11 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="6" class="text-center p-5">
-                                    <div class="text-muted">
-                                        <i class="fas fa-users fa-3x text-muted mb-3 d-block"></i>
-                                        <h5>No se encontraron clientes</h5>
-                                        <p>Intenta modificar los filtros de búsqueda.</p>
+                                <td colspan="6" class="text-center py-5">
+                                    <div class="empty-state">
+                                        <i class="fas fa-users fa-4x text-muted mb-3"></i>
+                                        <h5 class="text-muted">No se encontraron clientes</h5>
+                                        <p class="text-muted">Intenta modificar los filtros de búsqueda o agrega un nuevo cliente.</p>
                                     </div>
                                 </td>
                             </tr>
@@ -369,4 +275,5 @@
             </div>
         </div>
     </div>
+</div>
 @endsection
