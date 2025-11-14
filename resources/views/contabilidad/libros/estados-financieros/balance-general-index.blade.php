@@ -3,6 +3,7 @@
 @section('title', 'Balance General')
 
 @push('styles')
+    {{-- (Reutilizamos el CSS que ya debes tener) --}}
     <link href="{{ asset('css/contabilidad/estado-resultados/general.css') }}" rel="stylesheet">
 @endpush
 
@@ -14,29 +15,29 @@
 @endsection
 
 @section('breadcrumbs')
-    <li class="breadcrumb-item"><a href="{{ route('contador.dashboard.contador') }}">Contabilidad</a></li>
-    <li class="breadcrumb-item"><a href="{{ route('contador.estado-resultados.index') }}">Estado de Resultados</a></li>
+    <li class="breadcrumb-item"><a href="#">Contabilidad</a></li>
     <li class="breadcrumb-item active" aria-current="page">Balance General</li>
 @endsection
 
 @section('content')
 <div class="general-container">
 
+    {{-- Sub-navegación CORREGIDA --}}
     <nav class="nav nav-tabs eerr-subnav mb-4">
-        <a class="nav-link {{ request()->routeIs('contador.estado-resultados.index') ? 'active' : '' }}" href="{{ route('contador.estado-resultados.index') }}">
+        <a class="nav-link" href=" {{ route('contador.estado-resultados.index') }}">
             <i class="fas fa-chart-line me-1"></i> Estado de Resultados
         </a>
-        <a class="nav-link {{ request()->routeIs('contador.estado-resultados.periodos') ? 'active' : '' }}" href="{{ route('contador.estado-resultados.periodos') }}">
+        <a class="nav-link" href="{{ route('contador.estado-resultados.periodos') }}">
             <i class="fas fa-chart-bar me-1"></i> Resultados por Períodos
         </a>
-        <a class="nav-link {{ request()->routeIs('contador.estado-resultados.comparativo') ? 'active' : '' }}" href="{{ route('contador.estado-resultados.comparativo') }}">
+        <a class="nav-link" href="{{ route('contador.estado-resultados.comparativo') }} "> 
             <i class="fas fa-exchange-alt me-1"></i> Comparativo EERR
         </a>
-        <a class="nav-link {{ request()->routeIs('contador.estado-resultados.balance-general') ? 'active' : '' }}" href="{{ route('contador.estado-resultados.balance-general') }}">
+        <a class="nav-link active" href="{{ route('contador.estado-resultados.balance-general') }}">
             <i class="fas fa-balance-scale-right me-1"></i> Balance General
         </a>
     </nav>
-    <!-- Filtros -->
+    
     <div class="card shadow-sm filters-card mb-4">
         <div class="card-body">
             <form method="GET" action="{{ route('contador.estado-resultados.balance-general') }}">
@@ -55,22 +56,21 @@
         </div>
     </div>
 
-    <!-- Estado del Balance -->
     <div class="card shadow-sm mb-4 {{ $estaBalanceado ? 'bg-success-soft' : 'bg-danger-soft' }}">
         <div class="card-body text-center p-4">
             @if($estaBalanceado)
                 <h4 class="text-success mb-0"><i class="fas fa-check-circle me-2"></i>¡Balance Cuadrado!</h4>
-                <p class="mb-0 text-muted">Total Activos (S/ {{ number_format($totalActivos, 2) }}) = Total Pasivo + Patrimonio (S/ {{ number_format($totalPasivosPatrimonio, 2) }})</p>
+                <p class="mb-0 text-muted">Total Activos (S/ {{ number_format($totalActivos, 2) }}) = Total Pasivo + Patrimonio (S/ {{ number_format(abs($totalPasivosPatrimonio), 2) }})</p>
+                <small class="text-muted">(Diferencia: S/ {{ number_format($diferenciaBalance, 4) }})</small>
             @else
                 <h4 class="text-danger mb-0"><i class="fas fa-exclamation-triangle me-2"></i>¡Balance Descuadrado!</h4>
-                <p class="mb-0 text-muted">Diferencia: S/ {{ number_format($diferenciaBalance, 2) }}</p>
+                <p class="mb-0 text-muted">Diferencia (Activo + Pasivo + Patrimonio): S/ {{ number_format($diferenciaBalance, 2) }}</p>
             @endif
         </div>
     </div>
 
 
     <div class="row">
-        <!-- Columna Izquierda: Activos -->
         <div class="col-lg-6">
             <div class="card shadow-sm er-card mb-4">
                 <div class="card-header bg-primary text-white">
@@ -82,7 +82,7 @@
                         <li class="list-group-item er-category">ACTIVO CORRIENTE</li>
                         <li class="list-group-item er-line-item"><span>Efectivo y Equivalentes (10)</span> <span>S/ {{ number_format($efectivo, 2) }}</span></li>
                         <li class="list-group-item er-line-item"><span>Cuentas por Cobrar (12)</span> <span>S/ {{ number_format($cuentasPorCobrar, 2) }}</span></li>
-                        <li class="list-group-item er-line-item"><span>Inventarios (13)</span> <span>S/ {{ number_format($inventarios, 2) }}</span></li>
+                        <li class="list-group-item er-line-item"><span>Inventarios (20)</span> <span>S/ {{ number_format($inventarios, 2) }}</span></li>
                         <li class="list-group-item er-line-item"><span>Gastos Pagados por Adelantado (18)</span> <span>S/ {{ number_format($gastosAdelantado, 2) }}</span></li>
                         <li class="list-group-item er-total">
                             <span>TOTAL ACTIVO CORRIENTE</span>
@@ -103,25 +103,22 @@
             </div>
         </div>
 
-        <!-- Columna Derecha: Pasivos y Patrimonio -->
         <div class="col-lg-6">
-            <!-- Pasivos -->
             <div class="card shadow-sm er-card mb-4">
                 <div class="card-header bg-danger text-white">
                     <h5 class="mb-0">PASIVOS</h5>
-                    <h5 class="mb-0">S/ {{ number_format($totalPasivos, 2) }}</h5>
+                    <h5 class="mb-0">S/ {{ number_format(abs($totalPasivos), 2) }}</h5>
                 </div>
                 <div class="card-body p-0">
                     <ul class="list-group list-group-flush">
                         <li class="list-group-item er-category">PASIVO CORRIENTE</li>
+                        <li class="list-group-item er-line-item"><span>Tributos por Pagar (40)</span> <span>S/ {{ number_format(abs($tributosPorPagar), 2) }}</span></li>
+                        <li class="list-group-item er-line-item"><span>Remuneraciones por Pagar (41)</span> <span>S/ {{ number_format(abs($remuneracionesPorPagar), 2) }}</span></li>
                         <li class="list-group-item er-line-item"><span>Cuentas por Pagar (42)</span> <span>S/ {{ number_format(abs($cuentasPorPagar), 2) }}</span></li>
-                        <li class="list-group-item er-line-item"><span>Documentos por Pagar (40)</span> <span>S/ {{ number_format(abs($documentosPorPagar), 2) }}</span></li>
-                        <li class="list-group-item er-line-item"><span>Préstamos a Corto Plazo (45)</span> <span>S/ {{ number_format(abs($prestamosCorto), 2) }}</span></li>
-                        <li class="list-group-item er-line-item"><span>Impuestos (4017)</span> <span>S/ {{ number_format(abs($provisionImpuestos), 2) }}</span></li>
-                        <li class="list-group-item er-line-item"><span>Otros Gastos por Pagar (41,44,46)</span> <span>S/ {{ number_format(abs($otrosGastosPagar), 2) }}</span></li>
+                        <li class="list-group-item er-line-item"><span>Otras Cuentas por Pagar (44-46)</span> <span>S/ {{ number_format(abs($otrasCtasPagar), 2) }}</span></li>
                         <li class="list-group-item er-total">
                             <span>TOTAL PASIVO CORRIENTE</span>
-                            <span class="fw-bold">S/ {{ number_format($totalPasivosCorrientes, 2) }}</span>
+                            <span class="fw-bold">S/ {{ number_format(abs($totalPasivosCorrientes), 2) }}</span>
                         </li>
                         
                         <li class="list-group-item er-category">PASIVO NO CORRIENTE</li>
@@ -129,17 +126,16 @@
                         <li class="list-group-item er-line-item"><span>Provisiones (48, 49)</span> <span>S/ {{ number_format(abs($provisionBeneficios), 2) }}</span></li>
                         <li class="list-group-item er-total">
                             <span>TOTAL PASIVO NO CORRIENTE</span>
-                            <span class="fw-bold">S/ {{ number_format($totalPasivosNoCorrientes, 2) }}</span>
+                            <span class="fw-bold">S/ {{ number_format(abs($totalPasivosNoCorrientes), 2) }}</span>
                         </li>
                     </ul>
                 </div>
             </div>
 
-            <!-- Patrimonio -->
             <div class="card shadow-sm er-card">
                 <div class="card-header bg-info text-white">
                     <h5 class="mb-0">PATRIMONIO</h5>
-                    <h5 class="mb-0">S/ {{ number_format($totalPatrimonio, 2) }}</h5>
+                    <h5 class="mb-0">S/ {{ number_format(abs($totalPatrimonio), 2) }}</h5>
                 </div>
                 <div class="card-body p-0">
                     <ul class="list-group list-group-flush">
@@ -149,7 +145,7 @@
                         <li class="list-group-item er-line-item"><span>Resultado del Ejercicio</span> <span>S/ {{ number_format($resultadoEjercicio, 2) }}</span></li>
                         <li class="list-group-item er-grand-total">
                             <span>TOTAL PATRIMONIO</span>
-                            <span class="fw-bold">S/ {{ number_format($totalPatrimonio, 2) }}</span>
+                            <span class="fw-bold">S/ {{ number_format(abs($totalPatrimonio), 2) }}</span>
                         </li>
                     </ul>
                 </div>

@@ -108,15 +108,7 @@ class EstadoResultadosController extends Controller
             return back()->with('error', 'Error al exportar: ' . $e->getMessage());
         }
     }
+    
 
-    /*
-    |--------------------------------------------------------------------------
-    | Métodos Movidos
-    |--------------------------------------------------------------------------
-    |
-    | Las funciones 'balanceGeneral' y 'cashFlow' se movieron a sus
-    | propios controladores (BalanceGeneralController y FlujoCajaController)
-    | para mantener la arquitectura limpia.
-    |
-    */
+   
 }

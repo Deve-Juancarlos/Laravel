@@ -112,7 +112,7 @@
             <div class="card modern-card">
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <h6><i class="fas fa-chart-line me-2"></i>Ventas vs Cobranzas (Últimos 6 Meses)</h6>
-                    <a href="#" class="btn-gradient"><i class="fas fa-file-alt me-1"></i> Ver Reporte</a>
+                    <a href="{{ route('contador.reportes.ventas.flujo-comparativo') }}" class="btn-gradient"><i class="fas fa-file-alt me-1"></i> Ver Reporte</a>
                 </div>
                 <div class="card-body">
                     <div class="chart-area">

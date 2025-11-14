@@ -1,332 +1,127 @@
-/* =================================================================
-   ESTILOS PARA EL DASHBOARD DEL CONTADOR (contador.css)
-   ================================================================= */
-
-/* --- Colores (CSS Variables) --- */
-:root {
-    --color-primary: #4F46E5;
-    --color-success: #10B981;
-    --color-warning: #F59E0B;
-    --color-danger: #EF4444;
-    --color-info: #3B82F6;
-    --color-purple: #8B5CF6;
+/* === Dashboard Contador === */
+.dashboard-header {
+    background: linear-gradient(135deg, #5f72bd 0%, #9a5be4 100%);
+    color: white;
+    padding: 2.6rem 2rem 2rem 2rem;
+    border-radius: 22px;
+    margin-bottom: 36px;
+    box-shadow: 0 2px 18px rgba(110,80,220,0.07);
 }
+.dashboard-header h1 { font-size: 2.1rem; font-weight: 800; margin-bottom: 0.4rem; letter-spacing:0.01em; }
+.dashboard-header .subtitle { opacity: 0.9; font-size: 1.19rem; font-weight: 500; }
 
-
-/* --- Estilos del Header --- */
-.dashboard-header h1 {
-    font-size: 2.25rem;
-    font-weight: 700;
-    color: #1a202c; /* Color oscuro para el título */
-}
-.dashboard-header .subtitle {
-    font-size: 1.1rem;
-    color: #718096; /* Color gris para el subtítulo */
-}
-
-/* --- Estilos de Tarjetas KPI --- */
+/* ---- KPI Cards ---- */
 .kpi-card {
     display: flex;
     align-items: center;
-    background-color: #fff;
-    border: 1px solid #e2e8f0;
-    border-radius: 0.75rem;
-    padding: 1.5rem;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
-    transition: all 0.3s ease;
+    gap: 18px;
+    background: linear-gradient(135deg, #f6f6fa 0%, #ebedee 100%);
+    border-radius: 13px;
+    box-shadow: 0 3px 18px rgba(0,0,0,0.08);
+    padding: 1.35rem 1.3rem;
+    transition: box-shadow 0.2s, transform 0.2s;
+    border-left: 6px solid #5f72bd;
+    min-height: 98px;
 }
-.kpi-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.07), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-}
+.kpi-card:hover { box-shadow: 0 7px 26px rgba(102,126,234,0.16); transform: translateY(-2px) scale(1.02); }
 .kpi-icon {
+    background: #fff;
+    border-radius: 50%;
+    width: 56px;
+    height: 56px;
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 60px;
-    height: 60px;
-    border-radius: 50%;
-    font-size: 1.75rem;
-    margin-right: 1rem;
-    color: #fff;
+    font-size: 2rem;
+    box-shadow: 0 2px 9px rgba(0,0,0,0.07);
 }
-.kpi-icon.primary { background: linear-gradient(135deg, var(--color-primary), #7C3AED); }
-.kpi-icon.success { background: linear-gradient(135deg, var(--color-success), #34D399); }
-.kpi-icon.danger  { background: linear-gradient(135deg, var(--color-danger), #F87171); }
+.kpi-icon.primary   { background: #e3dfff; color: #7856d6; border: 2px solid #c8bbf8; }
+.kpi-icon.success   { background: #e7fbea; color: #2ca56e; border: 2px solid #b9ecd2; }
+.kpi-icon.danger    { background: #ffe8e7; color: #eb564a; border: 2px solid #ffb2b2; }
+.kpi-content .kpi-label { font-size: 0.97rem; color: #5e6470; margin-bottom: 0.1rem; font-weight: 600; }
+.kpi-content .kpi-value { font-size: 1.35rem; font-weight: 800; letter-spacing: 0.01em; }
+.kpi-delta { font-size: 1.15rem; margin-left: 7px; vertical-align: middle; }
 
-.kpi-content .kpi-label {
-    font-size: 0.9rem;
-    font-weight: 500;
-    color: #718096;
-    text-transform: uppercase;
-}
-.kpi-content .kpi-value {
-    font-size: 1.75rem;
-    font-weight: 700;
-    color: #1a202c;
-    line-height: 1.2;
-}
-.kpi-delta {
-    font-size: 1rem;
-    margin-left: 0.5rem;
-}
-
-/* --- Estilos de Tarjeta Moderna (Gráfico, Alertas, etc.) --- */
+/* ---- Modern Card ---- */
 .modern-card {
-    background-color: #fff;
-    border: 1px solid #e2e8f0;
-    border-radius: 0.75rem;
-    /* Las tarjetas modernas no necesitan la sombra hover de las KPI */
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
-}
-.modern-card .card-header {
-    background-color: #f9fafb;
-    padding: 1.25rem 1.5rem;
-    border-bottom: 1px solid #e2e8f0;
-    border-top-left-radius: 0.75rem;
-    border-top-right-radius: 0.75rem;
-}
-.modern-card .card-header h6 {
-    font-size: 1.1rem;
-    font-weight: 600;
-    color: #1a202c;
-    margin-bottom: 0;
-}
-.modern-card .card-body {
-    padding: 1.5rem;
-}
-.chart-area {
-    position: relative;
-    height: 350px; /* Altura fija para el gráfico */
-}
-
-/* --- Estilos de Botones --- */
-.btn-gradient {
-    background: linear-gradient(135deg, #4F46E5, #7C3AED);
-    color: #fff;
-    font-weight: 600;
-    font-size: 0.85rem;
-    padding: 0.5rem 1rem;
-    border-radius: 0.5rem;
-    text-decoration: none;
-    transition: all 0.2s ease;
+    background: white;
+    border-radius: 18px;
+    box-shadow: 0 5px 24px rgba(90,72,210,0.08);
     border: none;
+    margin-bottom: 2rem;
 }
-.btn-gradient:hover {
-    color: #fff;
-    opacity: 0.9;
-    box-shadow: 0 4px 10px rgba(79, 70, 229, 0.4);
-}
-.btn-success-soft {
-    background-color: #ECFDF5;
-    color: #065F46;
+.modern-card .card-header { background: transparent; border-bottom: none; font-weight: 700; font-size: 1.06rem; padding: 1.25rem 1.5rem; }
+.modern-card .card-body { padding: 1.45rem 1.5rem; }
+.btn-gradient {
+    background: linear-gradient(135deg,#5f72bd 0,#9a5be4 100%);
+    color: #fff!important;
     font-weight: 600;
-    font-size: 0.85rem;
-    padding: 0.5rem 1rem;
-    border-radius: 0.5rem;
-    text-decoration: none;
-    transition: all 0.2s ease;
-    border: 1px solid #A7F3D0;
+    padding: 0.5rem 1.2rem;
+    border-radius: 10px;
+    border: none;
+    box-shadow: 0 4px 14px rgba(102,126,234,0.14);
+    transition: background 0.2s, box-shadow 0.2s;
 }
-.btn-success-soft:hover {
-    color: #065F46;
-    background-color: #D1FAE5;
-}
-.btn-warning-soft {
-    background-color: #FFFBEB;
-    color: #B45309;
-    font-weight: 600;
-    font-size: 0.85rem;
-    padding: 0.5rem 1rem;
-    border-radius: 0.5rem;
-    text-decoration: none;
-    transition: all 0.2s ease;
-    border: 1px solid #FEEBBA;
-}
-.btn-warning-soft:hover {
-    color: #B45309;
-    background-color: #FEF3C7;
-}
+.btn-gradient:hover { background: linear-gradient(135deg,#9a5be4 0,#5f72bd 100%); box-shadow: 0 8px 20px rgba(90,72,210,0.23); color:white; }
+.btn-warning-soft { background: #fff5e1; color: #ffb401; border: none; font-weight: 600; border-radius: 10px; }
+.btn-warning-soft:hover { background: #ffe1a8; }
 
-/* Estado 'loading' para botones con spinner */
-.btn .btn-spinner {
-    display: none;
-}
-.btn:disabled .btn-spinner {
-    display: inline-block;
-}
-.btn:disabled .btn-text {
-    display: none;
-}
+/* ---- Gráfico ---- */
+.chart-area { min-height: 350px; display: flex; align-items: center; justify-content: center; }
 
+/* ---- Alertas ---- */
+.alert-list { padding: 0 0.5rem; }
+.alert-item { border: none; border-radius: 10px; margin-bottom: 1rem; padding: 1.05rem 1rem; box-shadow: 0 2px 10px rgba(235,86,74,0.05); display: block; transition: background 0.18s; }
+.alert-item-info    { background: #f2f7ff; }
+.alert-item-warning { background: #fff7e7; }
+.alert-item-danger  { background: #ffedea; }
+.alert-item-success { background: #eaf8ee; }
+.alert-icon { width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.45rem; margin-right: 14px; }
+.alert-icon-info    { background: #dcedfd; color: #3c8dbc; }
+.alert-icon-warning { background: #ffede3; color: #ffd100; }
+.alert-icon-danger  { background: #ffdbda; color: #e04444; }
+.alert-icon-success { background: #d7f5d9; color: #33b86c; }
+.alert-title { font-size: 1.07rem; font-weight: 700; margin-bottom: 0.07rem; }
+.alert-message { font-size: 0.99rem; }
+.empty-state { text-align: center; color: #a3a9b7; margin: 1.7rem auto; }
+.empty-state i { font-size: 2.4rem; color: #b5bad2; margin-bottom: 10px; }
 
-/* --- Estilos de Alertas --- */
-.alert-list {
-    max-height: 450px; /* Altura máxima para la lista */
-    overflow-y: auto;
-    padding: 0.5rem;
-}
-.alert-item {
-    border: 0;
-    border-radius: 0.5rem;
-    margin-bottom: 0.5rem;
-    padding: 1rem;
-}
-.alert-item-danger { border-left: 5px solid #EF4444; background-color: #FEF2F2; }
-.alert-item-warning { border-left: 5px solid #F59E0B; background-color: #FFFBEB; }
-/* (Tuve que adivinar este, ajústalo si es necesario) */
-.alert-icon-shield-alt { background-color: #3B82F6; } 
+/* ---- Top Clientes ---- */
+.top-client-item { border: none; border-bottom: 1px solid #f0f0f0; padding: 1.1rem 1rem; background: #fbfafc; }
+.top-client-avatar { width: 46px; height: 46px; border-radius: 50%; color: #fff; font-weight: 700; font-size: 1.7rem; display: flex; align-items: center; justify-content: center; margin-right: 13px; box-shadow: 0 2px 9px rgba(110,80,220,0.11); }
+.top-client-name { font-size: 1.05rem; font-weight: 700; }
+.top-client-code { font-size: 0.90rem; color: #6b6b7b; }
+.top-client-total { font-weight: 800; font-size: 1.07rem; }
 
-.alert-icon {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-right: 1rem;
-    color: #fff;
-}
-.alert-icon-danger { background-color: #EF4444; }
-.alert-icon-warning { background-color: #F59E0B; }
-.alert-icon-info { background-color: #3B82F6; } /* Añadido por si acaso */
+/* ---- Ventas Recientes ---- */
+.modern-table thead th { background: #eee6fc; color: #8c5eea; border: none; font-weight: 800; letter-spacing: 0.04em; font-size: 0.97rem; }
+.modern-table td { padding: 1.07rem 1rem; vertical-align: middle; font-size: 0.99rem; }
+.table-scrollable-y { max-height: 324px; overflow-y: auto; }
+.status-badge { border-radius: 15px; font-size: 0.93rem; display: inline-flex; align-items: center; font-weight: 700; padding: 0.31em 1.13em; }
+.status-pagado    { background: #e7fbea; color: #1e9947; border: 1.5px solid #baf1cc; }
+.status-pendiente { background: #fff8e1; color: #c6900e; border: 1.5px solid #fbe7ae; }
+.status-vencido   { background: #ffe8e4; color: #eb564a; border: 1.5px solid #fac5c0; }
 
+/* ---- Inventario Crítico ---- */
+.inventory-section { margin-bottom: 2rem; }
+.inventory-table .product-name { font-weight: 700; font-size: 1.07rem; letter-spacing: 0.01em; }
+.inventory-table .product-code { color: #8890a7; font-size: 0.94rem; }
+.inventory-table .fw-600 { font-weight: 700; }
+.inventory-table .progress-custom { height: 9px; border-radius: 7px; background: #eee; overflow: hidden; margin-top: 7px; }
+.inventory-table .progress-bar { border-radius: 7px; }
+.expiry-warning { font-size: 0.9rem; color: #efb861; margin-top: 2px; }
 
-.alert-content .alert-title {
-    font-weight: 600;
-    color: #1a202c;
-}
-.alert-content .alert-message {
-    font-size: 0.9rem;
-    color: #4a5568;
-    margin-bottom: 0;
-}
-.empty-state {
-    text-align: center;
-    padding: 2rem;
-    color: #a0aec0;
-}
-.empty-state i {
-    font-size: 3rem;
-    margin-bottom: 1rem;
-    color: #cbd5e0;
-}
-.empty-state h5 {
-    font-weight: 600;
-    color: #718096;
-}
-
-/* --- Estilos de Top Clientes --- */
-.top-client-item {
-    padding: 1rem 1.5rem;
-}
-.top-client-avatar {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 700;
-    font-size: 1.1rem;
-    color: #fff;
-    margin-right: 1rem;
-    text-transform: uppercase;
-    /* Variable CSS para el color, definida en el HTML */
-    background: var(--avatar-bg, #6c757d);
-}
-.top-client-name {
-    font-weight: 600;
-    color: #1a202c;
-}
-.top-client-code {
-    font-size: 0.85rem;
-    color: #718096;
-}
-.top-client-total {
-    font-size: 1.1rem;
-    font-weight: 700;
-    color: #10B981;
-}
-
-/* --- Estilos de Tabla Moderna (Ventas Recientes) --- */
-.table-scrollable-y {
-    max-height: 400px; /* Ajusta esta altura como necesites */
-    overflow-y: auto;
-}
-.modern-table th {
-    font-weight: 600;
-    font-size: 0.85rem;
-    text-transform: uppercase;
-    color: #4a5568;
-    background-color: #f9fafb !important; /* Asegura el color del header */
-    padding: 1rem 1.5rem;
-}
-.modern-table td {
-    vertical-align: middle;
-    padding: 1rem 1.5rem;
-}
-.fw-600 { font-weight: 600; }
-.status-badge {
-    display: inline-block;
-    padding: 0.25rem 0.6rem;
-    font-size: 0.8rem;
-    font-weight: 600;
-    border-radius: 20px;
-}
-.status-badge.status-success { background-color: #ECFDF5; color: #065F46; }
-.status-badge.status-warning { background-color: #FFFBEB; color: #B45309; }
-.status-badge.status-danger { background-color: #FEF2F2; color: #991B1B; }
-.status-badge.status-secondary { background-color: #F1F5F9; color: #475569; }
-
-/* --- Estilos de Inventario --- */
-.inventory-section {
-    padding-left: 1.5rem;
-    padding-right: 1.5rem;
-}
-.inventory-section:first-child {
-    border-right: 1px solid #e2e8f0;
-}
+/* === Responsive === */
 @media (max-width: 991px) {
-    .inventory-section:first-child {
-        border-right: 0;
-        border-bottom: 1px solid #e2e8f0;
-        padding-bottom: 1.5rem;
-        margin-bottom: 1.5rem;
+    .dashboard-header {
+        padding: 1.4rem 1rem 1rem 1rem;
+        font-size: 1rem;
     }
+    .modern-table th, .modern-table td { font-size: 0.95rem; }
 }
-
-.inventory-table .product-name {
-    font-weight: 600;
-    color: #1a202c;
-    margin-bottom: 0.1rem;
+@media (max-width: 767px) {
+    .dashboard-header { padding: 1rem 0.6rem; font-size: 1rem; }
+    .kpi-card { flex-direction: column; gap: 10px; text-align: center; }
+    .modern-table th, .modern-table td { font-size: 0.93rem; }
+    .top-client-item { flex-direction: column; gap: 6px; }
 }
-.inventory-table .product-code {
-    font-size: 0.85rem;
-    color: #718096;
-}
-.inventory-table .expiry-warning {
-    font-size: 0.85rem;
-    font-weight: 600;
-    color: #B45309;
-}
-.inventory-table .table-danger,
-.inventory-table .table-danger td {
-    background-color: #FEF2F2 !important;
-}
-.inventory-table .table-warning,
-.inventory-table .table-warning td {
-    background-color: #FFFBEB !important;
-}
-
-.progress-custom {
-    height: 8px;
-    background-color: #e2e8f0;
-    border-radius: 4px;
-    overflow: hidden;
-}
-.progress-custom .progress-bar {
-    height: 100%;
-}
-.progress-custom .bg-danger { background-color: #EF4444; }
-.progress-custom .bg-warning { background-color: #F59E0B; }

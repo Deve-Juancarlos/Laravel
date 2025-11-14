@@ -92,13 +92,5 @@
         </div>
     </div>
 
-    {{--
-       OPTIMIZACIÓN 2:
-       Se ha eliminado la tabla "Últimas Facturas Emitidas".
-       Esta vista es para "Verificación de Balance". Las facturas
-       no ayudan a diagnosticar un descuadre y pertenecen al
-       Dashboard principal o al módulo de Ventas.
-    --}}
-
 </div>
 @endsection

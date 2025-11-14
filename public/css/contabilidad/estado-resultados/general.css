@@ -482,9 +482,7 @@
     }
 }
 
-/* =====================================================
-   12. IMPRESIÓN
-   ===================================================== */
+
 @media print {
     .general-container .eerr-subnav,
     .general-container .filters-card {
