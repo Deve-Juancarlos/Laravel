@@ -105,7 +105,10 @@
                     <a href="{{ route('contador.flujo.cobranzas.paso3') }}" class="btn btn-secondary">
                         <i class="fas fa-arrow-left me-1"></i> Atrás (Editar Aplicación)
                     </a>
-                    <button type="submit" class="btn btn-success btn-lg">
+                    <button 
+                        type="submit" 
+                        class="btn btn-success btn-lg"
+                        onclick="this.disabled=true; this.innerText='Guardando...'; this.form.submit();" >
                         <i class="fas fa-save me-1"></i> Confirmar y Guardar Cobranza
                     </button>
                 </div>

@@ -322,13 +322,13 @@
                                     </div>
                                     <div class="bank-details">
                                         <span class="bank-cuenta">{{ $banco->Cuenta }}</span>
-                                        @if($banco->Codigo)
+                                       @if(property_exists($banco, 'Codigo') && $banco->Codigo)
                                             <span class="bank-codigo">Código: {{ $banco->Codigo }}</span>
                                         @endif
                                     </div>
                                 </div>
                             </td>
-                            <td><strong>{{ $banco->Nombre }}</strong></td>
+                            <td><strong>{{ $banco->Banco }}</strong></td>
                             <td>
                                 @if($banco->Moneda == 1)
                                     <span class="currency-badge-banco soles">

@@ -3,7 +3,6 @@
 @section('content')
 <div class="container-fluid mt-4">
 
-    <!-- ▼▼▼ NAVEGACIÓN DE REPORTES DE AUDITORÍA ▼▼▼ -->
     <div class="card shadow-sm border-0 mb-4">
         <div class="card-header bg-white p-0">
             <ul class="nav nav-tabs nav-fill" id="auditoriaTab" role="tablist">
@@ -27,7 +26,7 @@
     </div>
     
     <div class="tab-content">
-        @yield('audit-content') {{-- <--- ¡¡ESTE ES EL NOMBRE CLAVE!! --}}
+        @yield('audit-content') 
     </div>
     
 </div>

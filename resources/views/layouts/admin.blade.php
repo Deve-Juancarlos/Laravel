@@ -533,7 +533,7 @@
 
             <div class="sidebar-content">
                 <nav class="nav-menu">
-                    <a href="{{ route('dashboard.admin') }}" class="nav-link {{ request()->routeIs('dashboard.admin') ? 'active' : '' }}">
+                    <a href="{{ route('admin.dashboard') }}" class="nav-link {{ request()->routeIs('dashboard.admin') ? 'active' : '' }}">
                         <i class="fas fa-home"></i> 
                         <span>Dashboard</span>
                     </a>
@@ -736,7 +736,7 @@
             resetTimer() {
                 this.currentTime = this.sessionTimeout;
                 // Remover la línea de session.ping si no existe la ruta
-                // fetch('{{ route("session.ping") }}', { ... }).catch(err => {});
+                fetch('#', { ... }).catch(err => {});
             },
 
             sessionExpired() {

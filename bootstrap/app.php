@@ -4,10 +4,9 @@ use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 
-use App\Http\Middleware\CheckAdmin;
 use App\Http\Middleware\CheckVendedor;
-use App\Http\Middleware\CheckContador;
 use App\Http\Middleware\SecurityMiddleware;
+use App\Http\Middleware\Authenticate; // ← corregido
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -17,16 +16,18 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
 
-        // Alias para middlewares de rol
+        // Alias personalizados
         $middleware->alias([
-            'check.admin' => CheckAdmin::class,
-            'check.contador' => CheckContador::class,
+            'role.admin' => \App\Http\Middleware\CheckAdminRole::class,
+            'access.contador' => \App\Http\Middleware\CheckContadorAccess::class,
             'security' => SecurityMiddleware::class,
-        ]);
 
+            // Solo si NO usas Breeze/Fortify
+            'auth' => Authenticate::class,
+        ]);
 
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        
+
     })
     ->create();

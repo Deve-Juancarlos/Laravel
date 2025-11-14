@@ -51,7 +51,6 @@
                                 <option value="deposito" @selected(old('metodo_pago', $pago['metodo_pago'] ?? '') == 'deposito')>Depósito en Cuenta</option>
                                 <option value="efectivo" @selected(old('metodo_pago', $pago['metodo_pago'] ?? '') == 'efectivo')>Efectivo</option>
                                 <option value="cheque" @selected(old('metodo_pago', $pago['metodo_pago'] ?? '') == 'cheque')>Cheque</option>
-                                <option value="yape_plin" @selected(old('metodo_pago', $pago['metodo_pago'] ?? '') == 'yape_plin')>Yape/Plin</option>
                             </select>
                         </div>
                         <div class="col-md-6 mb-3">

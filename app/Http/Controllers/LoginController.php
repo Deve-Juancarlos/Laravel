@@ -121,8 +121,8 @@ class LoginController extends Controller
         $tipo = strtolower($tipoUsuario);
 
         return match ($tipo) {
-            'administrador' => redirect()->route('dashboard.admin'),
-            'vendedor'      => redirect()->route('dashboard.vendedor'),
+            'administrador' => redirect()->route('admin.dashboard'),
+            #'vendedor'      => redirect()->route(),
             'contador'      => redirect()->route('contador.dashboard.contador'),
             default         => redirect()->route('login')->with('error', 'Tipo de usuario inválido'),
         };

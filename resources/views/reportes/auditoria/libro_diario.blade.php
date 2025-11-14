@@ -4,36 +4,7 @@
 @section('title', 'Reporte de Auditoría de Libro Diario')
 
 @push('styles')
-<style>
-    /* Estilos para la tabla de cambios */
-    .change-table {
-        font-size: 0.8rem;
-        background-color: #fff;
-    }
-    .change-table th {
-        background-color: #f8f9fa;
-        font-weight: 600;
-    }
-    .change-table td {
-        vertical-align: middle;
-    }
-    .change-table .field {
-        font-weight: 500;
-        color: #333;
-    }
-    .change-table .old-value {
-        color: #dc3545; /* Rojo */
-        text-decoration: line-through;
-        max-width: 150px;
-        word-wrap: break-word;
-    }
-    .change-table .new-value {
-        color: #198754; /* Verde */
-        font-weight: bold;
-        max-width: 150px;
-        word-wrap: break-word;
-    }
-</style>
+    <link rel="stylesheet" href="{{ asset('css/auditoria.css') }}">
 @endpush
 
 {{-- 2. Contenido del reporte --}}

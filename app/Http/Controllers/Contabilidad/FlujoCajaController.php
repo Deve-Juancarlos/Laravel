@@ -313,7 +313,6 @@ class FlujoCajaController extends Controller
                 'Fecha' => $fechaPago,
             ]);
 
-            // 3. Recorrer aplicaciones y guardar en 'PlanD_cobranza' y actualizar 'CtaCliente'
             if ($aplicaciones->isNotEmpty()) {
                 foreach ($aplicaciones as $compositeKey => $montoAplicado) {
                     list($documento, $tipo) = explode('_', $compositeKey);
@@ -328,7 +327,6 @@ class FlujoCajaController extends Controller
                         'Numero' => $nextNum,
                         'CodClie' => $cliente->Codclie,
                         'Documento' => $documento,
-                        // ... (resto de campos)
                         'TipoDoc' => $tipo, 'FechaFac' => $factura->FechaF,
                         'Valor' => $factura->Importe, 'NroRecibo' => $planillaNumeroCompleto,
                         'Descuento' => 0,
@@ -346,7 +344,6 @@ class FlujoCajaController extends Controller
                 }
             }
 
-            // 4. Registrar el adelanto (si existe)
             if ($esAdelanto) {
                 $montoAdelanto = round($montoTotalPagado - $montoTotalAplicado, 2); // <-- Calculamos el adelanto
                 if ($montoAdelanto > 0.01) {
@@ -362,9 +359,7 @@ class FlujoCajaController extends Controller
                 }
             }
             
-            // ==========================================================
-            // 5. 👨‍💼 LLAMADA AL MOTOR CONTABLE (COBRANZA) 👨‍💼
-            // ==========================================================
+           
             $this->contabilidadService->registrarAsientoCobranza(
                 $planillaNumeroCompleto,
                 $cliente,

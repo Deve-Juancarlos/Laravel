@@ -203,26 +203,28 @@ class BancoService
      */
     public function saveReconciliation($validatedData)
     {
-        // CORRECCIÓN (Error 3): Verificar si la tabla existe
-        if (!Schema::hasTable('BancosConciliacion')) {
-            // Si la tabla no existe, intentamos usar el SP (que la creará si se ejecutó el SQL)
-            // Si el SP tampoco existe, esto fallará y el usuario sabrá que falta el SP.
-            Log::warning('La tabla BancosConciliacion no existe, intentando llamar a sp_registrar_conciliacion.');
-        }
+        // Validamos que los campos mínimos estén presentes
+        $cuenta = $validatedData['cuenta'];
+        $fechaConciliacion = $validatedData['fecha_conciliacion'];
+        $saldoLibros = $validatedData['saldo_libros'] ?? 0;
+        $saldoBancario = $validatedData['saldo_bancario'] ?? 0;
+        $diferencia = $saldoLibros - $saldoBancario;
+        $observaciones = $validatedData['observaciones'] ?? '';
+        $usuario = Auth::user()->name ?? 'SYSTEM';
 
-        // Llamamos al Stored Procedure que creamos en el script SQL
-         DB::select('EXEC sp_registrar_conciliacion ?, ?, ?, ?, ?', [
-            $validatedData['cuenta'],
-            $validatedData['fecha_conciliacion'],
-            $validatedData['saldo_bancario'],
-            $validatedData['observaciones'] ?? null,
-            Auth::user()->name ?? 'SYSTEM'
+        DB::table('BancosConciliacion')->insert([
+            'cuenta' => $cuenta,
+            'fecha_conciliacion' => $fechaConciliacion,
+            'saldo_libros' => $saldoLibros,
+            'saldo_bancario' => $saldoBancario,
+            'diferencia' => $diferencia,
+            'observaciones' => $observaciones,
+            'usuario_creador' => $usuario,
+            'created_at' => Carbon::now()
         ]);
     }
 
-    /**
-     * Obtiene el listado y resumen de transferencias.
-     */
+  
     public function getTransfersData($fechaInicio, $fechaFin)
     {
         $transferencias = DB::table('v_transferencias_bancarias')

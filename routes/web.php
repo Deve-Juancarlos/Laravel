@@ -1,8 +1,5 @@
 <?php
 
-//RUTAS MEJORADAS PARA CONTABILIDAD FARMACÉUTICA
-//Pensando como un contador farmacéutico profesional
-
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\LoginController;
 use App\Http\Controllers\RegisterController;
@@ -14,7 +11,6 @@ use App\Http\Controllers\Admin\CuentaController;
 use App\Http\Controllers\Admin\ReporteController;
 use App\Http\Controllers\Admin\AuditoriaController;
 use App\Http\Controllers\Contabilidad\BalanceGeneralController;
-use App\Http\Controllers\Contabilidad\ReportesSunatController;
 use App\Http\Controllers\Contabilidad\LibroDiarioController;
 use App\Http\Controllers\Contabilidad\EstadoResultadosController;
 use App\Http\Controllers\Contabilidad\BancosController;
@@ -65,7 +61,7 @@ Route::get('/welcome-message', function () {
 })->name('welcome.message');
 
 //RUTAS GENERALES AUTENTICADAS
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth', 'role.admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', [ContadorDashboardController::class, 'index'])->name('dashboard');
     Route::get('/dashboard/stats', [ContadorDashboardController::class, 'getStats'])->name('dashboard.stats');
     Route::get('/dashboard/alerts', [ContadorDashboardController::class, 'getAlerts'])->name('dashboard.alerts');
@@ -83,7 +79,7 @@ Route::middleware('auth')->group(function () {
 Route::prefix('admin')->name('admin.')->middleware(['auth'])->group(function () {
     
     // Dashboard Administrativo
-    Route::get('/dashboard', [App\Http\Controllers\Admin\DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/dashboard', [App\Http\Controllers\Admin\AdminDashboardController::class, 'index'])->name('dashboard');
 
     //MÓDULO: GESTIÓN BANCARIA
     Route::resource('bancos', BancoController::class)
@@ -158,11 +154,17 @@ Route::prefix('admin')->name('admin.')->middleware(['auth'])->group(function () 
         Route::post('/{serie}/{numero}/aprobar', [PlanillaController::class, 'aprobar'])->name('aprobar');
         Route::post('/{serie}/{numero}/rechazar', [PlanillaController::class, 'rechazar'])->name('rechazar');
     });
+
+    Route::get('/balance-general', [App\Http\Controllers\Contabilidad\BalanceGeneralController::class, 'index'])
+         ->name('balance-general.index');
+    Route::get('/cuentas-por-cobrar', [App\Http\Controllers\Contabilidad\CuentasPorCobrarController::class, 'index'])
+         ->name('cxc.index');
+    Route::get('/notificaciones', [App\Http\Controllers\Contabilidad\NotificacionController::class, 'index'])
+         ->name('notificaciones.index');
 });
 
 //RUTAS CONTADOR
-Route::prefix('contador')->name('contador.')->middleware(['auth'])->group(function () {
-
+Route::middleware(['auth', 'access.contador'])->prefix('contador')->name('contador.')->group(function () {
 
     Route::get('/dashboard/contador', [ContadorDashboardController::class, 'contadorDashboard'])->name('dashboard.contador');
     Route::get('/dashboard/get-chart-data', [ContadorDashboardController::class, 'getChartData']);
@@ -398,6 +400,24 @@ Route::prefix('contador')->name('contador.')->middleware(['auth'])->group(functi
         Route::get('/crear', [RegistroCompraController::class, 'create'])->name('create');
         Route::post('/guardar', [RegistroCompraController::class, 'store'])->name('store');
     });
+
+    Route::prefix('notificaciones')->name('notificaciones.')->group(function () {
+            // Historial de Notificaciones
+            Route::get('/', [App\Http\Controllers\Contabilidad\NotificacionController::class, 'index'])
+                 ->name('index'); // contador.notificaciones.index
+            
+            // Formulario para crear (Contadora)
+            Route::get('/crear', [App\Http\Controllers\Contabilidad\NotificacionController::class, 'create'])
+                 ->name('create'); // contador.notificaciones.create
+                 
+            // Guardar la notificación
+            Route::post('/guardar', [App\Http\Controllers\Contabilidad\NotificacionController::class, 'store'])
+                 ->name('store'); // contador.notificaciones.store
+            
+            // Marcar como leída (AJAX)
+            Route::post('/marcar-leida/{id}', [App\Http\Controllers\Contabilidad\NotificacionController::class, 'markAsRead'])
+                 ->name('markAsRead'); // contador.notificaciones.markAsRead
+        });
 
     // --- MÓDULO LETRAS EN DESCUENTO ---
     Route::prefix('letras-descuento')->name('letras_descuento.')->group(function () {

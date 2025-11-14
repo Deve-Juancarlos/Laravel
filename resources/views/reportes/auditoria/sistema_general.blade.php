@@ -1,10 +1,13 @@
-{{-- 1. Hereda del layout de reportes --}}
-@extends('reportes.auditoria.layout') 
+@extends('reportes.auditoria.layout')
 
 @section('title', 'Reporte de Auditoría General')
 
-{{-- 2. Contenido del reporte --}}
-@section('report-content')
+
+@push('styles')
+    <link rel="stylesheet" href="{{ asset('css/auditoria.css') }}">
+@endpush
+
+@section('audit-content')
 
 <div class="card shadow-sm border-0">
     <div class="card-header bg-white border-bottom p-3">
@@ -18,7 +21,6 @@
     </div>
     <div class="card-body">
 
-        <!-- Formulario de Filtros -->
         <form method="GET" action="{{ route('contador.reportes.auditoria.sistema_general') }}" class="mb-4 p-3 border rounded bg-light">
             <div class="row g-3 align-items-end">
                 <div class="col-md-3">
@@ -69,9 +71,14 @@
                         <tr>
                             <td>{{ \Carbon\Carbon::parse($log->fecha)->format('d/m/Y H:i:s') }}</td>
                             <td>{{ $log->usuario }}</td>
-                            <td>{{ $log->accion }}</td>
+                            
+                            {{-- ▼▼ CAMBIO 2: Se añadió una clase para estilizar la acción ▼▼ --}}
+                            <td class="log-action">{{ $log->accion }}</td>
+                            
                             <td><span class="badge bg-secondary">{{ $log->tabla }}</span></td>
-                            <td style="max-width: 400px; word-break: break-word;">{{ $log->detalle }}</td>
+
+                            {{-- ▼▼ CAMBIO 3: Se reemplazó el estilo en línea por una clase ▼▼ --}}
+                            <td class="log-detail">{{ $log->detalle }}</td>
                         </tr>
                     @empty
                         <tr>

@@ -580,7 +580,7 @@
                     </select>
                 </div>
                 <div class="col-md-2">
-                    <a href="{{ route('movimientos.export') }}" class="btn btn-export-movs w-100">
+                    <a href="#" class="btn btn-export-movs w-100">
                         <i class="fas fa-file-excel"></i> Exportar
                     </a>    
                 </div>
