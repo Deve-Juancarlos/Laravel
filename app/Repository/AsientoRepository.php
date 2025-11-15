@@ -10,9 +10,7 @@ class AsientoRepository
 {
     protected $connection = 'sqlsrv';
 
-    /**
-     * Obtener todos los asientos contables
-     */
+    
     public function obtenerTodos($fechaInicio = null, $fechaFin = null, $paginado = null)
     {
         try {
