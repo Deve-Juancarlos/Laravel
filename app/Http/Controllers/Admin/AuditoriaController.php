@@ -10,12 +10,10 @@ class AuditoriaController extends Controller
 {
     public function index(Request $request)
     {
-        $query = DB::table('Auditoria_Sistema')
-            ->orderBy('fecha', 'desc');
+        $query = DB::table('Auditoria_Sistema')->orderBy('fecha', 'desc');
 
-        // Filtros
         if ($request->filled('usuario')) {
-            $query->where('usuario', 'like', '%' . $request->usuario . '%');
+            $query->where('usuario', 'like', '%' . trim($request->usuario) . '%');
         }
 
         if ($request->filled('accion')) {
@@ -30,12 +28,13 @@ class AuditoriaController extends Controller
             $query->whereDate('fecha', '<=', $request->fecha_hasta);
         }
 
-        $logs = $query->paginate(50);
+        $logs = $query->paginate(50)->appends($request->only(['usuario', 'accion', 'fecha_desde', 'fecha_hasta']));
 
-        // Obtener acciones únicas para el filtro
+
         $acciones = DB::table('Auditoria_Sistema')
             ->select('accion')
             ->distinct()
+            ->orderBy('accion')
             ->pluck('accion');
 
         return view('admin.auditoria.index', compact('logs', 'acciones'));

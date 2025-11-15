@@ -2,16 +2,16 @@
 
 namespace App\Providers;
 
-use App\Models\AccesoWeb;
-use Illuminate\Support\Facades\Gate;
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
+use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Log; // <-- Añadido para el debug
 
 class AuthServiceProvider extends ServiceProvider
 {
     /**
-     * The model to policy mappings for the application.
+     * The policy mappings for the application.
      *
-     * @var array<class-string, class-string>
+     * @var array
      */
     protected $policies = [
         // 'App\Models\Model' => 'App\Policies\ModelPolicy',
@@ -24,30 +24,40 @@ class AuthServiceProvider extends ServiceProvider
     {
         $this->registerPolicies();
 
-       
-        Gate::define('es-admin', function (AccesoWeb $user) {
+        // Gate para administradores
+        Gate::define('es-admin', function ($user) {
+            // --- CORREGIDO con trim() ---
+            $tipo = strtolower(trim($user->tipousuario));
+            return $tipo === 'administrador';
+        });
+
+        // Gate para contadores o administradores
+        Gate::define('gestionar-contabilidad', function ($user) {
             
-            $rol = strtoupper(trim($user->rol));
-            return $rol === 'ADMIN';
+            // --- CORREGIDO con trim() y Log::debug() ---
+            $original = $user->tipousario;
+            $limpiado = trim($original);
+            $tipo_final = strtolower($limpiado);
+            $permitido = in_array($tipo_final, ['contador', 'administrador']);
+
+            // --- CORREGIDO: Forzamos el log al canal 'security' ---
+            Log::channel('security')->debug('Verificando Gate [gestionar-contabilidad]', [
+                'idusuario' => $user->getKey(),
+                'tipousuario_original' => $original,
+                'despues_de_trim()' => $limpiado,
+                'despues_de_strtolower()' => $tipo_final,
+                'lista_permitida' => "['contador', 'administrador']",
+                'es_permitido' => $permitido
+            ]);
+
+            return $permitido;
         });
 
-        Gate::define('es-contador', function (AccesoWeb $user) {
-        
-            $rol = strtoupper(trim($user->rol));
-            return $rol === 'CONTADOR';
-        });
-
-       
-        Gate::define('gestionar-contabilidad', function (AccesoWeb $user) {
-         
-            $rol = strtoupper(trim($user->rol));
-            
-            return $rol === 'ADMIN' || $rol === 'CONTADOR';
-        });
-
-        Gate::define('aprobar-eliminacion-asiento', function (AccesoWeb $user) {
-        
-            return Gate::allows('es-admin', $user);
+        // Gate solo administrador para eliminar o aprobar asientos
+        Gate::define('aprobar-eliminacion-asiento', function ($user) {
+            // --- CORREGIDO con trim() ---
+            $tipo = strtolower(trim($user->tipousuario));
+            return $tipo === 'administrador';
         });
     }
 }

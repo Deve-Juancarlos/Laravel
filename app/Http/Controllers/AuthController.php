@@ -1,6 +1,6 @@
 <?php
 namespace App\Http\Controllers;
-use App\Models\Usuario;
+
 use App\Models\AccesoWeb;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -17,12 +17,12 @@ $request->validate([
 'usuario' => 'required|string',
 'password' => 'required|string',
 ]);
-$usuario = Usuario::where('usuario', $request->usuario)->first();
+$usuario = AccesoWeb::where('usuario', $request->usuario)->first();
 if ($usuario && Hash::check($request->password, $usuario->password)) {
 Auth::login($usuario);
 // Redirect based on user role
 if ($usuario->role === 'admin') {
-return redirect()->route('dashboard.admin');
+return redirect()->route('admin.dashboard');
 } elseif ($usuario->role === 'vendedor') {
 return redirect()->route('dashboard.vendedor');
 }
@@ -45,7 +45,7 @@ $request->validate([
 'password' => 'required|string|confirmed',
 'role' => 'required|string',
 ]);
-$usuario = new Usuario();
+$usuario = new AccesoWeb();
 $usuario->usuario = $request->usuario;
 $usuario->password = Hash::make($request->password);
 $usuario->role = $request->role;

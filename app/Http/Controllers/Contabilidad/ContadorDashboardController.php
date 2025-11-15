@@ -29,6 +29,8 @@ class ContadorDashboardController extends Controller
      */
     public function contadorDashboard(Request $request)
     {
+
+        
         try {
             // 4. El controlador ya no sabe CÓMO se obtienen los datos,
             // solo los PIDE al servicio.
