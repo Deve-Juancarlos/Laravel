@@ -17,6 +17,29 @@
 @section('content')
 <div class="row">
     <div class="col-lg-8 mx-auto">
+        {{-- Mostrar mensajes de error --}}
+        @if(session('error'))
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-circle me-2"></i>{{ session('error') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        @endif
+
+        @if($errors->any())
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <h6 class="alert-heading">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                Por favor corrija los siguientes errores:
+            </h6>
+            <ul class="mb-0">
+                @foreach($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        @endif
+
         <div class="card border-0 shadow-sm">
             <div class="card-header bg-primary text-white">
                 <h5 class="mb-0">
@@ -41,13 +64,12 @@
                             <option value="">-- Seleccione un empleado --</option>
                             @foreach($empleadosDisponibles as $empleado)
                             <option value="{{ $empleado->Codemp }}" 
+                                    data-nombre="{{ $empleado->Nombre }}"
                                     data-dni="{{ $empleado->Documento }}"
-                                    data-cargo="{{ $empleado->Cargo ?? 'N/A' }}"
-                                    data-telefono="{{ $empleado->Telefono1 ?? '' }}"
-                                    {{ old('empleado_id') == $empleado->Codemp ? 'selected' : '' }}>
-                                {{ $empleado->Nombre }} - DNI: {{ $empleado->Documento }} ({{ $empleado->Cargo ?? 'N/A' }})
+                                    data-telefono="{{ $empleado->Telefono1 ?? $empleado->Celular ?? 'N/A' }}"
+                                    {{ old('idusuario') == $empleado->Codemp ? 'selected' : '' }}>
+                                {{ $empleado->Nombre }} - DNI: {{ $empleado->Documento }}
                             </option>
-
                             @endforeach
                         </select>
                         @error('idusuario')
@@ -66,10 +88,10 @@
                         </h6>
                         <div class="row">
                             <div class="col-md-6">
-                                <strong>DNI:</strong> <span id="infoDNI">-</span>
+                                <strong>Nombre:</strong> <span id="infoNombre">-</span>
                             </div>
                             <div class="col-md-6">
-                                <strong>Cargo:</strong> <span id="infoCargo">-</span>
+                                <strong>DNI:</strong> <span id="infoDNI">-</span>
                             </div>
                             <div class="col-md-6 mt-2">
                                 <strong>Teléfono:</strong> <span id="infoTelefono">-</span>
@@ -138,7 +160,7 @@
                                 class="form-select @error('tipousuario') is-invalid @enderror" 
                                 required>
                             <option value="">-- Seleccione un rol --</option>
-                            <option value="ADMIN" {{ old('tipousuario') == 'ADMIN' ? 'selected' : '' }}>
+                            <option value="administrador" {{ old('tipousuario') == 'administrador' ? 'selected' : '' }}>
                                 Administrador (Acceso total)
                             </option>
                             <option value="CONTADOR" {{ old('tipousuario') == 'CONTADOR' ? 'selected' : '' }}>
@@ -176,12 +198,20 @@ document.getElementById('empleadoSelect').addEventListener('change', function() 
     const infoDiv = document.getElementById('empleadoInfo');
     
     if (this.value) {
+        document.getElementById('infoNombre').textContent = option.dataset.nombre || '-';
         document.getElementById('infoDNI').textContent = option.dataset.dni || '-';
-        document.getElementById('infoCargo').textContent = option.dataset.cargo || '-';
         document.getElementById('infoTelefono').textContent = option.dataset.telefono || '-';
         infoDiv.classList.remove('d-none');
     } else {
         infoDiv.classList.add('d-none');
+    }
+});
+
+// Si hay un empleado pre-seleccionado (old input), mostrar su info
+window.addEventListener('DOMContentLoaded', function() {
+    const select = document.getElementById('empleadoSelect');
+    if (select.value) {
+        select.dispatchEvent(new Event('change'));
     }
 });
 </script>

@@ -59,12 +59,12 @@ class UsuarioController extends Controller
         DB::beginTransaction();
 
         try {
-            
             $result = DB::table('accesoweb')->insert([
                 'usuario' => $request->usuario,
                 'password' => Hash::make($request->password),
                 'tipousuario' => $request->tipousuario,
                 'idusuario' => $request->idusuario,
+                'estado' => 'ACTIVO',
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
@@ -86,7 +86,9 @@ class UsuarioController extends Controller
         }
     }
     
-    
+    /**
+     * Mostrar formulario para cambiar rol
+     */
     public function roles($usuario)
     {
         $usuarioData = $this->usuarioService->obtenerUsuarioPorNombre($usuario);

@@ -19,31 +19,34 @@ class UsuarioService
                 'accesoweb.usuario',
                 'accesoweb.tipousuario',
                 'accesoweb.idusuario',
+                'accesoweb.estado',
                 'accesoweb.created_at as ultimoacceso',
                 'Empleados.Nombre as empleado_nombre',
                 'Empleados.Documento as empleado_dni',
                 'Empleados.Telefono1 as empleado_telefono',
-                'Empleados.Celular as empleado_celular',
-                DB::raw('CASE WHEN accesoweb.idusuario IS NOT NULL THEN 1 ELSE 0 END as estado') // <- Estado virtual
+                'Empleados.Celular as empleado_celular'
             );
 
         if (!empty($filtros['tipo'])) {
             $query->where('accesoweb.tipousuario', $filtros['tipo']);
         }
+        
+        if (!empty($filtros['estado'])) {
+            $query->where('accesoweb.estado', $filtros['estado']);
+        }
 
         if (!empty($filtros['buscar'])) {
             $query->where(function($q) use ($filtros) {
                 $q->where('accesoweb.usuario', 'like', '%' . $filtros['buscar'] . '%')
-                ->orWhere('Empleados.Nombre', 'like', '%' . $filtros['buscar'] . '%')
-                ->orWhere('Empleados.Documento', 'like', '%' . $filtros['buscar'] . '%');
+                  ->orWhere('Empleados.Nombre', 'like', '%' . $filtros['buscar'] . '%')
+                  ->orWhere('Empleados.Documento', 'like', '%' . $filtros['buscar'] . '%');
             });
         }
 
         return $query->orderBy('accesoweb.tipousuario', 'asc')
-                    ->orderBy('Empleados.Nombre', 'asc')
-                    ->get();
+                     ->orderBy('Empleados.Nombre', 'asc')
+                     ->get();
     }
-
 
     /**
      * Obtener estadísticas de usuarios
@@ -52,16 +55,14 @@ class UsuarioService
     {
         return [
             'total'           => DB::table('accesoweb')->count(),
-            'administradores' => DB::table('accesoweb')->where('tipousuario', 'ADMIN')->count(),
+            'administradores' => DB::table('accesoweb')->where('tipousuario', 'administrador')->count(),
             'contadores'      => DB::table('accesoweb')->where('tipousuario', 'CONTADOR')->count(),
             'vendedores'      => DB::table('accesoweb')->where('tipousuario', 'VENDEDOR')->count(),
             'sin_vincular'    => DB::table('accesoweb')->whereNull('idusuario')->count(),
-            'activos'         => DB::table('accesoweb')->whereNotNull('idusuario')->count(), 
-            'inactivos'       => DB::table('accesoweb')->whereNull('idusuario')->count(),    
+            'activos'         => DB::table('accesoweb')->where('estado', 'ACTIVO')->count(),
+            'inactivos'       => DB::table('accesoweb')->where('estado', 'INACTIVO')->count(),
         ];
     }
-
-
 
     /**
      * Obtener usuario por nombre con información del empleado
@@ -126,9 +127,10 @@ class UsuarioService
 
             DB::table('accesoweb')->insert([
                 'usuario' => $datos['usuario'],
-                'password' => Hash::make($datos['password']), // ✅ CORREGIDO: hashear
+                'password' => Hash::make($datos['password']),
                 'tipousuario' => $datos['tipousuario'],
                 'idusuario' => $datos['idusuario'],
+                'estado' => 'ACTIVO',
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
@@ -233,44 +235,67 @@ class UsuarioService
             \Log::error('Error al registrar auditoría: ' . $e->getMessage());
         }
     }
+
+    /**
+     * Desactivar usuario
+     */
     public function desactivarUsuario($usuario)
     {
         try {
             DB::table('accesoweb')
                 ->where('usuario', $usuario)
-                ->update(['estado' => 'INACTIVO']);
+                ->update([
+                    'estado' => 'INACTIVO',
+                    'updated_at' => now()
+                ]);
+            
+            $this->registrarAuditoria('DESACTIVAR_USUARIO', "Usuario {$usuario} desactivado");
             return true;
         } catch (\Exception $e) {
+            \Log::error('Error al desactivar usuario: ' . $e->getMessage());
             return false;
         }
     }
 
+    /**
+     * Obtener historial de accesos
+     */
     public function obtenerHistorialAccesos($usuario)
     {
-        
         try {
+            if (!DB::getSchemaBuilder()->hasTable('accesoweb_historial')) {
+                return collect();
+            }
+            
             return DB::table('accesoweb_historial')
                 ->where('usuario', $usuario)
                 ->orderBy('fecha_acceso', 'desc')
+                ->limit(50)
                 ->get();
         } catch (\Exception $e) {
+            \Log::error('Error al obtener historial: ' . $e->getMessage());
             return collect(); 
         }
     }
 
+    /**
+     * Activar usuario
+     */
     public function activarUsuario($usuario)
     {
         try {
             DB::table('accesoweb')
                 ->where('usuario', $usuario)
-                ->update(['estado' => 'ACTIVO']);
+                ->update([
+                    'estado' => 'ACTIVO',
+                    'updated_at' => now()
+                ]);
+            
+            $this->registrarAuditoria('ACTIVAR_USUARIO', "Usuario {$usuario} activado");
             return true;
         } catch (\Exception $e) {
+            \Log::error('Error al activar usuario: ' . $e->getMessage());
             return false;
         }
     }
-
-
-
-
 }

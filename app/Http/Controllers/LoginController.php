@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\DB;
 use App\Models\AccesoWeb;
 
 class LoginController extends Controller
@@ -61,6 +62,17 @@ class LoginController extends Controller
                 ])->withInput();
             }
 
+            // ✅ VERIFICAR ESTADO DEL USUARIO
+            if (isset($user->estado) && $user->estado !== 'ACTIVO') {
+                Log::warning('Usuario inactivo intentando acceder', [
+                    'usuario' => $user->usuario,
+                    'estado' => $user->estado
+                ]);
+                return back()->withErrors([
+                    'usuario' => 'Este usuario está inactivo. Contacte al administrador.'
+                ])->withInput();
+            }
+
             $tipo = strtolower($user->tipousuario ?? '');
             if (!in_array($tipo, ['administrador', 'contador'])) { // Dejamos solo los dos
                 Log::warning('Tipo de usuario no válido', ['usuario' => $user->usuario, 'tipo' => $tipo]);
@@ -73,6 +85,9 @@ class LoginController extends Controller
             $request->session()->regenerate();
 
             Log::info('Login exitoso', ['usuario' => $user->usuario, 'tipo' => $tipo]);
+
+            // ✅ REGISTRAR ACCESO EN HISTORIAL
+            $this->registrarAcceso($request, $user->usuario);
 
             return $this->redirectByRole($tipo);
 
@@ -116,6 +131,9 @@ class LoginController extends Controller
         }
     }
 
+    /**
+     * Redirigir según el rol del usuario
+     */
     private function redirectByRole(string $tipoUsuario)
     {
         $tipo = strtolower($tipoUsuario);
@@ -126,5 +144,46 @@ class LoginController extends Controller
             'contador'      => redirect()->route('contador.dashboard.contador'),
             default         => redirect()->route('login')->with('error', 'Tipo de usuario inválido'),
         };
+    }
+
+    /**
+     * ✅ REGISTRAR ACCESO EN HISTORIAL
+     * 
+     * Registra el acceso del usuario en la tabla accesoweb_historial
+     * capturando IP, navegador y fecha/hora del acceso.
+     * 
+     * @param Request $request
+     * @param string $usuario
+     * @return void
+     */
+    private function registrarAcceso(Request $request, string $usuario)
+    {
+        try {
+            // Verificar si la tabla accesoweb_historial existe
+            if (!DB::getSchemaBuilder()->hasTable('accesoweb_historial')) {
+                Log::info('Tabla accesoweb_historial no existe, omitiendo registro de acceso');
+                return;
+            }
+
+            // Insertar registro de acceso
+            DB::table('accesoweb_historial')->insert([
+                'usuario' => $usuario,
+                'fecha_acceso' => now(),
+                'ip_address' => $request->ip(),
+                'user_agent' => $request->userAgent(),
+            ]);
+
+            Log::info('Acceso registrado en historial', [
+                'usuario' => $usuario,
+                'ip' => $request->ip()
+            ]);
+
+        } catch (\Exception $e) {
+            // No detener el login si falla el registro del historial
+            Log::warning('Error al registrar acceso en historial: ' . $e->getMessage(), [
+                'usuario' => $usuario,
+                'error' => $e->getMessage()
+            ]);
+        }
     }
 }

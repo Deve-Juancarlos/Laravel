@@ -24,6 +24,7 @@ class AccesoWeb extends Authenticatable
         'tipousuario',
         'password',
         'rol',
+        'estado',
     ];
 
     protected $hidden = [

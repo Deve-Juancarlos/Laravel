@@ -24,6 +24,21 @@
 
 @section('content')
 <div class="gestion-usuarios-container">
+    {{-- Mostrar mensajes de éxito/error --}}
+    @if(session('success'))
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="fas fa-check-circle me-2"></i>{{ session('success') }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    @endif
+
+    @if(session('error'))
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="fas fa-exclamation-circle me-2"></i>{{ session('error') }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    @endif
+
     <div class="row mb-4">
         <!-- Estadísticas -->
         <div class="col-lg-3 col-md-6 mb-3">
@@ -107,7 +122,7 @@
                     <label class="form-label">Tipo de Usuario</label>
                     <select name="tipo" class="form-select">
                         <option value="">Todos</option>
-                        <option value="ADMIN" {{ $filtros['tipo'] == 'ADMIN' ? 'selected' : '' }}>Administrador</option>
+                        <option value="administrador" {{ $filtros['tipo'] == 'administrador' ? 'selected' : '' }}>Administrador</option>
                         <option value="CONTADOR" {{ $filtros['tipo'] == 'CONTADOR' ? 'selected' : '' }}>Contador</option>
                         <option value="VENDEDOR" {{ $filtros['tipo'] == 'VENDEDOR' ? 'selected' : '' }}>Vendedor</option>
                     </select>
@@ -116,15 +131,15 @@
                     <label class="form-label">Estado</label>
                     <select name="estado" class="form-select">
                         <option value="">Todos</option>
-                        <option value="1" {{ $filtros['estado'] === '1' ? 'selected' : '' }}>Activos</option>
-                        <option value="0" {{ $filtros['estado'] === '0' ? 'selected' : '' }}>Inactivos</option>
+                        <option value="ACTIVO" {{ $filtros['estado'] == 'ACTIVO' ? 'selected' : '' }}>Activos</option>
+                        <option value="INACTIVO" {{ $filtros['estado'] == 'INACTIVO' ? 'selected' : '' }}>Inactivos</option>
                     </select>
                 </div>
                 <div class="col-md-4">
                     <label class="form-label">Buscar</label>
                     <input type="text" name="buscar" class="form-control" 
                         placeholder="Usuario, nombre o DNI..." 
-                        value="{{ $filtros['buscar'] }}">
+                        value="{{ $filtros['buscar'] ?? '' }}">
                 </div>
                 <div class="col-md-2 d-flex align-items-end">
                     <button type="submit" class="btn btn-primary w-100">
@@ -151,7 +166,7 @@
                             <th>Usuario</th>
                             <th>Empleado Vinculado</th>
                             <th>DNI</th>
-                            <th>Cargo</th>
+                            <th>Teléfono</th>
                             <th class="text-center">Tipo</th>
                             <th class="text-center">Estado</th>
                             <th>Último Acceso</th>
@@ -176,10 +191,12 @@
                             </td>
                             <td>{{ $usuario->empleado_dni ?? '-' }}</td>
                             <td>
-                                <small class="text-muted">{{ $usuario->empleado_cargo ?? '-' }}</small>
+                                <small class="text-muted">
+                                    {{ $usuario->empleado_telefono ?? $usuario->empleado_celular ?? '-' }}
+                                </small>
                             </td>
                             <td class="text-center">
-                                @if($usuario->tipousuario == 'ADMIN')
+                                @if($usuario->tipousuario == 'administrador')
                                     <span class="badge bg-danger">
                                         <i class="fas fa-shield-alt me-1"></i>ADMIN
                                     </span>
@@ -194,7 +211,7 @@
                                 @endif
                             </td>
                             <td class="text-center">
-                                @if($usuario->idusuario)
+                                @if($usuario->estado == 'ACTIVO')
                                     <span class="badge bg-success">
                                         <i class="fas fa-check-circle me-1"></i>Activo
                                     </span>
@@ -205,47 +222,56 @@
                                 @endif
                             </td>
                             <td>
-                                @if(isset($usuario->creado)) 
+                                @if($usuario->ultimoacceso)
                                     <small class="text-muted">
-                                        {{ \Carbon\Carbon::parse($usuario->creado)->format('d/m/Y H:i') }}
+                                        {{ \Carbon\Carbon::parse($usuario->ultimoacceso)->format('d/m/Y H:i') }}
                                     </small>
                                 @else
                                     <small class="text-muted">Nunca</small>
                                 @endif
-
                             </td>
                             <td class="text-center">
                                 <div class="btn-group btn-group-sm" role="group">
                                     <a href="{{ route('admin.usuarios.edit', $usuario->usuario) }}" 
-                                    class="btn btn-outline-primary" 
-                                    title="Editar">
+                                       class="btn btn-outline-primary" 
+                                       title="Editar">
                                         <i class="fas fa-edit"></i>
                                     </a>
                                     
                                     <a href="{{ route('admin.usuarios.roles', $usuario->usuario) }}" 
-                                    class="btn btn-outline-info" 
-                                    title="Cambiar Rol">
+                                       class="btn btn-outline-info" 
+                                       title="Cambiar Rol">
                                         <i class="fas fa-user-tag"></i>
                                     </a>
                                     
-                                @if($usuario->idusuario)
-                                        <form method="POST" action="{{ route('admin.usuarios.desactivar', $usuario->usuario) }}" class="d-inline">
+                                    @if($usuario->estado == 'ACTIVO')
+                                        <form method="POST" 
+                                              action="{{ route('admin.usuarios.desactivar', $usuario->usuario) }}" 
+                                              class="d-inline">
                                             @csrf
-                                            <button type="submit" class="btn btn-outline-danger" title="Desactivar" onclick="return confirm('¿Desactivar este usuario?')">
+                                            <button type="submit" 
+                                                    class="btn btn-outline-danger" 
+                                                    title="Desactivar" 
+                                                    onclick="return confirm('¿Desactivar este usuario?')">
                                                 <i class="fas fa-ban"></i>
                                             </button>
                                         </form>
                                     @else
-                                        <form method="POST" action="{{ route('admin.usuarios.activar', $usuario->usuario) }}" class="d-inline">
+                                        <form method="POST" 
+                                              action="{{ route('admin.usuarios.activar', $usuario->usuario) }}" 
+                                              class="d-inline">
                                             @csrf
-                                            <button type="submit" class="btn btn-outline-success" title="Activar">
+                                            <button type="submit" 
+                                                    class="btn btn-outline-success" 
+                                                    title="Activar">
                                                 <i class="fas fa-check"></i>
                                             </button>
                                         </form>
-                                    @endif                                
+                                    @endif
+                                    
                                     <a href="{{ route('admin.usuarios.historial', $usuario->usuario) }}" 
-                                    class="btn btn-outline-secondary" 
-                                    title="Historial">
+                                       class="btn btn-outline-secondary" 
+                                       title="Historial">
                                         <i class="fas fa-history"></i>
                                     </a>
                                 </div>

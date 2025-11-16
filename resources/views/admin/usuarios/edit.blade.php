@@ -17,6 +17,36 @@
 @section('content')
 <div class="row">
     <div class="col-lg-8 mx-auto">
+        {{-- Mostrar mensajes de éxito/error --}}
+        @if(session('success'))
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle me-2"></i>{{ session('success') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        @endif
+
+        @if(session('error'))
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-circle me-2"></i>{{ session('error') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        @endif
+
+        @if($errors->any())
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <h6 class="alert-heading">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                Por favor corrija los siguientes errores:
+            </h6>
+            <ul class="mb-0">
+                @foreach($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        @endif
+
         <!-- Información Actual -->
         <div class="card border-0 shadow-sm mb-4">
             <div class="card-header bg-info text-white">
@@ -34,7 +64,7 @@
                     <div class="col-md-6 mb-3">
                         <strong>Rol Actual:</strong>
                         <p class="mb-0">
-                            @if($usuarioData->tipousuario == 'ADMIN')
+                            @if($usuarioData->tipousuario == 'administrador')
                                 <span class="badge bg-danger">ADMINISTRADOR</span>
                             @elseif($usuarioData->tipousuario == 'CONTADOR')
                                 <span class="badge bg-primary">CONTADOR</span>
@@ -59,7 +89,7 @@
                     <div class="col-md-6 mb-3">
                         <strong>Estado:</strong>
                         <p class="mb-0">
-                            @if(isset($usuarioData->estado) && $usuarioData->estado == 1)
+                            @if($usuarioData->estado == 'ACTIVO')
                                 <span class="badge bg-success">Activo</span>
                             @else
                                 <span class="badge bg-secondary">Inactivo</span>
@@ -94,7 +124,8 @@
                                 id="empleadoSelect" 
                                 required>
                             @if($usuarioData->idusuario)
-                                <option value="{{ $usuarioData->idusuario }}" selected>
+                                <option value="{{ $usuarioData->idusuario }}" 
+                                        {{ old('idusuario', $usuarioData->idusuario) == $usuarioData->idusuario ? 'selected' : '' }}>
                                     {{ $usuarioData->empleado_nombre }} - DNI: {{ $usuarioData->empleado_dni }}
                                 </option>
                             @endif
@@ -102,8 +133,9 @@
                             @if($empleadosDisponibles->count() > 0)
                                 <optgroup label="Otros empleados disponibles">
                                     @foreach($empleadosDisponibles as $empleado)
-                                    <option value="{{ $empleado->Codemp }}">
-                                        {{ $empleado->Nombre }} - DNI: {{ $empleado->DNI }} ({{ $empleado->Cargo }})
+                                    <option value="{{ $empleado->Codemp }}"
+                                            {{ old('idusuario') == $empleado->Codemp ? 'selected' : '' }}>
+                                        {{ $empleado->Nombre }} - DNI: {{ $empleado->Documento }}
                                     </option>
                                     @endforeach
                                 </optgroup>
@@ -112,6 +144,9 @@
                         @error('idusuario')
                         <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
+                        <small class="form-text text-muted">
+                            Puede cambiar el empleado vinculado a este usuario
+                        </small>
                     </div>
 
                     <!-- Cambiar Rol -->
@@ -123,13 +158,16 @@
                         <select name="tipousuario" 
                                 class="form-select @error('tipousuario') is-invalid @enderror" 
                                 required>
-                            <option value="ADMIN" {{ $usuarioData->tipousuario == 'ADMIN' ? 'selected' : '' }}>
+                            <option value="administrador" 
+                                    {{ old('tipousuario', $usuarioData->tipousuario) == 'administrador' ? 'selected' : '' }}>
                                 Administrador (Acceso total)
                             </option>
-                            <option value="CONTADOR" {{ $usuarioData->tipousuario == 'CONTADOR' ? 'selected' : '' }}>
+                            <option value="CONTADOR" 
+                                    {{ old('tipousuario', $usuarioData->tipousuario) == 'CONTADOR' ? 'selected' : '' }}>
                                 Contador (Contabilidad y reportes)
                             </option>
-                            <option value="VENDEDOR" {{ $usuarioData->tipousuario == 'VENDEDOR' ? 'selected' : '' }}>
+                            <option value="VENDEDOR" 
+                                    {{ old('tipousuario', $usuarioData->tipousuario) == 'VENDEDOR' ? 'selected' : '' }}>
                                 Vendedor (Ventas y clientes)
                             </option>
                         </select>

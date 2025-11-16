@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Compras;
 
 use App\Http\Controllers\Controller;
+
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -10,6 +11,8 @@ use Illuminate\Support\Facades\Auth;
 use App\Services\ContabilidadService;
 use Carbon\Carbon;
 use PDF;
+use App\Models\CompraCab;
+use App\Models\CompraDet;
 
 class RegistroCompraController extends Controller
 {
@@ -110,6 +113,38 @@ class RegistroCompraController extends Controller
                         
             if ($orden->Estado !== 'PENDIENTE') {
                 throw new \Exception("La Orden de Compra {$orden->Serie}-{$orden->Numero} ya fue procesada.");
+            }
+
+            $compraId = DB::connection($this->connection)->table('CompraCab')->insertGetId([
+                'Serie' => substr($nroFactura, 0, 4), // Ejemplo: "F001"
+                'Numero' => substr($nroFactura, 5),    // Ejemplo: "000123"
+                'TipoDoc' => '01', // 01=Factura, ajusta según tu lógica
+                'CodProv' => $proveedorId,
+                'FechaEmision' => $fechaEmision,
+                'FechaVencimiento' => $fechaVencimiento,
+                'Moneda' => 1, // 1=Soles, 2=Dólares
+                'Cambio' => 1.00,
+                'BaseAfecta' => $request->input('subtotal'),
+                'BaseInafecta' => 0,
+                'Igv' => $request->input('igv'),
+                'Total' => $request->input('total'),
+                'Estado' => 'REGISTRADA',
+                'Glosa' => "Compra de O/C {$orden->Serie}-{$orden->Numero}",
+                'OrdenCompraId' => $ordenId,
+                'UsuarioId' => Auth::id(),
+                'created_at' => now(),
+            ]);
+
+            foreach ($request->input('items') as $item) {
+                DB::connection($this->connection)->table('CompraDet')->insert([
+                    'CompraId' => $compraId,                    
+                    'CodPro' => $item['codpro'],                
+                    'Cantidad' => (float) $item['cantidad'],   
+                    'CostoUnitario' => (float) $item['costo'], 
+                    'Subtotal' => (float) $item['cantidad'] * (float) $item['costo'],
+                    'Lote' => $item['lote'],                    
+                    'Vencimiento' => Carbon::parse($item['vencimiento']), 
+                ]);
             }
 
             // 3. Crear la Deuda (CtaProveedor)
