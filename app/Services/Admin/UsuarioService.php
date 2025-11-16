@@ -126,7 +126,7 @@ class UsuarioService
 
             DB::table('accesoweb')->insert([
                 'usuario' => $datos['usuario'],
-                'password' => $datos['password'],
+                'password' => Hash::make($datos['password']), // ✅ CORREGIDO: hashear
                 'tipousuario' => $datos['tipousuario'],
                 'idusuario' => $datos['idusuario'],
                 'created_at' => now(),
@@ -233,4 +233,44 @@ class UsuarioService
             \Log::error('Error al registrar auditoría: ' . $e->getMessage());
         }
     }
+    public function desactivarUsuario($usuario)
+    {
+        try {
+            DB::table('accesoweb')
+                ->where('usuario', $usuario)
+                ->update(['estado' => 'INACTIVO']);
+            return true;
+        } catch (\Exception $e) {
+            return false;
+        }
+    }
+
+    public function obtenerHistorialAccesos($usuario)
+    {
+        
+        try {
+            return DB::table('accesoweb_historial')
+                ->where('usuario', $usuario)
+                ->orderBy('fecha_acceso', 'desc')
+                ->get();
+        } catch (\Exception $e) {
+            return collect(); 
+        }
+    }
+
+    public function activarUsuario($usuario)
+    {
+        try {
+            DB::table('accesoweb')
+                ->where('usuario', $usuario)
+                ->update(['estado' => 'ACTIVO']);
+            return true;
+        } catch (\Exception $e) {
+            return false;
+        }
+    }
+
+
+
+
 }

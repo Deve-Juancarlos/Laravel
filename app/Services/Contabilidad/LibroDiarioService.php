@@ -424,4 +424,32 @@ class LibroDiarioService
             $filename
         );
     }
+
+    public function deleteAsiento($id, $usuario)
+    {
+        DB::beginTransaction();
+        try {
+            $asiento = LibroDiario::findOrFail($id);
+            
+            // 记录删除操作
+            DB::table('auditoria_asientos')->insert([
+                'idasiento' => $id,
+                'usuario' => $usuario,
+                'accion' => 'ELIMINACION',
+                'fecha' => now(),
+                'detalles' => json_encode($asiento->toArray())
+            ]);
+
+            // 执行软删除或硬删除
+            $asiento->delete();
+
+            DB::commit();
+            return true;
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Error al eliminar asiento: ' . $e->getMessage());
+            throw $e;
+        }
+    }
+
 }

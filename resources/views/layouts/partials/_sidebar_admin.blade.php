@@ -37,7 +37,7 @@
 </a>
 
 <div class="nav-section">Reportes de Inventario</div>
-<a class="nav-link {{ request()->routeIs('admin.reportes.inventario-valorado') ? 'active' : '' }}" href="{{ route('admin.reportes.inventario-valorado') }}">
+<a class="nav-link {{ request()->routeIs('admin.reportes.inventario-valorado') ? 'active' : '' }}" href="{{ route('admin.inventario.index') }}">
     <i class="fas fa-warehouse"></i>
     <span>Inventario Valorizado</span>{{-- Inventario general + servicio + vistas  --}}
 </a>
@@ -73,6 +73,12 @@
     <span>Usuarios y Permisos</span>
 </a>
 
+<a class="nav-link {{ request()->routeIs('admin.empleados.*') ? 'active' : '' }}" 
+   href="{{ route('admin.empleados.index') }}">
+    <i class="fas fa-users"></i>
+    <span>Empleados</span>
+</a>
+
 <a class="nav-link {{ request()->routeIs('admin.solicitudes.asiento.*') ? 'active' : '' }}" href="{{ route('admin.solicitudes.asiento.index') }}">
     <i class="fas fa-tasks"></i>
     <span>Solicitudes Asientos</span>
@@ -83,9 +89,9 @@
     <span>Auditoría del Sistema</span>
 </a>
 
-<a class="nav-link {{ request()->routeIs('admin.planillas.*') ? 'active' : '' }}" href="{{ route('admin.planillas.index') }}">
-    <i class="fas fa-file-invoice-dollar"></i>
-    <span>Planillas Administrativas</span>{{-- Revisar el controlador y crear el servicio y las vistas --}}
+<a class="nav-link {{ request()->routeIs('admin.notificaciones.*') ? 'active' : '' }}" href="{{ route('admin.notificaciones.index') }}">
+    <i class="fas fa-history"></i>
+    <span>notificaciones</span>
 </a>
 
 

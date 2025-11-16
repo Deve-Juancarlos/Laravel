@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Services\NotificacionService;
+use App\Services\Admin\NotificacionService;
 use Illuminate\Http\Request;
 
 class NotificacionController extends Controller

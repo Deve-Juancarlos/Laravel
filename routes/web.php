@@ -4,13 +4,14 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\LoginController;
 use App\Http\Controllers\RegisterController;
 use App\Http\Controllers\contabilidad\ContadorDashboardController;
-use App\Http\Controllers\Admin\PlanillaController;
+use App\Http\Controllers\Admin\EmpleadoController;
 use App\Http\Controllers\Admin\BancoController;
 use App\Http\Controllers\Admin\UsuarioController;
 use App\Http\Controllers\Admin\CuentaController;
 use App\Http\Controllers\Admin\ReporteController;
 use App\Http\Controllers\Admin\AuditoriaController;
 use App\Http\Controllers\Admin\NotificacionController;
+use App\Http\Controllers\Admin\AdminventarioController;
 use App\Http\Controllers\Contabilidad\BalanceGeneralController;
 use App\Http\Controllers\Contabilidad\LibroDiarioController;
 use App\Http\Controllers\Contabilidad\EstadoResultadosController;
@@ -30,6 +31,7 @@ use App\Http\Controllers\Reportes\ReporteAuditoriaController;
 use App\Http\Controllers\Admin\SolicitudAsientoController; 
 use App\Http\Controllers\Admin\DashboardController;
 use Illuminate\Support\Facades\Auth;
+
 
 // El grupo 'web' carga la sesión y soluciona el error 'usuario_id: null'.
 Route::middleware(['web'])->group(function () {
@@ -105,6 +107,33 @@ Route::middleware(['web'])->group(function () {
                 Route::get('/transferencias', [BancoController::class, 'transferencias'])->name('transferencias');
                 
             });
+            
+            
+            Route::prefix('inventario')->name('inventario.')->group(function () {
+        
+                // Dashboard principal
+                Route::get('/', [AdminventarioController::class, 'index'])->name('index');
+                
+                // Lista de productos con stock
+                Route::get('/productos', [AdminventarioController::class, 'productos'])->name('productos');
+                
+                // Ver detalle de producto
+                Route::get('/productos/{codpro}', [AdminventarioController::class, 'detalle'])->name('detalle');
+                
+                // Productos por vencer
+                Route::get('/por-vencer', [AdminventarioController::class, 'porVencer'])->name('por-vencer');
+                
+                // Productos con stock crítico
+                Route::get('/stock-critico', [AdminventarioController::class, 'stockCritico'])->name('stock-critico');
+                
+                // Valorización del inventario
+                Route::get('/valorizacion', [AdminventarioController::class, 'valorizacion'])->name('valorizacion');
+                
+                // Rotación de inventario
+                Route::get('/rotacion', [AdminventarioController::class, 'rotacion'])->name('rotacion');
+                
+            });
+
 
             //MÓDULO: GESTIÓN DE USUARIOS
             Route::prefix('usuarios')->name('usuarios.')->group(function () {
@@ -284,24 +313,28 @@ Route::middleware(['web'])->group(function () {
                 
             });
 
-            //MÓDULO: PLANILLAS ADMINISTRATIVAS
-            Route::prefix('planillas')->name('planillas.')->group(function () {
-                Route::get('/', [PlanillaController::class, 'index'])->name('index');
-                Route::get('/{serie}/{numero}', [PlanillaController::class, 'show'])->name('show');
-                Route::get('/{serie}/{numero}/edit', [PlanillaController::class, 'edit'])->name('edit');
-                Route::put('/{serie}/{numero}', [PlanillaController::class, 'update'])->name('update');
-                Route::delete('/{serie}/{numero}', [PlanillaController::class, 'destroy'])->name('destroy');
-                Route::post('/{serie}/{numero}/aprobar', [PlanillaController::class, 'aprobar'])->name('aprobar');
-                Route::post('/{serie}/{numero}/rechazar', [PlanillaController::class, 'rechazar'])->name('rechazar');
-            });
 
-            // Rutas de Admin que estaban sueltas
-            Route::get('/balance-general', [App\Http\Controllers\Contabilidad\BalanceGeneralController::class, 'index'])
-                ->name('balance-general.index');
-            Route::get('/cuentas-por-cobrar', [App\Http\Controllers\Contabilidad\CuentasPorCobrarController::class, 'index'])
-                ->name('cxc.index');
-            Route::get('/notificaciones', [App\Http\Controllers\Contabilidad\NotificacionController::class, 'index'])
-                ->name('notificaciones.index');
+            Route::prefix('empleados')->name('empleados.')->group(function () {
+                
+                // Lista de empleados
+                Route::get('/', [EmpleadoController::class, 'index'])->name('index');
+                
+                // Crear empleado
+                Route::get('/create', [EmpleadoController::class, 'create'])->name('create');
+                Route::post('/store', [EmpleadoController::class, 'store'])->name('store');
+                
+                // Ver detalle de empleado
+                Route::get('/{id}', [EmpleadoController::class, 'show'])->name('show');
+                
+                // Editar empleado
+                Route::get('/{id}/edit', [EmpleadoController::class, 'edit'])->name('edit');
+                Route::put('/{id}', [EmpleadoController::class, 'update'])->name('update');
+                
+                // Eliminar empleado
+                Route::delete('/{id}', [EmpleadoController::class, 'destroy'])->name('destroy');
+                
+            });
+           
         });              
         // --- RUTAS DE CONTADOR ---
        

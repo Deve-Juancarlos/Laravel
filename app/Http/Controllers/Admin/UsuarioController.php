@@ -50,50 +50,43 @@ class UsuarioController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'usuario' => 'required|string|max:50|unique:accesoweb,usuario',
+            'usuario' => 'required|string|max:100|unique:accesoweb,usuario',
             'password' => 'required|string|min:6|confirmed',
             'tipousuario' => 'required|in:ADMIN,CONTADOR,VENDEDOR',
-            'nombre' => 'required|string|max:100',
-            'dni' => 'nullable|string|max:20',
-            'telefono' => 'nullable|string|max:20',
-            'celular' => 'nullable|string|max:20',
+            'idusuario' => 'required|exists:Empleados,Codemp|unique:accesoweb,idusuario',
         ]);
 
-        // Usamos transacción para asegurar consistencia
         DB::beginTransaction();
 
         try {
-            // 1️⃣ Crear usuario en accesoweb
-            $user = $this->usuarioService->crearUsuario([
+            
+            $result = DB::table('accesoweb')->insert([
                 'usuario' => $request->usuario,
                 'password' => Hash::make($request->password),
                 'tipousuario' => $request->tipousuario,
+                'idusuario' => $request->idusuario,
+                'created_at' => now(),
+                'updated_at' => now(),
             ]);
 
-            // 2️⃣ Crear empleado vinculado al idusuario recién creado
-            DB::table('Empleados')->insert([
-                'Codemp'   => $user->idusuario, // toma el ID generado
-                'Nombre'   => $request->nombre,
-                'Documento'=> $request->dni,
-                'Telefono1'=> $request->telefono,
-                'Celular'  => $request->celular,
-            ]);
+            if (!$result) {
+                throw new \Exception('No se pudo crear el usuario');
+            }
 
             DB::commit();
 
             return redirect()->route('admin.usuarios.index')
-                            ->with('success', 'Usuario y empleado creados exitosamente.');
+                ->with('success', 'Usuario creado y asociado al empleado exitosamente.');
 
         } catch (\Exception $e) {
             DB::rollBack();
-            return back()->with('error', 'Error al crear usuario y empleado: ' . $e->getMessage())
+            \Log::error('Error al crear usuario: ' . $e->getMessage());
+            return back()->with('error', 'Error al crear usuario: ' . $e->getMessage())
                         ->withInput();
         }
     }
-
-    /**
-     * Ver/Editar roles de un usuario
-     */
+    
+    
     public function roles($usuario)
     {
         $usuarioData = $this->usuarioService->obtenerUsuarioPorNombre($usuario);

@@ -41,12 +41,13 @@
                             <option value="">-- Seleccione un empleado --</option>
                             @foreach($empleadosDisponibles as $empleado)
                             <option value="{{ $empleado->Codemp }}" 
-                                    data-dni="{{ $empleado->DNI }}"
-                                    data-cargo="{{ $empleado->Cargo }}"
-                                    data-telefono="{{ $empleado->Telefono }}"
-                                    {{ old('idusuario') == $empleado->Codemp ? 'selected' : '' }}>
-                                {{ $empleado->Nombre }} - DNI: {{ $empleado->DNI }} ({{ $empleado->Cargo }})
+                                    data-dni="{{ $empleado->Documento }}"
+                                    data-cargo="{{ $empleado->Cargo ?? 'N/A' }}"
+                                    data-telefono="{{ $empleado->Telefono1 ?? '' }}"
+                                    {{ old('empleado_id') == $empleado->Codemp ? 'selected' : '' }}>
+                                {{ $empleado->Nombre }} - DNI: {{ $empleado->Documento }} ({{ $empleado->Cargo ?? 'N/A' }})
                             </option>
+
                             @endforeach
                         </select>
                         @error('idusuario')

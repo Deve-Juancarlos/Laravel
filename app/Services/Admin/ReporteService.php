@@ -269,50 +269,7 @@ class ReporteService
             ->get();
     }
 
-    /**
-     * Kardex de Producto
-     */
-    public function reporteKardexProducto($codPro, $fechaInicio, $fechaFin)
-    {
-        // Compras (entradas)
-        $compras = DB::table('CompraDet')
-            ->join('CompraCab', 'CompraDet.CompraId', '=', 'CompraCab.Id')
-            ->select(
-                'CompraCab.FechaEmision as fecha',
-                DB::raw("'COMPRA' as tipo_movimiento"),
-                'CompraCab.Serie',
-                'CompraCab.Numero',
-                'CompraDet.Cantidad as cantidad',
-                DB::raw('0 as salida'),
-                'CompraDet.CostoUnitario as costo_unitario'
-            )
-            ->where('CompraDet.CodPro', $codPro)
-            ->whereBetween('CompraCab.FechaEmision', [$fechaInicio, $fechaFin]);
-
-        // Ventas (salidas)
-        $ventas = DB::table('Docdet')
-            ->join('Doccab', function($join) {
-                $join->on('Docdet.Numero', '=', 'Doccab.Numero')
-                     ->on('Docdet.Tipo', '=', 'Doccab.Tipo');
-            })
-            ->select(
-                'Doccab.Fecha as fecha',
-                DB::raw("'VENTA' as tipo_movimiento"),
-                DB::raw("CAST(Doccab.Tipo AS VARCHAR) as Serie"),
-                'Doccab.Numero',
-                DB::raw('0 as cantidad'),
-                'Docdet.Cantidad as salida',
-                'Docdet.Costo as costo_unitario'
-            )
-            ->where('Docdet.Codpro', $codPro)
-            ->where('Doccab.Eliminado', 0)
-            ->whereBetween('Doccab.Fecha', [$fechaInicio, $fechaFin]);
-
-        // Unir y ordenar
-        return $compras->union($ventas)
-            ->orderBy('fecha', 'asc')
-            ->get();
-    }
+   
 
     /**
      * Registro de Ventas SUNAT (usa vista vsunatregistroventas82)

@@ -81,17 +81,7 @@ class ReporteController extends Controller
         return view('admin.reportes.cuentas-cobrar', compact('aging', 'resumen'));
     }
 
-    /**
-     * Reporte de Cuentas por Pagar
-     */
-    public function cuentasPorPagar(Request $request)
-    {
-        $aging = $this->reporteService->reporteAgingCuentasPorPagar();
-        $resumen = $this->reporteService->resumenCuentasPorPagar();
-        
-        return view('admin.reportes.cuentas-pagar', compact('aging', 'resumen'));
-    }
-
+  
     /**
      * Reporte de Inventario Valorizado
      */
@@ -116,35 +106,6 @@ class ReporteController extends Controller
         return view('admin.reportes.productos-vencer', compact('productos', 'dias'));
     }
 
-    /**
-     * Kardex de Producto
-     */
-    public function kardexProducto(Request $request)
-    {
-        $codPro = $request->get('codigo');
-        $fechaInicio = $request->get('fecha_inicio', Carbon::now()->startOfMonth());
-        $fechaFin = $request->get('fecha_fin', Carbon::now()->endOfMonth());
-        
-        if (!$codPro) {
-            return back()->with('error', 'Debe seleccionar un producto');
-        }
-        
-        $kardex = $this->reporteService->reporteKardexProducto($codPro, $fechaInicio, $fechaFin);
-        
-        return view('admin.reportes.kardex-producto', compact('kardex', 'codPro', 'fechaInicio', 'fechaFin'));
-    }
-
-    /**
-     * Registro de Ventas SUNAT (Formato 14.1)
-     */
-    public function registroVentasSunat(Request $request)
-    {
-        $periodo = $request->get('periodo', Carbon::now()->format('Y-m'));
-        
-        $registros = $this->reporteService->reporteRegistroVentasSunat($periodo);
-        
-        return view('admin.reportes.sunat-ventas', compact('registros', 'periodo'));
-    }
 
     /**
      * Registro de Compras SUNAT (Formato 8.1)
@@ -215,15 +176,6 @@ class ReporteController extends Controller
         return view('admin.reportes.facturas', compact('facturas', 'fechaInicio', 'fechaFin'));
     }
 
-    public function buscarKardex()
-    {
-        $productos = DB::table('Productos')
-            ->select('CodPro', 'Nombre')
-            ->where('Eliminado', 0)
-            ->orderBy('Nombre')
-            ->get();
-
-        return view('admin.reportes.kardex-buscar', compact('productos'));
-    }
+    
 
 }
