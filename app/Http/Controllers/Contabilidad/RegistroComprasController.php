@@ -573,4 +573,4 @@ class RegistroComprasController extends Controller
 
         return $clasificacion;
     }
-}
+} 

@@ -552,5 +552,21 @@ class DashboardService
             'cuentas_por_pagar' => $this->resumenCuentasPorPagar(),
         ];
     }
+    public function graficoFlujoCaja($dias = 30)
+    {
+        return DB::table('Caja')
+            ->select(
+                DB::raw("CONVERT(date, Fecha) as fecha"),
+                DB::raw("SUM(CASE WHEN Tipo = 1 THEN Monto ELSE 0 END) AS ingresos"),
+                DB::raw("SUM(CASE WHEN Tipo = 2 THEN Monto ELSE 0 END) AS egresos")
+            )
+            ->where('Eliminado', 0)
+            ->where('Fecha', '>=', now()->subDays($dias))
+            ->groupBy(DB::raw("CONVERT(date, Fecha)"))
+            ->orderBy(DB::raw("CONVERT(date, Fecha)"))
+            ->get();
+    }
+
+
 
 }

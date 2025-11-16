@@ -43,4 +43,8 @@ class AccesoWeb extends Authenticatable
         return $this->hasMany(Notificacion::class, 'usuario_id', 'idusuario')
                     ->orderBy('created_at', 'desc');
     }
+     public function empleado()
+    {
+        return $this->belongsTo(\App\Models\Empleado::class, 'idusuario', 'Codemp');
+    }
 }

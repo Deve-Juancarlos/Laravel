@@ -28,7 +28,7 @@ use App\Http\Controllers\Reportes\ReporteDashboardController;
 use App\Http\Controllers\Reportes\ReporteAuditoriaController;
 use App\Http\Controllers\Admin\SolicitudAsientoController; 
 use App\Http\Controllers\Admin\DashboardController;
-use Illuminate\Support\Facades\Auth; // Necesario para la ruta de logout
+use Illuminate\Support\Facades\Auth; 
 
 // El grupo 'web' carga la sesión y soluciona el error 'usuario_id: null'.
 Route::middleware(['web'])->group(function () {
@@ -58,15 +58,8 @@ Route::middleware(['web'])->group(function () {
         return view('auth.welcome-message');
     })->name('welcome.message');
 
-
-    // ==========================================================
-    // --- INICIO DE RUTAS PROTEGIDAS (Requieren Login) ---
-    // ==========================================================
     Route::middleware(['auth'])->group(function () {
 
-        // ==========================================================
-        // --- RUTAS DE ADMINISTRADOR (Unificadas) ---
-        // ==========================================================
         Route::prefix('admin')->name('admin.')->middleware(['role.admin'])->group(function () {
     
             // Dashboard Administrativo
@@ -89,11 +82,32 @@ Route::middleware(['web'])->group(function () {
 
             //MÓDULO: GESTIÓN DE USUARIOS
             Route::prefix('usuarios')->name('usuarios.')->group(function () {
+                
+                // Lista de usuarios
                 Route::get('/', [UsuarioController::class, 'index'])->name('index');
-                Route::get('/{usuario}/rol', [UsuarioController::class, 'roles'])->name('roles');
+                
+                // Crear nuevo usuario
+                Route::get('/create', [UsuarioController::class, 'create'])->name('create');
+                Route::post('/store', [UsuarioController::class, 'store'])->name('store');
+                
+                // Editar usuario (cambiar empleado vinculado)
+                Route::get('/{usuario}/edit', [UsuarioController::class, 'edit'])->name('edit');
+                Route::put('/{usuario}/update', [UsuarioController::class, 'update'])->name('update');
+                
+                // Gestionar roles
+                Route::get('/{usuario}/roles', [UsuarioController::class, 'roles'])->name('roles');
                 Route::put('/{usuario}/rol', [UsuarioController::class, 'updateRol'])->name('updateRol');
+                
+                // Activar/Desactivar usuario
                 Route::post('/{usuario}/activar', [UsuarioController::class, 'activar'])->name('activar');
                 Route::post('/{usuario}/desactivar', [UsuarioController::class, 'desactivar'])->name('desactivar');
+                
+                // Historial de accesos
+                Route::get('/{usuario}/historial', [UsuarioController::class, 'historial'])->name('historial');
+                
+                // Resetear contraseña
+                Route::post('/{usuario}/reset-password', [UsuarioController::class, 'resetPassword'])->name('reset-password');
+                
             });
 
             Route::prefix('solicitudes-asientos')->name('solicitudes.asiento.')->group(function () {
@@ -110,15 +124,79 @@ Route::middleware(['web'])->group(function () {
                 Route::post('/{cliente}/ajustar', [CuentaController::class, 'ajustarSaldo'])->name('ajustar');
             });
 
-            //MÓDULO: REPORTES EJECUTIVOS
+                        //MÓDULO: REPORTES EJECUTIVOS
             Route::prefix('reportes')->name('reportes.')->group(function () {
-                Route::get('facturas', [ReporteController::class, 'facturas'])->name('facturas');
-                Route::get('movimientos', [ReporteController::class, 'movimientos'])->name('movimientos'); 
-                Route::get('ventas-diarias', [ReporteController::class, 'ventasDiarias'])->name('ventas-diarias');
-                Route::get('comisiones', [ReporteController::class, 'comisiones'])->name('comisiones');
-                Route::get('/facturas/export', [ReporteController::class, 'exportFacturas'])->name('facturas.export');
-                Route::get('/movimientos/export', [ReporteController::class, 'exportMovimientos'])->name('movimientos.export');
+
+                // === Reportes de Ventas ===
+                Route::get('/ventas-periodo', [ReporteController::class, 'ventasPorPeriodo'])->name('ventas-periodo');
+                Route::get('/ventas-periodo/export', [ReporteController::class, 'exportarExcel'])
+                    ->defaults('tipo', 'ventas-periodo')->name('ventas-periodo.export');
+
+                Route::get('/ventas-cliente', [ReporteController::class, 'ventasPorCliente'])->name('ventas-cliente');
+                Route::get('/ventas-cliente/export', [ReporteController::class, 'exportarExcel'])
+                    ->defaults('tipo', 'ventas-cliente')->name('ventas-cliente.export');
+
+                Route::get('/ventas-producto', [ReporteController::class, 'ventasPorProducto'])->name('ventas-producto');
+                Route::get('/ventas-producto/export', [ReporteController::class, 'exportarExcel'])
+                    ->defaults('tipo', 'ventas-producto')->name('ventas-producto.export');
+
+                Route::get('/ventas-vendedor', [ReporteController::class, 'ventasPorVendedor'])->name('ventas-vendedor');
+                Route::get('/ventas-vendedor/export', [ReporteController::class, 'exportarExcel'])
+                    ->defaults('tipo', 'ventas-vendedor')->name('ventas-vendedor.export');
+
+                Route::get('/ventas-diarias', [ReporteController::class, 'ventasDiarias'])->name('ventas-diarias');
                 Route::get('/ventas/export', [ReporteController::class, 'exportVentas'])->name('ventas.export');
+
+                // === Reportes Comerciales ===
+                Route::get('/comisiones', [ReporteController::class, 'comisiones'])->name('comisiones');
+
+                // === Facturación (solo si los métodos existen en ReporteController) ===
+                Route::get('/facturas', [ReporteController::class, 'facturas'])->name('facturas');
+                Route::get('/facturas/export', [ReporteController::class, 'exportFacturas'])->name('facturas.export');
+
+                // Route::get('/movimientos', [ReporteController::class, 'movimientos'])->name('movimientos'); // descomenta si existe
+                // Route::get('/movimientos/export', [ReporteController::class, 'exportMovimientos'])->name('movimientos.export');
+
+                // === Reportes Financieros ===
+                Route::get('/cuentas-cobrar', [ReporteController::class, 'cuentasPorCobrar'])->name('cuentas-cobrar');
+                Route::get('/cuentas-cobrar/export', [ReporteController::class, 'exportarExcel'])
+                    ->defaults('tipo', 'cuentas-cobrar')->name('cuentas-cobrar.export');
+
+                Route::get('/cuentas-pagar', [ReporteController::class, 'cuentasPorPagar'])->name('cuentas-pagar');
+                Route::get('/cuentas-pagar/export', [ReporteController::class, 'exportarExcel'])
+                    ->defaults('tipo', 'cuentas-pagar')->name('cuentas-pagar.export');
+
+                // === Reportes de Inventario ===
+                Route::get('/inventario-valorado', [ReporteController::class, 'inventarioValorado'])->name('inventario-valorado');
+                Route::get('/inventario-valorado/export', [ReporteController::class, 'exportarExcel'])
+                    ->defaults('tipo', 'inventario-valorado')->name('inventario-valorado.export');
+
+                Route::get('/productos-vencer', [ReporteController::class, 'productosVencer'])->name('productos-vencer');
+                Route::get('/productos-vencer/export', [ReporteController::class, 'exportarExcel'])
+                    ->defaults('tipo', 'productos-vencer')->name('productos-vencer.export');
+
+                Route::get('/kardex-producto', [ReporteController::class, 'kardexProducto'])->name('kardex-producto');
+                Route::get('/kardex/buscar', [ReporteController::class, 'buscarKardex'])->name('kardex.buscar');
+                Route::get('/kardex-producto/export', [ReporteController::class, 'exportarExcel'])
+                    ->defaults('tipo', 'kardex-producto')->name('kardex-producto.export');
+
+                // === Reportes SUNAT ===
+                Route::get('/sunat-ventas', [ReporteController::class, 'registroVentasSunat'])->name('sunat-ventas');
+                Route::get('/sunat-ventas/export', [ReporteController::class, 'exportarExcel'])
+                    ->defaults('tipo', 'sunat-ventas')->name('sunat-ventas.export');
+                Route::get('/sunat-ventas/txt', [ReporteController::class, 'exportarExcel'])
+                    ->defaults('tipo', 'sunat-ventas-txt')->name('sunat-ventas.txt');
+
+                Route::get('/sunat-compras', [ReporteController::class, 'registroComprasSunat'])->name('sunat-compras');
+                Route::get('/sunat-compras/export', [ReporteController::class, 'exportarExcel'])
+                    ->defaults('tipo', 'sunat-compras')->name('sunat-compras.export');
+                Route::get('/sunat-compras/txt', [ReporteController::class, 'exportarExcel'])
+                    ->defaults('tipo', 'sunat-compras-txt')->name('sunat-compras.txt');
+
+                // === Reportes de Análisis ===
+                Route::get('/rentabilidad-productos', [ReporteController::class, 'rentabilidadProductos'])->name('rentabilidad-productos');
+                Route::get('/rentabilidad-productos/export', [ReporteController::class, 'exportarExcel'])
+                    ->defaults('tipo', 'rentabilidad-productos')->name('rentabilidad-productos.export');
             });
 
             //MÓDULO: AUDITORÍA Y TRAZABILIDAD
@@ -157,12 +235,9 @@ Route::middleware(['web'])->group(function () {
                 ->name('cxc.index');
             Route::get('/notificaciones', [App\Http\Controllers\Contabilidad\NotificacionController::class, 'index'])
                 ->name('notificaciones.index');
-        });
-
-
-        // ==========================================================
+        });              
         // --- RUTAS DE CONTADOR ---
-        // ==========================================================
+       
         Route::middleware(['access.contador'])->prefix('contador')->name('contador.')->group(function () {
 
             Route::get('/dashboard/contador', [ContadorDashboardController::class, 'contadorDashboard'])->name('dashboard.contador');
@@ -177,7 +252,6 @@ Route::middleware(['web'])->group(function () {
             Route::get('configuracion/parametros', [App\Http\Controllers\Admin\UsuarioController::class, 'index'])->name('configuracion.parametros');
             Route::get('configuracion/cambiar-password', [ContadorDashboardController::class, 'index'])->name('configuracion.cambiar-password');
             Route::get('perfil', [ContadorDashboardController::class, 'index'])->name('perfil');
-
             // --- MÓDULO CLIENTES ---
             Route::prefix('clientes')->name('clientes.')->group(function () {
                 Route::get('/', [ClientesController::class, 'index'])->name('index'); 
@@ -188,9 +262,7 @@ Route::middleware(['web'])->group(function () {
                 Route::get('/{id}', [ClientesController::class, 'show'])->name('show');
                 Route::get('/{id}/editar', [ClientesController::class, 'editarVista'])->name('editar');
                 Route::put('/{id}', [ClientesController::class, 'update'])->name('update');
-            });
-            
-        
+            });                   
             // --- MÓDULO LIBRO DIARIO ---
             Route::prefix('libro-diario')->name('libro-diario.')->group(function () {
                 Route::get('/', [LibroDiarioController::class, 'index'])->name('index');
@@ -204,14 +276,12 @@ Route::middleware(['web'])->group(function () {
                 Route::put('{id}', [LibroDiarioController::class, 'update'])->name('update');
                 Route::delete('{id}', [LibroDiarioController::class, 'destroy'])->name('destroy'); // <-- Esta es la ruta de "Solicitar"
             });
-
             // --- MÓDULO ANULACIÓN COBRANZA ---
             Route::prefix('anulacion-cobranza')->name('anulacion.')->group(function () {
                 Route::post('/store', [App\Http\Controllers\Contabilidad\AnulacionPlanillaController::class, 'store'])->name('store');
                 Route::get('/{serie}/{numero}', [App\Http\Controllers\Contabilidad\AnulacionPlanillaController::class, 'show'])->name('show');
             });
-            
-            // --- MÓDULO CAJA ---
+                        // --- MÓDULO CAJA ---
             Route::prefix('caja')->name('caja.')->group(function () {
                 Route::get('/', [CajaController::class, 'index'])->name('index');
                 Route::get('/create', [CajaController::class, 'create'])->name('create');
@@ -221,7 +291,6 @@ Route::middleware(['web'])->group(function () {
                 Route::put('/{id}', [CajaController::class, 'update'])->name('update');
                 Route::delete('/{id}', [CajaController::class, 'destroy'])->name('destroy');
             });
-
             // --- MÓDULO LIBRO MAYOR ---
             Route::prefix('libro-mayor')->name('libro-mayor.')->group(function () {
                 Route::get('/', [App\Http\Controllers\Contabilidad\LibroMayorController::class, 'index'])->name('index');
@@ -233,7 +302,6 @@ Route::middleware(['web'])->group(function () {
                 Route::get('/cuenta/{cuenta}', [App\Http\Controllers\Contabilidad\LibroMayorController::class, 'cuenta'])
                     ->where('cuenta', '[0-9\.]+')->name('cuenta');
             });
-
             // --- MÓDULO BALANCE COMPROBACIÓN ---
             Route::prefix('balance-comprobacion')->name('balance-comprobacion.')->group(function () {
                 Route::get('/', [App\Http\Controllers\Contabilidad\BalanceComprobacionController::class, 'index'])->name('index');
@@ -243,7 +311,6 @@ Route::middleware(['web'])->group(function () {
                 Route::get('/verificar', [App\Http\Controllers\Contabilidad\BalanceComprobacionController::class, 'verificar'])->name('verificar');
                 Route::get('/exportar', [App\Http\Controllers\Contabilidad\BalanceComprobacionController::class, 'exportar'])->name('exportar');
             });
-
             // --- MÓDULO PLAN DE CUENTAS ---
             Route::prefix('plan-cuentas')->name('plan-cuentas.')->group(function () {
                 Route::get('/', [PlanCuentasController::class, 'index'])->name('index');
@@ -256,7 +323,6 @@ Route::middleware(['web'])->group(function () {
                 Route::delete('/{codigo}', [PlanCuentasController::class, 'destroy'])
                     ->where('codigo', '[0-9\.]+')->name('destroy');
             });
-
             // --- MÓDULO BANCOS ---
             Route::prefix('bancos')->name('bancos.')->group(function () {
                 Route::get('/', [BancosController::class, 'index'])->name('index');
@@ -269,7 +335,6 @@ Route::middleware(['web'])->group(function () {
                 Route::get('/reporte', [BancosController::class, 'generarReporte'])->name('reporte');
                 Route::get('/detalle/{cuenta}', [BancosController::class, 'detalle'])->name('detalle');
             });
-
             // --- MÓDULO FLUJO DE COBRANZAS ---
             Route::prefix('flujo/cobranzas')->name('flujo.cobranzas.')->group(function () {
                 Route::get('/paso-1', [FlujoCajaController::class, 'showPaso1'])->name('paso1');
@@ -281,13 +346,11 @@ Route::middleware(['web'])->group(function () {
                 Route::get('/paso-4', [FlujoCajaController::class, 'showPaso4'])->name('paso4');
                 Route::post('/procesar', [FlujoCajaController::class, 'procesar'])->name('procesar');
             });
-
             // --- MÓDULO CUENTAS POR COBRAR ---
             Route::get('cuentas-por-cobrar', [App\Http\Controllers\Contabilidad\CuentasPorCobrarController::class, 'index'])
                 ->name('cxc.index');
             Route::get('/api/clientes/search', [ClientesController::class, 'search'])
                 ->name('api.clientes.search');
-
             // --- MÓDULO INVENTARIO ---
             Route::prefix('inventario')->name('inventario.')->group(function () {
                 Route::get('/', [InventarioController::class, 'index'])->name('index');
@@ -298,7 +361,6 @@ Route::middleware(['web'])->group(function () {
                 Route::get('/{codPro}', [InventarioController::class, 'show'])->name('show');
             });
             Route::get('/test-stock', [InventarioController::class, 'stockLotes'])->name('test.stock');
-
             // --- MÓDULO VENTAS ---
             Route::prefix('ventas')->name('facturas.')->group(function () {
                 Route::get('/', [App\Http\Controllers\Ventas\FacturacionController::class, 'index'])->name('index');
@@ -314,20 +376,17 @@ Route::middleware(['web'])->group(function () {
                 Route::get('/api/buscar-lotes/{codPro}', [App\Http\Controllers\Ventas\FacturacionController::class, 'buscarLotes'])->name('api.buscarLotes');
                 Route::post('/enviar-email/{numero}/{tipo}', [App\Http\Controllers\Ventas\FacturacionController::class, 'enviarEmail'])->name('enviarEmail');
             });
-
             // --- MÓDULO PROVEEDORES ---
             Route::prefix('proveedores')->name('proveedores.')->group(function () {
                 Route::get('/', [App\Http\Controllers\Contabilidad\ProveedoresController::class, 'index'])->name('index');
                 Route::get('/crear', [App\Http\Controllers\Contabilidad\ProveedoresController::class, 'create'])->name('crear');
                 Route::post('/store', [App\Http\Controllers\Contabilidad\ProveedoresController::class, 'store'])->name('store');
             });
-
             // --- MÓDULO CUENTAS POR PAGAR ---
             Route::prefix('cuentas-por-pagar')->name('cxp.')->group(function () {
                 Route::get('/', [CuentasPorPagarController::class, 'index'])->name('index');
                 Route::get('/proveedor/{id}', [CuentasPorPagarController::class, 'showByProveedor'])->name('show');
             });
-
             // --- MÓDULO FLUJO DE EGRESOS ---
             Route::prefix('flujo/egresos')->name('flujo.egresos.')->group(function () {
                 Route::get('/paso-1', [FlujoEgresoController::class, 'showPaso1'])->name('paso1'); 
@@ -337,7 +396,6 @@ Route::middleware(['web'])->group(function () {
                 Route::get('/paso-3', [FlujoEgresoController::class, 'showPaso3'])->name('paso3'); 
                 Route::post('/procesar', [FlujoEgresoController::class, 'procesar'])->name('procesar'); 
             });
-
             // --- MÓDULO COMPRAS (ORDEN DE COMPRA) ---
             Route::prefix('compras')->name('compras.')->group(function () {
                 Route::get('/', [App\Http\Controllers\Contabilidad\OrdenCompraController::class, 'index'])->name('index');
@@ -352,7 +410,6 @@ Route::middleware(['web'])->group(function () {
                 Route::get('/api/buscar-lotes/{codPro}', [App\Http\Controllers\Contabilidad\OrdenCompraController::class, 'buscarLotes'])->name('api.buscarLotes');
                 Route::post('/enviar-email/{id}', [App\Http\Controllers\Contabilidad\OrdenCompraController::class, 'enviarEmail'])->name('enviarEmail');
             });
-
             // --- MÓDULO NOTAS DE CRÉDITO ---
             Route::prefix('notas-credito')->name('notas-credito.')->group(function () {
                 Route::get('/', [App\Http\Controllers\Contabilidad\NotaCreditoController::class, 'index'])->name('index');
@@ -362,7 +419,6 @@ Route::middleware(['web'])->group(function () {
                 Route::post('/guardar', [App\Http\Controllers\Contabilidad\NotaCreditoController::class, 'store'])->name('store');
                 Route::get('/show/{numero}', [App\Http\Controllers\Contabilidad\NotaCreditoController::class, 'show'])->name('show');
             });
-
             // --- MÓDULO DE REPORTES (BI) ---
             Route::prefix('/reportes')->name('reportes.')->group(function () {
                 Route::get('/', [ReporteDashboardController::class, 'agingCartera'])->name('index');
@@ -374,14 +430,12 @@ Route::middleware(['web'])->group(function () {
                 Route::post('/enviar-recordatorio-cobranza/{clienteId}', [ReporteDashboardController::class, 'enviarRecordatorioEmail'])->name('enviarRecordatorioCobranza');
                 Route::get('/ventas/flujo-comparativo', [ReporteVentasController::class, 'flujoVentasCobranzas'])->name('ventas.flujo-comparativo');
                 Route::get('/ventas/flujo-comparativo/excel', [ReporteVentasController::class, 'exportarVentasCobranzasExcel'])->name('ventas.flujo-comparativo.excel');
-            });
-            
+            });            
             // --- MÓDULO REGISTRO DE COMPRA (FACTURA DE COMPRA) ---
             Route::prefix('registro-compra')->name('compras.registro.')->group(function () {
                 Route::get('/crear', [RegistroCompraController::class, 'create'])->name('create');
                 Route::post('/guardar', [RegistroCompraController::class, 'store'])->name('store');
             });
-
             // --- MÓDULO NOTIFICACIONES (Contador) ---
             Route::prefix('notificaciones')->name('notificaciones.')->group(function () {
                 Route::get('/', [App\Http\Controllers\Contabilidad\NotificacionController::class, 'index'])->name('index'); // contador.notificaciones.index
@@ -389,7 +443,6 @@ Route::middleware(['web'])->group(function () {
                 Route::post('/guardar', [App\Http\Controllers\Contabilidad\NotificacionController::class, 'store'])->name('store'); // contador.notificaciones.store
                 Route::post('/marcar-leida/{id}', [App\Http\Controllers\Contabilidad\NotificacionController::class, 'markAsRead'])->name('markAsRead'); // contador.notificaciones.markAsRead
             });
-
             // --- MÓDULO LETRAS EN DESCUENTO ---
             Route::prefix('letras-descuento')->name('letras_descuento.')->group(function () {
                 Route::get('/', [App\Http\Controllers\Contabilidad\PlanillaLetrasController::class, 'index'])->name('index');
@@ -400,8 +453,7 @@ Route::middleware(['web'])->group(function () {
                 Route::get('/{serie}/{numero}', [App\Http\Controllers\Contabilidad\PlanillaLetrasController::class, 'show'])->name('show');
                 Route::delete('/quitar-letra/{id}', [App\Http\Controllers\Contabilidad\PlanillaLetrasController::class, 'quitarLetraPlanilla'])->name('api.quitarLetra');
                 Route::post('/{serie}/{numero}/procesar', [App\Http\Controllers\Contabilidad\PlanillaLetrasController::class, 'procesarDescuento'])->name('procesar');
-            });
-            
+            });            
             // --- MÓDULO ESTADO DE RESULTADOS ---
             Route::prefix('estado-resultados')->name('estado-resultados.')->group(function () {
                 Route::get('/', [EstadoResultadosController::class, 'index'])->name('index');
@@ -414,11 +466,9 @@ Route::middleware(['web'])->group(function () {
                 Route::get('/detalle/{cuenta}', [EstadoResultadosController::class, 'detalleCuenta'])->name('detalle');
             });
             
-        }); // Fin del grupo 'access.contador'
-
-    }); // --- FIN DE RUTAS PROTEGIDAS 'auth' ---
-
-
+        }); 
+    }); 
+    
     Route::get('/acceso-denegado', function () {
         return view('errors.403');
     })->name('access.denied');

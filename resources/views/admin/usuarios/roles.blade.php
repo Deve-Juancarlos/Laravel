@@ -1,420 +1,154 @@
 @extends('layouts.admin')
 
-@push('styles')
-<style>
-    /* Main Container */
-    .roles-container {
-        max-width: 900px;
-        margin: 0 auto;
-    }
+@section('title', 'Gestionar Roles')
 
-    .roles-card {
-        background: white;
-        border-radius: 16px;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.07);
-        overflow: hidden;
-    }
+@section('header-content')
+<div>
+    <h1 class="h3 mb-0">Gestionar Rol: {{ $usuarioData->usuario }}</h1>
+    <p class="text-muted mb-0">Cambiar permisos y nivel de acceso</p>
+</div>
+@endsection
 
-    .roles-header {
-        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-        color: white;
-        padding: 2rem;
-        text-align: center;
-    }
-
-    .roles-header h4 {
-        margin: 0;
-        font-size: 1.75rem;
-        font-weight: 700;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 0.75rem;
-    }
-
-    .roles-header p {
-        margin: 0.5rem 0 0 0;
-        opacity: 0.95;
-        font-size: 1rem;
-    }
-
-    .roles-body {
-        padding: 2.5rem;
-    }
-
-    /* User Info Section */
-    .user-info-section {
-        background: linear-gradient(135deg, #f8f9ff 0%, #f0f4ff 100%);
-        border-radius: 12px;
-        padding: 1.5rem;
-        margin-bottom: 2.5rem;
-        border: 2px solid #e0e7ff;
-    }
-
-    .user-info-label {
-        font-size: 0.875rem;
-        color: #64748b;
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        margin-bottom: 0.5rem;
-    }
-
-    .user-info-value {
-        font-size: 1.5rem;
-        color: #1e293b;
-        font-weight: 700;
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-    }
-
-    .user-avatar-large {
-        width: 50px;
-        height: 50px;
-        border-radius: 50%;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        color: white;
-        font-weight: 700;
-        font-size: 1.25rem;
-        text-transform: uppercase;
-    }
-
-    /* Role Selection */
-    .role-selection-title {
-        font-size: 1.25rem;
-        color: #1e293b;
-        font-weight: 700;
-        margin-bottom: 1.5rem;
-        text-align: center;
-    }
-
-    .role-cards-container {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-        gap: 1.5rem;
-        margin-bottom: 2rem;
-    }
-
-    /* Role Card */
-    .role-card {
-        border: 3px solid #e2e8f0;
-        border-radius: 16px;
-        padding: 2rem;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        background: white;
-        position: relative;
-    }
-
-    .role-card:hover {
-        border-color: #cbd5e1;
-        box-shadow: 0 8px 20px rgba(0,0,0,0.08);
-        transform: translateY(-4px);
-    }
-
-    .role-card.selected {
-        border-color: #667eea;
-        background: linear-gradient(135deg, #f8f9ff 0%, #f0f4ff 100%);
-        box-shadow: 0 8px 25px rgba(102, 126, 234, 0.25);
-        transform: translateY(-4px);
-    }
-
-    .role-card-header {
-        display: flex;
-        align-items: center;
-        gap: 1rem;
-        margin-bottom: 1rem;
-    }
-
-    .role-icon {
-        width: 60px;
-        height: 60px;
-        border-radius: 12px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.75rem;
-        color: white;
-    }
-
-    .role-icon.admin {
-        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-    }
-
-    .role-icon.user {
-        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-    }
-
-    .role-title {
-        flex: 1;
-    }
-
-    .role-title h5 {
-        margin: 0;
-        font-size: 1.25rem;
-        font-weight: 700;
-        color: #1e293b;
-    }
-
-    .role-title .role-badge-mini {
-        display: inline-block;
-        padding: 0.25rem 0.75rem;
-        border-radius: 12px;
-        font-size: 0.75rem;
-        font-weight: 600;
-        text-transform: uppercase;
-        margin-top: 0.25rem;
-    }
-
-    .role-badge-mini.admin {
-        background: #fef2f2;
-        color: #dc2626;
-    }
-
-    .role-badge-mini.user {
-        background: #eff6ff;
-        color: #2563eb;
-    }
-
-    .role-description {
-        color: #64748b;
-        font-size: 0.95rem;
-        margin-bottom: 1.25rem;
-        line-height: 1.6;
-    }
-
-    .role-permissions {
-        list-style: none;
-        padding: 0;
-        margin: 0;
-    }
-
-    .role-permissions li {
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-        padding: 0.5rem 0;
-        color: #475569;
-        font-size: 0.9rem;
-    }
-
-    .role-permissions li i {
-        color: #10b981;
-        font-size: 0.875rem;
-    }
-
-    /* Radio Input (hidden) */
-    .role-card input[type="radio"] {
-        position: absolute;
-        opacity: 0;
-        pointer-events: none;
-    }
-
-    /* Selected Indicator */
-    .selected-indicator {
-        position: absolute;
-        top: 1rem;
-        right: 1rem;
-        width: 32px;
-        height: 32px;
-        border-radius: 50%;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        display: none;
-        align-items: center;
-        justify-content: center;
-        color: white;
-        font-size: 1rem;
-    }
-
-    .role-card.selected .selected-indicator {
-        display: flex;
-    }
-
-    /* Action Buttons */
-    .action-buttons {
-        display: flex;
-        gap: 1rem;
-        justify-content: center;
-        margin-top: 2rem;
-    }
-
-    .btn-save-role {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        border: none;
-        padding: 1rem 2.5rem;
-        border-radius: 10px;
-        font-weight: 700;
-        font-size: 1rem;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        display: inline-flex;
-        align-items: center;
-        gap: 0.75rem;
-    }
-
-    .btn-save-role:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
-    }
-
-    .btn-cancel-role {
-        background: white;
-        color: #64748b;
-        border: 2px solid #e2e8f0;
-        padding: 1rem 2.5rem;
-        border-radius: 10px;
-        font-weight: 700;
-        font-size: 1rem;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        text-decoration: none;
-        display: inline-flex;
-        align-items: center;
-        gap: 0.75rem;
-    }
-
-    .btn-cancel-role:hover {
-        background: #f8fafc;
-        border-color: #cbd5e1;
-        color: #475569;
-    }
-
-    /* Animation */
-    @keyframes fadeInUp {
-        from {
-            opacity: 0;
-            transform: translateY(30px);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-
-    .role-card {
-        animation: fadeInUp 0.5s ease;
-    }
-
-    .role-card:nth-child(2) {
-        animation-delay: 0.1s;
-    }
-</style>
-@endpush
+@section('breadcrumbs')
+<li class="breadcrumb-item"><a href="{{ route('admin.usuarios.index') }}">Usuarios</a></li>
+<li class="breadcrumb-item active">Gestionar Roles</li>
+@endsection
 
 @section('content')
-<div class="content-wrapper">
-    <div class="roles-container">
-        <div class="roles-card">
-            <!-- Header -->
-            <div class="roles-header">
-                <h4>
-                    <i class="fas fa-user-tag"></i>
-                    Asignar Rol de Usuario
-                </h4>
-                <p>Selecciona el nivel de acceso para este usuario</p>
-            </div>
-
-            <!-- Body -->
-            <div class="roles-body">
-                <!-- User Info -->
-                <div class="user-info-section">
-                    <div class="user-info-label">Usuario Seleccionado</div>
-                    <div class="user-info-value">
-                        <div class="user-avatar-large">
-                            {{ strtoupper(substr($user->usuario, 0, 2)) }}
+<div class="row">
+    <div class="col-lg-8 mx-auto">
+        <!-- Información del Usuario -->
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col-md-2 text-center">
+                        <div class="bg-primary bg-opacity-10 rounded-circle p-4 d-inline-block">
+                            <i class="fas fa-user fa-3x text-primary"></i>
                         </div>
-                        <span>{{ $user->usuario }}</span>
+                    </div>
+                    <div class="col-md-10">
+                        <h4 class="mb-1">{{ $usuarioData->usuario }}</h4>
+                        @if($usuarioData->empleado_nombre)
+                            <p class="text-muted mb-2">
+                                <i class="fas fa-user-tie me-2"></i>{{ $usuarioData->empleado_nombre }}
+                            </p>
+                            <p class="text-muted mb-0">
+                                <i class="fas fa-id-card me-2"></i>DNI: {{ $usuarioData->empleado_dni }} | 
+                                <i class="fas fa-briefcase ms-2 me-2"></i>{{ $usuarioData->empleado_cargo }}
+                            </p>
+                        @endif
                     </div>
                 </div>
+            </div>
+        </div>
 
-                <form action="{{ route('admin.usuarios.updateRol', $user->usuario) }}" method="POST" id="roleForm">
+        <!-- Selector de Roles -->
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-user-tag me-2"></i>
+                    Seleccionar Rol del Usuario
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ route('admin.usuarios.updateRol', $usuarioData->usuario) }}">
                     @csrf
                     @method('PUT')
 
-                    <div class="role-selection-title">
-                        <i class="fas fa-shield-alt"></i> Elige el Rol
+                    <div class="alert alert-info mb-4">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>Rol Actual:</strong> 
+                        @if($usuarioData->tipousuario == 'ADMIN')
+                            <span class="badge bg-danger">ADMINISTRADOR</span>
+                        @elseif($usuarioData->tipousuario == 'CONTADOR')
+                            <span class="badge bg-primary">CONTADOR</span>
+                        @else
+                            <span class="badge bg-info">VENDEDOR</span>
+                        @endif
                     </div>
 
-                    <!-- Role Cards -->
-                    <div class="role-cards-container">
-                        <!-- Admin Role -->
-                        <div class="role-card {{ $user->tipousuario === 'ADMIN' ? 'selected' : '' }}" data-role="ADMIN">
-                            <div class="selected-indicator">
-                                <i class="fas fa-check"></i>
-                            </div>
-                            <input type="radio" name="tipousuario" value="ADMIN" id="rolAdmin"
-                                   {{ $user->tipousuario === 'ADMIN' ? 'checked' : '' }}>
-                            
-                            <div class="role-card-header">
-                                <div class="role-icon admin">
-                                    <i class="fas fa-user-shield"></i>
-                                </div>
-                                <div class="role-title">
-                                    <h5>Administrador</h5>
-                                    <span class="role-badge-mini admin">Admin</span>
-                                </div>
-                            </div>
-
-                            <p class="role-description">
-                                Acceso completo al sistema con permisos para gestionar usuarios, 
-                                configuraciones y todos los módulos.
-                            </p>
-
-                            <ul class="role-permissions">
-                                <li><i class="fas fa-check-circle"></i> Gestión total del sistema</li>
-                                <li><i class="fas fa-check-circle"></i> Eliminar y editar planillas</li>
-                                <li><i class="fas fa-check-circle"></i> Administrar usuarios</li>
-                                <li><i class="fas fa-check-circle"></i> Acceso a todos los reportes</li>
-                                <li><i class="fas fa-check-circle"></i> Configuración avanzada</li>
-                            </ul>
-                        </div>
-
-                        <!-- User Role -->
-                        <div class="role-card {{ $user->tipousuario === 'USER' ? 'selected' : '' }}" data-role="USER">
-                            <div class="selected-indicator">
-                                <i class="fas fa-check"></i>
-                            </div>
-                            <input type="radio" name="tipousuario" value="USER" id="rolUser"
-                                   {{ $user->tipousuario === 'USER' ? 'checked' : '' }}>
-                            
-                            <div class="role-card-header">
-                                <div class="role-icon user">
-                                    <i class="fas fa-user"></i>
-                                </div>
-                                <div class="role-title">
-                                    <h5>Usuario Regular</h5>
-                                    <span class="role-badge-mini user">User</span>
+                    <!-- Opciones de Rol -->
+                    <div class="mb-4">
+                        <div class="row g-3">
+                            <!-- Administrador -->
+                            <div class="col-md-4">
+                                <div class="card {{ $usuarioData->tipousuario == 'ADMIN' ? 'border-danger shadow' : 'border' }} h-100">
+                                    <div class="card-body text-center">
+                                        <input type="radio" 
+                                               name="tipousuario" 
+                                               value="ADMIN" 
+                                               id="rolAdmin"
+                                               class="form-check-input d-none"
+                                               {{ $usuarioData->tipousuario == 'ADMIN' ? 'checked' : '' }}>
+                                        <label for="rolAdmin" class="w-100 cursor-pointer">
+                                            <div class="bg-danger bg-opacity-10 rounded p-3 mb-3">
+                                                <i class="fas fa-shield-alt fa-3x text-danger"></i>
+                                            </div>
+                                            <h5 class="mb-2">Administrador</h5>
+                                            <p class="text-muted small mb-0">
+                                                Acceso completo al sistema. Gestión de usuarios, configuración y reportes ejecutivos.
+                                            </p>
+                                        </label>
+                                    </div>
                                 </div>
                             </div>
 
-                            <p class="role-description">
-                                Acceso limitado a funciones esenciales para el trabajo diario, 
-                                sin permisos administrativos.
-                            </p>
+                            <!-- Contador -->
+                            <div class="col-md-4">
+                                <div class="card {{ $usuarioData->tipousuario == 'CONTADOR' ? 'border-primary shadow' : 'border' }} h-100">
+                                    <div class="card-body text-center">
+                                        <input type="radio" 
+                                               name="tipousuario" 
+                                               value="CONTADOR" 
+                                               id="rolContador"
+                                               class="form-check-input d-none"
+                                               {{ $usuarioData->tipousuario == 'CONTADOR' ? 'checked' : '' }}>
+                                        <label for="rolContador" class="w-100 cursor-pointer">
+                                            <div class="bg-primary bg-opacity-10 rounded p-3 mb-3">
+                                                <i class="fas fa-calculator fa-3x text-primary"></i>
+                                            </div>
+                                            <h5 class="mb-2">Contador</h5>
+                                            <p class="text-muted small mb-0">
+                                                Acceso a contabilidad, tesorería, libro diario, mayor, estados financieros y reportes.
+                                            </p>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
 
-                            <ul class="role-permissions">
-                                <li><i class="fas fa-check-circle"></i> Ver planillas y documentos</li>
-                                <li><i class="fas fa-check-circle"></i> Consultar cuentas corrientes</li>
-                                <li><i class="fas fa-check-circle"></i> Generar reportes básicos</li>
-                                <li><i class="fas fa-check-circle"></i> Visualizar estadísticas</li>
-                                <li><i class="fas fa-times-circle" style="color: #dc2626;"></i> Sin acceso administrativo</li>
-                            </ul>
+                            <!-- Vendedor -->
+                            <div class="col-md-4">
+                                <div class="card {{ $usuarioData->tipousuario == 'VENDEDOR' ? 'border-info shadow' : 'border' }} h-100">
+                                    <div class="card-body text-center">
+                                        <input type="radio" 
+                                               name="tipousuario" 
+                                               value="VENDEDOR" 
+                                               id="rolVendedor"
+                                               class="form-check-input d-none"
+                                               {{ $usuarioData->tipousuario == 'VENDEDOR' ? 'checked' : '' }}>
+                                        <label for="rolVendedor" class="w-100 cursor-pointer">
+                                            <div class="bg-info bg-opacity-10 rounded p-3 mb-3">
+                                                <i class="fas fa-user-tie fa-3x text-info"></i>
+                                            </div>
+                                            <h5 class="mb-2">Vendedor</h5>
+                                            <p class="text-muted small mb-0">
+                                                Acceso a ventas, clientes, productos y consulta de inventario disponible.
+                                            </p>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
-                    <!-- Action Buttons -->
-                    <div class="action-buttons">
-                        <button type="submit" class="btn-save-role">
-                            <i class="fas fa-save"></i> Guardar Cambios
-                        </button>
-                        <a href="{{ route('admin.usuarios.index') }}" class="btn-cancel-role">
-                            <i class="fas fa-times"></i> Cancelar
+                    <!-- Botones -->
+                    <div class="d-flex justify-content-between">
+                        <a href="{{ route('admin.usuarios.index') }}" class="btn btn-secondary">
+                            <i class="fas fa-times me-2"></i>Cancelar
                         </a>
+                        <button type="submit" class="btn btn-primary" onclick="return confirm('¿Confirma el cambio de rol?')">
+                            <i class="fas fa-save me-2"></i>Guardar Cambios
+                        </button>
                     </div>
                 </form>
             </div>
@@ -423,36 +157,13 @@
 </div>
 @endsection
 
-@push('scripts')
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const roleCards = document.querySelectorAll('.role-card');
-    
-    roleCards.forEach(card => {
-        card.addEventListener('click', function() {
-            // Remove selected class from all cards
-            roleCards.forEach(c => c.classList.remove('selected'));
-            
-            // Add selected class to clicked card
-            this.classList.add('selected');
-            
-            // Check the corresponding radio button
-            const radio = this.querySelector('input[type="radio"]');
-            if (radio) {
-                radio.checked = true;
-            }
-        });
-    });
-
-    // Prevent form submission without selection
-    const form = document.getElementById('roleForm');
-    form.addEventListener('submit', function(e) {
-        const selectedRole = document.querySelector('input[name="tipousuario"]:checked');
-        if (!selectedRole) {
-            e.preventDefault();
-            alert('Por favor, selecciona un rol antes de guardar.');
-        }
-    });
-});
-</script>
+@push('styles')
+<style>
+.cursor-pointer {
+    cursor: pointer;
+}
+.form-check-input:checked + label .card {
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25) !important;
+}
+</style>
 @endpush

@@ -2,210 +2,228 @@
 
 namespace App\Http\Controllers\Admin;
 
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Pagination\LengthAwarePaginator;
 use App\Http\Controllers\Controller;
-use App\Exports\FacturasExport;
-use App\Exports\MovimientosExport;
-use Maatwebsite\Excel\Facades\Excel;
+use App\Services\Admin\ReporteService;
+use Illuminate\Http\Request;
+use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
+
 
 class ReporteController extends Controller
 {
+    protected $reporteService;
+
+    public function __construct(ReporteService $reporteService)
+    {
+        $this->reporteService = $reporteService;
+    }
+
     /**
-     * 📋 Reporte unificado: Facturas/Boletas + Notas de Crédito
+     * Reporte de Ventas por Período
      */
+    public function ventasPorPeriodo(Request $request)
+    {
+        $fechaInicio = $request->get('fecha_inicio', Carbon::now()->startOfMonth());
+        $fechaFin = $request->get('fecha_fin', Carbon::now()->endOfMonth());
+        
+        $ventas = $this->reporteService->reporteVentasPeriodo($fechaInicio, $fechaFin);
+        
+        return view('admin.reportes.ventas-periodo', compact('ventas', 'fechaInicio', 'fechaFin'));
+    }
+
+    /**
+     * Reporte de Ventas por Cliente
+     */
+    public function ventasPorCliente(Request $request)
+    {
+        $fechaInicio = $request->get('fecha_inicio', Carbon::now()->startOfMonth());
+        $fechaFin = $request->get('fecha_fin', Carbon::now()->endOfMonth());
+        
+        $ventas = $this->reporteService->reporteVentasPorCliente($fechaInicio, $fechaFin);
+        
+        return view('admin.reportes.ventas-cliente', compact('ventas', 'fechaInicio', 'fechaFin'));
+    }
+
+    /**
+     * Reporte de Ventas por Producto
+     */
+    public function ventasPorProducto(Request $request)
+    {
+        $fechaInicio = $request->get('fecha_inicio', Carbon::now()->startOfMonth());
+        $fechaFin = $request->get('fecha_fin', Carbon::now()->endOfMonth());
+        
+        $productos = $this->reporteService->reporteVentasPorProducto($fechaInicio, $fechaFin);
+        
+        return view('admin.reportes.ventas-producto', compact('productos', 'fechaInicio', 'fechaFin'));
+    }
+
+    /**
+     * Reporte de Ventas por Vendedor
+     */
+    public function ventasPorVendedor(Request $request)
+    {
+        $fechaInicio = $request->get('fecha_inicio', Carbon::now()->startOfMonth());
+        $fechaFin = $request->get('fecha_fin', Carbon::now()->endOfMonth());
+        
+        $vendedores = $this->reporteService->reporteVentasPorVendedor($fechaInicio, $fechaFin);
+        
+        return view('admin.reportes.ventas-vendedor', compact('vendedores', 'fechaInicio', 'fechaFin'));
+    }
+
+    /**
+     * Reporte de Cuentas por Cobrar (Aging)
+     */
+    public function cuentasPorCobrar(Request $request)
+    {
+        $aging = $this->reporteService->reporteAgingCuentasPorCobrar();
+        $resumen = $this->reporteService->resumenCuentasPorCobrar();
+        
+        return view('admin.reportes.cuentas-cobrar', compact('aging', 'resumen'));
+    }
+
+    /**
+     * Reporte de Cuentas por Pagar
+     */
+    public function cuentasPorPagar(Request $request)
+    {
+        $aging = $this->reporteService->reporteAgingCuentasPorPagar();
+        $resumen = $this->reporteService->resumenCuentasPorPagar();
+        
+        return view('admin.reportes.cuentas-pagar', compact('aging', 'resumen'));
+    }
+
+    /**
+     * Reporte de Inventario Valorizado
+     */
+    public function inventarioValorado(Request $request)
+    {
+        $tipoAgrupacion = $request->get('agrupar', 'laboratorio'); // laboratorio, producto, almacen
+        
+        $inventario = $this->reporteService->reporteInventarioValorado($tipoAgrupacion);
+        
+        return view('admin.reportes.inventario-valorado', compact('inventario', 'tipoAgrupacion'));
+    }
+
+    /**
+     * Reporte de Productos por Vencer
+     */
+    public function productosVencer(Request $request)
+    {
+        $dias = $request->get('dias', 60);
+        
+        $productos = $this->reporteService->reporteProductosVencer($dias);
+        
+        return view('admin.reportes.productos-vencer', compact('productos', 'dias'));
+    }
+
+    /**
+     * Kardex de Producto
+     */
+    public function kardexProducto(Request $request)
+    {
+        $codPro = $request->get('codigo');
+        $fechaInicio = $request->get('fecha_inicio', Carbon::now()->startOfMonth());
+        $fechaFin = $request->get('fecha_fin', Carbon::now()->endOfMonth());
+        
+        if (!$codPro) {
+            return back()->with('error', 'Debe seleccionar un producto');
+        }
+        
+        $kardex = $this->reporteService->reporteKardexProducto($codPro, $fechaInicio, $fechaFin);
+        
+        return view('admin.reportes.kardex-producto', compact('kardex', 'codPro', 'fechaInicio', 'fechaFin'));
+    }
+
+    /**
+     * Registro de Ventas SUNAT (Formato 14.1)
+     */
+    public function registroVentasSunat(Request $request)
+    {
+        $periodo = $request->get('periodo', Carbon::now()->format('Y-m'));
+        
+        $registros = $this->reporteService->reporteRegistroVentasSunat($periodo);
+        
+        return view('admin.reportes.sunat-ventas', compact('registros', 'periodo'));
+    }
+
+    /**
+     * Registro de Compras SUNAT (Formato 8.1)
+     */
+    public function registroComprasSunat(Request $request)
+    {
+        $periodo = $request->get('periodo', Carbon::now()->format('Y-m'));
+        
+        $registros = $this->reporteService->reporteRegistroComprasSunat($periodo);
+        
+        return view('admin.reportes.sunat-compras', compact('registros', 'periodo'));
+    }
+
+    /**
+     * Reporte de Rentabilidad por Producto
+     */
+    public function rentabilidadProductos(Request $request)
+    {
+        $fechaInicio = $request->get('fecha_inicio', Carbon::now()->startOfMonth());
+        $fechaFin = $request->get('fecha_fin', Carbon::now()->endOfMonth());
+        
+        $rentabilidad = $this->reporteService->reporteRentabilidadProductos($fechaInicio, $fechaFin);
+        
+        return view('admin.reportes.rentabilidad-productos', compact('rentabilidad', 'fechaInicio', 'fechaFin'));
+    }
+
+    /**
+     * Exportar a Excel
+     */
+    public function exportarExcel(Request $request)
+    {
+        $tipo = $request->get('tipo'); // ventas, inventario, cxc, etc.
+        $fechaInicio = $request->get('fecha_inicio');
+        $fechaFin = $request->get('fecha_fin');
+        
+        return $this->reporteService->exportarExcel($tipo, $fechaInicio, $fechaFin);
+    }
+    /**
+ * Reporte de Facturas (Documento SUNAT 01 y 03)
+ */
     public function facturas(Request $request)
     {
-        // 🔹 FACTURAS / BOLETAS (tabla doccab)
-        $ventas = DB::table('doccab as d')
+        $fechaInicio = $request->get('fecha_inicio', Carbon::now()->startOfMonth());
+        $fechaFin = $request->get('fecha_fin', Carbon::now()->endOfMonth());
+
+        $facturas = DB::table('Doccab')
+            ->join('Clientes', 'Doccab.CodClie', '=', 'Clientes.Codclie')
+            ->join('Empleados', 'Doccab.Vendedor', '=', 'Empleados.Codemp')
+            ->join('TiposDocumentoSUNAT', 'Doccab.tipo_documento_sunat', '=', 'TiposDocumentoSUNAT.Codigo')
             ->select(
-                'd.Numero',
-                DB::raw('d.Tipo as TipoDoc'),
-                DB::raw('NULL as TipoNota'),
-                'd.CodClie',
-                'd.Fecha',
-                DB::raw('NULL as Documento'),
-                'd.Subtotal as Bruto',
-                'd.Igv',
-                'd.Total',
-                DB::raw('0 as Anulado'), // asumimos que no están anulados si están en doccab y Eliminado=0
-                DB::raw('NULL as Observacion'),
-                DB::raw("'VENTA' AS fuente")
+                'Doccab.Numero',
+                'Doccab.Tipo',
+                'Doccab.Fecha',
+                'Clientes.Razon as cliente',
+                'Empleados.Nombre as vendedor',
+                'TiposDocumentoSUNAT.Descripcion as tipo_doc',
+                'Doccab.Subtotal',
+                'Doccab.Igv',
+                'Doccab.Total',
+                'Doccab.estado_sunat'
             )
-            ->where('d.Eliminado', 0)
-            ->where('d.Tipo', '<', 8);
-
-        // 🔸 NOTAS DE CRÉDITO
-        $notas = DB::table('notas_credito as nc')
-            ->select(
-                'nc.Numero',
-                'nc.TipoDoc',
-                'nc.TipoNota',
-                'nc.Codclie',
-                'nc.Fecha',
-                'nc.Documento',
-                DB::raw('NULL as Bruto'),
-                DB::raw('NULL as Igv'),
-                'nc.Total',
-                'nc.Anulado',
-                'nc.Observacion',
-                DB::raw("'NC' AS fuente")
-            )
-            ->where('nc.Anulado', 0);
-
-        $union = $ventas->unionAll($notas);
-
-        $documentos = DB::query()
-            ->fromSub($union, 'documentos_unificados')
-            ->orderBy('Fecha', 'DESC')
+            ->whereBetween('Doccab.Fecha', [$fechaInicio, $fechaFin])
+            ->where('Doccab.Eliminado', 0)
+            ->whereIn('Doccab.tipo_documento_sunat', ['01', '03']) // Facturas y Boletas
+            ->orderBy('Doccab.Fecha', 'desc')
             ->get();
 
-        $page = $request->get('page', 1);
-        $perPage = 25;
-        $offset = ($page - 1) * $perPage;
-
-        $paginated = new LengthAwarePaginator(
-            $documentos->slice($offset, $perPage)->values(),
-            $documentos->count(),
-            $perPage,
-            $page,
-            ['path' => $request->url(), 'query' => $request->query()]
-        );
-
-        return view('admin.reportes.facturas', ['documentos' => $paginated]);
+        return view('admin.reportes.facturas', compact('facturas', 'fechaInicio', 'fechaFin'));
     }
 
-    /**
-     * 📥 Exportar Facturas/Boletas + Notas de Crédito a Excel
-     */
-    public function exportFacturas(Request $request)
+    public function buscarKardex()
     {
-        // Misma lógica que en facturas(), pero sin paginación
-        $ventas = DB::table('doccab as d')
-            ->select(
-                'd.Numero',
-                DB::raw('d.Tipo as TipoDoc'),
-                DB::raw('NULL as TipoNota'),
-                'd.CodClie',
-                'd.Fecha',
-                DB::raw('NULL as Documento'),
-                'd.Subtotal as Bruto',
-                'd.Igv',
-                'd.Total',
-                DB::raw('0 as Anulado'),
-                DB::raw("'VENTA' AS fuente")
-            )
-            ->where('d.Eliminado', 0)
-            ->where('d.Tipo', '<', 8);
+        $productos = DB::table('Productos')
+            ->select('CodPro', 'Nombre')
+            ->where('Eliminado', 0)
+            ->orderBy('Nombre')
+            ->get();
 
-        $notas = DB::table('notas_credito as nc')
-            ->select(
-                'nc.Numero',
-                'nc.TipoDoc',
-                'nc.TipoNota',
-                'nc.Codclie',
-                'nc.Fecha',
-                'nc.Documento',
-                DB::raw('NULL as Bruto'),
-                DB::raw('NULL as Igv'),
-                'nc.Total',
-                'nc.Anulado',
-                DB::raw("'NC' AS fuente")
-            )
-            ->where('nc.Anulado', 0);
-
-        $union = $ventas->unionAll($notas);
-        $documentos = DB::query()->fromSub($union, 'documentos_unificados')->get();
-
-        return Excel::download(new FacturasExport($documentos), 'reporte_facturas_' . now()->format('Y-m-d') . '.xlsx');
+        return view('admin.reportes.kardex-buscar', compact('productos'));
     }
 
-    /**
-     * 💰 Reporte de Movimientos (Caja + CtaBanco)
-     */
-    public function movimientos(Request $request)
-    {
-        $caja = DB::table('Caja as c')
-            ->select(
-                'c.Numero',
-                'c.Documento',
-                DB::raw("'caja' as origen"),
-                'c.Tipo',
-                'c.Fecha',
-                'c.Moneda',
-                'c.Monto',
-                'c.Razon',
-                DB::raw('NULL as Cuenta')
-            )
-            ->where('c.Eliminado', 0);
-
-        $banco = DB::table('CtaBanco as b')
-            ->select(
-                'b.Numero',
-                'b.Documento',
-                DB::raw("'banco' as origen"),
-                'b.Tipo',
-                'b.Fecha',
-                DB::raw('1 as Moneda'),
-                'b.Monto',
-                'b.Clase as Razon',
-                'b.Cuenta'
-            );
-
-        $union = $banco->unionAll($caja);
-        $movimientos = DB::query()->fromSub($union, 'movs')->orderBy('Fecha', 'DESC')->get();
-
-        $page = $request->get('page', 1);
-        $perPage = 25;
-        $offset = ($page - 1) * $perPage;
-
-        $paginated = new LengthAwarePaginator(
-            $movimientos->slice($offset, $perPage)->values(),
-            $movimientos->count(),
-            $perPage,
-            $page,
-            ['path' => $request->url(), 'query' => $request->query()]
-        );
-
-        return view('admin.reportes.movimientos', ['movimientos' => $paginated]);
-    }
-
-    /**
-     * 📥 Exportar Movimientos (Caja + Banco) a Excel
-     */
-    public function exportMovimientos(Request $request)
-    {
-        $caja = DB::table('Caja as c')
-            ->select(
-                'c.Numero',
-                'c.Documento',
-                DB::raw("'caja' as origen"),
-                'c.Tipo',
-                'c.Fecha',
-                'c.Moneda',
-                'c.Monto',
-                'c.Razon',
-                DB::raw('NULL as Cuenta')
-            )
-            ->where('c.Eliminado', 0);
-
-        $banco = DB::table('CtaBanco as b')
-            ->select(
-                'b.Numero',
-                'b.Documento',
-                DB::raw("'banco' as origen"),
-                'b.Tipo',
-                'b.Fecha',
-                DB::raw('1 as Moneda'),
-                'b.Monto',
-                'b.Clase as Razon',
-                'b.Cuenta'
-            );
-
-        $union = $banco->unionAll($caja);
-        $movimientos = DB::query()->fromSub($union, 'movs')->get();
-
-        return Excel::download(new MovimientosExport($movimientos), 'reporte_movimientos_' . now()->format('Y-m-d') . '.xlsx');
-    }
 }
