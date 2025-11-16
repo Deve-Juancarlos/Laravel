@@ -1,0 +1,518 @@
+/*
+ * =====================================================
+ * MÓDULO DE VENTAS POR VENDEDOR - SISTEMA CONTABLE
+ * Estilos profesionales para reportes empresariales
+ * =====================================================
+ */
+
+/* =====================================================
+   1. VARIABLES Y CONFIGURACIÓN BASE
+   ===================================================== */
+:root {
+    /* Paleta Profesional Empresarial */
+    --vendedor-primary: #1e3a5f;
+    --vendedor-primary-dark: #152a45;
+    --vendedor-primary-light: #2d4d7a;
+    --vendedor-secondary: #455a64;
+    
+    /* Colores Funcionales */
+    --vendedor-success: #2e7d32;
+    --vendedor-success-light: #e8f5e9;
+    --vendedor-danger: #c62828;
+    --vendedor-danger-light: #ffebee;
+    --vendedor-info: #0277bd;
+    --vendedor-info-light: #e1f5fe;
+    --vendedor-warning: #f57c00;
+    --vendedor-warning-dark: #e65100;
+    --vendedor-warning-light: #fff3e0;
+    
+    /* Colores Neutros */
+    --vendedor-text-primary: #212529;
+    --vendedor-text-secondary: #6c757d;
+    --vendedor-text-muted: #868e96;
+    --vendedor-border: #dee2e6;
+    --vendedor-border-light: #e9ecef;
+    --vendedor-bg: #f8f9fa;
+    --vendedor-bg-white: #ffffff;
+    --vendedor-bg-dark: #f1f3f5;
+    
+    /* Espaciado Consistente */
+    --spacing-xs: 0.5rem;
+    --spacing-sm: 0.75rem;
+    --spacing-md: 1rem;
+    --spacing-lg: 1.5rem;
+    --spacing-xl: 2rem;
+    --spacing-xxl: 3rem;
+    
+    /* Bordes y Sombras Sutiles */
+    --radius-sm: 4px;
+    --radius-md: 6px;
+    --radius-lg: 8px;
+    --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.05);
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
+    --shadow-md: 0 2px 6px rgba(0, 0, 0, 0.1);
+    --shadow-lg: 0 4px 12px rgba(0, 0, 0, 0.12);
+    
+    /* Transiciones */
+    --transition: all 0.2s ease;
+}
+
+/* =====================================================
+   2. CONTENEDOR PRINCIPAL
+   ===================================================== */
+.ventas-vendedor-container {
+    background-color: var(--vendedor-bg);
+    padding: var(--spacing-xs) var(--spacing-xl);;
+    min-height: 100vh;
+}
+
+/* =====================================================
+   3. TARJETA PRINCIPAL
+   ===================================================== */
+.ventas-vendedor-container .card {
+    border: 1px solid var(--vendedor-border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    background-color: var(--vendedor-bg-white);
+    overflow: hidden;
+}
+
+.ventas-vendedor-container .card-header {
+    background: linear-gradient(135deg, var(--vendedor-primary) 0%, var(--vendedor-primary-dark) 100%);
+    color: var(--vendedor-bg-white);
+    padding: var(--spacing-lg) var(--spacing-xl);
+    border-bottom: none;
+}
+
+.ventas-vendedor-container .card-header h5 {
+    font-size: 1.125rem;
+    font-weight: 600;
+    margin: 0;
+    letter-spacing: 0.3px;
+    display: flex;
+    align-items: center;
+}
+
+.ventas-vendedor-container .card-header h5 i {
+    margin-right: var(--spacing-sm);
+    opacity: 0.9;
+}
+
+.ventas-vendedor-container .card-body {
+    padding: var(--spacing-xl);
+}
+
+/* =====================================================
+   4. FORMULARIO DE FILTROS
+   ===================================================== */
+.ventas-vendedor-container form {
+    background-color: var(--vendedor-bg-dark);
+    padding: var(--spacing-lg);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--vendedor-border-light);
+    margin-bottom: var(--spacing-lg);
+}
+
+.ventas-vendedor-container .form-label {
+    font-weight: 600;
+    font-size: 0.8125rem;
+    color: var(--vendedor-text-primary);
+    margin-bottom: var(--spacing-xs);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.ventas-vendedor-container .form-control {
+    border: 1px solid var(--vendedor-border);
+    border-radius: var(--radius-md);
+    padding: 0.5rem var(--spacing-sm);
+    font-size: 0.9375rem;
+    color: var(--vendedor-text-primary);
+    transition: var(--transition);
+    background-color: var(--vendedor-bg-white);
+}
+
+.ventas-vendedor-container .form-control:focus {
+    border-color: var(--vendedor-warning);
+    box-shadow: 0 0 0 0.2rem rgba(245, 124, 0, 0.1);
+    outline: none;
+}
+
+/* =====================================================
+   5. BOTONES
+   ===================================================== */
+.ventas-vendedor-container .btn {
+    padding: 0.5rem var(--spacing-lg);
+    font-weight: 600;
+    font-size: 0.875rem;
+    border-radius: var(--radius-md);
+    transition: var(--transition);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border: none;
+}
+
+.ventas-vendedor-container .btn i {
+    margin-right: 0.375rem;
+}
+
+.ventasperiodo-container .btn-primary {
+    background-color: var(--ventas-primary);
+    box-shadow: var(--shadow-xs);
+}
+
+.ventasperiodo-container .btn-primary:hover {
+    background-color: var(--ventas-primary-dark);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+}
+
+.ventas-vendedor-container .btn-success {
+    background-color: var(--vendedor-success);
+    color: var(--vendedor-bg-white) !important;
+    box-shadow: var(--shadow-xs);
+}
+
+.ventas-vendedor-container .btn-success:hover {
+    background-color: #256029;
+    color: var(--vendedor-bg-white) !important;
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+}
+
+/* =====================================================
+   6. TABLA DE VENDEDORES
+   ===================================================== */
+.ventas-vendedor-container .table-responsive {
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--vendedor-border-light);
+}
+
+.ventas-vendedor-container .table {
+    margin-bottom: 0;
+    font-size: 0.875rem;
+}
+
+.ventas-vendedor-container .table thead {
+    background-color: var(--vendedor-bg-dark);
+    border-bottom: 2px solid var(--vendedor-border);
+}
+
+.ventas-vendedor-container .table thead th {
+    font-weight: 700;
+    font-size: 0.75rem;
+    color: var(--vendedor-text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    padding: var(--spacing-md) var(--spacing-sm);
+    border-bottom: 2px solid var(--vendedor-border);
+    white-space: nowrap;
+    vertical-align: middle;
+}
+
+.ventas-vendedor-container .table tbody td {
+    padding: var(--spacing-md) var(--spacing-sm);
+    vertical-align: middle;
+    color: var(--vendedor-text-primary);
+    border-bottom: 1px solid var(--vendedor-border-light);
+}
+
+.ventas-vendedor-container .table tbody tr {
+    transition: background-color 0.15s ease;
+}
+
+.ventas-vendedor-container .table-hover tbody tr:hover {
+    background-color: var(--vendedor-bg);
+}
+
+.ventas-vendedor-container .table tbody td strong {
+    color: var(--vendedor-text-primary);
+    font-weight: 600;
+    font-size: 0.9375rem;
+}
+
+.ventas-vendedor-container .table tbody td small {
+    font-size: 0.75rem;
+    color: var(--vendedor-text-muted);
+}
+
+.ventas-vendedor-container .table tfoot {
+    background-color: var(--vendedor-bg-dark);
+    border-top: 2px solid var(--vendedor-border);
+}
+
+.ventas-vendedor-container .table tfoot th {
+    padding: var(--spacing-md) var(--spacing-sm);
+    color: var(--vendedor-text-primary);
+    font-weight: 700;
+    font-size: 0.875rem;
+}
+
+/* Alineación de columnas */
+.ventas-vendedor-container .text-center {
+    text-align: center !important;
+}
+
+.ventas-vendedor-container .text-end {
+    text-align: right !important;
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum";
+}
+
+.ventas-vendedor-container .fw-bold {
+    font-weight: 700 !important;
+}
+
+.ventas-vendedor-container .text-success {
+    color: var(--vendedor-success) !important;
+}
+
+/* =====================================================
+   7. BADGES Y RANKING
+   ===================================================== */
+.ventas-vendedor-container .badge {
+    padding: 0.4em 0.75em;
+    font-weight: 600;
+    font-size: 0.875rem;
+    border-radius: var(--radius-sm);
+    letter-spacing: 0.3px;
+    min-width: 42px;
+    display: inline-block;
+}
+
+/* Badges de medallas */
+.ventas-vendedor-container .badge.bg-warning {
+    background-color: #ffd700 !important;
+    color: var(--vendedor-text-primary);
+    box-shadow: 0 2px 4px rgba(255, 215, 0, 0.3);
+}
+
+.ventas-vendedor-container .badge.bg-secondary {
+    background-color: #c0c0c0 !important;
+    color: var(--vendedor-text-primary);
+    box-shadow: 0 2px 4px rgba(192, 192, 192, 0.3);
+}
+
+.ventas-vendedor-container .badge.bg-danger {
+    background-color: #cd7f32 !important;
+    color: var(--vendedor-bg-white);
+    box-shadow: 0 2px 4px rgba(205, 127, 50, 0.3);
+}
+
+.ventas-vendedor-container .badge.bg-light {
+    background-color: var(--vendedor-bg-dark) !important;
+    color: var(--vendedor-text-secondary);
+    border: 1px solid var(--vendedor-border);
+}
+
+/* Efecto especial para top 3 */
+.ventas-vendedor-container .table tbody tr:nth-child(1) {
+    background-color: rgba(255, 215, 0, 0.05);
+}
+
+.ventas-vendedor-container .table tbody tr:nth-child(2) {
+    background-color: rgba(192, 192, 192, 0.05);
+}
+
+.ventas-vendedor-container .table tbody tr:nth-child(3) {
+    background-color: rgba(205, 127, 50, 0.05);
+}
+
+/* =====================================================
+   8. COLUMNAS ESPECIALES
+   ===================================================== */
+/* Columna de cantidad centrada */
+.ventas-vendedor-container .table tbody td.text-center {
+    font-weight: 600;
+    color: var(--vendedor-text-secondary);
+}
+
+/* Columna de porcentaje */
+.ventas-vendedor-container .table tbody td:last-child {
+    font-weight: 600;
+    color: var(--vendedor-primary);
+}
+
+/* =====================================================
+   9. ESTADO VACÍO
+   ===================================================== */
+.ventas-vendedor-container .text-center.text-muted.py-4 {
+    color: var(--vendedor-text-muted) !important;
+    font-style: italic;
+    padding: var(--spacing-xxl) var(--spacing-md) !important;
+}
+
+.ventas-vendedor-container .text-muted {
+    color: var(--vendedor-text-muted) !important;
+}
+
+/* =====================================================
+   10. SCROLLBAR PERSONALIZADO
+   ===================================================== */
+.ventas-vendedor-container .table-responsive {
+    scrollbar-width: thin;
+    scrollbar-color: var(--vendedor-border) var(--vendedor-bg-dark);
+}
+
+.ventas-vendedor-container .table-responsive::-webkit-scrollbar {
+    height: 8px;
+}
+
+.ventas-vendedor-container .table-responsive::-webkit-scrollbar-track {
+    background: var(--vendedor-bg-dark);
+    border-radius: var(--radius-sm);
+}
+
+.ventas-vendedor-container .table-responsive::-webkit-scrollbar-thumb {
+    background-color: var(--vendedor-border);
+    border-radius: var(--radius-sm);
+}
+
+.ventas-vendedor-container .table-responsive::-webkit-scrollbar-thumb:hover {
+    background-color: var(--vendedor-text-muted);
+}
+
+/* =====================================================
+   11. UTILIDADES
+   ===================================================== */
+.ventas-vendedor-container .shadow-sm {
+    box-shadow: var(--shadow-sm) !important;
+}
+
+.ventas-vendedor-container .border-0 {
+    border: none !important;
+}
+
+.ventas-vendedor-container .rounded {
+    border-radius: var(--radius-md) !important;
+}
+
+/* =====================================================
+   12. RESPONSIVE DESIGN
+   ===================================================== */
+@media (max-width: 992px) {
+    .ventas-vendedor-container {
+        padding: var(--spacing-sm) var(--spacing-lg);
+    }
+}
+
+@media (max-width: 768px) {
+    .ventas-vendedor-container {
+        padding: var(--spacing-sm) var(--spacing-md);
+    }
+    
+    .ventas-vendedor-container .card-body {
+        padding: var(--spacing-lg);
+    }
+    
+    .ventas-vendedor-container .card-header {
+        padding: var(--spacing-md) var(--spacing-lg);
+    }
+    
+    .ventas-vendedor-container .card-header h5 {
+        font-size: 1rem;
+    }
+    
+    .ventas-vendedor-container form {
+        padding: var(--spacing-md);
+    }
+    
+    .ventas-vendedor-container .table {
+        font-size: 0.8125rem;
+    }
+    
+    .ventas-vendedor-container .table thead th,
+    .ventas-vendedor-container .table tbody td {
+        padding: var(--spacing-sm);
+    }
+    
+    .ventas-vendedor-container .btn {
+        font-size: 0.8125rem;
+        padding: 0.5rem var(--spacing-md);
+    }
+}
+
+@media (max-width: 576px) {
+    .ventas-vendedor-container {
+        padding: var(--spacing-xs) var(--spacing-sm);
+    }
+    
+    .ventas-vendedor-container .card-body {
+        padding: var(--spacing-md);
+    }
+    
+    .ventas-vendedor-container .card-header {
+        padding: var(--spacing-sm) var(--spacing-md);
+    }
+    
+    .ventas-vendedor-container .card-header h5 {
+        font-size: 0.9375rem;
+    }
+    
+    .ventas-vendedor-container .table {
+        font-size: 0.75rem;
+    }
+    
+    .ventas-vendedor-container .btn {
+        padding: 0.4rem var(--spacing-md);
+        font-size: 0.75rem;
+    }
+    
+    .ventas-vendedor-container .badge {
+        font-size: 0.75rem;
+        min-width: 36px;
+    }
+    
+    /* Ocultar columnas menos importantes en móvil */
+    .ventas-vendedor-container .table thead th:nth-child(6),
+    .ventas-vendedor-container .table tbody td:nth-child(6) {
+        display: none;
+    }
+}
+
+/* =====================================================
+   13. OPTIMIZACIÓN DE IMPRESIÓN
+   ===================================================== */
+@media print {
+    .ventas-vendedor-container {
+        background-color: var(--vendedor-bg-white);
+        padding: 0;
+    }
+    
+    .ventas-vendedor-container .card {
+        box-shadow: none;
+        border: 1px solid var(--vendedor-text-primary);
+    }
+    
+    .ventas-vendedor-container .card-header {
+        background: var(--vendedor-warning) !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+    
+    .ventas-vendedor-container .btn {
+        display: none;
+    }
+    
+    .ventas-vendedor-container form {
+        display: none;
+    }
+    
+    .ventas-vendedor-container .table {
+        border: 1px solid var(--vendedor-text-primary);
+    }
+    
+    .ventas-vendedor-container .badge {
+        border: 1px solid var(--vendedor-text-primary);
+    }
+    
+    /* Mantener colores de medallas en impresión */
+    .ventas-vendedor-container .badge.bg-warning,
+    .ventas-vendedor-container .badge.bg-secondary,
+    .ventas-vendedor-container .badge.bg-danger {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+}

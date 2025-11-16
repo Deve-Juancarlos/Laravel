@@ -59,7 +59,7 @@
                     <div class="col-md-6 mb-3">
                         <strong>Estado:</strong>
                         <p class="mb-0">
-                            @if($usuarioData->estado == 1)
+                            @if(isset($usuarioData->estado) && $usuarioData->estado == 1)
                                 <span class="badge bg-success">Activo</span>
                             @else
                                 <span class="badge bg-secondary">Inactivo</span>

@@ -2,90 +2,175 @@
 
 namespace App\Http\Controllers\Admin;
 
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
+use App\Services\Admin\BancoService;
+use Illuminate\Http\Request;
 
 class BancoController extends Controller
 {
+    protected $bancoService;
+
+    public function __construct(BancoService $bancoService)
+    {
+        $this->bancoService = $bancoService;
+    }
+
+    /**
+     * Dashboard principal de bancos y cuentas
+     * Vista de saldos consolidados
+     */
     public function index()
     {
-        $bancos = DB::table('Bancos')->orderBy('Cuenta')->get();
-        return view('admin.bancos.index', compact('bancos'));
+        $cuentas = $this->bancoService->obtenerCuentasConSaldos();
+        $resumen = $this->bancoService->obtenerResumenGeneral();
+        
+        return view('admin.bancos.index', compact('cuentas', 'resumen'));
     }
 
-    public function create()
+    /**
+     * Ver movimientos de una cuenta específica
+     */
+    public function movimientos(Request $request, $cuenta)
+{
+    $filtros = [
+        'fecha_inicio' => $request->get('fecha_inicio'),
+        'fecha_fin' => $request->get('fecha_fin'),
+        'tipo' => $request->get('tipo'), // 1=Ingreso, 2=Egreso
+        'clase' => $request->get('clase'),
+    ];
+
+    $cuentaData = $this->bancoService->obtenerCuenta($cuenta);
+
+    // Obtener movimientos con alias "Estado" seguro
+    $movimientos = $this->bancoService->obtenerMovimientos($cuenta, $filtros)
+        ->map(function($mov) {
+            // Si la columna real se llama diferente, cámbiala aquí
+            if(!isset($mov->Estado)) {
+                $mov->Estado = $mov->Confirmado ?? 'PENDIENTE';
+            }
+            return $mov;
+        });
+
+    $estadisticas = $this->bancoService->obtenerEstadisticasCuenta($cuenta, $filtros);
+
+    return view('admin.bancos.movimientos', compact('cuentaData', 'movimientos', 'estadisticas', 'filtros'));
+}
+
+
+    /**
+     * Dashboard de análisis de flujo de caja
+     */
+    public function estadisticas(Request $request)
     {
-        return view('admin.bancos.create');
+        $periodo = $request->get('periodo', 'mes');
+        
+        $estadisticas = $this->bancoService->obtenerEstadisticasDetalladas($periodo);
+        $flujoCaja = $this->bancoService->obtenerFlujoCaja($periodo);
+        
+        return view('admin.bancos.estadisticas', compact('estadisticas', 'flujoCaja', 'periodo'));
     }
 
-    public function store(Request $request)
+    /**
+     * Vista de saldos consolidados
+     */
+    public function saldos()
+    {
+        $saldosPorBanco = $this->bancoService->obtenerSaldosPorBanco();
+        $saldosPorMoneda = $this->bancoService->obtenerSaldosPorMoneda();
+        $liquidez = $this->bancoService->obtenerLiquidez();
+        
+        return view('admin.bancos.saldos', compact('saldosPorBanco', 'saldosPorMoneda', 'liquidez'));
+    }
+
+    /**
+     * Proceso de conciliación bancaria
+     */
+    public function conciliacion(Request $request, $cuenta)
+{
+    $fecha = $request->get('fecha', now()->toDateString());
+
+    $cuentaData = $this->bancoService->obtenerCuenta($cuenta);
+    
+    // Mapear id para evitar errores en la vista
+    $movimientosSinConciliar = $this->bancoService->obtenerMovimientosSinConciliar($cuenta, $fecha)
+        ->map(function($mov) {
+            $mov->id = $mov->Numero; // aquí aseguras que siempre exista 'id'
+            return $mov;
+        });
+
+    $historialConciliaciones = $this->bancoService->obtenerHistorialConciliaciones($cuenta);
+
+    return view('admin.bancos.conciliacion', compact(
+        'cuentaData',
+        'movimientosSinConciliar',
+        'historialConciliaciones',
+        'fecha'
+    ));
+}
+
+
+    /**
+     * Guardar conciliación
+     */
+    public function guardarConciliacion(Request $request, $cuenta)
     {
         $request->validate([
-            'Cuenta' => 'required|string|max:20|unique:Bancos,Cuenta',
-            'Banco'  => 'required|string|max:50', // ✅ Corregido: era 'Nombre'
-            'Moneda' => 'required|in:1,2',
+            'fecha' => 'required|date',
+            'saldo_bancario' => 'required|numeric',
+            'observaciones' => 'nullable|string',
         ]);
 
-        try {
-            DB::table('Bancos')->insert([
-                'Cuenta' => $request->Cuenta,
-                'Banco'  => $request->Banco, // ✅ Corregido
-                'Moneda' => $request->Moneda,
-            ]);
+        $resultado = $this->bancoService->registrarConciliacion(
+            $cuenta,
+            $request->fecha,
+            $request->saldo_bancario,
+            $request->observaciones
+        );
 
-            return redirect()->route('admin.bancos.index')
-                ->with('success', 'Cuenta bancaria creada exitosamente.');
-        } catch (\Exception $e) {
-            return back()->withErrors(['error' => 'Error al crear la cuenta: ' . $e->getMessage()]);
+        if ($resultado['success']) {
+            return redirect()->route('admin.bancos.conciliacion', $cuenta)
+                ->with('success', 'Conciliación registrada correctamente.');
         }
+
+        return back()->with('error', 'Error al registrar la conciliación.');
     }
 
-    public function edit($cuenta)
+    /**
+     * Exportar movimientos a Excel
+     */
+    public function exportar(Request $request, $cuenta)
     {
-        $banco = DB::table('Bancos')->where('Cuenta', $cuenta)->first();
-        if (!$banco) {
-            abort(404, 'Cuenta bancaria no encontrada');
-        }
-        return view('admin.bancos.edit', compact('banco'));
+        $filtros = [
+            'fecha_inicio' => $request->get('fecha_inicio'),
+            'fecha_fin' => $request->get('fecha_fin'),
+        ];
+
+        return $this->bancoService->exportarMovimientos($cuenta, $filtros);
     }
 
-    public function update(Request $request, $cuenta)
+    /**
+     * Ver cheques pendientes
+     */
+    public function chequesPendientes()
     {
-        $request->validate([
-            'Banco'  => 'required|string|max:50', // ✅ Corregido
-            'Moneda' => 'required|in:1,2',
-        ]);
-
-        $banco = DB::table('Bancos')->where('Cuenta', $cuenta)->first();
-        if (!$banco) {
-            abort(404);
-        }
-
-        try {
-            DB::table('Bancos')
-                ->where('Cuenta', $cuenta)
-                ->update([
-                    'Banco'  => $request->Banco, // ✅ Corregido
-                    'Moneda' => $request->Moneda,
-                ]);
-
-            return redirect()->route('admin.bancos.index')
-                ->with('success', 'Cuenta bancaria actualizada exitosamente.');
-        } catch (\Exception $e) {
-            return back()->withErrors(['error' => 'Error al actualizar: ' . $e->getMessage()]);
-        }
+        $cheques = $this->bancoService->obtenerChequesPendientes();
+        
+        return view('admin.bancos.cheques-pendientes', compact('cheques'));
     }
 
-    public function destroy($cuenta)
+    /**
+     * Ver transferencias bancarias
+     */
+    public function transferencias(Request $request)
     {
-        // Validar que no esté en uso en CtaBanco
-        $enUso = DB::table('CtaBanco')->where('Cuenta', $cuenta)->exists();
-        if ($enUso) {
-            return back()->withErrors(['error' => 'No se puede eliminar: la cuenta está en uso en movimientos bancarios.']);
-        }
+        $filtros = [
+            'fecha_inicio' => $request->get('fecha_inicio'),
+            'fecha_fin' => $request->get('fecha_fin'),
+            'estado' => $request->get('estado'),
+        ];
 
-        DB::table('Bancos')->where('Cuenta', $cuenta)->delete();
-        return back()->with('success', 'Cuenta bancaria eliminada.');
+        $transferencias = $this->bancoService->obtenerTransferencias($filtros);
+        
+        return view('admin.bancos.transferencias', compact('transferencias', 'filtros'));
     }
 }

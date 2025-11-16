@@ -3,132 +3,162 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\Notificacion;
+use App\Services\NotificacionService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 
 class NotificacionController extends Controller
 {
+    protected $notificacionService;
+
+    public function __construct(NotificacionService $notificacionService)
+    {
+        $this->notificacionService = $notificacionService;
+    }
+
+    /**
+     * Lista de todas las notificaciones
+     */
     public function index(Request $request)
     {
-        $usuarioId = Auth::id();
-        
-        $notificaciones = Notificacion::where('usuario_id', $usuarioId)
-            ->orderBy('created_at', 'desc')
-            ->limit(50)
-            ->get()
-            ->map(function($notif) {
-                return [
-                    'id' => $notif->id,
-                    'tipo' => $notif->tipo,
-                    'titulo' => $notif->titulo,
-                    'mensaje' => $notif->mensaje,
-                    'icono' => $notif->icono,
-                    'color' => $notif->color,
-                    'url' => $notif->url,
-                    'leida' => $notif->leida,
-                    'tiempo' => $notif->created_at->diffForHumans(),
-                    'fecha_completa' => $notif->created_at->format('d/m/Y H:i'),
-                ];
-            });
+        $filtros = [
+            'tipo' => $request->get('tipo'),
+            'leida' => $request->get('leida'),
+            'fecha_inicio' => $request->get('fecha_inicio'),
+            'fecha_fin' => $request->get('fecha_fin'),
+        ];
 
-        return response()->json([
-            'success' => true,
-            'notificaciones' => $notificaciones
-        ]);
+        $notificaciones = $this->notificacionService->obtenerNotificaciones($filtros);
+        $estadisticas = $this->notificacionService->obtenerEstadisticas();
+        
+        return view('admin.notificaciones.index', compact('notificaciones', 'estadisticas', 'filtros'));
     }
 
-    public function countNoLeidas()
+    /**
+     * Formulario para crear notificación manual
+     */
+    public function create()
     {
-        $usuarioId = Auth::id();
+        $usuarios = $this->notificacionService->obtenerUsuariosDisponibles();
         
-        $count = Notificacion::where('usuario_id', $usuarioId)
-            ->where('leida', false)
-            ->count();
-
-        return response()->json([
-            'success' => true,
-            'count' => $count
-        ]);
+        return view('admin.notificaciones.create', compact('usuarios'));
     }
 
+    /**
+     * Guardar nueva notificación
+     */
+    public function store(Request $request)
+    {
+        $request->validate([
+            'tipo' => 'required|in:INFO,ALERTA,CRITICO,EXITO',
+            'titulo' => 'required|string|max:255',
+            'mensaje' => 'required|string',
+            'usuario_id' => 'nullable|integer',
+            'url' => 'nullable|url|max:500',
+        ]);
+
+        $resultado = $this->notificacionService->crearNotificacion([
+            'tipo' => $request->tipo,
+            'titulo' => $request->titulo,
+            'mensaje' => $request->mensaje,
+            'usuario_id' => $request->usuario_id, // NULL = para todos
+            'url' => $request->url,
+            'icono' => $request->icono ?? 'fa-bell',
+            'color' => $this->getColorPorTipo($request->tipo),
+        ]);
+
+        if ($resultado) {
+            return redirect()->route('admin.notificaciones.index')
+                ->with('success', 'Notificación creada correctamente.');
+        }
+
+        return back()->with('error', 'Error al crear la notificación.');
+    }
+
+    /**
+     * Marcar notificación como leída
+     */
     public function marcarLeida($id)
     {
-        $usuarioId = Auth::id();
-        
-        $notificacion = Notificacion::where('id', $id)
-            ->where('usuario_id', $usuarioId)
-            ->first();
+        $resultado = $this->notificacionService->marcarComoLeida($id);
 
-        if (!$notificacion) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Notificación no encontrada'
-            ], 404);
+        if ($resultado) {
+            return response()->json(['success' => true]);
         }
 
-        $notificacion->update([
-            'leida' => true,
-            'leida_en' => now()
-        ]);
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Notificación marcada como leída'
-        ]);
+        return response()->json(['success' => false], 400);
     }
 
+    /**
+     * Marcar todas como leídas
+     */
     public function marcarTodasLeidas()
     {
-        $usuarioId = Auth::id();
-        
-        Notificacion::where('usuario_id', $usuarioId)
-            ->where('leida', false)
-            ->update([
-                'leida' => true,
-                'leida_en' => now()
-            ]);
+        $usuarioId = auth()->user()->id;
+        $resultado = $this->notificacionService->marcarTodasComoLeidas($usuarioId);
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Todas las notificaciones marcadas como leídas'
-        ]);
+        return redirect()->back()->with('success', 'Todas las notificaciones fueron marcadas como leídas.');
     }
 
-    public function eliminar($id)
+    /**
+     * Eliminar notificación
+     */
+    public function destroy($id)
     {
-        $usuarioId = Auth::id();
-        
-        $notificacion = Notificacion::where('id', $id)
-            ->where('usuario_id', $usuarioId)
-            ->first();
+        $resultado = $this->notificacionService->eliminarNotificacion($id);
 
-        if (!$notificacion) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Notificación no encontrada'
-            ], 404);
+        if ($resultado) {
+            return redirect()->route('admin.notificaciones.index')
+                ->with('success', 'Notificación eliminada correctamente.');
         }
 
-        $notificacion->delete();
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Notificación eliminada'
-        ]);
+        return back()->with('error', 'Error al eliminar la notificación.');
     }
 
-    public function limpiarLeidas()
+    /**
+     * Dashboard de estadísticas
+     */
+    public function estadisticas()
     {
-        $usuarioId = Auth::id();
+        $estadisticas = $this->notificacionService->obtenerEstadisticasDetalladas();
+        $porTipo = $this->notificacionService->obtenerNotificacionesPorTipo();
+        $recientes = $this->notificacionService->obtenerNotificacionesRecientes(20);
         
-        $eliminadas = Notificacion::where('usuario_id', $usuarioId)
-            ->where('leida', true)
-            ->delete();
+        return view('admin.notificaciones.estadisticas', compact('estadisticas', 'porTipo', 'recientes'));
+    }
 
-        return response()->json([
-            'success' => true,
-            'message' => "Se eliminaron {$eliminadas} notificaciones leídas"
-        ]);
+    /**
+     * Generar notificaciones automáticas manualmente
+     */
+    public function generarAutomaticas()
+    {
+        $resultado = $this->notificacionService->generarNotificacionesAutomaticas();
+
+        return redirect()->route('admin.notificaciones.index')
+            ->with('success', "Se generaron {$resultado['creadas']} notificaciones automáticas.");
+    }
+
+    /**
+     * Ver notificaciones no leídas (API para dropdown)
+     */
+    public function noLeidas()
+    {
+        $usuarioId = auth()->user()->id;
+        $notificaciones = $this->notificacionService->obtenerNoLeidas($usuarioId);
+
+        return response()->json($notificaciones);
+    }
+
+    /**
+     * Obtener color según tipo
+     */
+    private function getColorPorTipo($tipo)
+    {
+        return match($tipo) {
+            'INFO' => 'primary',
+            'ALERTA' => 'warning',
+            'CRITICO' => 'danger',
+            'EXITO' => 'success',
+            default => 'secondary'
+        };
     }
 }

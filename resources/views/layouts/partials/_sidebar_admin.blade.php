@@ -31,11 +31,6 @@
     <span>Cuentas por Cobrar</span>
 </a>
 
-<a class="nav-link {{ request()->routeIs('admin.reportes.cuentas-pagar') ? 'active' : '' }}" href="{{ route('admin.reportes.cuentas-pagar') }}">
-    <i class="fas fa-money-bill-wave"></i>
-    <span>Cuentas por Pagar</span>
-</a>
-
 <a class="nav-link {{ request()->routeIs('admin.cuentas-corrientes.*') ? 'active' : '' }}" href="{{ route('admin.cuentas-corrientes.index') }}">
     <i class="fas fa-exchange-alt"></i>
     <span>Cuentas Corrientes</span>
@@ -44,17 +39,12 @@
 <div class="nav-section">Reportes de Inventario</div>
 <a class="nav-link {{ request()->routeIs('admin.reportes.inventario-valorado') ? 'active' : '' }}" href="{{ route('admin.reportes.inventario-valorado') }}">
     <i class="fas fa-warehouse"></i>
-    <span>Inventario Valorizado</span>
+    <span>Inventario Valorizado</span>{{-- Inventario general + servicio + vistas  --}}
 </a>
 
 <a class="nav-link {{ request()->routeIs('admin.reportes.productos-vencer') ? 'active' : '' }}" href="{{ route('admin.reportes.productos-vencer') }}">
     <i class="fas fa-exclamation-triangle"></i>
     <span>Productos por Vencer</span>
-</a>
-
-<a class="nav-link {{ request()->routeIs('admin.reportes.kardex-producto') ? 'active' : '' }}" href="{{ route('admin.reportes.kardex.buscar') }}">
-    <i class="fas fa-clipboard-list"></i>
-    <span>Kardex de Productos</span>
 </a>
 
 <a class="nav-link {{ request()->routeIs('admin.reportes.rentabilidad-productos') ? 'active' : '' }}" href="{{ route('admin.reportes.rentabilidad-productos') }}">
@@ -63,10 +53,6 @@
 </a>
 
 <div class="nav-section">Reportes SUNAT</div>
-<a class="nav-link {{ request()->routeIs('admin.reportes.sunat-ventas') ? 'active' : '' }}" href="{{ route('admin.reportes.sunat-ventas') }}">
-    <i class="fas fa-file-alt"></i>
-    <span>Registro de Ventas</span>
-</a>
 
 <a class="nav-link {{ request()->routeIs('admin.reportes.sunat-compras') ? 'active' : '' }}" href="{{ route('admin.reportes.sunat-compras') }}">
     <i class="fas fa-file-invoice"></i>
@@ -79,15 +65,7 @@
     <span>Bancos y Cuentas</span>
 </a>
 
-<a class="nav-link {{ request()->routeIs('admin.reportes.facturas') ? 'active' : '' }}" href="{{ route('admin.reportes.facturas') }}">
-    <i class="fas fa-file-invoice-dollar"></i>
-    <span>Facturas</span>
-</a>
 
-{{--<a class="nav-link {{ request()->routeIs('admin.reportes.movimientos') ? 'active' : '' }}" href="{{ route('admin.reportes.movimientos') }}">
-    <i class="fas fa-money-check-alt"></i>
-    <span>Movimientos Bancarios</span>
-</a>--}}
 
 <div class="nav-section">Administración del Sistema</div>
 <a class="nav-link {{ request()->routeIs('admin.usuarios.*') ? 'active' : '' }}" href="{{ route('admin.usuarios.index') }}">
@@ -107,21 +85,10 @@
 
 <a class="nav-link {{ request()->routeIs('admin.planillas.*') ? 'active' : '' }}" href="{{ route('admin.planillas.index') }}">
     <i class="fas fa-file-invoice-dollar"></i>
-    <span>Planillas Administrativas</span>
+    <span>Planillas Administrativas</span>{{-- Revisar el controlador y crear el servicio y las vistas --}}
 </a>
 
-<div class="nav-section">Estados Contables</div>
-{{--<a class="nav-link {{ request()->routeIs('admin.balance-general.*') ? 'active' : '' }}" href="{{ route('admin.balance-general.index') }}">
-    <i class="fas fa-balance-scale"></i>
-    <span>Balance General</span>
-</a>--}}
 
-<a class="nav-link {{ request()->routeIs('admin.cxc.*') ? 'active' : '' }}" href="{{ route('admin.cxc.index') }}">
-    <i class="fas fa-receipt"></i>
-    <span>Gestión CxC</span>
-</a>
 
-<a class="nav-link {{ request()->routeIs('admin.notificaciones.*') ? 'active' : '' }}" href="{{ route('admin.notificaciones.index') }}">
-    <i class="fas fa-bell"></i>
-    <span>Notificaciones</span>
-</a>
+
+

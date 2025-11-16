@@ -2,8 +2,12 @@
 
 @section('title', 'Reporte de Ventas por Producto')
 
+@push('styles')
+    <link href="{{ asset('css/admin/ventas-producto.css') }}" rel="stylesheet">
+@endpush
+
 @section('content')
-<div class="container-fluid py-4">
+<div class="ventas-producto-container">
     
     <div class="row mb-4">
         <div class="col-12">
@@ -29,7 +33,7 @@
                                    value="{{ request('fecha_fin', $fechaFin->format('Y-m-d')) }}">
                         </div>
                         <div class="col-md-4 d-flex align-items-end">
-                            <button type="submit" class="btn btn-success me-2">
+                            <button type="submit" class="btn btn-primary me-2">
                                 <i class="fas fa-search me-2"></i>Buscar
                             </button>
                             <a href="{{ route('admin.reportes.ventas-producto.export', request()->all()) }}" 

@@ -1,0 +1,539 @@
+/*
+ * =====================================================
+ * MÓDULO DE VENTAS POR PERÍODO - SISTEMA CONTABLE
+ * Estilos profesionales para reportes empresariales
+ * =====================================================
+ */
+
+/* =====================================================
+   1. VARIABLES Y CONFIGURACIÓN BASE
+   ===================================================== */
+:root {
+    /* Paleta Profesional Empresarial */
+    --ventas-primary: #1e3a5f;
+    --ventas-primary-dark: #152a45;
+    --ventas-primary-light: #2d4d7a;
+    --ventas-secondary: #455a64;
+    
+    /* Colores Funcionales */
+    --ventas-success: #2e7d32;
+    --ventas-success-light: #e8f5e9;
+    --ventas-danger: #c62828;
+    --ventas-danger-light: #ffebee;
+    --ventas-info: #0277bd;
+    --ventas-info-light: #e1f5fe;
+    --ventas-warning: #f57c00;
+    --ventas-warning-light: #fff3e0;
+    
+    /* Colores Neutros */
+    --ventas-text-primary: #212529;
+    --ventas-text-secondary: #6c757d;
+    --ventas-text-muted: #868e96;
+    --ventas-border: #dee2e6;
+    --ventas-border-light: #e9ecef;
+    --ventas-bg: #f8f9fa;
+    --ventas-bg-white: #ffffff;
+    --ventas-bg-dark: #f1f3f5;
+    
+    /* Espaciado Consistente */
+    --spacing-xs: 0.5rem;
+    --spacing-sm: 0.75rem;
+    --spacing-md: 1rem;
+    --spacing-lg: 1.5rem;
+    --spacing-xl: 2rem;
+    --spacing-xxl: 3rem;
+    
+    /* Bordes y Sombras Sutiles */
+    --radius-sm: 4px;
+    --radius-md: 6px;
+    --radius-lg: 8px;
+    --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.05);
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
+    --shadow-md: 0 2px 6px rgba(0, 0, 0, 0.1);
+    --shadow-lg: 0 4px 12px rgba(0, 0, 0, 0.12);
+    
+    /* Transiciones */
+    --transition: all 0.2s ease;
+}
+
+/* =====================================================
+   2. CONTENEDOR PRINCIPAL
+   ===================================================== */
+.ventasperiodo-container {
+    background-color: var(--ventas-bg);
+    padding: var(--spacing-xs) var(--spacing-xl);;
+    min-height: 100vh;
+}
+
+/* =====================================================
+   3. TARJETA PRINCIPAL
+   ===================================================== */
+.ventasperiodo-container .card {
+    border: 1px solid var(--ventas-border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    background-color: var(--ventas-bg-white);
+    overflow: hidden;
+}
+
+.ventasperiodo-container .card-header {
+    background: linear-gradient(135deg, var(--ventas-primary) 0%, var(--ventas-primary-dark) 100%);
+    color: var(--ventas-bg-white);
+    padding: var(--spacing-lg) var(--spacing-xl);
+    border-bottom: none;
+}
+
+.ventasperiodo-container .card-header h5 {
+    font-size: 1.125rem;
+    font-weight: 600;
+    margin: 0;
+    letter-spacing: 0.3px;
+    display: flex;
+    align-items: center;
+}
+
+.ventasperiodo-container .card-header h5 i {
+    margin-right: var(--spacing-sm);
+    opacity: 0.9;
+}
+
+.ventasperiodo-container .card-body {
+    padding: var(--spacing-xl);
+}
+
+/* =====================================================
+   4. FORMULARIO DE FILTROS
+   ===================================================== */
+.ventasperiodo-container form {
+    background-color: var(--ventas-bg-dark);
+    padding: var(--spacing-lg);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--ventas-border-light);
+    margin-bottom: var(--spacing-lg);
+}
+
+.ventasperiodo-container .form-label {
+    font-weight: 600;
+    font-size: 0.8125rem;
+    color: var(--ventas-text-primary);
+    margin-bottom: var(--spacing-xs);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.ventasperiodo-container .form-control {
+    border: 1px solid var(--ventas-border);
+    border-radius: var(--radius-md);
+    padding: 0.5rem var(--spacing-sm);
+    font-size: 0.9375rem;
+    color: var(--ventas-text-primary);
+    transition: var(--transition);
+    background-color: var(--ventas-bg-white);
+}
+
+.ventasperiodo-container .form-control:focus {
+    border-color: var(--ventas-primary);
+    box-shadow: 0 0 0 0.2rem rgba(30, 58, 95, 0.1);
+    outline: none;
+}
+
+/* =====================================================
+   5. BOTONES
+   ===================================================== */
+.ventasperiodo-container .btn {
+    padding: 0.5rem var(--spacing-lg);
+    font-weight: 600;
+    font-size: 0.875rem;
+    border-radius: var(--radius-md);
+    transition: var(--transition);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border: none;
+}
+
+.ventasperiodo-container .btn i {
+    margin-right: 0.375rem;
+}
+
+.ventasperiodo-container .btn-primary {
+    background-color: var(--ventas-primary);
+    box-shadow: var(--shadow-xs);
+}
+
+.ventasperiodo-container .btn-primary:hover {
+    background-color: var(--ventas-primary-dark);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+}
+
+.ventasperiodo-container .btn-success {
+    background-color: var(--ventas-success);
+    box-shadow: var(--shadow-xs);
+}
+
+.ventasperiodo-container .btn-success:hover {
+    background-color: #256029;
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+}
+
+/* =====================================================
+   6. TARJETAS DE RESUMEN (KPIs)
+   ===================================================== */
+.ventasperiodo-container .row.g-3 {
+    row-gap: var(--spacing-lg) !important;
+}
+
+.ventasperiodo-container .bg-light {
+    background-color: var(--ventas-bg-white) !important;
+    border: 1px solid var(--ventas-border-light);
+    border-radius: var(--radius-md);
+    padding: var(--spacing-lg) !important;
+    position: relative;
+    overflow: hidden;
+    transition: var(--transition);
+    box-shadow: var(--shadow-xs);
+}
+
+.ventasperiodo-container .bg-light::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    transition: var(--transition);
+}
+
+.ventasperiodo-container .bg-light:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+/* Colores de borde izquierdo por tipo */
+.ventasperiodo-container .bg-light:has(.text-success)::before {
+    background-color: var(--ventas-success);
+}
+
+.ventasperiodo-container .bg-light:has(.text-primary)::before {
+    background-color: var(--ventas-primary);
+}
+
+.ventasperiodo-container .bg-light:has(.text-info)::before {
+    background-color: var(--ventas-info);
+}
+
+.ventasperiodo-container .bg-light:has(.text-warning)::before {
+    background-color: var(--ventas-warning);
+}
+
+.ventasperiodo-container .bg-light p.small {
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--ventas-text-secondary);
+    margin-bottom: 0.375rem;
+}
+
+.ventasperiodo-container .bg-light h4 {
+    font-weight: 700;
+    font-size: 1.875rem;
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    line-height: 1.2;
+    margin: 0;
+}
+
+/* Colores de valores */
+.ventasperiodo-container .text-success {
+    color: var(--ventas-success) !important;
+}
+
+.ventasperiodo-container .text-primary {
+    color: var(--ventas-primary) !important;
+}
+
+.ventasperiodo-container .text-info {
+    color: var(--ventas-info) !important;
+}
+
+.ventasperiodo-container .text-warning {
+    color: var(--ventas-warning) !important;
+}
+
+/* =====================================================
+   7. TABLA DE VENTAS
+   ===================================================== */
+.ventasperiodo-container .table-responsive {
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--ventas-border-light);
+}
+
+.ventasperiodo-container .table {
+    margin-bottom: 0;
+    font-size: 0.875rem;
+}
+
+.ventasperiodo-container .table thead {
+    background-color: var(--ventas-bg-dark);
+    border-bottom: 2px solid var(--ventas-border);
+}
+
+.ventasperiodo-container .table thead th {
+    font-weight: 700;
+    font-size: 0.75rem;
+    color: var(--ventas-text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    padding: var(--spacing-md) var(--spacing-sm);
+    border-bottom: 2px solid var(--ventas-border);
+    white-space: nowrap;
+    vertical-align: middle;
+}
+
+.ventasperiodo-container .table tbody td {
+    padding: var(--spacing-md) var(--spacing-sm);
+    vertical-align: middle;
+    color: var(--ventas-text-primary);
+    border-bottom: 1px solid var(--ventas-border-light);
+}
+
+.ventasperiodo-container .table tbody tr {
+    transition: background-color 0.15s ease;
+}
+
+.ventasperiodo-container .table-hover tbody tr:hover {
+    background-color: var(--ventas-bg);
+}
+
+.ventasperiodo-container .table tbody td strong {
+    color: var(--ventas-text-primary);
+    font-weight: 600;
+}
+
+.ventasperiodo-container .table tbody td small {
+    font-size: 0.75rem;
+    color: var(--ventas-text-muted);
+}
+
+.ventasperiodo-container .table tfoot {
+    background-color: var(--ventas-bg-dark);
+    border-top: 2px solid var(--ventas-border);
+}
+
+.ventasperiodo-container .table tfoot th {
+    padding: var(--spacing-md) var(--spacing-sm);
+    color: var(--ventas-text-primary);
+    font-weight: 700;
+    font-size: 0.875rem;
+}
+
+/* Alineación de columnas numéricas */
+.ventasperiodo-container .text-end {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum";
+}
+
+.ventasperiodo-container .fw-bold {
+    font-weight: 700 !important;
+}
+
+/* =====================================================
+   8. BADGES Y ETIQUETAS
+   ===================================================== */
+.ventasperiodo-container .badge {
+    padding: 0.4em 0.75em;
+    font-weight: 600;
+    font-size: 0.75rem;
+    border-radius: var(--radius-sm);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.ventasperiodo-container .badge.bg-success {
+    background-color: var(--ventas-success) !important;
+    color: var(--ventas-bg-white);
+}
+
+.ventasperiodo-container .badge.bg-warning {
+    background-color: var(--ventas-warning) !important;
+    color: var(--ventas-bg-white);
+}
+
+.ventasperiodo-container .badge.bg-secondary {
+    background-color: var(--ventas-secondary) !important;
+    color: var(--ventas-bg-white);
+}
+
+/* =====================================================
+   9. ESTADO VACÍO
+   ===================================================== */
+.ventasperiodo-container .text-center.text-muted.py-4 {
+    color: var(--ventas-text-muted) !important;
+    font-style: italic;
+    padding: var(--spacing-xxl) var(--spacing-md) !important;
+}
+
+.ventasperiodo-container .text-muted {
+    color: var(--ventas-text-muted) !important;
+}
+
+/* =====================================================
+   10. SCROLLBAR PERSONALIZADO
+   ===================================================== */
+.ventasperiodo-container .table-responsive {
+    scrollbar-width: thin;
+    scrollbar-color: var(--ventas-border) var(--ventas-bg-dark);
+}
+
+.ventasperiodo-container .table-responsive::-webkit-scrollbar {
+    height: 8px;
+}
+
+.ventasperiodo-container .table-responsive::-webkit-scrollbar-track {
+    background: var(--ventas-bg-dark);
+    border-radius: var(--radius-sm);
+}
+
+.ventasperiodo-container .table-responsive::-webkit-scrollbar-thumb {
+    background-color: var(--ventas-border);
+    border-radius: var(--radius-sm);
+}
+
+.ventasperiodo-container .table-responsive::-webkit-scrollbar-thumb:hover {
+    background-color: var(--ventas-text-muted);
+}
+
+/* =====================================================
+   11. UTILIDADES
+   ===================================================== */
+.ventasperiodo-container .shadow-sm {
+    box-shadow: var(--shadow-sm) !important;
+}
+
+.ventasperiodo-container .border-0 {
+    border: none !important;
+}
+
+/* =====================================================
+   12. RESPONSIVE DESIGN
+   ===================================================== */
+@media (max-width: 992px) {
+    .ventasperiodo-container {
+        padding: var(--spacing-lg);
+    }
+}
+
+@media (max-width: 768px) {
+    .ventasperiodo-container {
+        padding: var(--spacing-md);
+    }
+    
+    .ventasperiodo-container .card-body {
+        padding: var(--spacing-lg);
+    }
+    
+    .ventasperiodo-container .card-header {
+        padding: var(--spacing-md) var(--spacing-lg);
+    }
+    
+    .ventasperiodo-container .card-header h5 {
+        font-size: 1rem;
+    }
+    
+    .ventasperiodo-container form {
+        padding: var(--spacing-md);
+    }
+    
+    .ventasperiodo-container .bg-light {
+        padding: var(--spacing-md) !important;
+    }
+    
+    .ventasperiodo-container .bg-light h4 {
+        font-size: 1.5rem;
+    }
+    
+    .ventasperiodo-container .table {
+        font-size: 0.8125rem;
+    }
+    
+    .ventasperiodo-container .table thead th,
+    .ventasperiodo-container .table tbody td {
+        padding: var(--spacing-sm);
+    }
+    
+    .ventasperiodo-container .btn {
+        font-size: 0.8125rem;
+        padding: 0.5rem var(--spacing-md);
+    }
+}
+
+@media (max-width: 576px) {
+    .ventasperiodo-container {
+        padding: var(--spacing-sm);
+    }
+    
+    .ventasperiodo-container .card-body {
+        padding: var(--spacing-md);
+    }
+    
+    .ventasperiodo-container .card-header {
+        padding: var(--spacing-sm) var(--spacing-md);
+    }
+    
+    .ventasperiodo-container .card-header h5 {
+        font-size: 0.9375rem;
+    }
+    
+    .ventasperiodo-container .bg-light h4 {
+        font-size: 1.25rem;
+    }
+    
+    .ventasperiodo-container .bg-light p.small {
+        font-size: 0.6875rem;
+    }
+    
+    .ventasperiodo-container .table {
+        font-size: 0.75rem;
+    }
+    
+    .ventasperiodo-container .btn {
+        padding: 0.4rem var(--spacing-md);
+        font-size: 0.75rem;
+    }
+}
+
+/* =====================================================
+   13. OPTIMIZACIÓN DE IMPRESIÓN
+   ===================================================== */
+@media print {
+    .ventasperiodo-container {
+        background-color: var(--ventas-bg-white);
+        padding: 0;
+    }
+    
+    .ventasperiodo-container .card {
+        box-shadow: none;
+        border: 1px solid var(--ventas-text-primary);
+    }
+    
+    .ventasperiodo-container .card-header {
+        background: var(--ventas-text-primary) !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+    
+    .ventasperiodo-container .btn {
+        display: none;
+    }
+    
+    .ventasperiodo-container form {
+        display: none;
+    }
+    
+    .ventasperiodo-container .table {
+        border: 1px solid var(--ventas-text-primary);
+    }
+}

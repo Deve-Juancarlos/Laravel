@@ -2,8 +2,12 @@
 
 @section('title', 'Dashboard Administrativo')
 
+@push('styles')
+    <link href="{{ asset('css/dashboard/admin.css') }}" rel="stylesheet">
+@endpush
+
 @section('content')
-<div class="container-fluid py-4">
+<div class="dashboard-admin-container">
     
     <!-- Header con título y fecha -->
     <div class="row mb-4">

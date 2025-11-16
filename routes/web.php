@@ -10,6 +10,7 @@ use App\Http\Controllers\Admin\UsuarioController;
 use App\Http\Controllers\Admin\CuentaController;
 use App\Http\Controllers\Admin\ReporteController;
 use App\Http\Controllers\Admin\AuditoriaController;
+use App\Http\Controllers\Admin\NotificacionController;
 use App\Http\Controllers\Contabilidad\BalanceGeneralController;
 use App\Http\Controllers\Contabilidad\LibroDiarioController;
 use App\Http\Controllers\Contabilidad\EstadoResultadosController;
@@ -28,7 +29,7 @@ use App\Http\Controllers\Reportes\ReporteDashboardController;
 use App\Http\Controllers\Reportes\ReporteAuditoriaController;
 use App\Http\Controllers\Admin\SolicitudAsientoController; 
 use App\Http\Controllers\Admin\DashboardController;
-use Illuminate\Support\Facades\Auth; 
+use Illuminate\Support\Facades\Auth;
 
 // El grupo 'web' carga la sesión y soluciona el error 'usuario_id: null'.
 Route::middleware(['web'])->group(function () {
@@ -76,9 +77,34 @@ Route::middleware(['web'])->group(function () {
             })->name('session.ping');
 
             //MÓDULO: GESTIÓN BANCARIA
-            Route::resource('bancos', BancoController::class)
-                ->except(['show'])
-                ->names('bancos');
+            Route::prefix('bancos')->name('bancos.')->group(function () {
+        
+                // Lista principal de cuentas con saldos
+                Route::get('/', [BancoController::class, 'index'])->name('index');
+                
+                // Ver movimientos de una cuenta específica
+                Route::get('/{cuenta}/movimientos', [BancoController::class, 'movimientos'])->name('movimientos');
+                
+                // Dashboard de estadísticas y flujo de caja
+                Route::get('/estadisticas', [BancoController::class, 'estadisticas'])->name('estadisticas');
+                
+                // Vista consolidada de saldos
+                Route::get('/saldos', [BancoController::class, 'saldos'])->name('saldos');
+                
+                // Conciliación bancaria
+                Route::get('/{cuenta}/conciliacion', [BancoController::class, 'conciliacion'])->name('conciliacion');
+                Route::post('/{cuenta}/conciliacion', [BancoController::class, 'guardarConciliacion'])->name('guardar-conciliacion');
+                
+                // Exportar movimientos a Excel
+                Route::get('/{cuenta}/exportar', [BancoController::class, 'exportar'])->name('exportar');
+                
+                // Cheques pendientes
+                Route::get('/cheques-pendientes', [BancoController::class, 'chequesPendientes'])->name('cheques-pendientes');
+                
+                // Transferencias bancarias
+                Route::get('/transferencias', [BancoController::class, 'transferencias'])->name('transferencias');
+                
+            });
 
             //MÓDULO: GESTIÓN DE USUARIOS
             Route::prefix('usuarios')->name('usuarios.')->group(function () {
@@ -201,20 +227,61 @@ Route::middleware(['web'])->group(function () {
 
             //MÓDULO: AUDITORÍA Y TRAZABILIDAD
             Route::prefix('auditoria')->name('auditoria.')->group(function () {
+        
+                // Lista principal con filtros
                 Route::get('/', [AuditoriaController::class, 'index'])->name('index');
+                
+                // Dashboard de estadísticas
+                Route::get('/estadisticas', [AuditoriaController::class, 'estadisticas'])->name('estadisticas');
+                
+                // Timeline de eventos
+                Route::get('/timeline', [AuditoriaController::class, 'timeline'])->name('timeline');
+                
+                // Ver detalle de un evento específico
+                Route::get('/detalle/{id}', [AuditoriaController::class, 'detalle'])->name('detalle');
+                
+                // Ver eventos de un usuario específico
+                Route::get('/usuario/{usuario}', [AuditoriaController::class, 'porUsuario'])->name('por-usuario');
+                
+                // Ver eventos por tipo de acción
+                Route::get('/accion/{accion}', [AuditoriaController::class, 'porAccion'])->name('por-accion');
+                
+                // Exportar logs a Excel
                 Route::get('/exportar', [AuditoriaController::class, 'exportar'])->name('exportar');
-                Route::post('/buscar', [AuditoriaController::class, 'buscar'])->name('buscar');
-                Route::get('/{id}', [AuditoriaController::class, 'detalle'])->name('detalle');
+                
+                // Limpiar logs antiguos (opcional - con confirmación)
+                Route::post('/limpiar', [AuditoriaController::class, 'limpiarLogs'])->name('limpiar');
+                
             });
 
             //MÓDULO: NOTIFICACIONES
             Route::prefix('notificaciones')->name('notificaciones.')->group(function () {
-                Route::get('/', [App\Http\Controllers\Admin\NotificacionController::class, 'index'])->name('index');
-                Route::get('/count', [App\Http\Controllers\Admin\NotificacionController::class, 'countNoLeidas'])->name('count');
-                Route::post('/marcar-todas-leidas', [App\Http\Controllers\Admin\NotificacionController::class, 'marcarTodasLeidas'])->name('marcar-todas');
-                Route::delete('/limpiar/leidas', [App\Http\Controllers\Admin\NotificacionController::class, 'limpiarLeidas'])->name('limpiar');
-                Route::post('/{id}/marcar-leida', [App\Http\Controllers\Admin\NotificacionController::class, 'marcarLeida'])->name('marcar-leida');
-                Route::delete('/{id}', [App\Http\Controllers\Admin\NotificacionController::class, 'eliminar'])->name('eliminar');
+                
+                // Lista de notificaciones
+                Route::get('/', [NotificacionController::class, 'index'])->name('index');
+                
+                // Crear notificación manual
+                Route::get('/create', [NotificacionController::class, 'create'])->name('create');
+                Route::post('/store', [NotificacionController::class, 'store'])->name('store');
+                
+                // Marcar como leída
+                Route::post('/{id}/marcar-leida', [NotificacionController::class, 'marcarLeida'])->name('marcar-leida');
+                
+                // Marcar todas como leídas
+                Route::post('/marcar-todas-leidas', [NotificacionController::class, 'marcarTodasLeidas'])->name('marcar-todas-leidas');
+                
+                // Eliminar notificación
+                Route::delete('/{id}', [NotificacionController::class, 'destroy'])->name('destroy');
+                
+                // Estadísticas
+                Route::get('/estadisticas', [NotificacionController::class, 'estadisticas'])->name('estadisticas');
+                
+                // Generar notificaciones automáticas
+                Route::post('/generar-automaticas', [NotificacionController::class, 'generarAutomaticas'])->name('generar-automaticas');
+                
+                // API: Obtener no leídas (para dropdown)
+                Route::get('/no-leidas', [NotificacionController::class, 'noLeidas'])->name('no-leidas');
+                
             });
 
             //MÓDULO: PLANILLAS ADMINISTRATIVAS

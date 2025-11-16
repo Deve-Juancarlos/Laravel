@@ -2,8 +2,12 @@
 
 @section('title', 'Reporte de Ventas por Período')
 
+@push('styles')
+    <link href="{{ asset('css/admin/reporte-periodo.css') }}" rel="stylesheet">
+@endpush
+
 @section('content')
-<div class="container-fluid py-4">
+<div class="ventasperiodo-container">
     
     <div class="row mb-4">
         <div class="col-12">
