@@ -2,8 +2,12 @@
 
 @section('title', 'Productos por Vencer')
 
+@push('styles')
+    <link href="{{ asset('css/admin/productos-vencer.css') }}" rel="stylesheet">
+@endpush
+
 @section('content')
-<div class="container-fluid py-4">
+<div class="productos-vencer-container">
     
     <div class="row mb-4">
         <div class="col-12">

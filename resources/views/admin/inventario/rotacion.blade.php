@@ -2,6 +2,15 @@
 
 @section('title', 'Rotación de Inventario')
 
+
+@push('styles')
+    <link rel="stylesheet" href="{{ asset('css/admin/inventario/rotacion.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+@endpush
+
 @section('header-content')
 <div>
     <h1 class="h3 mb-0">Rotación de Inventario</h1>

@@ -2,6 +2,14 @@
 
 @section('title', 'Valorización de Inventario')
 
+@push('styles')
+    <link rel="stylesheet" href="{{ asset('css/admin/inventario/valoracion.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+@endpush
+
 @section('header-content')
 <div>
     <h1 class="h3 mb-0">Valorización del Inventario</h1>
@@ -25,7 +33,7 @@
                     <i class="fas fa-cubes fa-3x text-info"></i>
                 </div>
                 <h6 class="text-muted mb-2">Total Unidades</h6>
-                <h2 class="mb-0">{{ number_format($valorizacion->unidades_totales) }}</h2>
+                <h2 class="mb-0">{{ number_format($totales->unidades_totales, 0) }}</h2>
             </div>
         </div>
     </div>
@@ -37,7 +45,7 @@
                     <i class="fas fa-dollar-sign fa-3x text-danger"></i>
                 </div>
                 <h6 class="text-muted mb-2">Costo Total</h6>
-                <h2 class="mb-0 text-danger">S/ {{ number_format($valorizacion->costo_total, 2) }}</h2>
+                <h2 class="mb-0 text-danger">S/ {{ number_format($totales->costo_total, 2) }}</h2>
             </div>
         </div>
     </div>
@@ -49,7 +57,7 @@
                     <i class="fas fa-chart-line fa-3x text-success"></i>
                 </div>
                 <h6 class="text-muted mb-2">Precio Venta Total</h6>
-                <h2 class="mb-0 text-success">S/ {{ number_format($valorizacion->precio_venta_total, 2) }}</h2>
+                <h2 class="mb-0 text-success">S/ {{ number_format($totales->precio_venta_total, 2) }}</h2>
             </div>
         </div>
     </div>
@@ -61,9 +69,9 @@
         <div class="card border-0 shadow-sm">
             <div class="card-body">
                 @php
-                    $margenPotencial = $valorizacion->precio_venta_total - $valorizacion->costo_total;
-                    $porcentajeMargen = $valorizacion->costo_total > 0 
-                        ? ($margenPotencial / $valorizacion->costo_total) * 100 
+                    $margenPotencial = $totales->precio_venta_total - $totales->costo_total;
+                    $porcentajeMargen = $totales->costo_total > 0 
+                        ? ($margenPotencial / $totales->costo_total) * 100 
                         : 0;
                 @endphp
                 <div class="text-center">
@@ -106,7 +114,7 @@
                         <td class="text-center">
                             <span class="badge bg-secondary">{{ $lab->cantidad_productos }}</span>
                         </td>
-                        <td class="text-end">{{ number_format($lab->stock_total) }}</td>
+                        <td class="text-end">{{ number_format($lab->stock_total, 0) }}</td>
                         <td class="text-end">
                             <strong class="text-success">S/ {{ number_format($lab->valorizacion, 2) }}</strong>
                         </td>
@@ -133,7 +141,7 @@
                     <tr>
                         <th>TOTAL</th>
                         <th class="text-center">{{ $porLaboratorio->sum('cantidad_productos') }}</th>
-                        <th class="text-end">{{ number_format($porLaboratorio->sum('stock_total')) }}</th>
+                        <th class="text-end">{{ number_format($porLaboratorio->sum('stock_total'), 0) }}</th>
                         <th class="text-end">
                             <strong class="fs-5 text-success">
                                 S/ {{ number_format($totalValorizacion, 2) }}

@@ -1,0 +1,645 @@
+/* ============================================
+   CUENTAS CORRIENTES - DISEÑO PROFESIONAL
+   Sistema de Gestión Financiera Moderna
+   ============================================ */
+
+/* ========== FUENTES Y VARIABLES ========== */
+:root {
+    /* Paleta Azul Corporativa */
+    --primary-blue: #2563eb;
+    --primary-blue-dark: #1e40af;
+    --primary-blue-light: #3b82f6;
+    --accent-blue: #60a5fa;
+    
+    /* Estados Financieros */
+    --success-green: #10b981;
+    --success-light: #d1fae5;
+    --danger-red: #ef4444;
+    --danger-light: #fee2e2;
+    --warning-orange: #f59e0b;
+    --warning-light: #fef3c7;
+    --info-cyan: #06b6d4;
+    --info-light: #cffafe;
+    
+    /* Tipos de Documentos */
+    --factura-color: #8b5cf6;
+    --boleta-color: #ec4899;
+    --letra-color: #f59e0b;
+    --nota-credito-color: #10b981;
+    
+    /* Neutrales Profesionales */
+    --gray-50: #f9fafb;
+    --gray-100: #f3f4f6;
+    --gray-200: #e5e7eb;
+    --gray-300: #d1d5db;
+    --gray-400: #9ca3af;
+    --gray-500: #6b7280;
+    --gray-600: #4b5563;
+    --gray-700: #374151;
+    --gray-800: #1f2937;
+    --gray-900: #111827;
+    
+    /* Sombras Profesionales */
+    --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: var(--gray-50);
+}
+
+/* ========== CONTENEDOR PRINCIPAL ========== */
+.cuentas-container {
+    padding: 2rem;
+    max-width: 1400px;
+    margin: 0 auto;
+    animation: fadeInUp 0.5s ease-out;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ========== HEADER ========== */
+.cuentas-header {
+    background: linear-gradient(135deg, var(--primary-blue) 0%, var(--primary-blue-dark) 100%);
+    padding: 1.5rem 2rem;
+    border-radius: 16px;
+    margin-bottom: 2rem;
+    box-shadow: var(--shadow-lg);
+    color: white;
+    animation: slideInDown 0.6s ease-out;
+}
+
+@keyframes slideInDown {
+    from {
+        opacity: 0;
+        transform: translateY(-30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.cuentas-header h4 {
+    margin: 0;
+    font-weight: 700;
+    font-size: 1.5rem;
+    letter-spacing: -0.025em;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.cuentas-header i {
+    font-size: 1.75rem;
+    opacity: 0.95;
+}
+
+.cuentas-badge {
+    background: rgba(255, 255, 255, 0.2);
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+    padding: 0.5rem 1.25rem;
+    border-radius: 50px;
+    font-weight: 600;
+    font-size: 0.875rem;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+/* ========== STATISTICS SECTION ========== */
+.stats-section {
+    margin-bottom: 2rem;
+    animation: fadeInUp 0.7s ease-out;
+}
+
+.stats-grid-mini {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+}
+
+.stat-mini-card {
+    background: white;
+    border-radius: 16px;
+    padding: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    box-shadow: var(--shadow-md);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+.stat-mini-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
+    transition: width 0.3s ease;
+}
+
+.stat-mini-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-xl);
+}
+
+.stat-mini-card:hover::before {
+    width: 8px;
+}
+
+.stat-mini-card.total::before {
+    background: linear-gradient(180deg, var(--primary-blue), var(--primary-blue-dark));
+}
+
+.stat-mini-card.deudor::before {
+    background: linear-gradient(180deg, var(--danger-red), #dc2626);
+}
+
+.stat-mini-card.acreedor::before {
+    background: linear-gradient(180deg, var(--success-green), #059669);
+}
+
+.stat-mini-icon {
+    width: 64px;
+    height: 64px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.75rem;
+    flex-shrink: 0;
+}
+
+.stat-mini-card.total .stat-mini-icon {
+    background: linear-gradient(135deg, var(--primary-blue-light) 0%, var(--primary-blue) 100%);
+    color: white;
+}
+
+.stat-mini-card.deudor .stat-mini-icon {
+    background: linear-gradient(135deg, #fecaca 0%, #fca5a5 100%);
+    color: var(--danger-red);
+}
+
+.stat-mini-card.acreedor .stat-mini-icon {
+    background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+    color: var(--success-green);
+}
+
+.stat-mini-details h6 {
+    margin: 0 0 0.5rem 0;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--gray-600);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.stat-mini-details .value {
+    margin: 0;
+    font-size: 1.75rem;
+    font-weight: 800;
+    color: var(--gray-900);
+    line-height: 1;
+}
+
+/* ========== FILTERS SECTION ========== */
+.filters-section {
+    background: white;
+    border-radius: 16px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    box-shadow: var(--shadow-md);
+    animation: fadeInUp 0.8s ease-out;
+}
+
+.filters-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1rem;
+    align-items: center;
+}
+
+.filter-group {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.filter-icon {
+    position: absolute;
+    left: 1rem;
+    color: var(--gray-400);
+    font-size: 1rem;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.filter-input,
+.filter-select {
+    width: 100%;
+    padding: 0.75rem 1rem 0.75rem 2.75rem;
+    border: 2px solid var(--gray-200);
+    border-radius: 10px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    background: white;
+    color: var(--gray-700);
+}
+
+.filter-input:focus,
+.filter-select:focus {
+    outline: none;
+    border-color: var(--primary-blue);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.filter-input::placeholder {
+    color: var(--gray-400);
+}
+
+.btn-export {
+    background: linear-gradient(135deg, var(--success-green) 0%, #059669 100%);
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    box-shadow: var(--shadow-sm);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.btn-export:hover {
+    background: linear-gradient(135deg, #059669 0%, #047857 100%);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.btn-export i {
+    font-size: 1.1rem;
+}
+
+/* ========== TABLE CONTAINER ========== */
+.table-container {
+    background: white;
+    border-radius: 16px;
+    box-shadow: var(--shadow-md);
+    overflow: hidden;
+    animation: fadeInUp 0.9s ease-out;
+}
+
+.table-responsive {
+    overflow-x: auto;
+}
+
+/* Scrollbar personalizado */
+.table-responsive::-webkit-scrollbar {
+    height: 8px;
+}
+
+.table-responsive::-webkit-scrollbar-track {
+    background: var(--gray-100);
+}
+
+.table-responsive::-webkit-scrollbar-thumb {
+    background: linear-gradient(135deg, var(--primary-blue-light) 0%, var(--primary-blue) 100%);
+    border-radius: 10px;
+}
+
+.table-responsive::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(135deg, var(--primary-blue) 0%, var(--primary-blue-dark) 100%);
+}
+
+/* ========== TABLE STYLES ========== */
+.cuentas-table {
+    width: 100%;
+    margin-bottom: 0;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.cuentas-table thead {
+    background: linear-gradient(135deg, var(--gray-800) 0%, var(--gray-900) 100%);
+    color: white;
+}
+
+.cuentas-table thead th {
+    padding: 1rem 1.25rem;
+    font-weight: 700;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border: none;
+    white-space: nowrap;
+}
+
+.cuentas-table tbody tr {
+    transition: all 0.2s ease;
+    border-bottom: 1px solid var(--gray-200);
+    animation: fadeIn 0.5s ease-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+.cuentas-table tbody tr:hover {
+    background: linear-gradient(90deg, var(--gray-50) 0%, white 100%);
+    transform: scale(1.005);
+    box-shadow: var(--shadow-sm);
+}
+
+.cuentas-table tbody tr.deudor {
+    background: linear-gradient(90deg, rgba(254, 226, 226, 0.3) 0%, white 100%);
+}
+
+.cuentas-table tbody tr.deudor:hover {
+    background: linear-gradient(90deg, rgba(254, 226, 226, 0.5) 0%, white 100%);
+}
+
+.cuentas-table tbody td {
+    padding: 1rem 1.25rem;
+    border: none;
+    vertical-align: middle;
+    font-size: 0.875rem;
+}
+
+/* ========== DOCUMENT BADGES ========== */
+.doc-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.375rem 0.875rem;
+    border-radius: 20px;
+    font-weight: 600;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    transition: all 0.2s ease;
+}
+
+.doc-badge:hover {
+    transform: scale(1.05);
+    box-shadow: var(--shadow-sm);
+}
+
+.doc-badge.factura {
+    background: linear-gradient(135deg, #ede9fe 0%, #ddd6fe 100%);
+    color: var(--factura-color);
+    border: 1px solid var(--factura-color);
+}
+
+.doc-badge.boleta {
+    background: linear-gradient(135deg, #fce7f3 0%, #fbcfe8 100%);
+    color: var(--boleta-color);
+    border: 1px solid var(--boleta-color);
+}
+
+.doc-badge.letra {
+    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+    color: var(--letra-color);
+    border: 1px solid var(--letra-color);
+}
+
+.doc-badge.nota-credito {
+    background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+    color: var(--nota-credito-color);
+    border: 1px solid var(--nota-credito-color);
+}
+
+.doc-badge.otros {
+    background: linear-gradient(135deg, var(--gray-200) 0%, var(--gray-300) 100%);
+    color: var(--gray-700);
+    border: 1px solid var(--gray-400);
+}
+
+/* ========== AMOUNT STYLES ========== */
+.amount-negative {
+    color: var(--danger-red);
+    font-weight: 700;
+    font-size: 1rem;
+}
+
+.amount-positive {
+    color: var(--success-green);
+    font-weight: 700;
+    font-size: 1rem;
+}
+
+/* ========== STATUS BADGES ========== */
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-weight: 600;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    transition: all 0.2s ease;
+}
+
+.status-badge:hover {
+    transform: scale(1.1);
+    box-shadow: var(--shadow-md);
+}
+
+.status-badge.deudor {
+    background: linear-gradient(135deg, var(--danger-red) 0%, #dc2626 100%);
+    color: white;
+}
+
+.status-badge.acreedor {
+    background: linear-gradient(135deg, var(--success-green) 0%, #059669 100%);
+    color: white;
+}
+
+/* ========== EMPTY STATE ========== */
+.empty-state-container {
+    text-align: center;
+    padding: 4rem 2rem;
+}
+
+.empty-state-icon {
+    font-size: 4rem;
+    color: var(--gray-300);
+    margin-bottom: 1rem;
+    animation: bounce 2s infinite;
+}
+
+@keyframes bounce {
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-10px);
+    }
+}
+
+.empty-state-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--gray-700);
+    margin-bottom: 0.5rem;
+}
+
+.empty-state-text {
+    font-size: 1rem;
+    color: var(--gray-500);
+}
+
+/* ========== PAGINATION ========== */
+.pagination-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem 2rem;
+    border-top: 1px solid var(--gray-200);
+    font-size: 0.875rem;
+    color: var(--gray-600);
+}
+
+/* ========== LOADING OVERLAY ========== */
+.loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    -webkit-backdrop-filter: blur(4px);
+    backdrop-filter: blur(4px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+}
+
+.loading-spinner {
+    background: white;
+    padding: 2rem 3rem;
+    border-radius: 16px;
+    text-align: center;
+    box-shadow: var(--shadow-xl);
+}
+
+.loading-spinner i {
+    font-size: 3rem;
+    color: var(--primary-blue);
+}
+
+/* ========== RESPONSIVE DESIGN ========== */
+@media (max-width: 1024px) {
+    .filters-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+    
+    .btn-export {
+        grid-column: 1 / -1;
+        justify-content: center;
+    }
+}
+
+@media (max-width: 768px) {
+    .cuentas-container {
+        padding: 1rem;
+    }
+    
+    .cuentas-header {
+        padding: 1rem 1.5rem;
+        flex-direction: column;
+        gap: 1rem;
+        text-align: center;
+    }
+    
+    .cuentas-header h4 {
+        font-size: 1.25rem;
+        justify-content: center;
+    }
+    
+    .stats-grid-mini {
+        grid-template-columns: 1fr;
+    }
+    
+    .filters-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .cuentas-table {
+        font-size: 0.75rem;
+    }
+    
+    .cuentas-table thead th,
+    .cuentas-table tbody td {
+        padding: 0.75rem 0.5rem;
+    }
+    
+    .doc-badge,
+    .status-badge {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.65rem;
+    }
+    
+    .pagination-container {
+        flex-direction: column;
+        gap: 1rem;
+        text-align: center;
+    }
+}
+
+/* ========== ANIMACIONES ADICIONALES ========== */
+.cuentas-table tbody tr:nth-child(1) { animation-delay: 0.05s; }
+.cuentas-table tbody tr:nth-child(2) { animation-delay: 0.1s; }
+.cuentas-table tbody tr:nth-child(3) { animation-delay: 0.15s; }
+.cuentas-table tbody tr:nth-child(4) { animation-delay: 0.2s; }
+.cuentas-table tbody tr:nth-child(5) { animation-delay: 0.25s; }
+
+/* ========== UTILIDADES ========== */
+.text-end {
+    text-align: right !important;
+}
+
+.text-center {
+    text-align: center !important;
+}
+
+.d-flex {
+    display: flex !important;
+}
+
+.justify-content-between {
+    justify-content: space-between !important;
+}
+
+.align-items-center {
+    align-items: center !important;
+}

@@ -2,6 +2,14 @@
 
 @section('title', 'Productos por Vencer')
 
+@push('styles')
+    <link rel="stylesheet" href="{{ asset('css/admin/inventario/por-vencer.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+@endpush
+
 @section('header-content')
 <div>
     <h1 class="h3 mb-0">Productos Próximos a Vencer</h1>
@@ -40,30 +48,30 @@
                 </thead>
                 <tbody>
                     @forelse($productos as $producto)
-                    <tr class="{{ $producto->dias_para_vencer <= 7 ? 'table-danger' : ($producto->dias_para_vencer <= 15 ? 'table-warning' : '') }}">
-                        <td><code>{{ $producto->codpro }}</code></td>
-                        <td><strong>{{ $producto->nombre }}</strong></td>
-                        <td>{{ $producto->almacen }}</td>
-                        <td><code>{{ $producto->lote }}</code></td>
-                        <td>{{ \Carbon\Carbon::parse($producto->vencimiento)->format('d/m/Y') }}</td>
+                    <tr class="{{ $producto->DiasParaVencer <= 7 ? 'table-danger' : ($producto->DiasParaVencer <= 15 ? 'table-warning' : '') }}">
+                        <td><code>{{ $producto->CodPro }}</code></td>
+                        <td><strong>{{ $producto->Nombre }}</strong></td>
+                        <td>{{ $producto->Almacen }}</td>
+                        <td><code>{{ $producto->Lote }}</code></td>
+                        <td>{{ \Carbon\Carbon::parse($producto->Vencimiento)->format('d/m/Y') }}</td>
                         <td class="text-end">
-                            <span class="badge bg-secondary">{{ number_format($producto->saldo) }}</span>
+                            <span class="badge bg-secondary">{{ number_format($producto->Stock) }}</span>
                         </td>
                         <td class="text-end">
-                            <span class="badge bg-{{ $producto->dias_para_vencer <= 7 ? 'danger' : ($producto->dias_para_vencer <= 15 ? 'warning' : 'info') }}">
-                                {{ $producto->dias_para_vencer }} días
+                            <span class="badge bg-{{ $producto->DiasParaVencer <= 7 ? 'danger' : ($producto->DiasParaVencer <= 15 ? 'warning' : 'info') }}">
+                                {{ $producto->DiasParaVencer }} días
                             </span>
                         </td>
                         <td class="text-center">
-                            @if($producto->dias_para_vencer <= 0)
+                            @if($producto->DiasParaVencer <= 0)
                                 <span class="badge bg-danger">
                                     <i class="fas fa-times-circle me-1"></i>Vencido
                                 </span>
-                            @elseif($producto->dias_para_vencer <= 7)
+                            @elseif($producto->DiasParaVencer <= 7)
                                 <span class="badge bg-danger">
                                     <i class="fas fa-exclamation-circle me-1"></i>Urgente
                                 </span>
-                            @elseif($producto->dias_para_vencer <= 15)
+                            @elseif($producto->DiasParaVencer <= 15)
                                 <span class="badge bg-warning">
                                     <i class="fas fa-exclamation-triangle me-1"></i>Crítico
                                 </span>

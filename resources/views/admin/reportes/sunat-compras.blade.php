@@ -2,8 +2,12 @@
 
 @section('title', 'Registro de Compras SUNAT')
 
+@push('styles')
+    <link href="{{ asset('css/admin/sunat-compras.css') }}" rel="stylesheet">
+@endpush
+
 @section('content')
-<div class="container-fluid py-4">
+<div class="sunat-compras-container">
     
     <div class="row mb-4">
         <div class="col-12">

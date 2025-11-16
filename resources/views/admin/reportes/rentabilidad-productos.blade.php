@@ -2,8 +2,12 @@
 
 @section('title', 'Rentabilidad por Producto')
 
+@push('styles')
+    <link href="{{ asset('css/admin/rentabilidad-productos.css') }}" rel="stylesheet">
+@endpush
+
 @section('content')
-<div class="container-fluid py-4">
+<div class="rentabilidad-productos-container">
     
     <div class="row mb-4">
         <div class="col-12">

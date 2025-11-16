@@ -2,8 +2,12 @@
 
 @section('title', 'Solicitudes de Eliminación')
 
+@push('styles')
+    <link href="{{ asset('css/admin/solicitudes-eliminacion.css') }}" rel="stylesheet">
+@endpush
+
 @section('content')
-<div class="container-fluid mt-4">
+<div class="solicitudes-eliminacion">
     <div class="card shadow-sm">
         <div class="card-header">
             <h4>Solicitudes de Eliminación Pendientes</h4>

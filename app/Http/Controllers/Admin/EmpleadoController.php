@@ -59,16 +59,30 @@ class EmpleadoController extends Controller
     }
 
     public function show($id)
-    {
-        $empleado = $this->empleadoService->obtenerEmpleado($id);
-        if (!$empleado) {
-            return redirect()->route('admin.empleados.index')
-                ->with('error', 'Empleado no encontrado.');
-        }
-
-        $usuario = $this->empleadoService->obtenerUsuarioVinculado($id);
-        return view('admin.empleados.show', compact('empleado', 'usuario'));
+{
+    // Obtener empleado
+    $empleado = $this->empleadoService->obtenerEmpleado($id);
+    if (!$empleado) {
+        return redirect()->route('admin.empleados.index')
+            ->with('error', 'Empleado no encontrado.');
     }
+
+    // Obtener usuario vinculado
+    $usuario = $this->empleadoService->obtenerUsuarioVinculado($id);
+
+    // Si no existe usuario, creamos un objeto temporal para evitar error de propiedad indefinida
+    if (!$usuario) {
+        $usuario = new \stdClass();
+        $usuario->estado = 0; // inactivo
+        $usuario->usuario = null;
+        $usuario->tipousuario = null;
+    } else {
+        $usuario->estado = 1; // activo
+    }
+
+    return view('admin.empleados.show', compact('empleado', 'usuario'));
+}
+
 
     public function edit($id)
     {

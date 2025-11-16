@@ -1,0 +1,752 @@
+/*
+ * =====================================================
+ * MÓDULO DE GESTIÓN DE USUARIOS - SISTEMA CONTABLE
+ * Estilos profesionales para administración de usuarios
+ * =====================================================
+ */
+
+/* =====================================================
+   1. VARIABLES Y CONFIGURACIÓN BASE
+   ===================================================== */
+:root {
+    /* Paleta Profesional de Usuarios */
+    --usuarios-primary: #7c3aed;
+    --usuarios-primary-dark: #6d28d9;
+    --usuarios-primary-light: #a78bfa;
+    --usuarios-secondary: #64748b;
+    
+    /* Colores Funcionales */
+    --usuarios-success: #16a34a;
+    --usuarios-success-light: #dcfce7;
+    --usuarios-danger: #dc2626;
+    --usuarios-danger-light: #fee2e2;
+    --usuarios-info: #0891b2;
+    --usuarios-info-light: #cffafe;
+    --usuarios-warning: #ea580c;
+    --usuarios-warning-light: #fed7aa;
+    
+    /* Colores Neutros */
+    --usuarios-text-primary: #0f172a;
+    --usuarios-text-secondary: #64748b;
+    --usuarios-text-muted: #94a3b8;
+    --usuarios-border: #e2e8f0;
+    --usuarios-border-light: #f1f5f9;
+    --usuarios-bg: #f8fafc;
+    --usuarios-bg-white: #ffffff;
+    --usuarios-bg-dark: #f1f5f9;
+    
+    /* Espaciado Consistente */
+    --spacing-xs: 0.5rem;
+    --spacing-sm: 0.75rem;
+    --spacing-md: 1rem;
+    --spacing-lg: 1.5rem;
+    --spacing-xl: 2rem;
+    --spacing-xxl: 3rem;
+    
+    /* Bordes y Sombras Sutiles */
+    --radius-sm: 4px;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+    --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.05);
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
+    --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0, 0, 0, 0.06);
+    --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1), 0 4px 6px rgba(0, 0, 0, 0.05);
+    
+    /* Transiciones */
+    --transition: all 0.2s ease;
+}
+
+/* =====================================================
+   2. CONTENEDOR PRINCIPAL
+   ===================================================== */
+.gestion-usuarios-container {
+    background-color: var(--usuarios-bg);
+    padding: 0;
+    min-height: 100vh;
+}
+
+/* =====================================================
+   3. TARJETAS DE ESTADÍSTICAS (KPIs)
+   ===================================================== */
+.gestion-usuarios-container .card {
+    border: 1px solid var(--usuarios-border);
+    border-radius: var(--usuarios-lg);
+    transition: var(--transition);
+}
+
+.gestion-usuarios-container .card.border-0 {
+    border: none !important;
+}
+
+.gestion-usuarios-container .card.shadow-sm {
+    box-shadow: var(--shadow-sm);
+}
+
+.gestion-usuarios-container .card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.gestion-usuarios-container .card-body {
+    padding: var(--spacing-lg);
+}
+
+/* KPI Icons */
+.gestion-usuarios-container .bg-primary.bg-opacity-10 {
+    background-color: rgba(124, 58, 237, 0.1) !important;
+}
+
+.gestion-usuarios-container .bg-success.bg-opacity-10 {
+    background-color: rgba(22, 163, 74, 0.1) !important;
+}
+
+.gestion-usuarios-container .bg-danger.bg-opacity-10 {
+    background-color: rgba(220, 38, 38, 0.1) !important;
+}
+
+.gestion-usuarios-container .bg-warning.bg-opacity-10 {
+    background-color: rgba(234, 88, 12, 0.1) !important;
+}
+
+.gestion-usuarios-container .rounded {
+    border-radius: var(--radius-md) !important;
+}
+
+.gestion-usuarios-container .text-primary {
+    color: var(--usuarios-primary) !important;
+}
+
+.gestion-usuarios-container .text-success {
+    color: var(--usuarios-success) !important;
+}
+
+.gestion-usuarios-container .text-danger {
+    color: var(--usuarios-danger) !important;
+}
+
+.gestion-usuarios-container .text-warning {
+    color: var(--usuarios-warning) !important;
+}
+
+.gestion-usuarios-container .text-info {
+    color: var(--usuarios-info) !important;
+}
+
+.gestion-usuarios-container .text-muted {
+    color: var(--usuarios-text-muted) !important;
+    font-size: 0.875rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.gestion-usuarios-container .card-body h6 {
+    margin-bottom: 0.25rem;
+    font-size: 0.75rem;
+}
+
+.gestion-usuarios-container .card-body h3 {
+    font-weight: 700;
+    font-size: 1.875rem;
+    margin: 0;
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+}
+
+/* =====================================================
+   4. FORMULARIO DE FILTROS
+   ===================================================== */
+.gestion-usuarios-container form {
+    margin: 0;
+}
+
+.gestion-usuarios-container .form-label {
+    font-weight: 600;
+    font-size: 0.8125rem;
+    color: var(--usuarios-text-primary);
+    margin-bottom: var(--spacing-xs);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.gestion-usuarios-container .form-control,
+.gestion-usuarios-container .form-select {
+    border: 1px solid var(--usuarios-border);
+    border-radius: var(--radius-md);
+    padding: 0.5rem var(--spacing-sm);
+    font-size: 0.9375rem;
+    color: var(--usuarios-text-primary);
+    transition: var(--transition);
+    background-color: var(--usuarios-bg-white);
+}
+
+.gestion-usuarios-container .form-control:focus,
+.gestion-usuarios-container .form-select:focus {
+    border-color: var(--usuarios-primary);
+    box-shadow: 0 0 0 0.2rem rgba(124, 58, 237, 0.15);
+    outline: none;
+}
+
+/* =====================================================
+   5. BOTONES
+   ===================================================== */
+.gestion-usuarios-container .btn {
+    padding: 0.625rem var(--spacing-lg);
+    font-weight: 600;
+    font-size: 0.875rem;
+    border-radius: var(--radius-md);
+    transition: var(--transition);
+    border: none;
+    text-transform: none;
+    letter-spacing: 0.3px;
+}
+
+.gestion-usuarios-container .btn i {
+    margin-right: 0.375rem;
+}
+
+.gestion-usuarios-container .btn-primary {
+    background-color: var(--usuarios-primary);
+    color: var(--usuarios-bg-white);
+}
+
+.gestion-usuarios-container .btn-primary:hover {
+    background-color: var(--usuarios-primary-dark);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+}
+
+.gestion-usuarios-container .btn-success {
+    background-color: var(--usuarios-success);
+    color: var(--usuarios-bg-white);
+}
+
+.gestion-usuarios-container .btn-success:hover {
+    background-color: #15803d;
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+}
+
+.gestion-usuarios-container .btn-info {
+    background-color: var(--usuarios-info);
+    color: var(--usuarios-bg-white);
+}
+
+.gestion-usuarios-container .btn-info:hover {
+    background-color: #0e7490;
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+}
+
+.gestion-usuarios-container .btn-danger {
+    background-color: var(--usuarios-danger);
+    color: var(--usuarios-bg-white);
+}
+
+.gestion-usuarios-container .btn-danger:hover {
+    background-color: #b91c1c;
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+}
+
+.gestion-usuarios-container .btn-secondary {
+    background-color: var(--usuarios-secondary);
+    color: var(--usuarios-bg-white);
+}
+
+.gestion-usuarios-container .btn-secondary:hover {
+    background-color: #475569;
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+}
+
+/* Botones outline */
+.gestion-usuarios-container .btn-outline-primary {
+    border: 1px solid var(--usuarios-primary);
+    color: var(--usuarios-primary);
+    background-color: transparent;
+}
+
+.gestion-usuarios-container .btn-outline-primary:hover {
+    background-color: var(--usuarios-primary);
+    color: var(--usuarios-bg-white);
+}
+
+.gestion-usuarios-container .btn-outline-success {
+    border: 1px solid var(--usuarios-success);
+    color: var(--usuarios-success);
+    background-color: transparent;
+}
+
+.gestion-usuarios-container .btn-outline-success:hover {
+    background-color: var(--usuarios-success);
+    color: var(--usuarios-bg-white);
+}
+
+.gestion-usuarios-container .btn-outline-info {
+    border: 1px solid var(--usuarios-info);
+    color: var(--usuarios-info);
+    background-color: transparent;
+}
+
+.gestion-usuarios-container .btn-outline-info:hover {
+    background-color: var(--usuarios-info);
+    color: var(--usuarios-bg-white);
+}
+
+.gestion-usuarios-container .btn-outline-danger {
+    border: 1px solid var(--usuarios-danger);
+    color: var(--usuarios-danger);
+    background-color: transparent;
+}
+
+.gestion-usuarios-container .btn-outline-danger:hover {
+    background-color: var(--usuarios-danger);
+    color: var(--usuarios-bg-white);
+}
+
+.gestion-usuarios-container .btn-outline-secondary {
+    border: 1px solid var(--usuarios-secondary);
+    color: var(--usuarios-secondary);
+    background-color: transparent;
+}
+
+.gestion-usuarios-container .btn-outline-secondary:hover {
+    background-color: var(--usuarios-secondary);
+    color: var(--usuarios-bg-white);
+}
+
+/* Grupo de botones */
+.gestion-usuarios-container .btn-group-sm .btn {
+    padding: 0.375rem 0.625rem;
+    font-size: 0.8125rem;
+    margin-right: 0.5rem;
+}
+
+.gestion-usuarios-container .w-100 {
+    width: 100% !important;
+}
+
+/* =====================================================
+   6. CARD HEADER
+   ===================================================== */
+.gestion-usuarios-container .card-header {
+    background: linear-gradient(135deg, var(--usuarios-primary) 0%, var(--usuarios-primary-dark) 100%);
+    border-bottom: none;
+    padding: var(--spacing-lg) var(--spacing-xl);
+    position: relative;
+    overflow: hidden;
+}
+
+.gestion-usuarios-container .card-header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 200px;
+    height: 200px;
+    background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+    border-radius: 50%;
+    transform: translate(50%, -50%);
+}
+
+.gestion-usuarios-container .card-header h5 {
+    font-size: 1.125rem;
+    font-weight: 600;
+    margin: 0;
+    color: var(--usuarios-bg-white);
+    display: flex;
+    align-items: center;
+    position: relative;
+    z-index: 1;
+}
+
+.gestion-usuarios-container .card-header h5 i {
+    margin-right: var(--spacing-sm);
+    color: var(--usuarios-bg-white);
+    opacity: 0.95;
+    font-size: 1.25rem;
+}
+
+/* =====================================================
+   7. TABLA DE USUARIOS
+   ===================================================== */
+.gestion-usuarios-container .table-responsive {
+    border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+    overflow: hidden;
+}
+
+.gestion-usuarios-container .table {
+    margin-bottom: 0;
+    font-size: 0.875rem;
+}
+
+.gestion-usuarios-container .table thead {
+    background-color: #f1f3f5;
+    border-bottom: 2px solid var(--usuarios-border);
+}
+
+.gestion-usuarios-container .table thead th {
+    font-weight: 700;
+    font-size: 0.75rem;
+    color: var(--usuarios-text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    padding: var(--spacing-md) var(--spacing-lg);
+    border-bottom: 2px solid var(--usuarios-border);
+    white-space: nowrap;
+    vertical-align: middle;
+}
+
+.gestion-usuarios-container .table tbody td {
+    padding: var(--spacing-md) var(--spacing-lg);
+    vertical-align: middle;
+    color: var(--usuarios-text-primary);
+    border-bottom: 1px solid var(--usuarios-border-light);
+}
+
+.gestion-usuarios-container .table tbody tr {
+    transition: background-color 0.15s ease;
+}
+
+.gestion-usuarios-container .table-hover tbody tr:hover {
+    background-color: var(--usuarios-bg-dark);
+}
+
+.gestion-usuarios-container .table tbody td strong {
+    color: var(--usuarios-text-primary);
+    font-weight: 600;
+}
+
+.gestion-usuarios-container .table tbody td small {
+    font-size: 0.75rem;
+    color: var(--usuarios-text-muted);
+}
+
+/* Alineación */
+.gestion-usuarios-container .text-center {
+    text-align: center !important;
+}
+
+/* =====================================================
+   8. BADGES Y ETIQUETAS
+   ===================================================== */
+.gestion-usuarios-container .badge {
+    padding: 0.4em 0.75em;
+    font-weight: 600;
+    font-size: 0.75rem;
+    border-radius: var(--radius-sm);
+    letter-spacing: 0.3px;
+}
+
+.gestion-usuarios-container .badge.bg-primary {
+    background-color: var(--usuarios-primary) !important;
+    color: var(--usuarios-bg-white);
+}
+
+.gestion-usuarios-container .badge.bg-success {
+    background-color: var(--usuarios-success) !important;
+    color: var(--usuarios-bg-white);
+}
+
+.gestion-usuarios-container .badge.bg-danger {
+    background-color: var(--usuarios-danger) !important;
+    color: var(--usuarios-bg-white);
+}
+
+.gestion-usuarios-container .badge.bg-info {
+    background-color: var(--usuarios-info) !important;
+    color: var(--usuarios-bg-white);
+}
+
+.gestion-usuarios-container .badge.bg-warning {
+    background-color: var(--usuarios-warning) !important;
+    color: var(--usuarios-bg-white);
+}
+
+.gestion-usuarios-container .badge.bg-secondary {
+    background-color: var(--usuarios-secondary) !important;
+    color: var(--usuarios-bg-white);
+}
+
+.gestion-usuarios-container .badge i {
+    margin-right: 0.25rem;
+}
+
+/* =====================================================
+   9. ICONOS DE ESTADO
+   ===================================================== */
+.gestion-usuarios-container .fa-link {
+    color: var(--usuarios-success);
+}
+
+.gestion-usuarios-container .fa-unlink {
+    color: var(--usuarios-danger);
+}
+
+/* =====================================================
+   10. ESTADO VACÍO
+   ===================================================== */
+.gestion-usuarios-container .text-center.text-muted.py-4 {
+    color: var(--usuarios-text-muted) !important;
+    font-style: italic;
+    padding: var(--spacing-xxl) var(--spacing-md) !important;
+}
+
+.gestion-usuarios-container .text-center.text-muted.py-4 i {
+    opacity: 0.5;
+}
+
+/* =====================================================
+   11. UTILIDADES DE ESPACIADO
+   ===================================================== */
+.gestion-usuarios-container .mb-0 {
+    margin-bottom: 0 !important;
+}
+
+.gestion-usuarios-container .mb-1 {
+    margin-bottom: 0.25rem !important;
+}
+
+.gestion-usuarios-container .mb-3 {
+    margin-bottom: 1rem !important;
+}
+
+.gestion-usuarios-container .mb-4 {
+    margin-bottom: 1.5rem !important;
+}
+
+.gestion-usuarios-container .ms-1 {
+    margin-left: 0.25rem !important;
+}
+
+.gestion-usuarios-container .ms-3 {
+    margin-left: 1rem !important;
+}
+
+.gestion-usuarios-container .me-1 {
+    margin-right: 0.25rem !important;
+}
+
+.gestion-usuarios-container .me-2 {
+    margin-right: 0.5rem !important;
+}
+
+.gestion-usuarios-container .p-0 {
+    padding: 0 !important;
+}
+
+.gestion-usuarios-container .p-3 {
+    padding: 1rem !important;
+}
+
+/* =====================================================
+   12. FLEXBOX UTILITIES
+   ===================================================== */
+.gestion-usuarios-container .d-flex {
+    display: flex !important;
+}
+
+.gestion-usuarios-container .d-inline {
+    display: inline !important;
+}
+
+.gestion-usuarios-container .d-block {
+    display: block !important;
+}
+
+.gestion-usuarios-container .flex-shrink-0 {
+    flex-shrink: 0 !important;
+}
+
+.gestion-usuarios-container .flex-grow-1 {
+    flex-grow: 1 !important;
+}
+
+.gestion-usuarios-container .align-items-center {
+    align-items: center !important;
+}
+
+.gestion-usuarios-container .align-items-end {
+    align-items: flex-end !important;
+}
+
+/* =====================================================
+   13. GRID UTILITIES
+   ===================================================== */
+.gestion-usuarios-container .row.g-3 {
+    --bs-gutter-x: 1rem;
+    --bs-gutter-y: 1rem;
+}
+
+/* =====================================================
+   14. ICONOS
+   ===================================================== */
+.gestion-usuarios-container .fa-users,
+.gestion-usuarios-container .fa-user-check,
+.gestion-usuarios-container .fa-user-times,
+.gestion-usuarios-container .fa-user-plus,
+.gestion-usuarios-container .fa-list,
+.gestion-usuarios-container .fa-edit,
+.gestion-usuarios-container .fa-user-tag,
+.gestion-usuarios-container .fa-ban,
+.gestion-usuarios-container .fa-check,
+.gestion-usuarios-container .fa-history,
+.gestion-usuarios-container .fa-shield-alt,
+.gestion-usuarios-container .fa-calculator,
+.gestion-usuarios-container .fa-user-tie {
+    font-size: inherit;
+}
+
+.gestion-usuarios-container .fa-2x {
+    font-size: 2rem !important;
+}
+
+.gestion-usuarios-container .fa-3x {
+    font-size: 3rem !important;
+}
+
+/* =====================================================
+   15. RESPONSIVE DESIGN
+   ===================================================== */
+@media (max-width: 992px) {
+    .gestion-usuarios-container .card-body h3 {
+        font-size: 1.5rem;
+    }
+    
+    .gestion-usuarios-container .btn {
+        font-size: 0.8125rem;
+        padding: 0.5rem var(--spacing-md);
+    }
+}
+
+@media (max-width: 768px) {
+    .gestion-usuarios-container .card-body {
+        padding: var(--spacing-md);
+    }
+    
+    .gestion-usuarios-container .card-header {
+        padding: var(--spacing-md);
+    }
+    
+    .gestion-usuarios-container .card-header h5 {
+        font-size: 1rem;
+    }
+    
+    .gestion-usuarios-container .card-body h3 {
+        font-size: 1.5rem;
+    }
+    
+    .gestion-usuarios-container .table {
+        font-size: 0.8125rem;
+    }
+    
+    .gestion-usuarios-container .table thead th,
+    .gestion-usuarios-container .table tbody td {
+        padding: var(--spacing-sm) var(--spacing-md);
+    }
+    
+    .gestion-usuarios-container .btn {
+        margin-bottom: 0.5rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .gestion-usuarios-container .card-body h3 {
+        font-size: 1.25rem;
+    }
+    
+    .gestion-usuarios-container .card-body h6 {
+        font-size: 0.6875rem;
+    }
+    
+    .gestion-usuarios-container .table {
+        font-size: 0.75rem;
+    }
+    
+    .gestion-usuarios-container .badge {
+        font-size: 0.6875rem;
+        padding: 0.3em 0.6em;
+    }
+    
+    .gestion-usuarios-container .btn-group-sm .btn {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.75rem;
+    }
+}
+
+/* =====================================================
+   16. SCROLLBAR PERSONALIZADO
+   ===================================================== */
+.gestion-usuarios-container .table-responsive {
+    scrollbar-width: thin;
+    scrollbar-color: var(--usuarios-border) var(--usuarios-bg-dark);
+}
+
+.gestion-usuarios-container .table-responsive::-webkit-scrollbar {
+    height: 8px;
+}
+
+.gestion-usuarios-container .table-responsive::-webkit-scrollbar-track {
+    background: var(--usuarios-bg-dark);
+    border-radius: var(--radius-sm);
+}
+
+.gestion-usuarios-container .table-responsive::-webkit-scrollbar-thumb {
+    background-color: var(--usuarios-border);
+    border-radius: var(--radius-sm);
+}
+
+.gestion-usuarios-container .table-responsive::-webkit-scrollbar-thumb:hover {
+    background-color: var(--usuarios-text-muted);
+}
+
+/* =====================================================
+   17. OPTIMIZACIÓN DE IMPRESIÓN
+   ===================================================== */
+@media print {
+    .gestion-usuarios-container {
+        background-color: var(--usuarios-bg-white);
+    }
+    
+    .gestion-usuarios-container .card {
+        box-shadow: none;
+        border: 1px solid var(--usuarios-text-primary);
+        page-break-inside: avoid;
+    }
+    
+    .gestion-usuarios-container .btn {
+        display: none;
+    }
+    
+    .gestion-usuarios-container form {
+        display: none;
+    }
+    
+    .gestion-usuarios-container .table {
+        border: 1px solid var(--usuarios-text-primary);
+    }
+    
+    .gestion-usuarios-container .badge {
+        border: 1px solid var(--usuarios-text-primary);
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+    
+    .gestion-usuarios-container .bg-primary.bg-opacity-10,
+    .gestion-usuarios-container .bg-success.bg-opacity-10,
+    .gestion-usuarios-container .bg-danger.bg-opacity-10,
+    .gestion-usuarios-container .bg-warning.bg-opacity-10 {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+    
+    .gestion-usuarios-container .table-responsive {
+        overflow: visible;
+    }
+    
+    .gestion-usuarios-container .card-header {
+        background: var(--usuarios-text-primary) !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+}

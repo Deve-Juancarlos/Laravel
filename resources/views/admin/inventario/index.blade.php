@@ -2,6 +2,14 @@
 
 @section('title', 'Dashboard de Inventario')
 
+@push('styles')
+    <link rel="stylesheet" href="{{ asset('css/admin/inventario/index.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+@endpush
+
 @section('header-content')
 <div>
     <h1 class="h3 mb-0">Dashboard Ejecutivo de Inventario</h1>
@@ -195,12 +203,12 @@
                         <tbody>
                             @forelse($productosVencer as $producto)
                             <tr>
-                                <td>{{ $producto->nombre }}</td>
-                                <td><code class="small">{{ $producto->lote }}</code></td>
-                                <td>{{ \Carbon\Carbon::parse($producto->vencimiento)->format('d/m/Y') }}</td>
+                                <td>{{ $producto->Nombre }}</td>
+                                <td><code class="small">{{ $producto->Lote }}</code></td>
+                                <td>{{ \Carbon\Carbon::parse($producto->Vencimiento)->format('d/m/Y') }}</td>
                                 <td class="text-end">
-                                    <span class="badge bg-{{ $producto->dias_para_vencer <= 7 ? 'danger' : 'warning' }}">
-                                        {{ $producto->dias_para_vencer }} días
+                                    <span class="badge bg-{{ $producto->DiasParaVencer <= 7 ? 'danger' : 'warning' }}">
+                                        {{ $producto->DiasParaVencer }} días
                                     </span>
                                 </td>
                             </tr>

@@ -1,0 +1,683 @@
+/*
+ * =====================================================
+ * MÓDULO DE GESTIÓN DE BANCOS - SISTEMA CONTABLE
+ * Estilos profesionales para control bancario
+ * =====================================================
+ */
+
+/* =====================================================
+   1. VARIABLES Y CONFIGURACIÓN BASE
+   ===================================================== */
+:root {
+    /* Paleta Profesional Bancaria */
+    --bancos-primary: #1e40af;
+    --bancos-primary-dark: #1e3a8a;
+    --bancos-primary-light: #3b82f6;
+    --bancos-secondary: #64748b;
+    
+    /* Colores Funcionales */
+    --bancos-success: #16a34a;
+    --bancos-success-light: #dcfce7;
+    --bancos-danger: #dc2626;
+    --bancos-danger-light: #fee2e2;
+    --bancos-info: #0891b2;
+    --bancos-info-light: #cffafe;
+    --bancos-warning: #ea580c;
+    --bancos-warning-light: #fed7aa;
+    
+    /* Colores Neutros */
+    --bancos-text-primary: #0f172a;
+    --bancos-text-secondary: #64748b;
+    --bancos-text-muted: #94a3b8;
+    --bancos-border: #e2e8f0;
+    --bancos-border-light: #f1f5f9;
+    --bancos-bg: #f8fafc;
+    --bancos-bg-white: #ffffff;
+    --bancos-bg-dark: #f1f5f9;
+    
+    /* Espaciado Consistente */
+    --spacing-xs: 0.5rem;
+    --spacing-sm: 0.75rem;
+    --spacing-md: 1rem;
+    --spacing-lg: 1.5rem;
+    --spacing-xl: 2rem;
+    --spacing-xxl: 3rem;
+    
+    /* Bordes y Sombras Sutiles */
+    --radius-sm: 4px;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+    --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.05);
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
+    --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0, 0, 0, 0.06);
+    --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1), 0 4px 6px rgba(0, 0, 0, 0.05);
+    
+    /* Transiciones */
+    --transition: all 0.2s ease;
+}
+
+/* =====================================================
+   2. CONTENEDOR PRINCIPAL
+   ===================================================== */
+.gestion-bancos {
+    background-color: var(--bancos-bg);
+    padding: 0;
+    min-height: 100vh;
+}
+
+/* =====================================================
+   3. TARJETAS DE RESUMEN (KPIs)
+   ===================================================== */
+.gestion-bancos .card {
+    border: 1px solid var(--bancos-border);
+    border-radius: var(--radius-lg);
+    transition: var(--transition);
+}
+
+.gestion-bancos .card.border-0 {
+    border: none !important;
+}
+
+.gestion-bancos .card.shadow-sm {
+    box-shadow: var(--shadow-sm);
+}
+
+.gestion-bancos .card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.gestion-bancos .card-body {
+    padding: var(--spacing-lg);
+}
+
+/* KPI Icons */
+.gestion-bancos .bg-primary.bg-opacity-10 {
+    background-color: rgba(30, 64, 175, 0.1) !important;
+}
+
+.gestion-bancos .bg-success.bg-opacity-10 {
+    background-color: rgba(22, 163, 74, 0.1) !important;
+}
+
+.gestion-bancos .bg-info.bg-opacity-10 {
+    background-color: rgba(8, 145, 178, 0.1) !important;
+}
+
+.gestion-bancos .bg-warning.bg-opacity-10 {
+    background-color: rgba(234, 88, 12, 0.1) !important;
+}
+
+.gestion-bancos .rounded {
+    border-radius: var(--radius-md) !important;
+}
+
+.gestion-bancos .text-primary {
+    color: var(--bancos-primary) !important;
+}
+
+.gestion-bancos .text-success {
+    color: var(--bancos-success) !important;
+}
+
+.gestion-bancos .text-info {
+    color: var(--bancos-info) !important;
+}
+
+.gestion-bancos .text-warning {
+    color: var(--bancos-warning) !important;
+}
+
+.gestion-bancos .text-danger {
+    color: var(--bancos-danger) !important;
+}
+
+.gestion-bancos .text-muted {
+    color: var(--bancos-text-muted) !important;
+    font-size: 0.875rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.gestion-bancos .card-body h6 {
+    margin-bottom: 0.25rem;
+    font-size: 0.75rem;
+}
+
+.gestion-bancos .card-body h3 {
+    font-weight: 700;
+    font-size: 1.875rem;
+    margin: 0;
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+}
+
+/* =====================================================
+   4. BOTONES DE ACCIÓN
+   ===================================================== */
+.gestion-bancos .btn {
+    padding: 0.625rem var(--spacing-lg);
+    font-weight: 600;
+    font-size: 0.875rem;
+    border-radius: var(--radius-md);
+    transition: var(--transition);
+    border: none;
+    text-transform: none;
+    letter-spacing: 0.3px;
+}
+
+.gestion-bancos .btn i {
+    margin-right: 0.375rem;
+}
+
+.gestion-bancos .btn-primary {
+    background-color: var(--bancos-primary);
+    color: var(--bancos-bg-white);
+}
+
+.gestion-bancos .btn-primary:hover {
+    background-color: var(--bancos-primary-dark);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+}
+
+.gestion-bancos .btn-info {
+    background-color: var(--bancos-info);
+    color: var(--bancos-bg-white);
+}
+
+.gestion-bancos .btn-info:hover {
+    background-color: #0e7490;
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+}
+
+.gestion-bancos .btn-warning {
+    background-color: var(--bancos-warning);
+    color: var(--bancos-bg-white);
+}
+
+.gestion-bancos .btn-warning:hover {
+    background-color: #c2410c;
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+}
+
+.gestion-bancos .btn-secondary {
+    background-color: var(--bancos-secondary);
+    color: var(--bancos-bg-white);
+}
+
+.gestion-bancos .btn-secondary:hover {
+    background-color: #475569;
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+}
+
+.gestion-bancos .btn-success {
+    background-color: var(--bancos-success);
+    color: var(--bancos-bg-white);
+}
+
+.gestion-bancos .btn-success:hover {
+    background-color: #15803d;
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+}
+
+/* Botones outline */
+.gestion-bancos .btn-outline-primary {
+    border: 1px solid var(--bancos-primary);
+    color: var(--bancos-primary);
+    background-color: transparent;
+}
+
+.gestion-bancos .btn-outline-primary:hover {
+    background-color: var(--bancos-primary);
+    color: var(--bancos-bg-white);
+}
+
+.gestion-bancos .btn-outline-info {
+    border: 1px solid var(--bancos-info);
+    color: var(--bancos-info);
+    background-color: transparent;
+}
+
+.gestion-bancos .btn-outline-info:hover {
+    background-color: var(--bancos-info);
+    color: var(--bancos-bg-white);
+}
+
+/* Grupo de botones */
+.gestion-bancos .btn-group-sm .btn {
+    padding: 0.375rem 0.625rem;
+    font-size: 0.8125rem;
+}
+
+.gestion-bancos .d-flex.gap-2 {
+    gap: 0.5rem !important;
+}
+
+/* =====================================================
+   5. CARD HEADER
+   ===================================================== */
+.gestion-bancos .card-header {
+    background: linear-gradient(135deg, var(--bancos-primary) 0%, var(--bancos-primary-dark) 100%);
+    border-bottom: none;
+    padding: var(--spacing-lg) var(--spacing-xl);
+    position: relative;
+    overflow: hidden;
+}
+
+.gestion-bancos .card-header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 200px;
+    height: 200px;
+    background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+    border-radius: 50%;
+    transform: translate(50%, -50%);
+}
+
+.gestion-bancos .card-header h5 {
+    font-size: 1.125rem;
+    font-weight: 600;
+    margin: 0;
+    color: var(--bancos-bg-white);
+    display: flex;
+    align-items: center;
+    position: relative;
+    z-index: 1;
+}
+
+.gestion-bancos .card-header h5 i {
+    margin-right: var(--spacing-sm);
+    color: var(--bancos-bg-white);
+    opacity: 0.95;
+    font-size: 1.25rem;
+}
+
+/* =====================================================
+   6. TABLA DE CUENTAS BANCARIAS
+   ===================================================== */
+.gestion-bancos .table-responsive {
+    border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+    overflow: hidden;
+}
+
+.gestion-bancos .table {
+    margin-bottom: 0;
+    font-size: 0.875rem;
+}
+
+.gestion-bancos .table thead {
+    background-color: #f1f3f5;
+    border-bottom: 2px solid var(--bancos-border);
+}
+
+.gestion-bancos .table thead th {
+    font-weight: 700;
+    font-size: 0.75rem;
+    color: var(--bancos-text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    padding: var(--spacing-md) var(--spacing-lg);
+    border-bottom: 2px solid var(--bancos-border);
+    white-space: nowrap;
+    vertical-align: middle;
+}
+
+.gestion-bancos .table tbody td {
+    padding: var(--spacing-md) var(--spacing-lg);
+    vertical-align: middle;
+    color: var(--bancos-text-primary);
+    border-bottom: 1px solid var(--bancos-border-light);
+}
+
+.gestion-bancos .table tbody tr {
+    transition: background-color 0.15s ease;
+}
+
+.gestion-bancos .table-hover tbody tr:hover {
+    background-color: var(--bancos-bg-dark);
+}
+
+.gestion-bancos .table tbody td strong {
+    color: var(--bancos-text-primary);
+    font-weight: 600;
+}
+
+.gestion-bancos .table tbody td small {
+    font-size: 0.75rem;
+    color: var(--bancos-text-muted);
+}
+
+.gestion-bancos .table tbody td code {
+    background-color: var(--bancos-bg-dark);
+    color: var(--bancos-primary);
+    padding: 0.25rem 0.5rem;
+    border-radius: var(--radius-sm);
+    font-family: 'Courier New', monospace;
+    font-size: 0.8125rem;
+    font-weight: 600;
+}
+
+/* Columnas de saldo */
+.gestion-bancos .table tbody td .fs-5 {
+    font-size: 1.25rem !important;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+}
+
+/* Alineación */
+.gestion-bancos .text-end {
+    text-align: right !important;
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum";
+}
+
+.gestion-bancos .text-center {
+    text-align: center !important;
+}
+
+/* =====================================================
+   7. BADGES Y ETIQUETAS
+   ===================================================== */
+.gestion-bancos .badge {
+    padding: 0.4em 0.75em;
+    font-weight: 600;
+    font-size: 0.75rem;
+    border-radius: var(--radius-sm);
+    letter-spacing: 0.3px;
+}
+
+.gestion-bancos .badge.bg-primary {
+    background-color: var(--bancos-primary) !important;
+    color: var(--bancos-bg-white);
+}
+
+.gestion-bancos .badge.bg-success {
+    background-color: var(--bancos-success) !important;
+    color: var(--bancos-bg-white);
+}
+
+.gestion-bancos .badge.bg-info {
+    background-color: var(--bancos-info) !important;
+    color: var(--bancos-bg-white);
+}
+
+.gestion-bancos .badge.bg-warning {
+    background-color: var(--bancos-warning) !important;
+    color: var(--bancos-bg-white);
+}
+
+.gestion-bancos .badge.bg-secondary {
+    background-color: var(--bancos-secondary) !important;
+    color: var(--bancos-bg-white);
+}
+
+.gestion-bancos .badge i {
+    margin-right: 0.25rem;
+}
+
+/* =====================================================
+   8. ESTADO VACÍO
+   ===================================================== */
+.gestion-bancos .text-center.text-muted.py-4 {
+    color: var(--bancos-text-muted) !important;
+    font-style: italic;
+    padding: var(--spacing-xxl) var(--spacing-md) !important;
+}
+
+.gestion-bancos .text-center.text-muted.py-4 i {
+    opacity: 0.5;
+}
+
+/* =====================================================
+   9. ICONOS
+   ===================================================== */
+.gestion-bancos .fa-university,
+.gestion-bancos .fa-money-bill-wave,
+.gestion-bancos .fa-dollar-sign,
+.gestion-bancos .fa-chart-line,
+.gestion-bancos .fa-chart-bar,
+.gestion-bancos .fa-balance-scale,
+.gestion-bancos .fa-money-check,
+.gestion-bancos .fa-exchange-alt,
+.gestion-bancos .fa-list,
+.gestion-bancos .fa-list-alt {
+    font-size: inherit;
+}
+
+.gestion-bancos .fa-2x {
+    font-size: 2rem !important;
+}
+
+.gestion-bancos .fa-3x {
+    font-size: 3rem !important;
+}
+
+/* =====================================================
+   10. UTILIDADES DE ESPACIADO
+   ===================================================== */
+.gestion-bancos .mb-0 {
+    margin-bottom: 0 !important;
+}
+
+.gestion-bancos .mb-1 {
+    margin-bottom: 0.25rem !important;
+}
+
+.gestion-bancos .mb-3 {
+    margin-bottom: 1rem !important;
+}
+
+.gestion-bancos .mb-4 {
+    margin-bottom: 1.5rem !important;
+}
+
+.gestion-bancos .ms-2 {
+    margin-left: 0.5rem !important;
+}
+
+.gestion-bancos .ms-3 {
+    margin-left: 1rem !important;
+}
+
+.gestion-bancos .me-2 {
+    margin-right: 0.5rem !important;
+}
+
+.gestion-bancos .me-1 {
+    margin-right: 0.25rem !important;
+}
+
+.gestion-bancos .p-0 {
+    padding: 0 !important;
+}
+
+.gestion-bancos .p-3 {
+    padding: 1rem !important;
+}
+
+/* =====================================================
+   11. FLEXBOX UTILITIES
+   ===================================================== */
+.gestion-bancos .d-flex {
+    display: flex !important;
+}
+
+.gestion-bancos .flex-wrap {
+    flex-wrap: wrap !important;
+}
+
+.gestion-bancos .flex-shrink-0 {
+    flex-shrink: 0 !important;
+}
+
+.gestion-bancos .flex-grow-1 {
+    flex-grow: 1 !important;
+}
+
+.gestion-bancos .align-items-center {
+    align-items: center !important;
+}
+
+/* =====================================================
+   12. ALTURA DE TARJETAS
+   ===================================================== */
+.gestion-bancos .h-100 {
+    height: 100% !important;
+}
+
+/* =====================================================
+   13. RESPONSIVE DESIGN
+   ===================================================== */
+@media (max-width: 992px) {
+    .gestion-bancos .card-body h3 {
+        font-size: 1.5rem;
+    }
+    
+    .gestion-bancos .btn {
+        font-size: 0.8125rem;
+        padding: 0.5rem var(--spacing-md);
+    }
+}
+
+@media (max-width: 768px) {
+    .gestion-bancos .card-body {
+        padding: var(--spacing-md);
+    }
+    
+    .gestion-bancos .card-header {
+        padding: var(--spacing-md);
+    }
+    
+    .gestion-bancos .card-header h5 {
+        font-size: 1rem;
+    }
+    
+    .gestion-bancos .card-body h3 {
+        font-size: 1.5rem;
+    }
+    
+    .gestion-bancos .table {
+        font-size: 0.8125rem;
+    }
+    
+    .gestion-bancos .table thead th,
+    .gestion-bancos .table tbody td {
+        padding: var(--spacing-sm) var(--spacing-md);
+    }
+    
+    .gestion-bancos .table tbody td .fs-5 {
+        font-size: 1.125rem !important;
+    }
+    
+    .gestion-bancos .btn {
+        width: 100%;
+        margin-bottom: 0.5rem;
+    }
+    
+    .gestion-bancos .d-flex.gap-2 {
+        flex-direction: column;
+    }
+}
+
+@media (max-width: 576px) {
+    .gestion-bancos .card-body h3 {
+        font-size: 1.25rem;
+    }
+    
+    .gestion-bancos .card-body h6 {
+        font-size: 0.6875rem;
+    }
+    
+    .gestion-bancos .table {
+        font-size: 0.75rem;
+    }
+    
+    .gestion-bancos .table tbody td code {
+        font-size: 0.75rem;
+        padding: 0.125rem 0.375rem;
+    }
+    
+    .gestion-bancos .badge {
+        font-size: 0.6875rem;
+        padding: 0.3em 0.6em;
+    }
+    
+    .gestion-bancos .btn-group-sm .btn {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.75rem;
+    }
+}
+
+/* =====================================================
+   14. SCROLLBAR PERSONALIZADO
+   ===================================================== */
+.gestion-bancos .table-responsive {
+    scrollbar-width: thin;
+    scrollbar-color: var(--bancos-border) var(--bancos-bg-dark);
+}
+
+.gestion-bancos .table-responsive::-webkit-scrollbar {
+    height: 8px;
+}
+
+.gestion-bancos .table-responsive::-webkit-scrollbar-track {
+    background: var(--bancos-bg-dark);
+    border-radius: var(--radius-sm);
+}
+
+.gestion-bancos .table-responsive::-webkit-scrollbar-thumb {
+    background-color: var(--bancos-border);
+    border-radius: var(--radius-sm);
+}
+
+.gestion-bancos .table-responsive::-webkit-scrollbar-thumb:hover {
+    background-color: var(--bancos-text-muted);
+}
+
+/* =====================================================
+   15. OPTIMIZACIÓN DE IMPRESIÓN
+   ===================================================== */
+@media print {
+    .gestion-bancos {
+        background-color: var(--bancos-bg-white);
+    }
+    
+    .gestion-bancos .card {
+        box-shadow: none;
+        border: 1px solid var(--bancos-text-primary);
+        page-break-inside: avoid;
+    }
+    
+    .gestion-bancos .btn {
+        display: none;
+    }
+    
+    .gestion-bancos .table {
+        border: 1px solid var(--bancos-text-primary);
+    }
+    
+    .gestion-bancos .badge {
+        border: 1px solid var(--bancos-text-primary);
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+    
+    .gestion-bancos .bg-primary.bg-opacity-10,
+    .gestion-bancos .bg-success.bg-opacity-10,
+    .gestion-bancos .bg-info.bg-opacity-10,
+    .gestion-bancos .bg-warning.bg-opacity-10 {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+    
+    .gestion-bancos .table-responsive {
+        overflow: visible;
+    }
+}

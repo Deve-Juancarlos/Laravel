@@ -52,7 +52,7 @@ class UsuarioController extends Controller
         $request->validate([
             'usuario' => 'required|string|max:100|unique:accesoweb,usuario',
             'password' => 'required|string|min:6|confirmed',
-            'tipousuario' => 'required|in:ADMIN,CONTADOR,VENDEDOR',
+            'tipousuario' => 'required|in:administrador,CONTADOR,VENDEDOR',
             'idusuario' => 'required|exists:Empleados,Codemp|unique:accesoweb,idusuario',
         ]);
 
@@ -105,7 +105,7 @@ class UsuarioController extends Controller
     public function updateRol(Request $request, $usuario)
     {
         $request->validate([
-            'tipousuario' => 'required|in:ADMIN,CONTADOR,VENDEDOR',
+            'tipousuario' => 'required|in:administrador,CONTADOR,VENDEDOR',
         ]);
 
         $resultado = $this->usuarioService->cambiarRol($usuario, $request->tipousuario);
@@ -177,7 +177,7 @@ class UsuarioController extends Controller
     {
         $request->validate([
             'idusuario' => 'required|integer|exists:Empleados,Codemp',
-            'tipousuario' => 'required|in:ADMIN,CONTADOR,VENDEDOR',
+            'tipousuario' => 'required|in:administrador,CONTADOR,VENDEDOR',
         ]);
 
         $resultado = $this->usuarioService->actualizarUsuario($usuario, [

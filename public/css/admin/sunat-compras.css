@@ -1,0 +1,729 @@
+/*
+ * =====================================================
+ * MÓDULO REGISTRO DE COMPRAS SUNAT - SISTEMA CONTABLE
+ * Estilos profesionales para reportes tributarios
+ * =====================================================
+ */
+
+/* =====================================================
+   1. VARIABLES Y CONFIGURACIÓN BASE
+   ===================================================== */
+:root {
+    /* Paleta Profesional Tributaria */
+    --sunat-primary: #0d47a1;
+    --sunat-primary-dark: #002171;
+    --sunat-primary-light: #5472d3;
+    --sunat-secondary: #455a64;
+    
+    /* Colores Funcionales */
+    --sunat-success: #2e7d32;
+    --sunat-success-light: #e8f5e9;
+    --sunat-danger: #c62828;
+    --sunat-danger-light: #ffebee;
+    --sunat-info: #0288d1;
+    --sunat-info-light: #e1f5fe;
+    --sunat-warning: #f57c00;
+    --sunat-warning-light: #fff3e0;
+    
+    /* Colores Neutros */
+    --sunat-text-primary: #212529;
+    --sunat-text-secondary: #6c757d;
+    --sunat-text-muted: #868e96;
+    --sunat-border: #dee2e6;
+    --sunat-border-light: #e9ecef;
+    --sunat-bg: #f8f9fa;
+    --sunat-bg-white: #ffffff;
+    --sunat-bg-dark: #f1f3f5;
+    
+    /* Espaciado Consistente */
+    --spacing-xs: 0.5rem;
+    --spacing-sm: 0.75rem;
+    --spacing-md: 1rem;
+    --spacing-lg: 1.5rem;
+    --spacing-xl: 2rem;
+    --spacing-xxl: 3rem;
+    
+    /* Bordes y Sombras Sutiles */
+    --radius-sm: 4px;
+    --radius-md: 6px;
+    --radius-lg: 8px;
+    --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.05);
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
+    --shadow-md: 0 2px 6px rgba(0, 0, 0, 0.1);
+    --shadow-lg: 0 4px 12px rgba(0, 0, 0, 0.12);
+    
+    /* Transiciones */
+    --transition: all 0.2s ease;
+}
+
+/* =====================================================
+   2. CONTENEDOR PRINCIPAL
+   ===================================================== */
+.sunat-compras-container {
+    background-color: var(--sunat-bg);
+    padding: var(--spacing-xs) var(--spacing-xl);
+    min-height: 100vh;
+}
+
+/* =====================================================
+   3. TARJETA PRINCIPAL
+   ===================================================== */
+.sunat-compras-container .card {
+    border: 1px solid var(--sunat-border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    background-color: var(--sunat-bg-white);
+    overflow: hidden;
+}
+
+.sunat-compras-container .card-header {
+    background: linear-gradient(135deg, var(--sunat-primary) 0%, var(--sunat-primary-dark) 100%);
+    color: var(--sunat-bg-white);
+    padding: var(--spacing-lg) var(--spacing-xl);
+    border-bottom: none;
+}
+
+.sunat-compras-container .card-header h5 {
+    font-size: 1.125rem;
+    font-weight: 600;
+    margin: 0;
+    letter-spacing: 0.3px;
+    display: flex;
+    align-items: center;
+}
+
+.sunat-compras-container .card-header h5 i {
+    margin-right: var(--spacing-sm);
+    opacity: 0.9;
+}
+
+.sunat-compras-container .card-body {
+    padding: var(--spacing-xl);
+}
+
+/* =====================================================
+   4. FORMULARIO DE FILTROS
+   ===================================================== */
+.sunat-compras-container form {
+    background-color: var(--sunat-bg-dark);
+    padding: var(--spacing-lg);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--sunat-border-light);
+    margin-bottom: var(--spacing-lg);
+}
+
+.sunat-compras-container .form-label {
+    font-weight: 600;
+    font-size: 0.8125rem;
+    color: var(--sunat-text-primary);
+    margin-bottom: var(--spacing-xs);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.sunat-compras-container .form-control {
+    border: 1px solid var(--sunat-border);
+    border-radius: var(--radius-md);
+    padding: 0.5rem var(--spacing-sm);
+    font-size: 0.9375rem;
+    color: var(--sunat-text-primary);
+    transition: var(--transition);
+    background-color: var(--sunat-bg-white);
+}
+
+.sunat-compras-container .form-control:focus {
+    border-color: var(--sunat-primary);
+    box-shadow: 0 0 0 0.2rem rgba(13, 71, 161, 0.15);
+    outline: none;
+}
+
+/* =====================================================
+   5. BOTONES
+   ===================================================== */
+.sunat-compras-container .btn {
+    padding: 0.5rem var(--spacing-lg);
+    font-weight: 600;
+    font-size: 0.875rem;
+    border-radius: var(--radius-md);
+    transition: var(--transition);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border: none;
+}
+
+.sunat-compras-container .btn i {
+    margin-right: 0.375rem;
+}
+
+.sunat-compras-container .btn-primary {
+    background-color: var(--sunat-primary);
+    box-shadow: var(--shadow-xs);
+    color: var(--sunat-bg-white);
+}
+
+.sunat-compras-container .btn-primary:hover {
+    background-color: var(--sunat-primary-dark);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+}
+
+.sunat-compras-container .btn-success {
+    background-color: var(--sunat-success);
+    box-shadow: var(--shadow-xs);
+    color: var(--sunat-bg-white);
+}
+
+.sunat-compras-container .btn-success:hover {
+    background-color: #256029;
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+}
+
+.sunat-compras-container .btn-secondary {
+    background-color: var(--sunat-secondary);
+    box-shadow: var(--shadow-xs);
+    color: var(--sunat-bg-white);
+}
+
+.sunat-compras-container .btn-secondary:hover {
+    background-color: #37474f;
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+}
+
+/* =====================================================
+   6. TARJETAS DE RESUMEN (KPIs)
+   ===================================================== */
+.sunat-compras-container .row.g-3 {
+    row-gap: var(--spacing-lg) !important;
+}
+
+.sunat-compras-container .bg-light {
+    background-color: var(--sunat-bg-white) !important;
+    border: 1px solid var(--sunat-border-light);
+    border-radius: var(--radius-md);
+    padding: var(--spacing-lg) !important;
+    position: relative;
+    overflow: hidden;
+    transition: var(--transition);
+    box-shadow: var(--shadow-xs);
+}
+
+.sunat-compras-container .bg-light::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    transition: var(--transition);
+}
+
+.sunat-compras-container .bg-light:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+/* Colores de borde izquierdo por tipo */
+.sunat-compras-container .bg-light:has(.text-success)::before {
+    background-color: var(--sunat-success);
+}
+
+.sunat-compras-container .bg-light:has(.text-primary)::before {
+    background-color: var(--sunat-primary);
+}
+
+.sunat-compras-container .bg-light:has(.text-warning)::before {
+    background-color: var(--sunat-warning);
+}
+
+.sunat-compras-container .bg-light p.small {
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--sunat-text-secondary);
+    margin-bottom: 0.375rem;
+}
+
+.sunat-compras-container .bg-light h4 {
+    font-weight: 700;
+    font-size: 1.875rem;
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    line-height: 1.2;
+    margin: 0;
+}
+
+/* Colores de valores */
+.sunat-compras-container .text-success {
+    color: var(--sunat-success) !important;
+}
+
+.sunat-compras-container .text-primary {
+    color: var(--sunat-primary) !important;
+}
+
+.sunat-compras-container .text-warning {
+    color: var(--sunat-warning) !important;
+}
+
+.sunat-compras-container .text-danger {
+    color: var(--sunat-danger) !important;
+}
+
+.sunat-compras-container .text-muted {
+    color: var(--sunat-text-muted) !important;
+}
+
+/* =====================================================
+   7. TABLA DE REGISTROS
+   ===================================================== */
+.sunat-compras-container .table-responsive {
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--sunat-border-light);
+}
+
+.sunat-compras-container .table {
+    margin-bottom: 0;
+    font-size: 0.875rem;
+}
+
+.sunat-compras-container .table thead {
+    background-color: #f1f3f5;
+    border-bottom: 2px solid var(--sunat-border);
+}
+
+.sunat-compras-container .table thead th {
+    font-weight: 700;
+    font-size: 0.75rem;
+    color: var(--sunat-text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    padding: var(--spacing-md) var(--spacing-sm);
+    border-bottom: 2px solid var(--sunat-border);
+    white-space: nowrap;
+    vertical-align: middle;
+}
+
+.sunat-compras-container .table tbody td {
+    padding: var(--spacing-md) var(--spacing-sm);
+    vertical-align: middle;
+    color: var(--sunat-text-primary);
+    border-bottom: 1px solid var(--sunat-border-light);
+}
+
+.sunat-compras-container .table tbody tr {
+    transition: background-color 0.15s ease;
+}
+
+.sunat-compras-container .table-hover tbody tr:hover {
+    background-color: var(--sunat-bg);
+}
+
+.sunat-compras-container .table tbody td strong {
+    color: var(--sunat-text-primary);
+    font-weight: 600;
+}
+
+.sunat-compras-container .table tbody td small {
+    font-size: 0.75rem;
+    color: var(--sunat-text-muted);
+}
+
+.sunat-compras-container .table tfoot {
+    background-color: #f1f3f5;
+    border-top: 2px solid var(--sunat-border);
+}
+
+.sunat-compras-container .table tfoot th {
+    padding: var(--spacing-md) var(--spacing-sm);
+    color: var(--sunat-text-primary);
+    font-weight: 700;
+    font-size: 0.875rem;
+}
+
+/* Alineación de columnas numéricas */
+.sunat-compras-container .text-end {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum";
+}
+
+.sunat-compras-container .text-center {
+    text-align: center !important;
+}
+
+.sunat-compras-container .fw-bold {
+    font-weight: 700 !important;
+}
+
+/* =====================================================
+   8. BADGES Y ETIQUETAS
+   ===================================================== */
+.sunat-compras-container .badge {
+    padding: 0.4em 0.75em;
+    font-weight: 600;
+    font-size: 0.75rem;
+    border-radius: var(--radius-sm);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.sunat-compras-container .badge.bg-primary {
+    background-color: var(--sunat-primary) !important;
+    color: var(--sunat-bg-white);
+}
+
+.sunat-compras-container .badge.bg-success {
+    background-color: var(--sunat-success) !important;
+    color: var(--sunat-bg-white);
+}
+
+.sunat-compras-container .badge.bg-warning {
+    background-color: var(--sunat-warning) !important;
+    color: var(--sunat-bg-white);
+}
+
+.sunat-compras-container .badge.bg-danger {
+    background-color: var(--sunat-danger) !important;
+    color: var(--sunat-bg-white);
+}
+
+.sunat-compras-container .badge.bg-info {
+    background-color: var(--sunat-info) !important;
+    color: var(--sunat-bg-white);
+}
+
+.sunat-compras-container .badge.bg-secondary {
+    background-color: var(--sunat-secondary) !important;
+    color: var(--sunat-bg-white);
+}
+
+/* =====================================================
+   9. ALERTAS INFORMATIVAS
+   ===================================================== */
+.sunat-compras-container .alert {
+    border-radius: var(--radius-md);
+    padding: var(--spacing-lg);
+    margin-bottom: var(--spacing-lg);
+    border: 1px solid transparent;
+}
+
+.sunat-compras-container .alert-info {
+    background-color: var(--sunat-info-light);
+    border-color: var(--sunat-info);
+    color: #014361;
+}
+
+.sunat-compras-container .alert-info i {
+    color: var(--sunat-info);
+}
+
+.sunat-compras-container .alert strong {
+    font-weight: 600;
+}
+
+.sunat-compras-container .alert-success {
+    background-color: var(--sunat-success-light);
+    border-color: var(--sunat-success);
+    color: #1b5e20;
+}
+
+.sunat-compras-container .alert-warning {
+    background-color: var(--sunat-warning-light);
+    border-color: var(--sunat-warning);
+    color: #663c00;
+}
+
+.sunat-compras-container .alert-danger {
+    background-color: var(--sunat-danger-light);
+    border-color: var(--sunat-danger);
+    color: #7f1d1d;
+}
+
+/* =====================================================
+   10. ESTADO VACÍO
+   ===================================================== */
+.sunat-compras-container .text-center.text-muted.py-4 {
+    color: var(--sunat-text-muted) !important;
+    font-style: italic;
+    padding: var(--spacing-xxl) var(--spacing-md) !important;
+}
+
+.sunat-compras-container .text-center.text-muted.py-4 i {
+    opacity: 0.5;
+}
+
+/* =====================================================
+   11. SCROLLBAR PERSONALIZADO
+   ===================================================== */
+.sunat-compras-container .table-responsive {
+    scrollbar-width: thin;
+    scrollbar-color: var(--sunat-border) var(--sunat-bg-dark);
+}
+
+.sunat-compras-container .table-responsive::-webkit-scrollbar {
+    height: 8px;
+}
+
+.sunat-compras-container .table-responsive::-webkit-scrollbar-track {
+    background: var(--sunat-bg-dark);
+    border-radius: var(--radius-sm);
+}
+
+.sunat-compras-container .table-responsive::-webkit-scrollbar-thumb {
+    background-color: var(--sunat-border);
+    border-radius: var(--radius-sm);
+}
+
+.sunat-compras-container .table-responsive::-webkit-scrollbar-thumb:hover {
+    background-color: var(--sunat-text-muted);
+}
+
+/* =====================================================
+   12. UTILIDADES
+   ===================================================== */
+.sunat-compras-container .shadow-sm {
+    box-shadow: var(--shadow-sm) !important;
+}
+
+.sunat-compras-container .border-0 {
+    border: none !important;
+}
+
+.sunat-compras-container .rounded {
+    border-radius: var(--radius-md) !important;
+}
+
+.sunat-compras-container .mb-0 {
+    margin-bottom: 0 !important;
+}
+
+.sunat-compras-container .mb-1 {
+    margin-bottom: 0.25rem !important;
+}
+
+.sunat-compras-container .mb-2 {
+    margin-bottom: 0.5rem !important;
+}
+
+.sunat-compras-container .mb-4 {
+    margin-bottom: 1.5rem !important;
+}
+
+.sunat-compras-container .mt-4 {
+    margin-top: 1.5rem !important;
+}
+
+.sunat-compras-container .me-2 {
+    margin-right: 0.5rem !important;
+}
+
+.sunat-compras-container .ms-2 {
+    margin-left: 0.5rem !important;
+}
+
+.sunat-compras-container .p-3 {
+    padding: 1rem !important;
+}
+
+/* =====================================================
+   13. ESTILOS ESPECÍFICOS SUNAT
+   ===================================================== */
+/* Estilo especial para campos de período */
+.sunat-compras-container input[type="month"] {
+    font-weight: 600;
+    color: var(--sunat-primary);
+}
+
+/* Resaltar totales en la tabla */
+.sunat-compras-container .table tfoot th {
+    background-color: #f1f3f5;
+    color: var(--sunat-text-primary);
+}
+
+/* Estilo para códigos y números oficiales */
+.sunat-compras-container .table tbody td:nth-child(4),
+.sunat-compras-container .table tbody td:nth-child(5),
+.sunat-compras-container .table tbody td:nth-child(7) {
+    font-family: 'Courier New', monospace;
+    font-size: 0.8125rem;
+}
+
+/* =====================================================
+   14. RESPONSIVE DESIGN
+   ===================================================== */
+@media (max-width: 992px) {
+    .sunat-compras-container {
+        padding: var(--spacing-lg);
+    }
+}
+
+@media (max-width: 768px) {
+    .sunat-compras-container {
+        padding: var(--spacing-md);
+    }
+    
+    .sunat-compras-container .card-body {
+        padding: var(--spacing-lg);
+    }
+    
+    .sunat-compras-container .card-header {
+        padding: var(--spacing-md) var(--spacing-lg);
+    }
+    
+    .sunat-compras-container .card-header h5 {
+        font-size: 1rem;
+    }
+    
+    .sunat-compras-container form {
+        padding: var(--spacing-md);
+    }
+    
+    .sunat-compras-container .bg-light {
+        padding: var(--spacing-md) !important;
+    }
+    
+    .sunat-compras-container .bg-light h4 {
+        font-size: 1.5rem;
+    }
+    
+    .sunat-compras-container .table {
+        font-size: 0.8125rem;
+    }
+    
+    .sunat-compras-container .table thead th,
+    .sunat-compras-container .table tbody td {
+        padding: var(--spacing-sm);
+    }
+    
+    .sunat-compras-container .btn {
+        font-size: 0.8125rem;
+        padding: 0.5rem var(--spacing-md);
+        margin-bottom: var(--spacing-xs);
+    }
+    
+    .sunat-compras-container .alert {
+        padding: var(--spacing-md);
+        font-size: 0.875rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .sunat-compras-container {
+        padding: var(--spacing-sm);
+    }
+    
+    .sunat-compras-container .card-body {
+        padding: var(--spacing-md);
+    }
+    
+    .sunat-compras-container .card-header {
+        padding: var(--spacing-sm) var(--spacing-md);
+    }
+    
+    .sunat-compras-container .card-header h5 {
+        font-size: 0.9375rem;
+    }
+    
+    .sunat-compras-container .bg-light h4 {
+        font-size: 1.25rem;
+    }
+    
+    .sunat-compras-container .bg-light p.small {
+        font-size: 0.6875rem;
+    }
+    
+    .sunat-compras-container .table {
+        font-size: 0.75rem;
+    }
+    
+    .sunat-compras-container .btn {
+        padding: 0.4rem var(--spacing-md);
+        font-size: 0.75rem;
+        width: 100%;
+        margin-bottom: var(--spacing-xs);
+    }
+    
+    .sunat-compras-container .btn.ms-2 {
+        margin-left: 0 !important;
+    }
+}
+
+/* =====================================================
+   15. OPTIMIZACIÓN DE IMPRESIÓN
+   ===================================================== */
+@media print {
+    .sunat-compras-container {
+        background-color: var(--sunat-bg-white);
+        padding: 0;
+    }
+    
+    .sunat-compras-container .card {
+        box-shadow: none;
+        border: 1px solid var(--sunat-text-primary);
+    }
+    
+    .sunat-compras-container .card-header {
+        background: var(--sunat-text-primary) !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+    
+    .sunat-compras-container .btn {
+        display: none;
+    }
+    
+    .sunat-compras-container form {
+        display: none;
+    }
+    
+    .sunat-compras-container .alert {
+        display: none;
+    }
+    
+    .sunat-compras-container .table {
+        border: 1px solid var(--sunat-text-primary);
+        font-size: 0.75rem;
+    }
+    
+    .sunat-compras-container .badge {
+        border: 1px solid var(--sunat-text-primary);
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+    
+    .sunat-compras-container .bg-light {
+        page-break-inside: avoid;
+    }
+    
+    .sunat-compras-container .table thead {
+        background-color: var(--sunat-bg-dark) !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+    
+    .sunat-compras-container .table tfoot {
+        background-color: var(--sunat-primary-light) !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+    
+    /* Asegurar que la tabla no se corte */
+    .sunat-compras-container .table-responsive {
+        overflow: visible;
+    }
+    
+    /* Información del período al imprimir */
+    .sunat-compras-container::before {
+        content: "Registro de Compras SUNAT - Formato 8.1";
+        display: block;
+        text-align: center;
+        font-size: 1.2rem;
+        font-weight: bold;
+        margin-bottom: 1rem;
+        padding: 0.5rem;
+        border-bottom: 2px solid var(--sunat-text-primary);
+    }
+}
