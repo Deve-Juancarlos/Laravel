@@ -79,8 +79,8 @@
                         </div>
                     </div>
                     <ul class="dropdown-menu dropdown-menu-end">
-                        <li><a class="dropdown-item" href="#"><i class="fas fa-user me-2"></i>Mi Perfil</a></li>
-                        <li><a class="dropdown-item" href="#"><i class="fas fa-cog me-2"></i>Configuración</a></li>
+                        <li><a class="dropdown-item" href="{{ route('perfil') }}"><i class="fas fa-user me-2"></i>Mi Perfil</a></li>
+                        <li><a class="dropdown-item" href="{{ route('configuracion') }}"><i class="fas fa-cog me-2"></i>Configuración</a></li>
                         <li><hr class="dropdown-divider"></li>
                         <li>
                             <form method="POST" action="{{ route('logout') }}">

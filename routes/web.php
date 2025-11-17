@@ -20,6 +20,8 @@ use App\Http\Controllers\Contabilidad\PlanCuentasController;
 use App\Http\Controllers\Contabilidad\FlujoCajaController; 
 use App\Http\Controllers\Clientes\ClientesController; 
 use App\Http\Controllers\Contabilidad\CajaController;
+use App\Http\Controllers\PerfilController;
+use App\Http\Controllers\ConfiguracionController;
 use App\Http\Controllers\Contabilidad\FlujoEgresoController;
 use App\Http\Controllers\Contabilidad\CuentasPorPagarController;
 use App\Http\Controllers\Compras\RegistroCompraController;
@@ -60,6 +62,23 @@ Route::middleware(['web'])->group(function () {
     Route::get('/welcome-message', function () {
         return view('auth.welcome-message');
     })->name('welcome.message');
+
+    //RUTA PARA PERFIL USUARIO CONTADOR
+    Route::get('/perfil', [PerfilController::class, 'index'])
+        ->name('perfil')
+        ->middleware('auth');
+
+    //RUTA PARA CONFIGURACION USUARIO CONTADOR
+    Route::get('/configuracion', [ConfiguracionController::class, 'index'])
+        ->name('configuracion')
+        ->middleware('auth');
+
+    //CAMBIO SE PASSWORD
+    Route::middleware('auth')->group(function () {
+        Route::get('/perfil', [PerfilController::class, 'index'])->name('perfil');
+        Route::post('/perfil/password', [PerfilController::class, 'updatePassword'])
+            ->name('perfil.password.update');
+    });
 
     Route::middleware(['auth'])->group(function () {
 
