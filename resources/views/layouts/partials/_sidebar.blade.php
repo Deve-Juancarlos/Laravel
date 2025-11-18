@@ -55,6 +55,11 @@
     <span>Cuentas por Cobrar</span>
 </a>
 
+<a class="nav-link {{ request()->is('tesoreria/cobranzas*') ? 'active' : '' }}" href="{{ route('contador.canjes.index') }}">
+    <i class="fas fa-hand-holding-usd"></i>
+    <span>Canjes Cuentas</span>
+</a>
+
 <a class="nav-link {{ request()->is('tesoreria/cobranzas*') ? 'active' : '' }}" href="{{ route('contador.letras_descuento.index') }}">
     <i class="fas fa-hand-holding-usd"></i>
     <span>Letras</span>

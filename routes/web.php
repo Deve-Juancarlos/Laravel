@@ -33,6 +33,7 @@ use App\Http\Controllers\Reportes\ReporteAuditoriaController;
 use App\Http\Controllers\Admin\SolicitudAsientoController; 
 use App\Http\Controllers\Admin\DashboardController;
 use Illuminate\Support\Facades\Auth;
+use App\Http\Controllers\Contabilidad\CanjeController;
 
 
 // El grupo 'web' carga la sesión y soluciona el error 'usuario_id: null'.
@@ -572,7 +573,17 @@ Route::middleware(['web'])->group(function () {
                 Route::get('/{serie}/{numero}', [App\Http\Controllers\Contabilidad\PlanillaLetrasController::class, 'show'])->name('show');
                 Route::delete('/quitar-letra/{id}', [App\Http\Controllers\Contabilidad\PlanillaLetrasController::class, 'quitarLetraPlanilla'])->name('api.quitarLetra');
                 Route::post('/{serie}/{numero}/procesar', [App\Http\Controllers\Contabilidad\PlanillaLetrasController::class, 'procesarDescuento'])->name('procesar');
-            });            
+            });  
+            
+            Route::prefix('canjes')->name('canjes.')->group(function () {
+                Route::get('/', [CanjeController::class, 'index'])->name('index');
+                Route::get('/create', [CanjeController::class, 'create'])->name('create');
+                Route::post('/store', [CanjeController::class, 'store'])->name('store');
+                Route::get('/show/{id}', [CanjeController::class, 'show'])->name('show');
+                
+                // API para obtener facturas del cliente
+                Route::get('/api/facturas', [CanjeController::class, 'getFacturasCliente'])->name('get-facturas');
+            });
             // --- MÓDULO ESTADO DE RESULTADOS ---
             Route::prefix('estado-resultados')->name('estado-resultados.')->group(function () {
                 Route::get('/', [EstadoResultadosController::class, 'index'])->name('index');

@@ -3,7 +3,7 @@
 @section('title', 'Libro Diario')
 
 @push('styles')
-    {{-- Hacemos referencia al CSS que acabamos de crear --}}
+    
     <link href="{{ asset('css/contabilidad/libro-diario.css') }}" rel="stylesheet">
 @endpush
 
@@ -159,9 +159,9 @@
     </div>
 
     {{-- Tabla Moderna de Asientos (Tu lógica @if está bien para este caso) --}}
-    <div class="table-card">
-        
-        @if(isset($asientos) && $asientos->count() > 0)
+    {{-- Tabla Moderna de Asientos --}}
+<div class="table-card">
+    @if(isset($asientos) && $asientos->count() > 0)
         <div class="table-responsive">
             <table class="table align-middle">
                 <thead>
@@ -213,18 +213,26 @@
                         </td>
                         <td class="text-center">
                             <div class="action-buttons">
-                                <a href="{{ route('contador.libro-diario.show', $asiento->id) }}" class="btn btn-icon btn-outline-primary" title="Ver detalle">
+                                <a href="{{ route('contador.libro-diario.show', $asiento->id) }}" 
+                                   class="btn btn-icon btn-outline-primary" 
+                                   title="Ver detalle">
                                     <i class="fas fa-eye"></i>
                                 </a>
-                                <a href="{{ route('contador.libro-diario.edit', $asiento->id) }}" class="btn btn-icon btn-outline-secondary" title="Editar">
+                                <a href="{{ route('contador.libro-diario.edit', $asiento->id) }}" 
+                                   class="btn btn-icon btn-outline-secondary" 
+                                   title="Editar">
                                     <i class="fas fa-edit"></i>
                                 </a>
-                                <button type="button" class="btn btn-icon btn-outline-danger" 
+                                <button type="button" 
+                                        class="btn btn-icon btn-outline-danger" 
                                         title="Eliminar"
                                         onclick="confirmarEliminacion({{ $asiento->id }})">
                                     <i class="fas fa-trash"></i>
                                 </button>
-                                <form id="delete-form-{{ $asiento->id }}" action="{{ route('contador.libro-diario.destroy', $asiento->id) }}" method="POST" style="display: none;">
+                                <form id="delete-form-{{ $asiento->id }}" 
+                                      action="{{ route('contador.libro-diario.destroy', $asiento->id) }}" 
+                                      method="POST" 
+                                      style="display: none;">
                                     @csrf
                                     @method('DELETE')
                                 </form>
@@ -243,8 +251,8 @@
         </div>
         @endif
 
-        @else
-        {{-- Estado Vacío (Tu código está perfecto) --}}
+    @else
+        {{-- Estado Vacío --}}
         <div class="empty-state">
             <div class="empty-state-icon">
                 <i class="fas fa-inbox"></i>
@@ -255,11 +263,13 @@
                 <i class="fas fa-plus-circle me-1"></i> Crear Primer Asiento
             </a>
         </div>
-        @endif
-    </div>
+    @endif
+</div>
+
 </div>
 @endsection
 
 @push('scripts')
+
     <script src="{{ asset('js/contabilidad/libro-diario.js') }}"></script>
 @endpush

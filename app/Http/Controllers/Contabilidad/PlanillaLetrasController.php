@@ -8,19 +8,21 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use App\Services\Contabilidad\CajaService; 
+use App\Services\Contabilidad\NotificacionDescuentoService;
 
 class PlanillaLetrasController extends Controller
 {
     protected $connection = 'sqlsrv';
     protected $cajaService; 
+    protected $notificacionService; 
 
-    public function __construct(CajaService $cajaService)
+    public function __construct(CajaService $cajaService, NotificacionDescuentoService $notificacionService)
     {
         $this->middleware('auth');
         $this->cajaService = $cajaService;
+        $this->notificacionService = $notificacionService;
     }
 
-    
     public function index(Request $request)
     {
         $query = DB::connection($this->connection)->table('PllaLetras as pl')
@@ -46,14 +48,12 @@ class PlanillaLetrasController extends Controller
         return view('letras.descuento.index', ['planillas' => $planillas]);
     }
 
-
     public function create()
     {
         $bancos = DB::connection($this->connection)->table('Bancos')->get();
         return view('letras.descuento.create', ['bancos' => $bancos]);
     }
 
-    
     public function store(Request $request)
     {
         $request->validate([
@@ -63,7 +63,6 @@ class PlanillaLetrasController extends Controller
         ]);
 
         try {
-            // Generar correlativo para la planilla
             $serie = $request->Serie;
             $ultimoNum = DB::connection($this->connection)->table('PllaLetras')
                             ->where('Serie', $serie)->max('Numero');
@@ -86,7 +85,6 @@ class PlanillaLetrasController extends Controller
         }
     }
 
-    
     public function show($serie, $numero)
     {
         $planilla = DB::connection($this->connection)->table('PllaLetras as pl')
@@ -112,8 +110,6 @@ class PlanillaLetrasController extends Controller
         ]);
     }
 
-    
-    
     public function procesarDescuento(Request $request, $serie, $numero)
     {
         $planilla = DB::connection($this->connection)->table('PllaLetras')
@@ -141,6 +137,7 @@ class PlanillaLetrasController extends Controller
         DB::connection($this->connection)->beginTransaction();
         try {
 
+            // 1. Saldar las letras en CtaCliente
             foreach ($detalles as $letra) {
                 DB::connection($this->connection)->table('CtaCliente')
                     ->where('Documento', $letra->NroLetra)
@@ -148,51 +145,75 @@ class PlanillaLetrasController extends Controller
                     ->update(['Saldo' => 0]);
             }
 
+            // 2. Insertar movimiento en CtaBanco
             DB::connection($this->connection)->table('CtaBanco')->insert([
                 'Documento' => "PLANILLA {$serie}-{$numero}",
-                'Tipo' => 1, 
+                'Tipo' => 1,
                 'Clase' => 1, 
                 'Fecha' => $request->fecha_abono,
                 'Cuenta' => $planilla->CodBanco, 
-                'Moneda' => 1, 'Cambio' => 1,
-                'Monto' => $montoNetoAbonado,
-                'Usuario' => Auth::user()->usuario,
-                'Eliminado' => 0,
+                'Monto' => $montoNetoAbonado
             ]);
             
-            
+            // 3. Contabilizar (Libro Diario)
             $numeroAsiento = $this->cajaService->obtenerSiguienteNumeroAsiento($request->fecha_abono); 
             
             $asientoId = DB::connection($this->connection)->table('libro_diario')->insertGetId([
                 'numero' => $numeroAsiento,
                 'fecha' => $request->fecha_abono,
-                'glosa' => "Descuento Letras Planilla {$serie}-{$numero}. Banco: {$planilla->CodBanco}",
+                'glosa' => "Descuento bancario de letras en cartera {$serie}-{$numero}. Banco: {$planilla->CodBanco}",
                 'total_debe' => $montoTotalLetras,
                 'total_haber' => $montoTotalLetras,
-                'balanceado' => 1, 'estado' => 'ACTIVO', 'usuario_id' => Auth::id(),
-                'created_at' => now(), 'updated_at' => now(),
+                'balanceado' => 1, 
+                'estado' => 'ACTIVO', 
+                'usuario_id' => Auth::id(),
+                'created_at' => now(), 
+                'updated_at' => now(),
+            ]);
+            
+            // Detalles del asiento
+            DB::connection($this->connection)->table('libro_diario_detalles')->insert([
+                'asiento_id' => $asientoId, 
+                'cuenta_contable' => '104101', 
+                'debe' => $montoNetoAbonado, 
+                'haber' => 0,
+                'concepto' => "Abono neto planilla {$serie}-{$numero}", 
+                'created_at' => now(),
             ]);
             
             DB::connection($this->connection)->table('libro_diario_detalles')->insert([
-                'asiento_id' => $asientoId, 'cuenta_contable' => '104101', 
-                'debe' => $montoNetoAbonado, 'haber' => 0,
-                'concepto' => "Abono neto planilla {$serie}-{$numero}", 'created_at' => now(),
-            ]);
-            DB::connection($this->connection)->table('libro_diario_detalles')->insert([
-                'asiento_id' => $asientoId, 'cuenta_contable' => '671101', 
-                'debe' => $montoInteres, 'haber' => 0,
-                'concepto' => "Intereses descuento planilla", 'created_at' => now(),
+                'asiento_id' => $asientoId, 
+                'cuenta_contable' => '671101', 
+                'debe' => $montoInteres, 
+                'haber' => 0,
+                'concepto' => "Intereses descuento planilla", 
+                'created_at' => now(),
             ]);
             
             DB::connection($this->connection)->table('libro_diario_detalles')->insert([
-                'asiento_id' => $asientoId, 'cuenta_contable' => '123201', 
-                'debe' => 0, 'haber' => $montoTotalLetras,
-                'concepto' => "Salida de letras en cartera", 'created_at' => now(),
+                'asiento_id' => $asientoId, 
+                'cuenta_contable' => '123201', 
+                'debe' => 0, 
+                'haber' => $montoTotalLetras,
+                'concepto' => "Salida de letras en cartera", 
+                'created_at' => now(),
             ]);
 
+            // 4. Marcar planilla como procesada
             DB::connection($this->connection)->table('PllaLetras')
                 ->where('Serie', $serie)->where('Numero', $numero)
                 ->update(['Procesado' => 1]);
+
+            // 5. Enviar notificación al administrador (usando Service)
+            $this->notificacionService->notificarDescuentoLetras([
+                'serie' => $serie,
+                'numero' => $numero,
+                'asiento' => $numeroAsiento,
+                'montoTotal' => $montoTotalLetras,
+                'montoNeto' => $montoNetoAbonado,
+                'interes' => $montoInteres,
+                'banco' => $planilla->CodBanco
+            ]);
 
             DB::connection($this->connection)->commit();
             
@@ -208,6 +229,7 @@ class PlanillaLetrasController extends Controller
     }
 
    
+
     public function apiBuscarLetrasPendientes(Request $request)
     {
         $query = $request->input('q');
@@ -227,8 +249,7 @@ class PlanillaLetrasController extends Controller
         
         return response()->json($letras);
     }
-    
-  
+
     public function agregarLetraPlanilla(Request $request)
     {
         $request->validate([
@@ -248,8 +269,7 @@ class PlanillaLetrasController extends Controller
             return response()->json(['success' => false, 'message' => $e->getMessage()], 400);
         }
     }
-    
-   
+
     public function quitarLetraPlanilla($id) 
     {
         try {

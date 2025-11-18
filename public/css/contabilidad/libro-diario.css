@@ -1,4 +1,4 @@
-/* ==== Variables y estilo base ==== */
+
 :root {
     --color-primario: #1b998b;
     --color-secundario: #2a547e;
@@ -115,33 +115,187 @@ input.form-control:focus {
 .btn:hover { opacity: 0.9; }
 
 /* ==== Tabla ==== */
+
 .table-card {
     background: #fff;
     border-radius: var(--radio);
     box-shadow: var(--sombra);
-    padding: 0.5rem;
-    overflow-x: auto; /* Para móviles */
+    padding: 1rem;
+    overflow: hidden; 
+    min-height: 400px; 
+    position: relative; 
 }
+
+.table-responsive {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
 
 .table {
     width: 100%;
     border-collapse: collapse;
-    min-width: 650px;
+    margin-bottom: 0;
+    background: #fff;
 }
 
-.table th {
+.table thead th {
     background: var(--color-secundario);
     color: #fff;
-    padding: 0.8rem;
+    padding: 1rem 0.8rem;
     text-align: left;
+    font-weight: 600;
+    white-space: nowrap;
+    border: none;
 }
-.table td {
-    padding: 0.8rem;
-    border-bottom: 1px solid #eee;
-}
-.amount.debe { color: var(--color-exito); font-weight: bold; }
-.amount.haber { color: var(--color-peligro); font-weight: bold; }
 
+.table tbody tr {
+    transition: background-color 0.2s ease;
+}
+
+.table tbody tr:hover {
+    background-color: rgba(27, 153, 139, 0.05);
+}
+
+.table td {
+    padding: 1rem 0.8rem;
+    border-bottom: 1px solid #eee;
+    vertical-align: middle;
+}
+
+/* Números de asiento */
+.asiento-numero {
+    font-weight: 600;
+    color: var(--color-primario);
+}
+
+/* Montos */
+.amount {
+    font-weight: 600;
+    font-family: 'Courier New', monospace;
+}
+.amount.debe { 
+    color: var(--color-exito); 
+}
+.amount.haber { 
+    color: var(--color-peligro); 
+}
+
+/* Botones de acción */
+.action-buttons {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: center;
+    align-items: center;
+}
+
+.btn-icon {
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+}
+
+.btn-icon:hover {
+    transform: translateY(-2px);
+}
+
+.btn-outline-primary {
+    border: 1px solid var(--color-primario);
+    color: var(--color-primario);
+    background: transparent;
+}
+.btn-outline-primary:hover {
+    background: var(--color-primario);
+    color: #fff;
+}
+
+.btn-outline-secondary {
+    border: 1px solid #6c757d;
+    color: #6c757d;
+    background: transparent;
+}
+.btn-outline-secondary:hover {
+    background: #6c757d;
+    color: #fff;
+}
+
+.btn-outline-danger {
+    border: 1px solid var(--color-peligro);
+    color: var(--color-peligro);
+    background: transparent;
+}
+.btn-outline-danger:hover {
+    background: var(--color-peligro);
+    color: #fff;
+}
+
+/* ==== Paginación ==== */
+.pagination-wrapper {
+    padding: 1.5rem 1rem;
+    border-top: 1px solid #eee;
+    display: flex;
+    justify-content: center;
+    margin-top: 1rem;
+}
+
+/* ==== Estado Vacío ==== */
+.empty-state {
+    text-align: center;
+    padding: 4rem 2rem;
+    color: #666;
+}
+
+.empty-state-icon {
+    font-size: 4rem;
+    margin-bottom: 1.5rem;
+    color: var(--color-info);
+    opacity: 0.6;
+}
+
+.empty-state h5 {
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+    color: var(--color-texto);
+}
+
+.empty-state p {
+    margin-bottom: 1.5rem;
+    color: #777;
+}
+
+/* ==== RESPONSIVE ==== */
+@media (max-width: 768px) {
+    .table-card {
+        padding: 0.5rem;
+        min-height: 300px;
+    }
+    
+    .action-buttons {
+        flex-direction: column;
+        gap: 0.3rem;
+    }
+    
+    .btn-icon {
+        width: 28px;
+        height: 28px;
+        font-size: 0.85rem;
+    }
+    
+    .empty-state {
+        padding: 2rem 1rem;
+    }
+    
+    .empty-state-icon {
+        font-size: 3rem;
+    }
+}
+
+    
 /* ==== Badges ==== */
 .badge {
     padding: 0.4rem 0.6rem;
@@ -373,6 +527,101 @@ input.form-control:focus {
     
     .page-title, .header-title {
         font-size: 1.2rem;
+    }
+}
+
+/* ==== PAGINACIÓN MEJORADA PARA SEDIM ==== */
+.pagination-wrapper {
+    padding: 1.5rem 1rem;
+    border-top: 1px solid #eee;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 1rem;
+    background: #f8f9fa;
+    border-radius: 0 0 var(--radio) var(--radio);
+}
+
+.pagination {
+    display: flex;
+    gap: 0.5rem;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    align-items: center;
+}
+
+.pagination .page-item {
+    list-style: none;
+}
+
+.pagination .page-link {
+    padding: 0.5rem 0.75rem;
+    border: 1px solid #dee2e6;
+    border-radius: var(--radio);
+    color: var(--color-primario);
+    text-decoration: none;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 40px;
+    min-height: 40px;
+    background: white;
+    font-weight: 500;
+}
+
+.pagination .page-link:hover {
+    background-color: var(--color-primario);
+    color: white;
+    border-color: var(--color-primario);
+    transform: translateY(-2px);
+    box-shadow: 0 2px 6px rgba(27, 153, 139, 0.3);
+}
+
+.pagination .page-item.active .page-link {
+    background-color: var(--color-primario);
+    border-color: var(--color-primario);
+    color: white;
+    font-weight: 600;
+}
+
+.pagination .page-item.disabled .page-link {
+    color: #6c757d;
+    pointer-events: none;
+    background-color: #fff;
+    border-color: #dee2e6;
+    opacity: 0.5;
+}
+
+/* Ajuste para SVG (por si Laravel sigue mostrando íconos) */
+.pagination svg {
+    width: 14px !important;
+    height: 14px !important;
+    display: inline-block;
+    vertical-align: middle;
+}
+
+/* Texto de paginación (Showing 1 to 20...) */
+.pagination-info {
+    text-align: center;
+    color: #666;
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+    padding: 0.5rem;
+}
+
+/* Responsive */
+@media (max-width: 576px) {
+    .pagination .page-link {
+        min-width: 35px;
+        min-height: 35px;
+        padding: 0.4rem 0.6rem;
+        font-size: 0.85rem;
+    }
+    
+    .pagination-wrapper {
+        padding: 1rem 0.5rem;
     }
 }
 
