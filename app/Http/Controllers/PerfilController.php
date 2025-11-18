@@ -11,8 +11,9 @@ class PerfilController extends Controller
     public function index()
     {
         $user = Auth::user(); // Tu usuario de accesoweb
+        $empleado = $user->empleado;
 
-        return view('user_menu.perfil', compact('user'));
+        return view('user_menu.perfil', compact('user', 'empleado'));
         // o: return view('perfil', ['user' => $user]);
     }
 

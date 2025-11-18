@@ -59,47 +59,6 @@
         gap: 2rem;
     }
 
-    .profile-avatar-container {
-        position: relative;
-    }
-
-    .profile-avatar {
-        width: 120px;
-        height: 120px;
-        border-radius: 20px;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 3rem;
-        font-weight: 700;
-        color: white;
-        border: 5px solid rgba(255, 255, 255, 0.3);
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-    }
-
-    .profile-avatar-edit {
-        position: absolute;
-        bottom: -10px;
-        right: -10px;
-        width: 40px;
-        height: 40px;
-        background: white;
-        border-radius: 10px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-        transition: all 0.3s ease;
-    }
-
-    .profile-avatar-edit:hover {
-        transform: scale(1.1);
-        background: var(--primary);
-        color: white;
-    }
-
     .profile-info {
         flex: 1;
         color: white;
@@ -415,21 +374,15 @@
     }
 </style>
 @endpush
-
+@livewireStyles
 @section('content')
 <div class="profile-container">
     <div class="container-fluid">
         <!-- Header del Perfil -->
         <div class="profile-header">
             <div class="profile-header-content">
-                <div class="profile-avatar-container">
-                    <div class="profile-avatar">
-                        {{ strtoupper(substr($user->usuario, 0, 1)) }}
-                    </div>
-                    <div class="profile-avatar-edit">
-                        <i class="fas fa-camera"></i>
-                    </div>
-                </div>
+                
+                @livewire('profile-avatar')
                 
                 <div class="profile-info">
                     <h1 class="profile-name">{{ ucfirst(strtolower($user->usuario)) }}</h1>
@@ -508,19 +461,19 @@
                                     <div class="col-md-6">
                                         <div class="form-group-custom">
                                             <label class="form-label-custom">Teléfono</label>
-                                            <input type="tel" class="form-control-custom" value="+51 999 888 777" placeholder="+51 999 888 777">
+                                            <input type="tel" class="form-control-custom" value="{{ $empleado->telefono_formateado }}">
                                         </div>
                                     </div>
                                     <div class="col-md-6">
                                         <div class="form-group-custom">
                                             <label class="form-label-custom">DNI</label>
-                                            <input type="text" class="form-control-custom" value="12345678" placeholder="12345678">
+                                            <input type="text" class="form-control-custom" value="{{ $empleado->Documento }}" placeholder="12345678">
                                         </div>
                                     </div>
                                     <div class="col-12">
                                         <div class="form-group-custom">
                                             <label class="form-label-custom">Dirección</label>
-                                            <input type="text" class="form-control-custom" value="Trujillo, La Libertad, PE" placeholder="Dirección completa">
+                                            <input type="text" class="form-control-custom" value="{{ $empleado->Direccion }}" placeholder="Dirección completa">
                                         </div>
                                     </div>
                                 </div>
@@ -553,14 +506,14 @@
                                     <i class="fas fa-id-badge text-primary"></i>
                                     Cargo
                                 </span>
-                                <span class="info-value">Contador</span>
+                                <span class="info-value"><i>{{ ucfirst(strtolower($user->tipousuario)) }}</i></span>
                             </div>
                             <div class="info-row">
                                 <span class="info-label">
                                     <i class="fas fa-calendar-alt text-success"></i>
-                                    Fecha de Ingreso
+                                    Fecha de Creacion de Usuario
                                 </span>
-                                <span class="info-value">15/01/2024</span>
+                                <span class="info-value"><i>{{ $user->created_at }}</i></span>
                             </div>
                             <div class="info-row">
                                 <span class="info-label">

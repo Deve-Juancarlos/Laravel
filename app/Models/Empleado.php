@@ -23,9 +23,22 @@ class Empleado extends Model
         'Tipo'
     ];
 
-    // Relación con accesoweb (un empleado puede tener un usuario web)
+    
     public function usuarioWeb()
     {
         return $this->hasOne(\App\Models\AccesoWeb::class, 'idusuario', 'Codemp');
+    }
+
+    public function getTelefonoFormateadoAttribute()
+    {
+        $tel = $this->Telefono1; 
+
+    
+        if (!$tel || strlen($tel) !== 9) {
+                return $tel;
+            }
+
+        
+            return '+51 ' . substr($tel, 0, 3) . ' ' . substr($tel, 3, 3) . ' ' . substr($tel, 6, 3);
     }
 }

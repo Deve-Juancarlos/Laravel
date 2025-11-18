@@ -11,6 +11,7 @@
         "guzzlehttp/guzzle": "^7.10",
         "laravel/framework": "^12.0",
         "laravel/tinker": "^2.10.1",
+        "livewire/livewire": "^3.6",
         "maatwebsite/excel": "4.x-dev",
         "predis/predis": "^3.2",
         "resend/resend-laravel": "^0.23.0"
