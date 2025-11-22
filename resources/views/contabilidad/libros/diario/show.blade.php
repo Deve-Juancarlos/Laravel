@@ -1,4 +1,5 @@
 {{-- Vista show.blade.php CORREGIDA para contador.libro-diario.show --}}
+@use('Illuminate\Support\Str')
 @extends('layouts.app') {{-- Usar tu layout --}}
 
 @section('title', 'Asiento ' . $asiento->numero)

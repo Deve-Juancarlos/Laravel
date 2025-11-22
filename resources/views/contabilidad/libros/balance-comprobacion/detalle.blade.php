@@ -1,3 +1,5 @@
+
+@use('Illuminate\Support\Str')
 @extends('layouts.app')
 
 @section('title', "Detalle de Cuentas - Balance de Comprobación")

@@ -1,3 +1,4 @@
+@use('Illuminate\Support\Str')
 @extends('layouts.app')
 @section('title', 'Nueva Nota de Crédito - Paso 2')
 @section('page-title', 'Nueva Nota de Crédito')

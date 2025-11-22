@@ -1,3 +1,4 @@
+@use('Illuminate\Support\Str')
 @extends('layouts.app')
 @section('title', 'Gestionar Planilla')
 @section('page-title', 'Gestionar Planilla de Descuento')

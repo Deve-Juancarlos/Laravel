@@ -10,7 +10,9 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Schema;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Auth;
 
 
 class XmlDescargaController extends Controller
@@ -343,27 +345,47 @@ class XmlDescargaController extends Controller
      * Registra auditoría del sistema
      */
     private function registrarAuditoria($accion, $descripcion, $datos = [])
-    {
-        try {
-            $usuario = \Auth::user();
-            $usuario_nombre = $usuario->name ?? 'Sistema';
-            
-            // Construir detalle con toda la información
-            $detalle = $descripcion . ' | IP: ' . request()->ip() . ' | UA: ' . substr(request()->header('User-Agent', ''), 0, 100);
-            
-            DB::connection($this->connection)->table('auditoria_sistema')->insert([
-                'usuario' => $usuario_nombre,
-                'accion' => $accion,
-                'tabla' => 'Doccab', // Tabla de comprobantes
-                'detalle' => $detalle,
-                'fecha' => now(),
-            ]);
-        } catch (\Exception $e) {
-            Log::warning('Error al registrar auditoría: ' . $e->getMessage());
-            // No detener proceso por error de auditoría
-        }
-    }
+{
+    try {
+        // ✅ CAMBIAR ESTAS LÍNEAS (349-350)
+        $usuario = Auth::user();      // Sin \
+        $usuarioId = Auth::id();      // Sin \
 
-    
+        // Guardamos los datos en formato json para trazabilidad
+        $datosParaGuardar = array_merge(
+            $datos,
+            [
+                'descripcion' => $descripcion,
+            ]
+        );
+
+        DB::connection($this->connection)->table('auditorias')->insert([
+            'usuario_id' => $usuarioId,
+            'accion' => $accion,
+            'datos' => json_encode($datosParaGuardar, JSON_UNESCAPED_UNICODE),
+            'ip' => request()->ip(),
+            'fecha_hora' => now(),
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        // Compatibilidad con el sistema anterior
+        try {
+            if (Schema::connection($this->connection)->hasTable('Auditoria_Sistema')) {
+                DB::connection($this->connection)->table('Auditoria_Sistema')->insert([
+                    'usuario' => $usuario->name ?? ($usuario->usuario ?? 'Sistema'),
+                    'accion' => $accion,
+                    'tabla' => 'Doccab',
+                    'detalle' => $descripcion . ' | ' . json_encode($datosParaGuardar, JSON_UNESCAPED_UNICODE),
+                    'fecha' => now(),
+                ]);
+            }
+        } catch (\Exception $ex) {
+            // No hacer nada; ya registramos en la nueva tabla.
+        }
+    } catch (\Exception $e) {
+        Log::warning('Error al registrar auditoría: ' . $e->getMessage());
+    }
+}
 }
 

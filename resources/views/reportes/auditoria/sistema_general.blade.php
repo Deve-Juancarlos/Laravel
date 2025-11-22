@@ -1,3 +1,4 @@
+@use('Illuminate\Support\Str')
 @extends('reportes.auditoria.layout')
 
 @section('title', 'Reporte de Auditoría General')

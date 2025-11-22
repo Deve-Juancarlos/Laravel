@@ -2,7 +2,7 @@
   Esta es la nueva vista de reporte de vencimientos.
   Va en 'resources/views/reportes/inventario/'.
 --}}
-
+@use('Illuminate\Support\Str')
 @extends('layouts.app') 
 
 @section('title', 'Reporte de Productos por Vencer')

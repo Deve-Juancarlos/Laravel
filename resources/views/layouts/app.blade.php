@@ -47,18 +47,17 @@
             </button>
 
             <div class="topbar-right">                
-
                 <div class="user-menu dropdown">
                     <div data-bs-toggle="dropdown">
                         <div class="user-avatar">
-                            {{ strtoupper(substr(Auth::user()->usuario ?? Auth::user()->name ?? 'U', 0, 1)) }}
+                            {{ strtoupper(substr(auth()->user()->usuario ?? auth()->user()->name ?? 'U', 0, 1)) }}
                         </div>
                         <div class="d-none d-md-block ms-2">
                             <div style="font-size: 0.875rem; font-weight: 600;">
-                                {{ Auth::user()->usuario ?? Auth::user()->name ?? 'Usuario' }}
+                                {{ auth()->user()->usuario ?? auth()->user()->name ?? 'Usuario' }}
                             </div>
                             <div style="font-size: 0.75rem; color: #666;">
-                                {{ Auth::user()->tipousuario ?? 'Usuario' }}
+                                {{ auth()->user()->tipousuario ?? 'Usuario' }}
                             </div>
                         </div>
                     </div>
@@ -78,7 +77,6 @@
                 </div>
             </div>
         </header>
-
         <div class="content-area">
             
             @if(session('success'))

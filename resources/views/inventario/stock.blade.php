@@ -1,3 +1,4 @@
+@use('Illuminate\Support\Str')
 @extends('layouts.app')
 @section('title', 'Stock y Lotes')
 @section('page-title', 'Reporte de Stock y Lotes')

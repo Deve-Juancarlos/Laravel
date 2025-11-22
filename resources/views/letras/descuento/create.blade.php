@@ -1,3 +1,4 @@
+@use('Illuminate\Support\Str')
 @extends('layouts.app')
 @section('title', 'Crear Planilla - Paso 1')
 @section('page-title', 'Nueva Planilla de Descuento')

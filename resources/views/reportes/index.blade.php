@@ -1,3 +1,5 @@
+@use('Illuminate\Support\Str')
+
 @extends('layouts.app') 
 
 @section('title', 'Reporte de Antigüedad de Cuentas por Cobrar')

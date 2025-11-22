@@ -1,3 +1,4 @@
+@use('Illuminate\Support\Str')
 @extends('layouts.app') {{-- Asumo que usas tu layout principal --}}
 
 @section('title', 'Dashboard de Operaciones Contables')

@@ -57,14 +57,15 @@
                 <div class="user-menu dropdown">
                     <div data-bs-toggle="dropdown">
                         <div class="user-avatar">
-                            {{ strtoupper(substr(Auth::user()->usuario ?? Auth::user()->name ?? 'A', 0, 1)) }}
+                            {{-- ✅ Cambiar Auth:: por auth() --}}
+                            {{ strtoupper(substr(auth()->user()->usuario ?? auth()->user()->name ?? 'A', 0, 1)) }}
                         </div>
                         <div class="d-none d-md-block ms-2">
                             <div style="font-size: 0.875rem; font-weight: 600;">
-                                {{ Auth::user()->usuario ?? Auth::user()->name ?? 'Administrador' }}
+                                {{ auth()->user()->usuario ?? auth()->user()->name ?? 'Administrador' }}
                             </div>
                             <div style="font-size: 0.75rem; color: #666;">
-                                {{ Auth::user()->tipousuario ?? 'ADMIN' }}
+                                {{ auth()->user()->tipousuario ?? 'ADMIN' }}
                             </div>
                         </div>
                     </div>
@@ -82,6 +83,7 @@
                         </li>
                     </ul>
                 </div>
+
             </div>
         </header>
 

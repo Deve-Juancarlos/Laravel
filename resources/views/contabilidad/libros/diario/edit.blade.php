@@ -1,3 +1,5 @@
+
+@use('Illuminate\Support\Str')
 {{-- resources/views/contabilidad/libros/diario/edit.blade.php --}}
 @extends('layouts.app')
 

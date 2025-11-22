@@ -1,3 +1,4 @@
+@use('Illuminate\Support\Str')
 @extends('layouts.app')
 @section('title', 'Ventas y Facturación')
 @section('page-title', 'Ventas y Facturación')

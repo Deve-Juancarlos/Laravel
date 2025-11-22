@@ -1,3 +1,4 @@
+@use('Illuminate\Support\Str')
 @extends('layouts.app')
 @section('title', 'Lista de Productos')
 @section('page-title', 'Catálogo de Productos')
