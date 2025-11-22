@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
 use App\Services\VentaCarritoService; 
 use App\Services\ContabilidadService;
+use App\Services\FacturaService;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Auth;
 use App\Helpers\NumberToWords; 
@@ -21,14 +22,17 @@ class FacturacionController extends Controller
     protected $connection = 'sqlsrv';
     protected $carritoService;
     protected $contabilidadService;
+    protected $facturaService;
 
     public function __construct(
         VentaCarritoService $carritoService,
-        ContabilidadService $contabilidadService 
+        ContabilidadService $contabilidadService,
+        FacturaService $facturaService
     ) {
         $this->middleware('auth');
         $this->carritoService = $carritoService;
-        $this->contabilidadService = $contabilidadService; 
+        $this->contabilidadService = $contabilidadService;
+        $this->facturaService = $facturaService;
     }
 
     /**
@@ -42,12 +46,13 @@ class FacturacionController extends Controller
             ->whereIn('dc.Tipo', [1, 3]);
 
         if ($request->filled('q')) {
-            $query->where(function($q) use ($request) {
-                $q->where('c.Razon', 'like', '%' . $request->q . '%')
-                ->orWhere('dc.Numero', 'like', '%' . $request->q . '%');
+            $query->where(function($q) use ($request) {                
+                $q->where('c.Razon', 'like', '%' . $request->input('q') . '%')
+                ->orWhere('dc.Numero', 'like', '%' . $request->input('q') . '%');
+
             });
         }
-        if ($request->filled('estado') && $request->estado == 'anuladas') {
+        if ($request->filled('estado') && $request->input('estado') == 'anuladas') {
             $query->where('dc.Eliminado', 1);
         } else {
             $query->where('dc.Eliminado', 0);
@@ -295,14 +300,17 @@ class FacturacionController extends Controller
         // 6. Define la CONDICIÓN DE PAGO
         $condicionPago = ($factura->Dias > 0) ? 'CRÉDITO A ' . $factura->Dias . ' DÍAS' : 'CONTADO';
 
+        // 7. Genera el QR único para esta factura
+        $codigoQr = $this->facturaService->generarQr($factura);
 
-        // 7. Pasa TODAS las variables a la vista
+        // 8. Pasa TODAS las variables a la vista
         return view('ventas.show', compact(
             'factura', 
             'detalles', 
             'empresa',         // <-- Ahora SÍ existe
             'totalEnLetras',   // <-- Ahora SÍ existe
             'condicionPago',   // <-- Ahora SÍ existe
+            'codigoQr',        // <-- El QR generado dinámicamente
             'detallesParaJs'   // <-- La nueva variable
         ));
     }

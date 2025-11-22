@@ -46,15 +46,6 @@
                 <i class="fas fa-bars"></i>
             </button>
 
-            <div class="topbar-search d-none d-md-block">
-                <div class="input-group">
-                    <span class="input-group-text bg-white border-end-0">
-                        <i class="fas fa-search text-muted"></i>
-                    </span>
-                    <input type="text" class="form-control border-start-0" placeholder="Buscar reportes, usuarios...">
-                </div>
-            </div>
-
             <div class="topbar-right">
                 <div class="notification-bell">
                     <i class="fas fa-bell"></i>

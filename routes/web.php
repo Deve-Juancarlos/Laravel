@@ -3,7 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\LoginController;
 use App\Http\Controllers\RegisterController;
-use App\Http\Controllers\contabilidad\ContadorDashboardController;
+use App\Http\Controllers\Contabilidad\ContadorDashboardController;
 use App\Http\Controllers\Admin\EmpleadoController;
 use App\Http\Controllers\Admin\BancoController;
 use App\Http\Controllers\Admin\UsuarioController;
@@ -34,6 +34,7 @@ use App\Http\Controllers\Admin\SolicitudAsientoController;
 use App\Http\Controllers\Admin\DashboardController;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\Contabilidad\CanjeController;
+use App\Http\Controllers\Contabilidad\RegistroVentasController;
 
 
 // El grupo 'web' carga la sesión y soluciona el error 'usuario_id: null'.
@@ -495,6 +496,11 @@ Route::middleware(['web'])->group(function () {
                 Route::delete('/carrito/eliminar/{itemId}', [App\Http\Controllers\Ventas\FacturacionController::class, 'carritoEliminar'])->name('carrito.eliminar');
                 Route::get('/api/buscar-lotes/{codPro}', [App\Http\Controllers\Ventas\FacturacionController::class, 'buscarLotes'])->name('api.buscarLotes');
                 Route::post('/enviar-email/{numero}/{tipo}', [App\Http\Controllers\Ventas\FacturacionController::class, 'enviarEmail'])->name('enviarEmail');
+
+                // Rutas de XML y PDF para SUNAT
+                Route::get('/{numero}/xml/download', [App\Http\Controllers\Ventas\XmlDescargaController::class, 'descargarXml'])->name('xml.download');
+                Route::get('/{numero}/xml/view', [App\Http\Controllers\Ventas\XmlDescargaController::class, 'verXml'])->name('xml.view');
+                Route::get('/{numero}/pdf/download', [App\Http\Controllers\Ventas\XmlDescargaController::class, 'descargarPdf'])->name('pdf.download');
             });
             // --- MÓDULO PROVEEDORES ---
             Route::prefix('proveedores')->name('proveedores.')->group(function () {
@@ -574,6 +580,8 @@ Route::middleware(['web'])->group(function () {
                 Route::delete('/quitar-letra/{id}', [App\Http\Controllers\Contabilidad\PlanillaLetrasController::class, 'quitarLetraPlanilla'])->name('api.quitarLetra');
                 Route::post('/{serie}/{numero}/procesar', [App\Http\Controllers\Contabilidad\PlanillaLetrasController::class, 'procesarDescuento'])->name('procesar');
             });  
+
+            
             
             Route::prefix('canjes')->name('canjes.')->group(function () {
                 Route::get('/', [CanjeController::class, 'index'])->name('index');
@@ -583,6 +591,12 @@ Route::middleware(['web'])->group(function () {
                 
                 // API para obtener facturas del cliente
                 Route::get('/api/facturas', [CanjeController::class, 'getFacturasCliente'])->name('get-facturas');
+            });
+
+            Route::prefix('contabilidad/registros')->name('registros.')->group(function () {
+                Route::get('/ventas', [RegistroVentasController::class, 'index'])->name('ventas');
+                Route::get('/caja', [RegistroVentasController::class, 'registroCaja'])->name('caja');
+                // ... resto de rutas
             });
             // --- MÓDULO ESTADO DE RESULTADOS ---
             Route::prefix('estado-resultados')->name('estado-resultados.')->group(function () {

@@ -8,6 +8,7 @@ use App\Services\Contabilidad\LibroDiarioService; // 1. Importamos el Servicio
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 use App\Models\LibroDiario;
+use App\Models\AccesoWeb; 
 
 class LibroDiarioController extends Controller
 {
@@ -58,7 +59,6 @@ class LibroDiarioController extends Controller
      */
     public function store(Request $request)
     {
-        // 4. La validación se queda en el controlador (o en un FormRequest)
         try {
             $validatedData = $request->validate([
                 'fecha' => 'required|date',
@@ -68,15 +68,15 @@ class LibroDiarioController extends Controller
                 'detalles.*.debe' => 'nullable|numeric|min:0',
                 'detalles.*.haber' => 'nullable|numeric|min:0',
                 'detalles.*.concepto' => 'required|string|max:255',
-                'detalles.*.documento_referencia' => 'nullable|string|max:100', // Agregado
-                'observaciones' => 'nullable|string', // Agregado
+                'detalles.*.documento_referencia' => 'nullable|string|max:100',
+                'observaciones' => 'nullable|string',
             ]);
 
-            // 5. Enviamos los datos validados al servicio
+        
             $asientoId = $this->libroDiarioService->storeAsiento(
                 $validatedData,
-                $request->observaciones,
-                auth()->id()
+                $request->input('observaciones'),
+                $request->user()  // ← Cambiar auth()->user() por $request->user()
             );
 
             return redirect()->route('contador.libro-diario.show', $asientoId)
@@ -91,6 +91,8 @@ class LibroDiarioController extends Controller
                 ->with('error', 'Error al registrar el asiento: ' . $e->getMessage());
         }
     }
+
+
 
     /**
      * Muestra un asiento específico.
@@ -162,21 +164,25 @@ class LibroDiarioController extends Controller
     /**
      * Elimina un asiento y sus detalles.
      */
-    public function destroy($id)
+    public function destroy(Request $request, $id)
     {
         try {
-            // ¡El controlador ahora solo llama al servicio!
-            $this->libroDiarioService->solicitarEliminacion($id, auth()->user());
+            /** @var AccesoWeb $usuario */
+            $usuario = $request->user(); // ✅ Ahora IntelliSense lo reconoce
+            
+            $this->libroDiarioService->solicitarEliminacion($id, $usuario);
             
             return redirect()->route('contador.libro-diario.index')
                 ->with('success', 'Solicitud de eliminación enviada al Administrador.');
                 
         } catch (\Exception $e) {
-            Log::error('Error al solicitar eliminación de asiento: ' . $e->getMessage()); // Corregido
+            Log::error('Error al solicitar eliminación de asiento: ' . $e->getMessage()); 
             return redirect()->route('contador.libro-diario.index')
-                ->with('error', 'Error al enviar la solicitud: ' . $e->getMessage()); // Corregido
+                ->with('error', 'Error al enviar la solicitud: ' . $e->getMessage()); 
         }
     }
+
+
 
     /**
      * Exporta el libro diario a PDF o Excel.

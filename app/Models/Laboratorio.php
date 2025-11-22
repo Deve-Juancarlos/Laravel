@@ -4,6 +4,22 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * @property string $CodLab
+ * @property string $Descripcion
+ * @property bool|null $Mantiene
+ * @property bool|null $Importado
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Producto> $productos
+ * @property-read int|null $productos_count
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Laboratorio newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Laboratorio newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Laboratorio query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Laboratorio whereCodLab($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Laboratorio whereDescripcion($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Laboratorio whereImportado($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Laboratorio whereMantiene($value)
+ * @mixin \Eloquent
+ */
 class Laboratorio extends Model
 {
     /**

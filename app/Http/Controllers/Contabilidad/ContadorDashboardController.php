@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Contabilidad; // <-- 1. Movido a su módulo
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use App\Services\Contabilidad\ContadorDashboardService; // <-- 2. Importamos el nuevo Servicio
+use App\Services\Contabilidad\ContadorDashboardService; 
 use Illuminate\Support\Facades\Log;
 
 class ContadorDashboardController extends Controller

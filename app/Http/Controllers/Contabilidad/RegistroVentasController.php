@@ -624,6 +624,111 @@ class RegistroVentasController extends Controller
     }
 
     /**
+ * Muestra el registro de caja
+ */
+    /**
+ * Muestra el registro de caja
+ */
+public function registroCaja(Request $request)
+{
+    try {
+        $fechaInicio = $request->input('fecha_inicio', Carbon::now()->startOfMonth()->format('Y-m-d'));
+        $fechaFin = $request->input('fecha_fin', Carbon::now()->endOfMonth()->format('Y-m-d'));
+
+        // Obtener movimientos de caja
+        $movimientosCaja = DB::table('Caja as cj')
+            ->leftJoin('Tablas as t', function($join) {
+                $join->on('t.n_numero', '=', 'cj.Tipo')
+                     ->where('t.n_codtabla', '=', 8); // Ajusta el código de tabla según tu sistema
+            })
+            ->whereBetween('cj.Fecha', [$fechaInicio, $fechaFin])
+            ->where(function($query) {
+                $query->where('cj.Eliminado', 0)
+                      ->orWhereNull('cj.Eliminado');
+            })
+            ->select([
+                'cj.Numero',
+                'cj.Documento',
+                'cj.Fecha',
+                'cj.Tipo',
+                't.c_describe as tipo_descripcion',
+                'cj.Monto',
+                'cj.Moneda',
+                'cj.Cambio',
+                'cj.asiento_id',
+                DB::raw('CASE 
+                    WHEN cj.Tipo IN (1, 3, 5) THEN \'INGRESO\' 
+                    WHEN cj.Tipo IN (2, 4, 6) THEN \'EGRESO\' 
+                    ELSE \'OTRO\' 
+                END as tipo_movimiento')
+            ])
+            ->orderBy('cj.Fecha', 'desc')
+            ->orderBy('cj.Numero', 'desc')
+            ->paginate(50);
+
+        // Calcular totales por tipo de movimiento
+        $totales = DB::table('Caja')
+            ->whereBetween('Fecha', [$fechaInicio, $fechaFin])
+            ->where(function($query) {
+                $query->where('Eliminado', 0)
+                      ->orWhereNull('Eliminado');
+            })
+            ->select([
+                DB::raw('SUM(CASE WHEN Tipo IN (1, 3, 5) THEN CAST(Monto as MONEY) ELSE 0 END) as total_ingresos'),
+                DB::raw('SUM(CASE WHEN Tipo IN (2, 4, 6) THEN CAST(Monto as MONEY) ELSE 0 END) as total_egresos'),
+                DB::raw('SUM(CASE WHEN Tipo IN (1, 3, 5) THEN CAST(Monto as MONEY) ELSE -CAST(Monto as MONEY) END) as saldo'),
+                DB::raw('COUNT(*) as total_movimientos')
+            ])
+            ->first();
+
+        // Resumen por moneda
+        $resumenPorMoneda = DB::table('Caja')
+            ->whereBetween('Fecha', [$fechaInicio, $fechaFin])
+            ->where(function($query) {
+                $query->where('Eliminado', 0)
+                      ->orWhereNull('Eliminado');
+            })
+            ->select([
+                'Moneda',
+                DB::raw('COUNT(*) as cantidad'),
+                DB::raw('SUM(CAST(Monto as MONEY)) as total')
+            ])
+            ->groupBy('Moneda')
+            ->get();
+
+        // Resumen por tipo de movimiento
+        $resumenPorTipo = DB::table('Caja as cj')
+            ->leftJoin('Tablas as t', function($join) {
+                $join->on('t.n_numero', '=', 'cj.Tipo')
+                     ->where('t.n_codtabla', '=', 8);
+            })
+            ->whereBetween('cj.Fecha', [$fechaInicio, $fechaFin])
+            ->where(function($query) {
+                $query->where('cj.Eliminado', 0)
+                      ->orWhereNull('cj.Eliminado');
+            })
+            ->select([
+                'cj.Tipo',
+                't.c_describe as tipo_descripcion',
+                DB::raw('COUNT(*) as cantidad'),
+                DB::raw('SUM(CAST(cj.Monto as MONEY)) as total')
+            ])
+            ->groupBy('cj.Tipo', 't.c_describe')
+            ->orderBy('total', 'desc')
+            ->get();
+
+        return view('contabilidad.registros.caja', compact(
+            'movimientosCaja', 'totales', 'resumenPorMoneda', 'resumenPorTipo', 'fechaInicio', 'fechaFin'
+        ));
+
+    } catch (\Exception $e) {
+        return redirect()->back()->with('error', 'Error al cargar registro de caja: ' . $e->getMessage());
+    }
+}
+
+
+
+    /**
      * Classify pharmaceutical products
      */
     private function clasificarProductosFarmaceuticos($productos)
@@ -662,18 +767,22 @@ class RegistroVentasController extends Controller
     /**
      * Calculate average margin
      */
+    /**
+ * Calculate average margin
+ */
     private function calcularMargenPromedio($productos)
     {
-        $márgenes = [];
+        $margenes = []; // ✅ Sin tilde
         foreach ($productos as $producto) {
             if ($producto->precio_promedio > 0 && $producto->costo_promedio > 0) {
                 $margen = (($producto->precio_promedio - $producto->costo_promedio) / $producto->precio_promedio) * 100;
-                $márgenes[] = $margen;
+                $margenes[] = $margen; // ✅ Sin tilde
             }
         }
         
-        return count($márgenes) > 0 ? array_sum($márgenes) / count($márgenes) : 0;
+        return count($margenes) > 0 ? array_sum($margenes) / count($margenes) : 0; // ✅ Sin tilde
     }
+
 
     /**
      * Project sales for the year

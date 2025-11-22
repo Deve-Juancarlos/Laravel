@@ -9,6 +9,40 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
 
+/**
+ * @property int $id
+ * @property string $numero
+ * @property \Illuminate\Support\Carbon $fecha
+ * @property string $glosa
+ * @property numeric|null $total_debe
+ * @property numeric|null $total_haber
+ * @property bool|null $balanceado
+ * @property string|null $estado
+ * @property int|null $usuario_id
+ * @property string|null $observaciones
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\LibroDiarioDetalle> $detalles
+ * @property-read int|null $detalles_count
+ * @property-read string $fecha_formateada
+ * @property-read \App\Models\AccesoWeb|null $usuario
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|LibroDiario newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|LibroDiario newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|LibroDiario query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|LibroDiario whereBalanceado($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|LibroDiario whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|LibroDiario whereEstado($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|LibroDiario whereFecha($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|LibroDiario whereGlosa($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|LibroDiario whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|LibroDiario whereNumero($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|LibroDiario whereObservaciones($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|LibroDiario whereTotalDebe($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|LibroDiario whereTotalHaber($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|LibroDiario whereUpdatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|LibroDiario whereUsuarioId($value)
+ * @mixin \Eloquent
+ */
 class LibroDiario extends Model
 {
     use HasFactory;

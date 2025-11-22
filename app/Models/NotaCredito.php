@@ -4,6 +4,45 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * @property string $Numero
+ * @property int $TipoNota
+ * @property \Illuminate\Support\Carbon|null $Fecha
+ * @property string|null $Documento
+ * @property int|null $TipoDoc
+ * @property int $Codclie
+ * @property numeric|null $Bruto
+ * @property numeric|null $Descuento
+ * @property numeric|null $Flete
+ * @property numeric $Monto
+ * @property numeric $Igv
+ * @property numeric $Total
+ * @property string|null $Observacion
+ * @property int|null $Estado
+ * @property bool|null $Anulado
+ * @property string|null $GuiaRecojo
+ * @property-read \App\Models\Cliente|null $cliente
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|NotaCredito newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|NotaCredito newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|NotaCredito query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|NotaCredito whereAnulado($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|NotaCredito whereBruto($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|NotaCredito whereCodclie($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|NotaCredito whereDescuento($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|NotaCredito whereDocumento($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|NotaCredito whereEstado($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|NotaCredito whereFecha($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|NotaCredito whereFlete($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|NotaCredito whereGuiaRecojo($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|NotaCredito whereIgv($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|NotaCredito whereMonto($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|NotaCredito whereNumero($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|NotaCredito whereObservacion($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|NotaCredito whereTipoDoc($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|NotaCredito whereTipoNota($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|NotaCredito whereTotal($value)
+ * @mixin \Eloquent
+ */
 class NotaCredito extends Model
 {
     protected $table = 'notas_credito';

@@ -55,24 +55,29 @@
 </head>
 <body class="bg-gray-100 min-h-screen">
 
-    <div class="no-print p-4 bg-white shadow-md flex justify-center space-x-3 fixed top-0 left-0 right-0 z-10">
+    <div class="no-print p-4 bg-white shadow-md flex justify-center space-x-3 fixed top-0 left-0 right-0 z-10 overflow-x-auto">
         <a href="{{ route('contador.facturas.index') }}" 
-           class="flex items-center px-4 py-2 text-sm font-medium text-white bg-gray-600 rounded-lg hover:bg-gray-700 transition duration-150 shadow-lg">
+           class="flex items-center px-4 py-2 text-sm font-medium text-white bg-gray-600 rounded-lg hover:bg-gray-700 transition duration-150 shadow-lg whitespace-nowrap">
             <i data-lucide="arrow-left" class="w-4 h-4 mr-2"></i> Volver
         </a>
         <button onclick="window.print()" 
-                class="flex items-center px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition duration-150 shadow-lg">
+                class="flex items-center px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition duration-150 shadow-lg whitespace-nowrap">
             <i data-lucide="printer" class="w-4 h-4 mr-2"></i> Imprimir
         </button>
         <button onclick="toggleModal('emailModal')" 
-                class="flex items-center px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 transition duration-150 shadow-lg">
+                class="flex items-center px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 transition duration-150 shadow-lg whitespace-nowrap">
             <i data-lucide="send" class="w-4 h-4 mr-2"></i> Enviar por Email
         </button>
         
-        <button onclick="showXMLModal()" 
-                class="flex items-center px-4 py-2 text-sm font-medium text-white bg-purple-600 rounded-lg hover:bg-purple-700 transition duration-150 shadow-lg">
-            <i data-lucide="code" class="w-4 h-4 mr-2"></i> Ver XML
-        </button>
+        <a href="{{ route('contador.facturas.xml.download', $factura->Numero) }}?tipo={{ $factura->Tipo }}" 
+           class="flex items-center px-4 py-2 text-sm font-medium text-white bg-orange-600 rounded-lg hover:bg-orange-700 transition duration-150 shadow-lg whitespace-nowrap">
+            <i data-lucide="download" class="w-4 h-4 mr-2"></i> Descargar XML
+        </a>
+
+        <a href="{{ route('contador.facturas.pdf.download', $factura->Numero) }}?tipo={{ $factura->Tipo }}" 
+           class="flex items-center px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition duration-150 shadow-lg whitespace-nowrap">
+            <i data-lucide="file-pdf" class="w-4 h-4 mr-2"></i> Descargar PDF
+        </a>
     </div>
 
     <div class="invoice-container max-w-4xl mx-auto mt-24 mb-10 bg-white border-2 border-gray-900 shadow-xl rounded-lg overflow-hidden">
@@ -230,11 +235,23 @@
             </div>
         </div>
         
-        <div class="p-4 text-center bg-gray-50 border-t-2 border-gray-900">         
-            <p class="text-gray-500 text-xs mb-0">
-                Representación Impresa de la {{ $factura->Tipo == 1 ? 'FACTURA' : 'BOLETA DE VENTA' }} Electrónica (SUNAT)<br>
-                Para consultar el comprobante ingrese a: <strong>{{ $empresa['web'] }}</strong>
-            </p>
+        <div class="p-4 text-center bg-gray-50 border-t-2 border-gray-900">
+            <div class="flex justify-between items-center">
+                <div class="w-3/4">         
+                    <p class="text-gray-500 text-xs mb-0">
+                        Representación Impresa de la {{ $factura->Tipo == 1 ? 'FACTURA' : 'BOLETA DE VENTA' }} Electrónica (SUNAT)<br>
+                        Para consultar el comprobante ingrese a: <strong>{{ $empresa['web'] }}</strong>
+                    </p>
+                </div>
+                @if(isset($codigoQr) && !empty($codigoQr))
+                <div class="w-1/4 text-center">
+                    <img src="data:image/png;base64,{{ $codigoQr }}" 
+                         style="width: 120px; height: 120px; border: 1px solid #999;" 
+                         alt="Código QR SUNAT">
+                    <p class="text-gray-500 text-xs mt-1">Código QR SUNAT</p>
+                </div>
+                @endif
+            </div>
         </div>
     </div>
 
@@ -360,103 +377,27 @@
 
         function showXMLModal() {
             try {
-                const xmlString = generateXML(invoiceData);
-                const escapedXml = xmlString.replace(/</g, '&lt;').replace(/>/g, '&gt;');
-                document.getElementById('xmlContent').innerHTML = escapedXml;
-                toggleModal('xmlModal');
-            } catch (error) {
-                console.error("Error al generar XML:", error);
-                showMessage("Error", "No se pudo generar el XML: " + error.message);
-            }
-        }
+                // Obtener XML desde el servidor backend (NO generar en JavaScript)
+                const numero = '{{ $factura->Numero }}';
+                const tipo = {{ $factura->Tipo }};
+                const url = "{{ route('contador.facturas.xml.view', $factura->Numero) }}" + '?tipo=' + tipo;
 
-
-        function generateXML(data) {
-            const currencyID = data.invoice.currency;
-
-            let xml = '<' + '?xml version="1.0" encoding="utf-8"?>\n';
-
-            xml += `<Invoice xmlns="urn:oasis:names:specification:ubl:schema:xsd:Invoice-2" xmlns:cac="urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2" xmlns:cbc="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2">\n`;
-        
-            xml += `  <cbc:ID>${data.invoice.number}</cbc:ID>\n`;
-            xml += `  <cbc:IssueDate>${data.invoice.date}</cbc:IssueDate>\n`;
-            xml += `  <cbc:InvoiceTypeCode listID="${data.invoice.code}">01</cbc:InvoiceTypeCode>\n`; 
-            xml += `  <cbc:DocumentCurrencyCode>${currencyID}</cbc:DocumentCurrencyCode>\n`;
-            
-            xml += `  <cac:AccountingSupplierParty>\n`;
-            xml += `    <cac:Party>\n`;
-            xml += `      <cac:PartyIdentification><cbc:ID schemeID="6">${data.company.ruc}</cbc:ID></cac:PartyIdentification>\n`;
-            xml += `      <cac:PartyLegalEntity><cbc:RegistrationName><![CDATA[${data.company.nombre}]]></cbc:RegistrationName></cac:PartyLegalEntity>\n`;
-            xml += `    </cac:Party>\n`;
-            xml += `  </cac:AccountingSupplierParty>\n`;
-
-            xml += `  <cac:AccountingCustomerParty>\n`;
-            xml += `    <cac:Party>\n`;
-            xml += `      <cac:PartyIdentification><cbc:ID schemeID="${data.client.docType}">${data.client.ruc}</cbc:ID></cac:PartyIdentification>\n`;
-            xml += `      <cac:PartyLegalEntity><cbc:RegistrationName><![CDATA[${data.client.name}]]></cbc:RegistrationName></cac:PartyLegalEntity>\n`;
-            xml += `    </cac:Party>\n`;
-            xml += `  </cac:AccountingCustomerParty>\n`;
-            
-            if (data.totals.DescuentoGlobal > 0) {
-                xml += `  <cac:AllowanceCharge>\n`;
-                xml += `    <cbc:ChargeIndicator>false</cbc:ChargeIndicator>\n`; 
-                xml += `    <cbc:Amount currencyID="${currencyID}">${data.totals.DescuentoGlobal.toFixed(2)}</cbc:Amount>\n`;
-                xml += `  </cac:AllowanceCharge>\n`;
-            }
-
-            xml += `  <cac:TaxTotal>\n`;
-            xml += `    <cbc:TaxAmount currencyID="${currencyID}">${data.totals.Igv.toFixed(2)}</cbc:TaxAmount>\n`;
-            xml += `    <cac:TaxSubtotal>\n`;
-            xml += `      <cbc:TaxableAmount currencyID="${currencyID}">${data.totals.BaseImponible.toFixed(2)}</cbc:TaxableAmount>\n`;
-            xml += `      <cbc:TaxAmount currencyID="${currencyID}">${data.totals.Igv.toFixed(2)}</cbc:TaxAmount>\n`;
-            xml += `      <cac:TaxCategory><cac:TaxScheme><cbc:ID>1000</cbc:ID><cbc:Name>IGV</cbc:Name><cbc:TaxTypeCode>VAT</cbc:TaxTypeCode></cac:TaxScheme></cac:TaxCategory>\n`;
-            xml += `    </cac:TaxSubtotal>\n`;
-            xml += `  </cac:TaxTotal>\n`;
-
-            xml += `  <cac:LegalMonetaryTotal>\n`;
-            xml += `    <cbc:LineExtensionAmount currencyID="${currencyID}">${data.totals.BaseImponible.toFixed(2)}</cbc:LineExtensionAmount>\n`;
-            xml += `    <cbc:TaxInclusiveAmount currencyID="${currencyID}">${data.totals.Total.toFixed(2)}</cbc:TaxInclusiveAmount>\n`;
-            xml += `    <cbc:PayableAmount currencyID="${currencyID}">${data.totals.Total.toFixed(2)}</cbc:PayableAmount>\n`;
-            xml += `  </cac:LegalMonetaryTotal>\n`;
-
-            data.details.forEach((item, index) => {
-                xml += `  <cac:InvoiceLine>\n`;
-                xml += `    <cbc:ID>${index + 1}</cbc:ID>\n`;
-                xml += `    <cbc:InvoicedQuantity unitCode="${item.UnitCode}">${item.Cantidad.toFixed(2)}</cbc:InvoicedQuantity>\n`;
-                xml += `    <cbc:LineExtensionAmount currencyID="${currencyID}">${item.Subtotal.toFixed(2)}</cbc:LineExtensionAmount>\n`;
                 
-                xml += `    <cac:PricingReference>\n`;
-                xml += `      <cac:AlternativeConditionPrice>\n`;
-                xml += `        <cbc:PriceAmount currencyID="${currencyID}">${item.PrecioUnitarioSinIgv.toFixed(2)}</cbc:PriceAmount>\n`;
-                xml += `        <cbc:PriceTypeCode>01</cbc:PriceTypeCode>\n`; 
-                xml += `      </cac:AlternativeConditionPrice>\n`;
-                xml += `    </cac:PricingReference>\n`;
-
-                const igvItem = item.Subtotal * 0.18; 
-                xml += `    <cac:TaxTotal>\n`;
-                xml += `      <cbc:TaxAmount currencyID="${currencyID}">${igvItem.toFixed(2)}</cbc:TaxAmount>\n`;
-                xml += `      <cac:TaxSubtotal>\n`;
-                xml += `        <cbc:TaxableAmount currencyID="${currencyID}">${item.Subtotal.toFixed(2)}</cbc:TaxableAmount>\n`;
-                xml += `        <cbc:TaxAmount currencyID="${currencyID}">${igvItem.toFixed(2)}</cbc:TaxAmount>\n`;
-                xml += `        <cac:TaxCategory><cac:TaxScheme><cbc:ID>1000</cbc:ID><cbc:Name>IGV</cbc:Name><cbc:TaxTypeCode>VAT</cbc:TaxTypeCode></cac:TaxScheme></cac:TaxCategory>\n`;
-                xml += `      </cac:TaxSubtotal>\n`;
-                xml += `    </cac:TaxTotal>\n`;
-
-                xml += `    <cac:Item>\n`;
-                xml += `      <cbc:Description><![CDATA[${item.ProductoNombre}]]></cbc:Description>\n`;
-                xml += `      <cac:SellersItemIdentification><cbc:ID>${item.Codpro}</cbc:ID></cac:SellersItemIdentification>\n`;
-                xml += `    </cac:Item>\n`;
-
-                const precioConIgv = item.PrecioUnitarioSinIgv * 1.18;
-                xml += `    <cac:Price>\n`;
-                xml += `      <cbc:PriceAmount currencyID="${currencyID}">${precioConIgv.toFixed(2)}</cbc:PriceAmount>\n`;
-                xml += `    </cac:Price>\n`;
-
-                xml += `  </cac:InvoiceLine>\n`;
-            });
-
-            xml += `</Invoice>\n`;
-            return xml;
+                fetch(url)
+                    .then(response => response.text())
+                    .then(xmlText => {
+                        const escapedXml = xmlText.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+                        document.getElementById('xmlContent').innerHTML = escapedXml;
+                        toggleModal('xmlModal');
+                    })
+                    .catch(error => {
+                        console.error("Error al obtener XML:", error);
+                        showMessage("Error", "No se pudo obtener el XML: " + error.message);
+                    });
+            } catch (error) {
+                console.error("Error:", error);
+                showMessage("Error", error.message);
+            }
         }
 
     </script>

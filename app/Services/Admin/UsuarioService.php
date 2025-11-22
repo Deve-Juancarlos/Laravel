@@ -4,7 +4,9 @@ namespace App\Services\Admin;
 
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
+use App\Models\AccesoWeb;
 
 class UsuarioService
 {
@@ -36,10 +38,11 @@ class UsuarioService
         }
 
         if (!empty($filtros['buscar'])) {
-            $query->where(function($q) use ($filtros) {
-                $q->where('accesoweb.usuario', 'like', '%' . $filtros['buscar'] . '%')
-                  ->orWhere('Empleados.Nombre', 'like', '%' . $filtros['buscar'] . '%')
-                  ->orWhere('Empleados.Documento', 'like', '%' . $filtros['buscar'] . '%');
+            $busqueda = trim($filtros['buscar']);
+            $query->where(function($q) use ($busqueda) {
+                $q->where('accesoweb.usuario', 'like', '%' . $busqueda . '%')
+                  ->orWhere('Empleados.Nombre', 'like', '%' . $busqueda . '%')
+                  ->orWhere('Empleados.Documento', 'like', '%' . $busqueda . '%');
             });
         }
 
@@ -117,13 +120,21 @@ class UsuarioService
     public function crearUsuario($datos)
     {
         try {
+            DB::beginTransaction();
+
             $empleado = $this->obtenerEmpleadoPorId($datos['idusuario']);
-            if (!$empleado) return false;
+            if (!$empleado) {
+                DB::rollBack();
+                return false;
+            }
 
             $existe = DB::table('accesoweb')
                 ->where('idusuario', $datos['idusuario'])
                 ->exists();
-            if ($existe) return false;
+            if ($existe) {
+                DB::rollBack();
+                return false;
+            }
 
             DB::table('accesoweb')->insert([
                 'usuario' => $datos['usuario'],
@@ -136,8 +147,11 @@ class UsuarioService
             ]);
 
             $this->registrarAuditoria('CREAR_USUARIO', "Usuario {$datos['usuario']} creado y vinculado al empleado {$empleado->Nombre}");
+            
+            DB::commit();
             return true;
         } catch (\Exception $e) {
+            DB::rollBack();
             \Log::error('Error al crear usuario: ' . $e->getMessage());
             return false;
         }
@@ -176,6 +190,10 @@ class UsuarioService
             $usuarioData = $this->obtenerUsuarioPorNombre($usuario);
             $empleadoAnterior = $usuarioData->empleado_nombre ?? 'Sin asignar';
             $nuevoEmpleado = $this->obtenerEmpleadoPorId($datos['idusuario']);
+
+            if (!$nuevoEmpleado) {
+                return false;
+            }
 
             DB::table('accesoweb')
                 ->where('usuario', $usuario)
@@ -218,21 +236,52 @@ class UsuarioService
     }
 
     /**
-     * Registrar acción en auditoría
+     * Registrar acción en auditoría del sistema
+     * 
+     * @param string $accion Tipo de acción realizada
+     * @param string $descripcion Descripción detallada de la acción
+     * @param string $tabla Tabla afectada por la acción
+     * @return void
      */
-    private function registrarAuditoria($accion, $descripcion)
+    private function registrarAuditoria($accion, $descripcion, $tabla = 'accesoweb')
     {
         try {
-            $usuario = auth()->user()->usuario ?? 'SISTEMA';
+            // Obtener usuario de forma segura
+            $usuario = 'SISTEMA';
+            
+            if (Auth::check()) {
+                /** @var AccesoWeb $usuarioAuth */
+                $usuarioAuth = Auth::user();
+                $usuario = $usuarioAuth->usuario ?? 'SISTEMA';
+            }
+            
+            // Capturar información adicional
+            $ip = request()->ip() ?? 'DESCONOCIDA';
+            $userAgent = substr(request()->header('User-Agent', 'DESCONOCIDO'), 0, 100);
+            
+            // Construir detalle completo
+            $detalleCompleto = sprintf(
+                '%s | IP: %s | UA: %s',
+                $descripcion,
+                $ip,
+                $userAgent
+            );
+            
+            // Insertar registro de auditoría
             DB::table('Auditoria_Sistema')->insert([
                 'usuario' => $usuario,
                 'accion' => $accion,
-                'tabla' => 'accesoweb',
-                'detalle' => $descripcion,
+                'tabla' => $tabla,
+                'detalle' => $detalleCompleto,
                 'fecha' => now(),
             ]);
+            
         } catch (\Exception $e) {
-            \Log::error('Error al registrar auditoría: ' . $e->getMessage());
+            \Log::error('Error al registrar auditoría: ' . $e->getMessage(), [
+                'accion' => $accion,
+                'tabla' => $tabla,
+                'descripcion' => $descripcion,
+            ]);
         }
     }
 

@@ -11,9 +11,12 @@ class NotificacionDescuentoService
     protected $connection = 'sqlsrv';
 
     /**
-     * Notificar descuento de letras a administradores y contadores
+     * Notificar descuento de letras a administradores y contadores.
+     * @param array $datos
+     * @param mixed $usuarioProcesador (puede ser null, objeto user o array)
+     * @return array
      */
-    public function notificarDescuentoLetras($datos)
+    public function notificarDescuentoLetras($datos, $usuarioProcesador = null)
     {
         try {
             // Obtener usuarios ADMINISTRADOR y CONTADOR activos
@@ -22,38 +25,37 @@ class NotificacionDescuentoService
                 ->whereIn('tipousuario', ['administrador', 'ADMINISTRADOR', 'contador', 'CONTADOR'])
                 ->where('estado', 'ACTIVO')
                 ->get();
-            
+
             if ($administradores->isEmpty()) {
                 Log::warning("No hay administradores/contadores activos para notificar");
-                // Notificar al menos al usuario actual como fallback
-                $usuarioActual = Auth::user();
+                // Fallback: Notificar al usuario procesador
+                $usuarioActual = $usuarioProcesador ?? Auth::user();
                 if ($usuarioActual) {
                     $administradores = collect([$usuarioActual]);
                 } else {
                     return ['success' => false, 'mensaje' => 'No hay usuarios activos para notificar'];
                 }
             }
-            
+
             // Determinar tipo y color según monto
             $tipo = $datos['montoTotal'] > 10000 ? 'CRITICO' : 'ALERTA';
             $color = $datos['montoTotal'] > 10000 ? 'danger' : 'warning';
             $tituloPrefix = $datos['montoTotal'] > 10000 ? '⚠️ ALERTA - ' : '';
-            
+
             $porcentajeInteres = ($datos['montoTotal'] > 0) 
                 ? ($datos['interes'] / $datos['montoTotal']) * 100 
                 : 0;
-            
+
             $notificacionesCreadas = 0;
-            
+
             foreach ($administradores as $admin) {
-                // Usar el campo 'id' que es el identity autoincremental
                 $usuarioId = $admin->id ?? $admin->idusuario;
-                
+
                 DB::connection($this->connection)->table('notificaciones')->insert([
                     'usuario_id' => $usuarioId,
                     'tipo' => $tipo,
                     'titulo' => $tituloPrefix . "Descuento de Letras Procesado",
-                    'mensaje' => $this->construirMensaje($datos, $porcentajeInteres),
+                    'mensaje' => $this->construirMensaje($datos, $porcentajeInteres, $usuarioProcesador),
                     'icono' => 'fa-money-check-alt',
                     'color' => $color,
                     'url' => route('contador.letras_descuento.show', [
@@ -61,26 +63,26 @@ class NotificacionDescuentoService
                         'numero' => $datos['numero']
                     ]),
                     'leida' => 0,
-                    'metadata' => json_encode($this->construirMetadata($datos, $porcentajeInteres)),
+                    'metadata' => json_encode($this->construirMetadata($datos, $porcentajeInteres, $usuarioProcesador)),
                     'created_at' => now(),
                     'updated_at' => now()
                 ]);
-                
+
                 $notificacionesCreadas++;
-                
+
                 Log::info("Notificación creada", [
                     'usuario_id' => $usuarioId,
                     'usuario' => $admin->usuario ?? 'N/A',
                     'tipo_usuario' => $admin->tipousuario ?? 'N/A'
                 ]);
             }
-            
+
             Log::info("Notificaciones de descuento enviadas", [
                 'serie' => $datos['serie'],
                 'numero' => $datos['numero'],
                 'usuarios_notificados' => $notificacionesCreadas
             ]);
-            
+
             return [
                 'success' => true, 
                 'notificados' => $notificacionesCreadas
@@ -100,9 +102,9 @@ class NotificacionDescuentoService
     /**
      * Construir mensaje de notificación
      */
-    protected function construirMensaje($datos, $porcentajeInteres)
+    protected function construirMensaje($datos, $porcentajeInteres, $usuario = null)
     {
-        $usuario = Auth::user();
+        $usuario = $usuario ?? Auth::user();
         $nombreUsuario = $usuario ? ($usuario->usuario ?? $usuario->Usuario ?? 'Sistema') : 'Sistema';
         
         return "Se ha procesado la planilla de descuento {$datos['serie']}-{$datos['numero']}.\n\n" .
@@ -118,9 +120,9 @@ class NotificacionDescuentoService
     /**
      * Construir metadata JSON
      */
-    protected function construirMetadata($datos, $porcentajeInteres)
+    protected function construirMetadata($datos, $porcentajeInteres, $usuario = null)
     {
-        $usuario = Auth::user();
+        $usuario = $usuario ?? Auth::user();
         
         return [
             'modulo' => 'descuento_letras',
@@ -133,7 +135,7 @@ class NotificacionDescuentoService
             'porcentaje_interes' => round($porcentajeInteres, 2),
             'banco' => $datos['banco'],
             'usuario_procesador_id' => $usuario ? ($usuario->id ?? $usuario->idusuario) : null,
-            'usuario_procesador' => $usuario ? ($usuario->usuario ?? $usuario->Usuario) : 'Sistema',
+            'usuario_procesador' => $usuario ? ($usuario->usuario ?? $usuario->Usuario ?? 'Sistema') : 'Sistema',
             'fecha_proceso' => now()->format('Y-m-d H:i:s')
         ];
     }

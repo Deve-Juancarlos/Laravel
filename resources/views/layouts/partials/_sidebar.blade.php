@@ -25,7 +25,7 @@
     <span>Plan de Cuentas</span>
 </a>
 
-<a class="nav-link {{ request()->is('contabilidad/estado-finansieros*') ? 'active' : '' }}" href={{ route('contador.estado-resultados.index') }}>
+<a class="nav-link {{ request()->is('contabilidad/estado-finansieros*') ? 'active' : '' }}" href="{{ route('contador.estado-resultados.index') }}">
     <i class="fa-sharp fa-solid fa-coins"></i>
     <span>Estados Financieros</span>
 </a>
@@ -34,6 +34,20 @@
    href="{{ route('contador.flujo.cobranzas.paso1') }}">
     <i class="fa-sharp fa-solid fa-coins"></i>
     <span>Flujos diarios</span>
+</a>
+
+<!-- ✅ NUEVO: Registro de Ventas -->
+<a class="nav-link {{ request()->is('contabilidad/registros/ventas*') ? 'active' : '' }}" 
+   href="{{ route('contador.registros.ventas') }}">
+    <i class="fas fa-file-invoice"></i>
+    <span>Registro de Ventas</span>
+</a>
+
+<!-- ✅ NUEVO: Registro de Caja -->
+<a class="nav-link {{ request()->is('contabilidad/registros/caja*') ? 'active' : '' }}" 
+   href="{{ route('contador.registros.caja') }}">
+    <i class="fas fa-cash-register"></i>
+    <span>Registro de Caja</span>
 </a>
 
 <a class="nav-link {{ request()->is('contabilidad/reportes*') ? 'active' : '' }}" href="{{ route('contador.reportes.index') }}">
@@ -95,7 +109,6 @@
     <i class="fas fa-cart-plus"></i>
     <span>Nueva Venta</span>
 </a>
-
 
 <a class="nav-link {{ request()->is('ventas/listado*') ? 'active' : '' }}" href="{{ route('contador.notas-credito.index') }}">
     <i class="fas fa-receipt"></i>

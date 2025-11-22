@@ -4,6 +4,36 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+/**
+ * @property string $Documento
+ * @property int $Tipo
+ * @property int $CodClie
+ * @property string $FechaF
+ * @property string|null $FechaV
+ * @property string $Importe
+ * @property string $Saldo
+ * @property int $NroDeuda
+ * @property int|null $cliente_id
+ * @property string|null $FechaP
+ * @property string|null $Utilidades
+ * @property-read \App\Models\Cliente $cliente
+ * @property-read \App\Models\Doccab|null $doccab
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|CtaCliente newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|CtaCliente newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|CtaCliente query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|CtaCliente whereClienteId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|CtaCliente whereCodClie($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|CtaCliente whereDocumento($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|CtaCliente whereFechaF($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|CtaCliente whereFechaP($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|CtaCliente whereFechaV($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|CtaCliente whereImporte($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|CtaCliente whereNroDeuda($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|CtaCliente whereSaldo($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|CtaCliente whereTipo($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|CtaCliente whereUtilidades($value)
+ * @mixin \Eloquent
+ */
 class CtaCliente extends Model
 {
     protected $table = 'CtaCliente';
