@@ -1,3 +1,4 @@
+@use('Illuminate\Support\Str')
 @extends('layouts.app')
 
 @section('title', 'Nuevo Canje de Facturas por Letras')

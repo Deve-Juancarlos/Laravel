@@ -1,3 +1,4 @@
+@use('Illuminate\Support\Str')
 @extends('layouts.app')
 
 @section('title', 'Detalle Banco - ' . $infoCuenta->Banco)

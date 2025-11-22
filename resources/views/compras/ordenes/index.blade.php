@@ -1,3 +1,4 @@
+@use('Illuminate\Support\Str')
 @extends('layouts.app')
 @section('title', 'Órdenes de Compra')
 @section('page-title', 'Gestión de Compras')

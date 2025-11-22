@@ -1,3 +1,4 @@
+@use('Illuminate\Support\Str')
 @extends('layouts.app')
 @section('title', 'Anular Planilla de Cobranza')
 @section('page-title', 'Anular Planilla')

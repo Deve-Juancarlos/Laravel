@@ -1,3 +1,4 @@
+@use('Illuminate\Support\Str')
 @extends('layouts.admin') {{-- O tu layout de Admin --}}
 
 @section('title', 'Solicitudes de Eliminación')

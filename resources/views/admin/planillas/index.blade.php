@@ -1,3 +1,4 @@
+@use('Illuminate\Support\Str')
 @extends('layouts.admin')
 
 @section('title', 'Planillas de Cobranza')

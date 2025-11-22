@@ -1,3 +1,4 @@
+@use('Illuminate\Support\Str')
 @extends('layouts.app')
 
 @section('title', 'Registrar Cobranza - Paso 3')

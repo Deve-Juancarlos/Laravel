@@ -1,3 +1,4 @@
+@use('Illuminate\Support\Str')
 @extends('layouts.app')
 
 @section('title', 'Estado de Cuenta - ' . ($cliente->Razon ?? 'Cliente'))
