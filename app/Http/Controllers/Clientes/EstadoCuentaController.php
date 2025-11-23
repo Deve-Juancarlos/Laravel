@@ -6,32 +6,18 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
-use Illuminate\Support\Facades\Excel;
-use Illuminate\Support\Facades\PDF;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class EstadoCuentaController extends Controller
 {
-    /**
-     * MÓDULO CLIENTES - Controlador de Estados de Cuenta
-     * Gestión completa de estados de cuenta y análisis financiero por cliente
-     * Integrado con base de datos SIFANO existente
-     * Total de líneas: ~850
-     */
+    
 
     public function __construct()
     {
         $this->middleware(['auth', 'rol:contador|administrador']);
     }
 
-    /**
-     * ===============================================
-     * MÉTODOS PRINCIPALES DEL MÓDULO
-     * ===============================================
-     */
 
-    /**
-     * Dashboard principal de estados de cuenta
-     */
     public function index(Request $request)
     {
         $filtros = $this->obtenerFiltros($request);
@@ -42,12 +28,10 @@ class EstadoCuentaController extends Controller
         return compact('estados_cuenta', 'resumen_general', 'alertas', 'filtros');
     }
 
-    /**
-     * Genera estado de cuenta completo de un cliente
-     */
+   
     public function estadoCuentaCompleto($cliente_id, Request $request)
     {
-        $cliente = DB::table('Clientes')->where('CodClie', $cliente_id)->first();
+        $cliente = DB::table('Clientes')->where('Codclie', $cliente_id)->first();
         
         if (!$cliente) {
             return response()->json(['error' => 'Cliente no encontrado'], 404);
@@ -70,12 +54,9 @@ class EstadoCuentaController extends Controller
         return $datos_estado;
     }
 
-    /**
-     * Obtiene resumen ejecutivo de estado de cuenta
-     */
     public function resumenEjecutivo($cliente_id)
     {
-        $cliente = DB::table('Clientes')->where('CodClie', $cliente_id)->first();
+        $cliente = DB::table('Clientes')->where('Codclie', $cliente_id)->first();
         
         if (!$cliente) {
             return response()->json(['error' => 'Cliente no encontrado'], 404);
@@ -87,7 +68,7 @@ class EstadoCuentaController extends Controller
 
         return [
             'cliente' => $cliente,
-            'saldo_total' => $resumen['saldo_total'],
+            'saldo_total' => $resumen['saldo_actual'],
             'credito_utilizado' => $credito_info['porcentaje_utilizado'],
             'credito_disponible' => $credito_info['credito_disponible'],
             'promedio_mensual' => $tendencias['promedio_mensual'],
@@ -103,10 +84,10 @@ class EstadoCuentaController extends Controller
      */
     public function analizarAntiguedadSaldos($cliente_id)
     {
-        $facturas = DB::table('Doccab')
+        $facturas = DB::table('CtaCliente')
             ->where('CodClie', $cliente_id)
-            ->whereIn('Estado', ['PENDIENTE', 'VENCIDO'])
-            ->select('Numero', 'Fecha', 'Vencimiento', 'Saldo', 'Fecha')
+            ->where('Saldo', '>', 0)
+            ->select('Documento', 'FechaF', 'FechaV', 'Saldo', 'Importe')
             ->get();
 
         $saldos_por_antiguedad = [
@@ -118,7 +99,7 @@ class EstadoCuentaController extends Controller
         ];
 
         foreach ($facturas as $factura) {
-            $dias_vencimiento = now()->diffInDays($factura->Vencimiento, false);
+            $dias_vencimiento = now()->diffInDays($factura->FechaV, false);
             
             if ($dias_vencimiento >= 0) {
                 $saldos_por_antiguedad['al_dia'][] = $factura;
@@ -164,69 +145,37 @@ class EstadoCuentaController extends Controller
 
     /**
      * Obtiene movimientos detallados de un cliente
+     * ✅ ADAPTADO PARA USAR CtaCliente
      */
     public function obtenerMovimientosCliente($cliente_id, $fecha_desde, $fecha_hasta)
     {
-        // Movimientos de ventas (facturas)
-        $ventas = DB::table('Doccab')
+        $movimientos = DB::table('CtaCliente')
             ->select(
-                'Numero',
-                'Fecha',
-                'Vencimiento',
-                'Total',
+                'Documento',
+                'Tipo',
+                'FechaF as Fecha',
+                'FechaV as Vencimiento',
+                'FechaP as FechaPago',
+                'Importe',
                 'Saldo',
-                'Estado',
-                DB::raw('"VENTA" as tipo_movimiento'),
-                'Serie',
-                DB::raw('Total as debe'),
-                DB::raw('0 as haber')
+                DB::raw('CASE 
+                    WHEN Saldo > 0 AND FechaV >= GETDATE() THEN "PENDIENTE"
+                    WHEN Saldo > 0 AND FechaV < GETDATE() THEN "VENCIDO"
+                    WHEN Saldo = 0 AND FechaP IS NOT NULL THEN "PAGADO"
+                    ELSE "CANCELADO"
+                END as Estado'),
+                DB::raw('Importe as debe'),
+                DB::raw('(Importe - Saldo) as haber')
             )
             ->where('CodClie', $cliente_id)
-            ->whereBetween('Fecha', [$fecha_desde, $fecha_hasta]);
-
-        // Movimientos de pagos
-        $pagos = DB::table('// tabla no existe - pagos_clientes')
-            ->select(
-                'id as Numero',
-                'fecha_pago as Fecha',
-                'fecha_pago as Vencimiento',
-                'monto_pagado as Total',
-                'monto_pagado as Saldo',
-                DB::raw('"PAGADO" as Estado'),
-                DB::raw('"PAGO" as tipo_movimiento'),
-                'referencia as Serie',
-                DB::raw('0 as debe'),
-                'monto_pagado as haber'
-            )
-            ->where('cliente_id', $cliente_id)
-            ->whereBetween('fecha_pago', [$fecha_desde, $fecha_hasta]);
-
-        // Movimientos de notas de crédito
-        $notas_credito = DB::table('notas_credito')
-            ->select(
-                'numero as Numero',
-                'fecha as Fecha',
-                'fecha as Vencimiento',
-                'monto as Total',
-                'monto as Saldo',
-                'aplicado as Estado',
-                DB::raw('"NC" as tipo_movimiento'),
-                'serie as Serie',
-                DB::raw('0 as debe'),
-                'monto as haber'
-            )
-            ->where('cliente_id', $cliente_id)
-            ->whereBetween('fecha', [$fecha_desde, $fecha_hasta]);
-
-        // Combinar todos los movimientos
-        $movimientos = $ventas->unionAll($pagos)->unionAll($notas_credito)
-            ->orderBy('Fecha', 'asc')
+            ->whereBetween('FechaF', [$fecha_desde, $fecha_hasta])
+            ->orderBy('FechaF', 'asc')
             ->get();
 
         // Calcular saldo acumulado
         $saldo_acumulado = 0;
         foreach ($movimientos as $movimiento) {
-            $saldo_acumulado += $movimiento->debe - $movimiento->haber;
+            $saldo_acumulado += $movimiento->Saldo;
             $movimiento->saldo_acumulado = $saldo_acumulado;
         }
 
@@ -235,27 +184,30 @@ class EstadoCuentaController extends Controller
 
     /**
      * Obtiene facturas pendientes de pago
+     * ✅ ADAPTADO PARA USAR CtaCliente
      */
     public function obtenerFacturasPendientes($cliente_id)
     {
-        return DB::table('Doccab')
+        return DB::table('CtaCliente')
             ->select(
-                'Numero',
-                'Serie',
-                'Fecha',
-                'Vencimiento',
-                'Total',
+                'Documento as Numero',
+                'Tipo',
+                'FechaF as Fecha',
+                'FechaV as Vencimiento',
+                'Importe as Total',
                 'Saldo',
-                'Estado',
-                DB::raw('DATEDIFF(day, Vencimiento, GETDATE()) as dias_vencimiento')
+                DB::raw('DATEDIFF(day, FechaV, GETDATE()) as dias_vencimiento'),
+                DB::raw('CASE 
+                    WHEN Saldo > 0 AND FechaV >= GETDATE() THEN "PENDIENTE"
+                    WHEN Saldo > 0 AND FechaV < GETDATE() THEN "VENCIDO"
+                    ELSE "CANCELADO"
+                END as Estado')
             )
             ->where('CodClie', $cliente_id)
-            ->whereIn('Estado', ['PENDIENTE', 'VENCIDO'])
             ->where('Saldo', '>', 0)
-            ->orderBy('Vencimiento', 'asc')
+            ->orderBy('FechaV', 'asc')
             ->get()
             ->map(function($factura) {
-                // Determinar estado de vencimiento
                 $dias = $factura->dias_vencimiento;
                 if ($dias < 0) {
                     $factura->estado_vencimiento = 'POR_VENCER';
@@ -273,21 +225,24 @@ class EstadoCuentaController extends Controller
 
     /**
      * Obtiene pagos recientes realizados
+     * ✅ ADAPTADO PARA USAR CtaCliente
      */
     public function obtenerPagosRecientes($cliente_id, $limite = 10)
     {
-        return DB::table('// tabla no existe - pagos_clientes')
+        return DB::table('CtaCliente')
             ->select(
-                'id',
-                'fecha_pago',
-                'monto_pagado',
-                'metodo_pago',
-                'referencia',
-                'banco',
-                'observaciones'
+                'Documento',
+                'Tipo',
+                'FechaP as fecha_pago',
+                DB::raw('(Importe - Saldo) as monto_pagado'),
+                'FechaF as fecha_factura',
+                'Importe as total_factura',
+                'Saldo as saldo_restante'
             )
-            ->where('cliente_id', $cliente_id)
-            ->orderBy('fecha_pago', 'desc')
+            ->where('CodClie', $cliente_id)
+            ->whereNotNull('FechaP')
+            ->where('Saldo', '<=', DB::raw('Importe'))
+            ->orderBy('FechaP', 'desc')
             ->limit($limite)
             ->get();
     }
@@ -300,45 +255,48 @@ class EstadoCuentaController extends Controller
 
     /**
      * Calcula resumen financiero de un cliente
+     * ✅ ADAPTADO PARA USAR CtaCliente
      */
     public function calcularResumenCliente($cliente_id, $fecha_desde = null, $fecha_hasta = null)
     {
         $fecha_desde = $fecha_desde ?? now()->subMonths(12)->format('Y-m-d');
         $fecha_hasta = $fecha_hasta ?? now()->format('Y-m-d');
 
-        // Datos de ventas
-        $ventas_totales = DB::table('Doccab')
+        // Total facturado
+        $ventas_totales = DB::table('CtaCliente')
             ->where('CodClie', $cliente_id)
-            ->whereBetween('Fecha', [$fecha_desde, $fecha_hasta])
-            ->sum('Total');
+            ->whereBetween('FechaF', [$fecha_desde, $fecha_hasta])
+            ->sum('Importe');
 
-        $cantidad_facturas = DB::table('Doccab')
+        // Total cobrado
+        $pagos_totales = DB::table('CtaCliente')
             ->where('CodClie', $cliente_id)
-            ->whereBetween('Fecha', [$fecha_desde, $fecha_hasta])
-            ->count();
+            ->whereBetween('FechaF', [$fecha_desde, $fecha_hasta])
+            ->sum(DB::raw('(Importe - Saldo)'));
 
-        // Datos de pagos
-        $pagos_totales = DB::table('// tabla no existe - pagos_clientes')
-            ->where('cliente_id', $cliente_id)
-            ->whereBetween('fecha_pago', [$fecha_desde, $fecha_hasta])
-            ->sum('monto_pagado');
-
-        // Saldo actual
-        $saldo_actual = DB::table('Doccab')
+        // Saldo pendiente actual
+        $saldo_actual = DB::table('CtaCliente')
             ->where('CodClie', $cliente_id)
-            ->whereIn('Estado', ['PENDIENTE', 'VENCIDO'])
             ->sum('Saldo');
 
+        // Cantidad de facturas
+        $cantidad_facturas = DB::table('CtaCliente')
+            ->where('CodClie', $cliente_id)
+            ->whereBetween('FechaF', [$fecha_desde, $fecha_hasta])
+            ->count();
+
         // Último pago
-        $ultimo_pago = DB::table('// tabla no existe - pagos_clientes')
-            ->where('cliente_id', $cliente_id)
-            ->max('fecha_pago');
+        $ultimo_pago = DB::table('CtaCliente')
+            ->where('CodClie', $cliente_id)
+            ->whereNotNull('FechaP')
+            ->max('FechaP');
 
         // Días promedio de vencimiento
-        $facturas_vencidas = DB::table('Doccab')
-            ->selectRaw('AVG(DATEDIFF(day, Vencimiento, GETDATE())) as promedio_vencimiento')
+        $facturas_vencidas = DB::table('CtaCliente')
+            ->selectRaw('AVG(DATEDIFF(day, FechaV, GETDATE())) as promedio_vencimiento')
             ->where('CodClie', $cliente_id)
-            ->where('Estado', 'VENCIDO')
+            ->where('Saldo', '>', 0)
+            ->whereRaw('FechaV < GETDATE()')
             ->first();
 
         return [
@@ -358,14 +316,13 @@ class EstadoCuentaController extends Controller
      */
     public function calcularSaldoActual($cliente_id)
     {
-        $saldo_pendiente = DB::table('Doccab')
+        $saldo_pendiente = DB::table('CtaCliente')
             ->where('CodClie', $cliente_id)
-            ->whereIn('Estado', ['PENDIENTE', 'VENCIDO'])
             ->sum('Saldo');
 
         $credito_limite = DB::table('Clientes')
-            ->where('CodClie', $cliente_id)
-            ->value('CreditLimit');
+            ->where('Codclie', $cliente_id)
+            ->value('Limite');
 
         $credito_disponible = $credito_limite - $saldo_pendiente;
 
@@ -383,12 +340,12 @@ class EstadoCuentaController extends Controller
     public function analizarTendenciasCompra($cliente_id)
     {
         // Ventas por mes en los últimos 12 meses
-        $ventas_mensuales = DB::table('Doccab')
-            ->selectRaw('YEAR(Fecha) as año, MONTH(Fecha) as mes, SUM(Total) as total')
+        $ventas_mensuales = DB::table('CtaCliente')
+            ->selectRaw('YEAR(FechaF) as año, MONTH(FechaF) as mes, SUM(Importe) as total')
             ->where('CodClie', $cliente_id)
-            ->where('Fecha', '>=', now()->subMonths(12))
-            ->groupByRaw('YEAR(Fecha), MONTH(Fecha)')
-            ->orderByRaw('YEAR(Fecha), MONTH(Fecha)')
+            ->where('FechaF', '>=', now()->subMonths(12))
+            ->groupByRaw('YEAR(FechaF), MONTH(FechaF)')
+            ->orderByRaw('YEAR(FechaF), MONTH(FechaF)')
             ->get();
 
         // Calcular tendencia usando regresión lineal simple
@@ -414,43 +371,46 @@ class EstadoCuentaController extends Controller
 
     /**
      * Analiza crédito de manera detallada
+     * ✅ ADAPTADO PARA USAR CtaCliente
      */
     public function analizarCreditoDetallado($cliente_id)
     {
-        $cliente = DB::table('Clientes')->where('CodClie', $cliente_id)->first();
+        $cliente = DB::table('Clientes')->where('Codclie', $cliente_id)->first();
         
         $saldo_actual = $this->calcularSaldoActual($cliente_id);
         
         // Historial de pagos para análisis de cumplimiento
-        $historial_pagos = DB::table('Doccab')
+        $historial_pagos = DB::table('CtaCliente')
             ->select(
-                'Numero',
-                'Vencimiento',
-                'Fecha', // Fecha de pago real si existe
-                'Total',
+                'Documento',
+                'FechaV as Vencimiento',
+                'FechaP as FechaPago',
+                'Importe as Total',
                 'Saldo',
-                'Estado'
+                DB::raw('CASE 
+                    WHEN Saldo = 0 THEN "PAGADO"
+                    WHEN Saldo > 0 AND FechaV >= GETDATE() THEN "PENDIENTE"
+                    ELSE "VENCIDO"
+                END as Estado')
             )
             ->where('CodClie', $cliente_id)
-            ->orderBy('Vencimiento', 'desc')
-            ->limit(24) // Últimos 24 meses
+            ->orderBy('FechaV', 'desc')
+            ->limit(24)
             ->get();
 
         $pagos_tiempo = 0;
         $total_pagos = 0;
 
         foreach ($historial_pagos as $factura) {
-            if ($factura->Estado == 'PAGADO') {
+            if ($factura->Estado == 'PAGADO' && $factura->FechaPago) {
                 $total_pagos++;
-                $fecha_pago_real = DB::table('// tabla no existe - pagos_clientes')
-                    ->where('factura_numero', $factura->Numero)
-                    ->max('fecha_pago');
                 
-                if ($fecha_pago_real) {
-                    $dias_retraso = now()->parse($fecha_pago_real)->diffInDays($factura->Vencimiento);
-                    if ($dias_retraso <= 0) {
-                        $pagos_tiempo++;
-                    }
+                $fecha_vencimiento = Carbon::parse($factura->Vencimiento);
+                $fecha_pago = Carbon::parse($factura->FechaPago);
+                $dias_retraso = $fecha_pago->diffInDays($fecha_vencimiento, false);
+                
+                if ($dias_retraso <= 0) {
+                    $pagos_tiempo++;
                 }
             }
         }
@@ -480,19 +440,21 @@ class EstadoCuentaController extends Controller
 
     /**
      * Proyecta pagos futuros basados en patrones históricos
+     * ✅ ADAPTADO PARA USAR CtaCliente
      */
     public function proyectarPagosFuturos($cliente_id)
     {
         // Patrones de pago histórico
-        $patrones_pago = DB::table('// tabla no existe - pagos_clientes')
+        $patrones_pago = DB::table('CtaCliente')
             ->selectRaw('
-                MONTH(fecha_pago) as mes,
-                AVG(monto_pagado) as promedio_mensual,
+                MONTH(FechaP) as mes,
+                AVG(Importe - Saldo) as promedio_mensual,
                 COUNT(*) as frecuencia_mensual
             ')
-            ->where('cliente_id', $cliente_id)
-            ->where('fecha_pago', '>=', now()->subMonths(12))
-            ->groupByRaw('MONTH(fecha_pago)')
+            ->where('CodClie', $cliente_id)
+            ->whereNotNull('FechaP')
+            ->where('FechaP', '>=', now()->subMonths(12))
+            ->groupByRaw('MONTH(FechaP)')
             ->get();
 
         // Proyección para los próximos 3 meses
@@ -528,50 +490,52 @@ class EstadoCuentaController extends Controller
         $alertas = [];
 
         // Clientes con facturas vencidas
-        $facturas_vencidas = DB::table('Doccab')
-            ->join('Clientes', 'Doccab.CodClie', '=', 'Clientes.CodClie')
-            ->where('Doccab.Estado', 'VENCIDO')
-            ->where('Doccab.Saldo', '>', 0)
-            ->select('Clientes.Razon', 'Doccab.Numero', 'Doccab.Saldo', 'Doccab.Vencimiento')
-            ->orderBy('Doccab.Vencimiento', 'asc')
+        $facturas_vencidas = DB::table('CtaCliente')
+            ->join('Clientes', 'CtaCliente.CodClie', '=', 'Clientes.Codclie')
+            ->where('CtaCliente.Saldo', '>', 0)
+            ->whereRaw('CtaCliente.FechaV < GETDATE()')
+            ->select(
+                'Clientes.Razon', 
+                'CtaCliente.Documento', 
+                'CtaCliente.Saldo', 
+                'CtaCliente.FechaV'
+            )
+            ->orderBy('CtaCliente.FechaV', 'asc')
             ->get()
             ->map(function($factura) {
-                $dias_vencido = now()->diffInDays($factura->Vencimiento);
+                $dias_vencido = now()->diffInDays($factura->FechaV);
                 return [
                     'tipo' => 'FACTURA_VENCIDA',
                     'cliente' => $factura->Razon,
-                    'factura' => $factura->Numero,
+                    'factura' => $factura->Documento,
                     'monto' => $factura->Saldo,
                     'dias_vencido' => $dias_vencido,
                     'prioridad' => $dias_vencido > 30 ? 'CRITICA' : ($dias_vencido > 15 ? 'ALTA' : 'MEDIA'),
-                    'fecha_vencimiento' => $factura->Vencimiento
+                    'fecha_vencimiento' => $factura->FechaV
                 ];
             });
 
         // Clientes cerca del límite de crédito
         $creditos_riesgo = DB::table('Clientes')
-            ->leftJoin('Doccab', function($join) {
-                $join->on('Clientes.CodClie', '=', 'Doccab.CodClie')
-                     ->whereIn('Doccab.Estado', ['PENDIENTE', 'VENCIDO']);
-            })
+            ->leftJoin('CtaCliente', 'Clientes.Codclie', '=', 'CtaCliente.CodClie')
             ->select(
-                'Clientes.CodClie',
+                'Clientes.Codclie',
                 'Clientes.Razon',
-                'Clientes.CreditLimit',
-                DB::raw('SUM(Doccab.Saldo) as saldo_actual')
+                'Clientes.Limite',
+                DB::raw('COALESCE(SUM(CtaCliente.Saldo), 0) as saldo_actual')
             )
-            ->where('Clientes.Estado', 'ACTIVO')
-            ->where('Clientes.CreditLimit', '>', 0)
-            ->groupBy('Clientes.CodClie', 'Clientes.Razon', 'Clientes.CreditLimit')
-            ->havingRaw('SUM(Doccab.Saldo) >= (Clientes.CreditLimit * 0.8)')
+            ->where('Clientes.Activo', 1)
+            ->where('Clientes.Limite', '>', 0)
+            ->groupBy('Clientes.Codclie', 'Clientes.Razon', 'Clientes.Limite')
+            ->havingRaw('COALESCE(SUM(CtaCliente.Saldo), 0) >= (Clientes.Limite * 0.8)')
             ->get()
             ->map(function($cliente) {
-                $porcentaje = ($cliente->saldo_actual / $cliente->CreditLimit) * 100;
+                $porcentaje = ($cliente->saldo_actual / $cliente->Limite) * 100;
                 return [
                     'tipo' => 'CREDITO_ALTO',
                     'cliente' => $cliente->Razon,
                     'saldo_actual' => $cliente->saldo_actual,
-                    'limite_credito' => $cliente->CreditLimit,
+                    'limite_credito' => $cliente->Limite,
                     'porcentaje_utilizado' => round($porcentaje, 2),
                     'prioridad' => $porcentaje >= 90 ? 'CRITICA' : 'ALTA'
                 ];
@@ -579,17 +543,22 @@ class EstadoCuentaController extends Controller
 
         // Clientes inactivos por más de 90 días
         $clientes_inactivos = DB::table('Clientes')
-            ->leftJoin('Doccab', 'Clientes.CodClie', '=', 'Doccab.CodClie')
-            ->select('Clientes.CodClie', 'Clientes.Razon')
-            ->where('Clientes.Estado', 'ACTIVO')
-            ->groupBy('Clientes.CodClie', 'Clientes.Razon')
-            ->havingRaw('MAX(Doccab.Fecha) IS NULL OR MAX(Doccab.Fecha) <= DATEADD(day, -90, GETDATE())')
+            ->leftJoin('CtaCliente', 'Clientes.Codclie', '=', 'CtaCliente.CodClie')
+            ->select(
+                'Clientes.Codclie', 
+                'Clientes.Razon',
+                DB::raw('MAX(CtaCliente.FechaF) as ultima_compra')
+            )
+            ->where('Clientes.Activo', 1)
+            ->groupBy('Clientes.Codclie', 'Clientes.Razon')
+            ->havingRaw('MAX(CtaCliente.FechaF) IS NULL OR MAX(CtaCliente.FechaF) <= DATEADD(day, -90, GETDATE())')
             ->get()
             ->map(function($cliente) {
+                $dias_inactividad = $cliente->ultima_compra ? now()->diffInDays($cliente->ultima_compra) : 999;
                 return [
                     'tipo' => 'CLIENTE_INACTIVO',
                     'cliente' => $cliente->Razon,
-                    'dias_inactividad' => 90,
+                    'dias_inactividad' => $dias_inactividad,
                     'prioridad' => 'MEDIA'
                 ];
             });
@@ -619,10 +588,17 @@ class EstadoCuentaController extends Controller
     {
         $datos = $this->estadoCuentaCompleto($cliente_id, $request);
         
-        // Generar PDF usando una librería como DomPDF
-        $pdf = PDF::loadView('estados_cuenta.pdf', $datos);
+        if (is_array($datos) && isset($datos['error'])) {
+            return response()->json($datos, 404);
+        }
         
-        return $pdf->download('estado_cuenta_' . $datos['cliente']->Razon . '_' . date('Y-m-d') . '.pdf');
+        $pdf = Pdf::loadView('estados_cuenta.pdf', $datos);
+        
+        $nombre_archivo = 'estado_cuenta_' . 
+                         str_replace(' ', '_', $datos['cliente']->Razon) . 
+                         '_' . date('Y-m-d') . '.pdf';
+        
+        return $pdf->download($nombre_archivo);
     }
 
     /**
@@ -632,7 +608,14 @@ class EstadoCuentaController extends Controller
     {
         $datos = $this->estadoCuentaCompleto($cliente_id, $request);
         
-        return Excel::download(new EstadoCuentaExport($datos), 'estado_cuenta_' . $datos['cliente']->Razon . '.xlsx');
+        if (is_array($datos) && isset($datos['error'])) {
+            return response()->json($datos, 404);
+        }
+        
+        // Aquí se implementaría la exportación a Excel
+        // return Excel::download(new EstadoCuentaExport($datos), 'estado_cuenta.xlsx');
+        
+        return response()->json(['mensaje' => 'Exportación a Excel en desarrollo']);
     }
 
     /**
@@ -663,7 +646,7 @@ class EstadoCuentaController extends Controller
     {
         return [
             'cliente_id' => $request->cliente_id,
-            'estado_saldo' => $request->estado_saldo, // CON_SALDO, SIN_SALDO, TODOS
+            'estado_saldo' => $request->estado_saldo,
             'dias_vencimiento' => $request->dias_vencimiento,
             'categoria_riesgo' => $request->categoria_riesgo,
             'fecha_desde' => $request->fecha_desde,
@@ -679,49 +662,45 @@ class EstadoCuentaController extends Controller
     public function consultarEstadosCuenta($filtros)
     {
         $query = DB::table('Clientes')
-            ->leftJoin('Doccab', function($join) {
-                $join->on('Clientes.CodClie', '=', 'Doccab.CodClie')
-                     ->whereIn('Doccab.Estado', ['PENDIENTE', 'VENCIDO']);
-            })
+            ->leftJoin('CtaCliente', 'Clientes.Codclie', '=', 'CtaCliente.CodClie')
             ->select(
-                'Clientes.CodClie',
+                'Clientes.Codclie',
                 'Clientes.Razon',
-                'Clientes.Ruc',
-                'Clientes.CreditLimit',
-                'Clientes.DiasCredito',
-                'Clientes.Categoria',
-                DB::raw('SUM(Doccab.Saldo) as saldo_actual')
+                'Clientes.Documento',
+                'Clientes.Limite',
+                DB::raw('COALESCE(SUM(CtaCliente.Saldo), 0) as saldo_actual')
             )
-            ->where('Clientes.Estado', 'ACTIVO')
-            ->groupBy('Clientes.CodClie', 'Clientes.Razon', 'Clientes.Ruc', 'Clientes.CreditLimit', 'Clientes.DiasCredito', 'Clientes.Categoria');
+            ->where('Clientes.Activo', 1)
+            ->groupBy(
+                'Clientes.Codclie', 
+                'Clientes.Razon', 
+                'Clientes.Documento', 
+                'Clientes.Limite'
+            );
 
         // Aplicar filtros
-        if ($filtros['cliente_id']) {
-            $query->where('Clientes.CodClie', $filtros['cliente_id']);
+        if (!empty($filtros['cliente_id'])) {
+            $query->where('Clientes.Codclie', $filtros['cliente_id']);
         }
 
-        if ($filtros['estado_saldo'] == 'CON_SALDO') {
-            $query->having('saldo_actual', '>', 0);
-        } elseif ($filtros['estado_saldo'] == 'SIN_SALDO') {
-            $query->having('saldo_actual', '=', 0);
+        if (!empty($filtros['estado_saldo'])) {
+            if ($filtros['estado_saldo'] == 'CON_SALDO') {
+                $query->havingRaw('COALESCE(SUM(CtaCliente.Saldo), 0) > 0');
+            } elseif ($filtros['estado_saldo'] == 'SIN_SALDO') {
+                $query->havingRaw('COALESCE(SUM(CtaCliente.Saldo), 0) = 0');
+            }
         }
 
-        if ($filtros['categoria_riesgo']) {
-            // Aquí se aplicaría filtro por categoría de riesgo calculado
+        if (!empty($filtros['limite_credito_min'])) {
+            $query->where('Clientes.Limite', '>=', $filtros['limite_credito_min']);
         }
 
-        if ($filtros['limite_credito_min']) {
-            $query->where('Clientes.CreditLimit', '>=', $filtros['limite_credito_min']);
+        if (!empty($filtros['limite_credito_max'])) {
+            $query->where('Clientes.Limite', '<=', $filtros['limite_credito_max']);
         }
 
-        if ($filtros['limite_credito_max']) {
-            $query->where('Clientes.CreditLimit', '<=', $filtros['limite_credito_max']);
-        }
-
-        $query->orderBy('saldo_actual', 'desc')
-               ->orderBy('Clientes.Razon');
-
-        return $query->paginate(25);
+        return $query->orderByRaw('COALESCE(SUM(CtaCliente.Saldo), 0) DESC')
+                     ->paginate(25);
     }
 
     /**
@@ -729,30 +708,35 @@ class EstadoCuentaController extends Controller
      */
     public function calcularResumenGeneral()
     {
-        $total_clientes = DB::table('Clientes')->where('Estado', 'ACTIVO')->count();
+        $total_clientes = DB::table('Clientes')
+            ->where('Activo', 1)
+            ->count();
         
-        $saldo_total = DB::table('Doccab')
-            ->whereIn('Estado', ['PENDIENTE', 'VENCIDO'])
+        $saldo_total = DB::table('CtaCliente')
             ->sum('Saldo');
 
         $limite_credito_total = DB::table('Clientes')
-            ->where('Estado', 'ACTIVO')
-            ->sum('CreditLimit');
+            ->where('Activo', 1)
+            ->sum('Limite');
 
-        $facturas_vencidas = DB::table('Doccab')
-            ->where('Estado', 'VENCIDO')
+        $facturas_vencidas = DB::table('CtaCliente')
+            ->where('Saldo', '>', 0)
+            ->whereRaw('FechaV < GETDATE()')
             ->count();
 
-        $monto_vencido = DB::table('Doccab')
-            ->where('Estado', 'VENCIDO')
+        $monto_vencido = DB::table('CtaCliente')
+            ->where('Saldo', '>', 0)
+            ->whereRaw('FechaV < GETDATE()')
             ->sum('Saldo');
 
-        $facturas_por_vencer = DB::table('Doccab')
-            ->where('Estado', 'PENDIENTE')
-            ->where('Vencimiento', '>=', now())
+        $facturas_por_vencer = DB::table('CtaCliente')
+            ->where('Saldo', '>', 0)
+            ->whereRaw('FechaV >= GETDATE()')
             ->count();
 
-        $porcentaje_utilizacion = $limite_credito_total > 0 ? ($saldo_total / $limite_credito_total) * 100 : 0;
+        $porcentaje_utilizacion = $limite_credito_total > 0 
+            ? ($saldo_total / $limite_credito_total) * 100 
+            : 0;
 
         return [
             'total_clientes' => $total_clientes,
@@ -762,7 +746,9 @@ class EstadoCuentaController extends Controller
             'facturas_vencidas' => $facturas_vencidas,
             'monto_vencido' => $monto_vencido,
             'facturas_por_vencer' => $facturas_por_vencer,
-            'promedio_credito_por_cliente' => $total_clientes > 0 ? $limite_credito_total / $total_clientes : 0
+            'promedio_credito_por_cliente' => $total_clientes > 0 
+                ? $limite_credito_total / $total_clientes 
+                : 0
         ];
     }
 
@@ -795,7 +781,6 @@ class EstadoCuentaController extends Controller
         $pendiente = ($n * $sum_xy - $sum_x * $sum_y) / ($n * $sum_x2 - $sum_x * $sum_x);
         $intercepto = ($sum_y - $pendiente * $sum_x) / $n;
         
-        // Proyección para el siguiente punto
         $proyeccion = $pendiente * ($n + 1) + $intercepto;
 
         return [
@@ -812,7 +797,7 @@ class EstadoCuentaController extends Controller
     {
         switch ($categoria_riesgo) {
             case 'MUY_BAJO':
-                return $porcentaje_utilizado < 50 ? 'MANTENER' : 'REDUCIR_LIMITE';
+                return $porcentaje_utilizado < 50 ? 'AUMENTAR_LIMITE' : 'MANTENER';
             case 'BAJO':
                 return 'MANTENER';
             case 'MEDIO':
@@ -837,7 +822,7 @@ class EstadoCuentaController extends Controller
      */
     public function resumenDashboard()
     {
-        return $this->calcularResumenGeneral();
+        return response()->json($this->calcularResumenGeneral());
     }
 
     /**
@@ -846,7 +831,7 @@ class EstadoCuentaController extends Controller
     public function obtenerAlertasActivas()
     {
         $alertas = $this->generarAlertas();
-        return $alertas['resumen'];
+        return response()->json($alertas['resumen']);
     }
 
     /**
@@ -854,11 +839,15 @@ class EstadoCuentaController extends Controller
      */
     public function compartirEmail($cliente_id, Request $request)
     {
-        $cliente = DB::table('Clientes')->where('CodClie', $cliente_id)->first();
+        $cliente = DB::table('Clientes')->where('Codclie', $cliente_id)->first();
         
         if (!$cliente) {
             return response()->json(['error' => 'Cliente no encontrado'], 404);
         }
+
+        $request->validate([
+            'email' => 'required|email'
+        ]);
 
         try {
             // Aquí se implementaría el envío de email
@@ -866,10 +855,12 @@ class EstadoCuentaController extends Controller
             
             return response()->json([
                 'success' => true,
-                'mensaje' => 'Estado de cuenta enviado por email'
+                'mensaje' => 'Estado de cuenta enviado a ' . $request->email
             ]);
         } catch (\Exception $e) {
-            return response()->json(['error' => 'Error al enviar email'], 500);
+            return response()->json([
+                'error' => 'Error al enviar email: ' . $e->getMessage()
+            ], 500);
         }
     }
 
@@ -878,19 +869,102 @@ class EstadoCuentaController extends Controller
      */
     public function datosGraficos($cliente_id)
     {
-        $ventas_mensuales = DB::table('Doccab')
-            ->selectRaw('YEAR(Fecha) as año, MONTH(Fecha) as mes, SUM(Total) as total')
+        $ventas_mensuales = DB::table('CtaCliente')
+            ->selectRaw('YEAR(FechaF) as año, MONTH(FechaF) as mes, SUM(Importe) as total')
             ->where('CodClie', $cliente_id)
-            ->where('Fecha', '>=', now()->subMonths(12))
-            ->groupByRaw('YEAR(Fecha), MONTH(Fecha)')
-            ->orderByRaw('YEAR(Fecha), MONTH(Fecha)')
+            ->where('FechaF', '>=', now()->subMonths(12))
+            ->groupByRaw('YEAR(FechaF), MONTH(FechaF)')
+            ->orderByRaw('YEAR(FechaF), MONTH(FechaF)')
             ->get();
 
         $antiguedad_saldos = $this->analizarAntiguedadSaldos($cliente_id);
 
-        return [
+        return response()->json([
             'ventas_mensuales' => $ventas_mensuales,
             'antiguedad_saldos' => $antiguedad_saldos['totales']
-        ];
+        ]);
+    }
+
+    /**
+     * API: Registra un nuevo pago de cliente
+     */
+    public function registrarPago(Request $request)
+    {
+        $request->validate([
+            'documento' => 'required',
+            'tipo' => 'required|integer',
+            'monto_pagado' => 'required|numeric|min:0',
+            'fecha_pago' => 'required|date'
+        ]);
+
+        try {
+            DB::beginTransaction();
+
+            // Buscar factura en CtaCliente
+            $factura = DB::table('CtaCliente')
+                ->where('Documento', $request->documento)
+                ->where('Tipo', $request->tipo)
+                ->first();
+
+            if (!$factura) {
+                return response()->json(['error' => 'Factura no encontrada'], 404);
+            }
+
+            if ($request->monto_pagado > $factura->Saldo) {
+                return response()->json([
+                    'error' => 'El monto pagado excede el saldo pendiente'
+                ], 422);
+            }
+
+            // Actualizar saldo y fecha de pago
+            $nuevo_saldo = $factura->Saldo - $request->monto_pagado;
+            
+            DB::table('CtaCliente')
+                ->where('Documento', $request->documento)
+                ->where('Tipo', $request->tipo)
+                ->update([
+                    'Saldo' => $nuevo_saldo,
+                    'FechaP' => $request->fecha_pago
+                ]);
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'mensaje' => 'Pago registrado correctamente',
+                'nuevo_saldo' => $nuevo_saldo
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'error' => 'Error al registrar pago: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * API: Obtiene historial de pagos de un cliente
+     */
+    public function historialPagos($cliente_id)
+    {
+        $historial = DB::table('CtaCliente')
+            ->select(
+                'Documento',
+                'Tipo',
+                'FechaF as fecha_factura',
+                'FechaV as fecha_vencimiento',
+                'FechaP as fecha_pago',
+                'Importe',
+                'Saldo',
+                DB::raw('(Importe - Saldo) as monto_pagado'),
+                DB::raw('DATEDIFF(day, FechaV, FechaP) as dias_retraso')
+            )
+            ->where('CodClie', $cliente_id)
+            ->whereNotNull('FechaP')
+            ->orderBy('FechaP', 'desc')
+            ->get();
+
+        return response()->json($historial);
     }
 }

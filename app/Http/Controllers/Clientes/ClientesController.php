@@ -10,6 +10,8 @@ use Carbon\Carbon;
 use App\Services\ReniecService;
 use Illuminate\Support\Facades\Log;
 
+
+
 class ClientesController extends Controller
 {
     protected $connection = 'sqlsrv';
@@ -225,7 +227,7 @@ class ClientesController extends Controller
 
         } catch (\Exception $e) {
             DB::connection($this->connection)->rollback();
-            \Log::error("Error al crear cliente: " . $e->getMessage());
+            Log::error("Error al crear cliente: " . $e->getMessage());
             
             return redirect()
                 ->back()
@@ -295,7 +297,7 @@ class ClientesController extends Controller
 
         } catch (\Exception $e) {
             DB::connection($this->connection)->rollback();
-            \Log::error("Error al actualizar cliente: " . $e->getMessage());
+            Log::error("Error al actualizar cliente: " . $e->getMessage());
             
             if ($request->expectsJson()) {
                 return response()->json([
@@ -760,7 +762,7 @@ class ClientesController extends Controller
             ->get();
         
         // Log para debugging (opcional)
-        \Log::info('Vendedores cargados:', [
+        Log::info('Vendedores cargados:', [
             'total' => $vendedores->count(),
             'primer_vendedor' => $vendedores->first()
         ]);

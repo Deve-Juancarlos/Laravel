@@ -4,8 +4,10 @@ namespace App\Exports;
 
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
+use Maatwebsite\Excel\Concerns\WithMapping;
+use Maatwebsite\Excel\Concerns\ShouldAutoSize;
 
-class PDT621Export implements FromCollection, WithHeadings
+class PDT621Export implements FromCollection, WithHeadings, WithMapping, ShouldAutoSize
 {
     protected $datos;
 
@@ -27,6 +29,24 @@ class PDT621Export implements FromCollection, WithHeadings
             'Periodo',
             'RUC',
             'Razón Social',
+            'Código',
+            'Tipo de Documento',
+            'Importe (S/)',
+            'Observaciones'
+        ];
+    }
+
+    public function map($row): array
+    {
+        // Mapear un registro según la estructura esperada
+        return [
+            $row['periodo'] ?? $row->periodo ?? '',
+            $row['ruc'] ?? $row->ruc ?? '',
+            $row['razon'] ?? $row->razon_social ?? $row->razonSocial ?? '',
+            $row['codigo'] ?? $row->codigo ?? '',
+            $row['tipo_documento'] ?? $row->tipo_documento ?? '',
+            isset($row['importe']) ? (float) $row['importe'] : (isset($row->importe) ? (float) $row->importe : 0),
+            $row['observaciones'] ?? $row->observaciones ?? ''
         ];
     }
 }
