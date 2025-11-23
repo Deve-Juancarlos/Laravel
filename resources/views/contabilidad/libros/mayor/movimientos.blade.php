@@ -76,7 +76,7 @@
                             <option value="">Todos los meses</option>
                             @for($i = 1; $i <= 12; $i++)
                                 <option value="{{ $i }}" {{ ($mes ?? '') == $i ? 'selected' : '' }}>
-                                    {{ Carbon\Carbon::create()->month($i)->locale('es')->isoFormat('MMMM') }}
+                                    {{ \Carbon\Carbon::create()->month($i)->locale('es')->isoFormat('MMMM') }}
                                 </option>
                             @endfor
                         </select>
@@ -103,7 +103,10 @@
                 <i class="fas fa-table"></i> Movimientos Contables
             </h6>
             <div class="d-flex gap-2 align-items-center">
-                <span class="badge bg-info-soft">Página {{ $movimientos->currentPage() }} de {{ $movimientos->lastPage() }}</span>
+                {{-- ✅ CORREGIDO: Verificar que $movimientos existe antes de acceder a propiedades --}}
+                @if(isset($movimientos) && $movimientos instanceof \Illuminate\Pagination\LengthAwarePaginator)
+                    <span class="badge bg-info-soft">Página {{ $movimientos->currentPage() }} de {{ $movimientos->lastPage() }}</span>
+                @endif
                 <a href="{{ route('contador.libro-mayor.exportar', array_merge(request()->query(), ['tipo' => 'detallado'])) }}" class="btn btn-export btn-sm">
                     <i class="fas fa-file-excel me-1"></i> Exportar Detalle
                 </a>
@@ -124,6 +127,7 @@
                         </tr>
                     </thead>
                     <tbody>
+                        {{-- ✅ CORREGIDO: Usar isset() y verificación de Collection --}}
                         @forelse($movimientos ?? [] as $movimiento)
                         <tr>
                             <td>{{ \Carbon\Carbon::parse($movimiento->fecha)->format('d/m/Y') }}</td>
@@ -137,16 +141,16 @@
                                 <br>
                                 <small class="text-muted">{{ $movimiento->nombre_cuenta ?? 'Sin nombre' }}</small>
                             </td>
-                            <td>{{ Str::limit($movimiento->concepto, 50) }}</td>
+                            <td>{{ Str::limit($movimiento->concepto ?? '', 50) }}</td>
                             <td class="text-end text-success">
-                                {{ $movimiento->debe > 0 ? number_format($movimiento->debe, 2) : '-' }}
+                                {{ ($movimiento->debe ?? 0) > 0 ? number_format($movimiento->debe, 2) : '-' }}
                             </td>
                             <td class="text-end text-danger">
-                                {{ $movimiento->haber > 0 ? number_format($movimiento->haber, 2) : '-' }}
+                                {{ ($movimiento->haber ?? 0) > 0 ? number_format($movimiento->haber, 2) : '-' }}
                             </td>
                             <td class="text-end">
-                                <strong class="{{ ($movimiento->debe - $movimiento->haber) >= 0 ? 'text-success' : 'text-danger' }}">
-                                    {{ number_format($movimiento->debe - $movimiento->haber, 2) }}
+                                <strong class="{{ (($movimiento->debe ?? 0) - ($movimiento->haber ?? 0)) >= 0 ? 'text-success' : 'text-danger' }}">
+                                    {{ number_format(($movimiento->debe ?? 0) - ($movimiento->haber ?? 0), 2) }}
                                 </strong>
                             </td>
                         </tr>
@@ -162,7 +166,8 @@
                         </tr>
                         @endforelse
                     </tbody>
-                    @if(($movimientos ?? collect())->count() > 0)
+                    {{-- ✅ CORREGIDO: Verificar que $movimientos existe y tiene elementos --}}
+                    @if(isset($movimientos) && $movimientos->count() > 0)
                     <tfoot class="table-light">
                         <tr class="fw-bold">
                             <td colspan="4">TOTALES DE LA PÁGINA</td>
@@ -172,9 +177,9 @@
                         </tr>
                         <tr class="fw-bold table-dark">
                             <td colspan="4">TOTALES FILTRADOS (TODAS LAS PÁGINAS)</td>
-                            <td class="text-end">S/ {{ number_format($totales['debe'], 2) }}</td>
-                            <td class="text-end">S/ {{ number_format($totales['haber'], 2) }}</td>
-                            <td class="text-end">S/ {{ number_format($totales['debe'] - $totales['haber'], 2) }}</td>
+                            <td class="text-end">S/ {{ number_format($totales['debe'] ?? 0, 2) }}</td>
+                            <td class="text-end">S/ {{ number_format($totales['haber'] ?? 0, 2) }}</td>
+                            <td class="text-end">S/ {{ number_format(($totales['debe'] ?? 0) - ($totales['haber'] ?? 0), 2) }}</td>
                         </tr>
                     </tfoot>
                     @endif
@@ -182,7 +187,8 @@
             </div>
 
             <!-- Paginación -->
-            @if(($movimientos ?? collect())->hasPages())
+            {{-- ✅ CORREGIDO: Verificar que $movimientos existe antes de llamar hasPages() --}}
+            @if(isset($movimientos) && method_exists($movimientos, 'hasPages') && $movimientos->hasPages())
             <div class="d-flex justify-content-center mt-4">
                 {{ $movimientos->appends(request()->query())->links() }}
             </div>
@@ -191,7 +197,8 @@
     </div>
 
     <!-- Resumen Mensual -->
-    @if(($resumenMensual ?? collect())->count() > 0)
+    {{-- ✅ CORREGIDO: Verificar que $resumenMensual existe antes de contar --}}
+    @if(isset($resumenMensual) && (is_array($resumenMensual) ? count($resumenMensual) : $resumenMensual->count()) > 0)
     <div class="card shadow-sm mt-4">
         <div class="card-header py-3">
             <h6 class="m-0 font-weight-bold text-primary">
@@ -214,7 +221,7 @@
                         <tr>
                             <td>
                                 <strong>
-                                    {{ \Carbon\Carbon::createFromDate($resumen->anio, $resumen->mes_numero, 1)->locale('es')->isoFormat('MMMM YYYY') }}
+                                    {{ \Carbon\Carbon::createFromDate($resumen->anio ?? date('Y'), $resumen->mes_numero ?? 1, 1)->locale('es')->isoFormat('MMMM YYYY') }}
                                 </strong>
                             </td>
                             <td class="text-end text-success">
@@ -238,5 +245,17 @@
 @endsection
 
 @push('scripts')
-{{-- Scripts específicos si fueran necesarios --}}
+<script>
+    // Scripts específicos para la página de movimientos
+    document.addEventListener('DOMContentLoaded', function() {
+        // Ejemplo: Auto-submit al cambiar filtros
+        const filtroMes = document.getElementById('mes');
+        if (filtroMes) {
+            filtroMes.addEventListener('change', function() {
+                // Opcional: auto-enviar formulario
+                // this.form.submit();
+            });
+        }
+    });
+</script>
 @endpush

@@ -233,15 +233,16 @@
                             <label for="tipo_doc" class="form-label fw-bold">
                                 <i class="fas fa-file-alt me-1"></i> Tipo Documento
                             </label>
-                            <select class="form-select" id="tipo_doc" name="tipo_doc" required>
-                                @foreach($tiposDoc as $tipo)
-                                    <option value="{{ $tipo->n_numero }}" 
-                                            data-requiere-ruc="{{ in_array($tipo->n_numero, [1, 4]) ? '1' : '0' }}"
-                                            @selected(old('tipo_doc', $carrito['pago']['tipo_doc'] ?? 1) == $tipo->n_numero)>
-                                        {{ $tipo->c_describe }}
-                                    </option>
-                                @endforeach
-                            </select>
+                            {{-- ✅ CORREGIDO - Línea 238 --}}
+                                <select class="form-select" id="tipo_doc" name="tipo_doc" required>
+                                    @foreach($tiposDoc as $tipo)
+                                        <option value="{{ $tipo->Codigo }}" 
+                                                data-requiere-ruc="{{ in_array($tipo->Codigo, ['01', '04']) ? '1' : '0' }}"
+                                                @selected(old('tipo_doc', $carrito['pago']['tipo_doc'] ?? 1) == $tipo->Codigo)>
+                                            {{ $tipo->Descripcion }}
+                                        </option>
+                                    @endforeach
+                                </select>
                             <small class="form-text" id="infoTipoDoc"></small>
                         </div>
                         <div class="col-md-3">
@@ -738,7 +739,7 @@
         
         @if($carrito)
             actualizarVistaCarrito(@json($carrito));
-            $('#tipo_doc').val("{{ $carrito['pago']['tipo_doc'] ?? 1 }}");
+            $('#tipo_doc').val("{{ $carrito['pago']['tipo_doc'] ?? '01' }}");  // Usar código SUNAT
             $('#condicion').val("{{ $carrito['pago']['condicion'] ?? 'contado' }}").trigger('change');
             $('#fecha_venc').val("{{ $carrito['pago']['fecha_venc'] ?? '' }}");
             $('#vendedor_id').val("{{ $carrito['pago']['vendedor_id'] ?? '' }}");
