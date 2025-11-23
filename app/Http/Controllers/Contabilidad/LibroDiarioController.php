@@ -198,4 +198,6 @@ class LibroDiarioController extends Controller
             return redirect()->back()->with('error', 'Error al generar el reporte');
         }
     }
+
+    
 }

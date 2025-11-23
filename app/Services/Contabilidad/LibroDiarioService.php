@@ -5,24 +5,22 @@ namespace App\Services\Contabilidad;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
-use Symfony\Component\HttpFoundation\StreamedResponse;
-// --- ¡IMPORTAMOS TODOS LOS MODELOS! ---
 use App\Models\LibroDiario;
 use App\Models\LibroDiarioDetalle;
 use App\Models\PlanCuentas;
 use App\Models\AccesoWeb;
-// --- IMPORTAMOS LOS EXPORTADORES ---
 use Maatwebsite\Excel\Facades\Excel;
-use App\Exports\LibroDiarioExport; // Asumimos que la crearás
+use App\Exports\LibroDiarioExport;
 use Barryvdh\DomPDF\Facade\Pdf as DomPDF;
 
 class LibroDiarioService
 {
     /**
-     * Almacena un nuevo asiento contable.
-     * (Esta función ya era perfecta y usaba Eloquent).
+     * ================================================================
+     * CREAR ASIENTO (CON AUDITORÍA + NOTIFICACIÓN)
+     * ================================================================
      */
     public function storeAsiento(array $validatedData, $observaciones, $userId)
     {
@@ -52,6 +50,28 @@ class LibroDiarioService
             
             $asiento->detalles()->createMany($validatedData['detalles']);
 
+            // ✅ REGISTRAR EN AUDITORÍA
+            $this->registrarAuditoria(
+                $asiento->id,
+                'CREAR',
+                null,
+                [
+                    'numero' => $numeroAsiento,
+                    'fecha' => $validatedData['fecha'],
+                    'glosa' => $validatedData['glosa'],
+                    'total_debe' => $totalDebe,
+                    'total_haber' => $totalHaber,
+                    'estado' => 'ACTIVO',
+                    'observaciones' => $observaciones,
+                    'cantidad_detalles' => count($validatedData['detalles']),
+                ]
+            );
+
+            // ✅ NOTIFICAR A SUPERVISORES (si el monto es alto)
+            if ($totalDebe >= 10000) {
+                $this->notificarAsientoAlto($asiento, $userId);
+            }
+
             DB::commit();
             Log::info('Asiento contable creado', ['numero' => $numeroAsiento, 'usuario_id' => $userId]);
             return $asiento->id;
@@ -63,43 +83,335 @@ class LibroDiarioService
     }
 
     /**
-     * Actualiza la cabecera de un asiento.
-     * (Esta función ya era perfecta y usaba Eloquent).
+     * ================================================================
+     * ACTUALIZAR ASIENTO (CON AUDITORÍA + NOTIFICACIÓN)
+     * ================================================================
      */
     public function updateAsiento($id, array $validatedData)
     {
-        $asiento = LibroDiario::findOrFail($id);
-        $asiento->update($validatedData);
+        DB::beginTransaction();
+        try {
+            $asiento = LibroDiario::findOrFail($id);
+
+            // ✅ GUARDAR DATOS ANTERIORES
+            $datosAnteriores = [
+                'numero' => $asiento->numero,
+                'fecha' => $asiento->fecha,
+                'glosa' => $asiento->glosa,
+                'observaciones' => $asiento->observaciones,
+                'total_debe' => $asiento->total_debe,
+                'total_haber' => $asiento->total_haber,
+                'estado' => $asiento->estado,
+            ];
+
+            // Actualizar asiento
+            $asiento->update($validatedData);
+
+            // ✅ REGISTRAR EN AUDITORÍA
+            $this->registrarAuditoria(
+                $id,
+                'MODIFICAR',
+                $datosAnteriores,
+                [
+                    'numero' => $asiento->numero,
+                    'fecha' => $validatedData['fecha'],
+                    'glosa' => $validatedData['glosa'],
+                    'observaciones' => $validatedData['observaciones'] ?? null,
+                    'total_debe' => $asiento->total_debe,
+                    'total_haber' => $asiento->total_haber,
+                    'estado' => $asiento->estado,
+                ]
+            );
+
+            // ✅ NOTIFICAR CAMBIOS IMPORTANTES
+            $this->notificarModificacionAsiento($asiento, $datosAnteriores);
+
+            DB::commit();
+            return true;
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            throw $e;
+        }
     }
 
     /**
-     * Solicita la eliminación de un asiento (cambia estado).
-     * (Esta función ya era perfecta y usaba Eloquent).
+     * ================================================================
+     * SOLICITAR ELIMINACIÓN (CON AUDITORÍA + NOTIFICACIÓN)
+     * ================================================================
      */
     public function solicitarEliminacion($id, $usuario)
     {
-        $asiento = LibroDiario::findOrFail($id);
-        $asiento->estado = 'PENDIENTE_ELIMINACION';
-        $asiento->save();
+        DB::beginTransaction();
+        try {
+            $asiento = LibroDiario::findOrFail($id);
 
-        $titulo = "Solicitud de Eliminación de Asiento";
-        $mensaje = "El usuario {$usuario->usuario} ha solicitado eliminar el asiento N° {$asiento->numero}.";
-        $url = route('admin.solicitudes.asiento.index');
+            // ✅ GUARDAR DATOS ANTERIORES
+            $datosAnteriores = [
+                'numero' => $asiento->numero,
+                'fecha' => $asiento->fecha,
+                'glosa' => $asiento->glosa,
+                'estado' => $asiento->estado,
+                'total_debe' => $asiento->total_debe,
+                'total_haber' => $asiento->total_haber,
+            ];
 
-        if (method_exists($asiento, 'notificarAdmin')) {
-            $asiento->notificarAdmin($titulo, $mensaje, $url);
-        } else {
-            Log::warning("El método notificarAdmin() no existe en el modelo LibroDiario.");
+            $asiento->estado = 'PENDIENTE_ELIMINACION';
+            $asiento->save();
+
+            // ✅ REGISTRAR EN AUDITORÍA
+            $this->registrarAuditoria(
+                $id,
+                'SOLICITAR_ELIMINACION',
+                $datosAnteriores,
+                [
+                    'numero' => $asiento->numero,
+                    'fecha' => $asiento->fecha,
+                    'glosa' => $asiento->glosa,
+                    'estado' => 'PENDIENTE_ELIMINACION',
+                    'solicitante' => $usuario->usuario,
+                ]
+            );
+
+            // ✅ NOTIFICAR A ADMINISTRADORES
+            $this->notificarSolicitudEliminacion($asiento, $usuario);
+
+            DB::commit();
+            return true;
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            throw $e;
+        }
+    }
+
+    /**
+     * ================================================================
+     * ELIMINAR ASIENTO (CON AUDITORÍA + NOTIFICACIÓN)
+     * ================================================================
+     */
+    public function deleteAsiento($id, $usuario)
+    {
+        DB::beginTransaction();
+        try {
+            $asiento = LibroDiario::findOrFail($id);
+            
+            // ✅ GUARDAR DATOS PARA AUDITORÍA
+            $datosAnteriores = [
+                'numero' => $asiento->numero,
+                'fecha' => $asiento->fecha,
+                'glosa' => $asiento->glosa,
+                'estado' => $asiento->estado,
+                'total_debe' => $asiento->total_debe,
+                'total_haber' => $asiento->total_haber,
+            ];
+
+            // ✅ REGISTRAR EN AUDITORÍA
+            $this->registrarAuditoria(
+                $id,
+                'ELIMINAR',
+                $datosAnteriores,
+                [
+                    'numero' => $asiento->numero,
+                    'glosa' => '[ELIMINADO] ' . $asiento->glosa,
+                    'estado' => 'ELIMINADO',
+                    'eliminado_por' => $usuario,
+                ]
+            );
+
+            // ✅ NOTIFICAR ELIMINACIÓN
+            $this->notificarEliminacionAsiento($asiento, $usuario);
+
+            // Ejecutar eliminación
+            $asiento->delete();
+
+            DB::commit();
+            return true;
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Error al eliminar asiento: ' . $e->getMessage());
+            throw $e;
+        }
+    }
+
+    /**
+     * ================================================================
+     * ✅ REGISTRAR AUDITORÍA
+     * ================================================================
+     */
+    private function registrarAuditoria($asientoId, $accion, $datosAnteriores = null, $datosNuevos = null)
+    {
+        try {
+            DB::table('libro_diario_auditoria')->insert([
+                'asiento_id' => $asientoId,
+                'accion' => $accion,
+                'datos_anteriores' => $datosAnteriores ? json_encode($datosAnteriores, JSON_UNESCAPED_UNICODE) : null,
+                'datos_nuevos' => $datosNuevos ? json_encode($datosNuevos, JSON_UNESCAPED_UNICODE) : null,
+                'usuario' => Auth::user()->usuario ?? 'Sistema',
+                'fecha_hora' => now(),
+                'ip_address' => request()->ip(),
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error al registrar auditoría: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * ================================================================
+     * ✅ SISTEMA DE NOTIFICACIONES
+     * ================================================================
+     */
+
+    /**
+     * Notifica cuando se crea un asiento de monto alto
+     */
+    private function notificarAsientoAlto($asiento, $usuarioId)
+    {
+        try {
+            // Obtener administradores y supervisores
+            $destinatarios = DB::table('accesoweb')
+                ->where('nivel', 1) // Administradores
+                ->pluck('idusuario');
+
+            foreach ($destinatarios as $destinatarioId) {
+                DB::table('notificaciones')->insert([
+                    'usuario_id' => $destinatarioId,
+                    'tipo' => 'ASIENTO_MONTO_ALTO',
+                    'titulo' => 'Asiento de Monto Elevado Registrado',
+                    'mensaje' => "Se ha registrado el asiento {$asiento->numero} con un monto de S/ " . number_format($asiento->total_debe, 2),
+                    'icono' => 'exclamation-triangle',
+                    'color' => 'warning',
+                    'url' => route('contador.libro-diario.show', $asiento->id),
+                    'leida' => 0,
+                    'metadata' => json_encode([
+                        'asiento_id' => $asiento->id,
+                        'numero' => $asiento->numero,
+                        'monto' => $asiento->total_debe,
+                    ]),
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+            }
+        } catch (\Exception $e) {
+            Log::error('Error al notificar asiento alto: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Notifica cuando se modifica un asiento
+     */
+    private function notificarModificacionAsiento($asiento, $datosAnteriores)
+    {
+        try {
+            // Solo notificar si hubo cambios significativos
+            if ($datosAnteriores['glosa'] !== $asiento->glosa || 
+                $datosAnteriores['fecha'] !== $asiento->fecha) {
+
+                // Obtener supervisores
+                $destinatarios = DB::table('accesoweb')
+                    ->where('nivel', 1)
+                    ->pluck('idusuario');
+
+                foreach ($destinatarios as $destinatarioId) {
+                    DB::table('notificaciones')->insert([
+                        'usuario_id' => $destinatarioId,
+                        'tipo' => 'ASIENTO_MODIFICADO',
+                        'titulo' => 'Asiento Contable Modificado',
+                        'mensaje' => "El asiento {$asiento->numero} ha sido modificado por " . (Auth::user()->usuario ?? 'Sistema'),
+                        'icono' => 'edit',
+                        'color' => 'info',
+                        'url' => route('contador.libro-diario.show', $asiento->id),
+                        'leida' => 0,
+                        'metadata' => json_encode([
+                            'asiento_id' => $asiento->id,
+                            'numero' => $asiento->numero,
+                            'cambios' => [
+                                'glosa_anterior' => $datosAnteriores['glosa'],
+                                'glosa_nueva' => $asiento->glosa,
+                            ],
+                        ]),
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ]);
+                }
+            }
+        } catch (\Exception $e) {
+            Log::error('Error al notificar modificación: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Notifica solicitud de eliminación a administradores
+     */
+    private function notificarSolicitudEliminacion($asiento, $usuario)
+    {
+        try {
+            // Obtener administradores
+            $administradores = DB::table('accesoweb')
+                ->where('nivel', 1)
+                ->pluck('idusuario');
+
+            foreach ($administradores as $adminId) {
+                DB::table('notificaciones')->insert([
+                    'usuario_id' => $adminId,
+                    'tipo' => 'SOLICITUD_ELIMINACION',
+                    'titulo' => 'Solicitud de Eliminación de Asiento',
+                    'mensaje' => "El usuario {$usuario->usuario} solicita eliminar el asiento {$asiento->numero}",
+                    'icono' => 'trash',
+                    'color' => 'danger',
+                    'url' => route('admin.solicitudes.asiento.index'),
+                    'leida' => 0,
+                    'metadata' => json_encode([
+                        'asiento_id' => $asiento->id,
+                        'numero' => $asiento->numero,
+                        'solicitante_id' => $usuario->idusuario,
+                        'solicitante' => $usuario->usuario,
+                    ]),
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+            }
+        } catch (\Exception $e) {
+            Log::error('Error al notificar solicitud de eliminación: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Notifica cuando se elimina un asiento
+     */
+    private function notificarEliminacionAsiento($asiento, $usuario)
+    {
+        try {
+            // Notificar al creador del asiento (si existe)
+            if ($asiento->usuario_id) {
+                DB::table('notificaciones')->insert([
+                    'usuario_id' => $asiento->usuario_id,
+                    'tipo' => 'ASIENTO_ELIMINADO',
+                    'titulo' => 'Asiento Eliminado',
+                    'mensaje' => "El asiento {$asiento->numero} ha sido eliminado por un administrador",
+                    'icono' => 'trash',
+                    'color' => 'danger',
+                    'url' => null,
+                    'leida' => 0,
+                    'metadata' => json_encode([
+                        'numero' => $asiento->numero,
+                        'glosa' => $asiento->glosa,
+                        'eliminado_por' => $usuario,
+                    ]),
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+            }
+        } catch (\Exception $e) {
+            Log::error('Error al notificar eliminación: ' . $e->getMessage());
         }
     }
 
     // ===================================================================
-    // MÉTODOS DE LECTURA (R) - ¡AHORA OPTIMIZADOS CON ELOQUENT!
+    // MÉTODOS DE LECTURA (OPTIMIZADOS CON ELOQUENT)
     // ===================================================================
 
-    /**
-     * Obtiene los datos para el dashboard del Libro Diario.
-     */
     public function getDashboardData(Request $request)
     {
         $fechaInicio = $request->get('fecha_inicio') ?? Carbon::now()->startOfMonth()->format('Y-m-d');
@@ -112,7 +424,7 @@ class LibroDiarioService
         );
         
         $totales = $this->calcularTotales($fechaInicio, $fechaFin);
-        $cuentasContables = $this->obtenerCuentasContables(); // Optimizado
+        $cuentasContables = $this->obtenerCuentasContables();
         $graficoAsientosPorMes = $this->obtenerAsientosPorMes();
         $graficoMovimientosPorCuenta = $this->obtenerMovimientosPorCuenta($fechaInicio, $fechaFin);
         $alertas = $this->generarAlertasContables();
@@ -123,41 +435,27 @@ class LibroDiarioService
         );
     }
 
-    /**
-     * Obtiene datos para el formulario de creación. (OPTIMIZADO)
-     */
     public function getCreateFormData()
     {
-        // ¡AHORA USA EL MODELO!
         $cuentasContables = PlanCuentas::where('activo', 1)
             ->orderBy('codigo')
             ->get(['codigo', 'nombre']);
             
-        // ¡AHORA USA EL MODELO!
         $ultimosAsientos = $this->obtenerUltimosAsientos(5);
         
         return compact('cuentasContables', 'ultimosAsientos');
     }
 
-    /**
-     * Obtiene detalles de un asiento. (OPTIMIZADO)
-     */
     public function getAsientoDetails($id)
     {
-        // ¡MÁGIA DE ELOQUENT!
-        // Carga el asiento Y TAMBIÉN carga las relaciones
-        // 'usuario' y 'detalles' (y la relación anidada 'detalles.cuenta')
-        // todo en consultas súper optimizadas (Eager Loading).
         $asiento = LibroDiario::with(['usuario', 'detalles.cuenta'])->find($id);
             
         if (!$asiento) {
-            return null; // El controlador manejará el not found
+            return null;
         }
         
-        // Los detalles ya vienen cargados gracias a 'with()'
         $detalles = $asiento->detalles;
         
-        // ¡AHORA USA EL MODELO!
         $asientoAnterior = LibroDiario::where('fecha', '<=', $asiento->fecha)
             ->where('id', '!=', $id)
             ->orderBy('fecha', 'desc')->orderBy('numero', 'desc')->first();
@@ -169,34 +467,27 @@ class LibroDiarioService
         return compact('asiento', 'detalles', 'asientoAnterior', 'asientoSiguiente');
     }
 
-    /**
-     * Obtiene datos para el formulario de edición. (OPTIMIZADO)
-     */
     public function getEditFormData($id)
     {
-        // ¡AHORA USA EL MODELO!
         $asiento = LibroDiario::find($id);
         if (!$asiento) {
             return ['asiento' => null, 'detalles' => collect(), 'cuentasContables' => collect()];
         }
 
-        $detalles = $asiento->detalles; // Carga la relación
-        $cuentasContables = $this->obtenerCuentasContablesParaFormulario(); // Optimizado
+        $detalles = $asiento->detalles;
+        $cuentasContables = $this->obtenerCuentasContablesParaFormulario();
 
         return compact('asiento', 'detalles', 'cuentasContables');
     }
 
-    /**
-     * Maneja la lógica de exportación.
-     */
     public function export(Request $request)
     {
         $formato = $request->get('formato', 'excel');
         $fechaInicio = $request->get('fecha_inicio');
         $fechaFin = $request->get('fecha_fin');
 
-        $asientos = $this->obtenerAsientos($fechaInicio, $fechaFin, null, null, false); // Ya usa Eloquent
-        $totales = $this->calcularTotales($fechaInicio, $fechaFin); // DB::table está bien
+        $asientos = $this->obtenerAsientos($fechaInicio, $fechaFin, null, null, false);
+        $totales = $this->calcularTotales($fechaInicio, $fechaFin);
         
         if ($formato === 'pdf') {
             return $this->generarPDF($asientos, $totales, $fechaInicio, $fechaFin);
@@ -205,26 +496,12 @@ class LibroDiarioService
         }
     }
 
-
     // ===================================================================
-    // MÉTODOS DE AYUDA (¡HÍBRIDOS!)
+    // MÉTODOS DE AYUDA
     // ===================================================================
 
-    /**
-     * Obtiene los asientos filtrados. (OPTIMIZADO)
-     */
     public function obtenerAsientos($fechaInicio = null, $fechaFin = null, $numeroAsiento = null, $cuentaContable = null, $paginar = true)
     {
-        // ¡AHORA USA EL MODELO!
-        // 'with('usuario')' precarga la relación de usuario para evitar
-        // consultas N+1 en la vista. Es mucho más rápido.
-        
-        // ▼▼▼ ¡¡AQUÍ ESTÁ LA SOLUCIÓN!! ▼▼▼
-        //
-        // Le decimos a Eloquent que cargue no solo el 'usuario',
-        // sino también los 'detalles' de cada asiento, y la 'cuenta'
-        // relacionada a cada uno de esos detalles.
-        // Esto reduce cientos de consultas a solo 3 o 4.
         $query = LibroDiario::with(['usuario', 'detalles.cuenta']) 
             ->when($fechaInicio, function ($q) use ($fechaInicio, $fechaFin) {
                 $q->whereBetween('fecha', [$fechaInicio, $fechaFin]);
@@ -233,7 +510,6 @@ class LibroDiarioService
                 $q->where('numero', 'like', '%' . $numeroAsiento . '%');
             })
             ->when($cuentaContable, function ($q) use ($cuentaContable) {
-                // 'whereHas' es la forma Eloquent de tu 'whereExists'.
                 $q->whereHas('detalles', function ($detalleQuery) use ($cuentaContable) {
                     $detalleQuery->where('cuenta_contable', 'like', '%' . $cuentaContable . '%');
                 });
@@ -244,23 +520,13 @@ class LibroDiarioService
         return $paginar ? $query->paginate(20) : $query->get();
     }
 
-    /**
-     * Obtiene cuentas contables. (OPTIMIZADO)
-     */
     public function obtenerCuentasContables()
     {
-        // ¡AHORA USA EL MODELO!
-        return PlanCuentas::where('activo', 1)
-            ->orderBy('codigo')
-            ->get();
+        return PlanCuentas::where('activo', 1)->orderBy('codigo')->get();
     }
 
-    /**
-     * Obtiene cuentas para el formulario. (OPTIMIZADO)
-     */
     public function obtenerCuentasContablesParaFormulario()
     {
-        // ¡AHORA USA EL MODELO!
         return PlanCuentas::where('activo', 1)
             ->whereIn('tipo', ['ACTIVO', 'PASIVO', 'PATRIMONIO', 'INGRESO', 'GASTO'])
             ->orderBy('codigo')
@@ -268,29 +534,14 @@ class LibroDiarioService
             ->groupBy('tipo');
     }
 
-    /**
-     * Obtiene los últimos N asientos. (OPTIMIZADO)
-     */
     public function obtenerUltimosAsientos($cantidad = 5)
     {
-        // ¡AHORA USA EL MODELO!
         return LibroDiario::orderBy('fecha', 'desc')
             ->orderBy('numero', 'desc')
             ->limit($cantidad)
             ->get();
     }
 
-    // ===================================================================
-    // MÉTODOS DE REPORTE (DB::table es el rey aquí)
-    //
-    // Para reportes pesados, agregaciones (SUM, COUNT, AVG) y
-    // generación de números, usar DB::table es a menudo MÁS RÁPIDO
-    // y más limpio que Eloquent. Tu lógica original es perfecta.
-    // ===================================================================
-
-    /**
-     * Calcula los totales. (Tu lógica original es óptima).
-     */
     public function calcularTotales($fechaInicio = null, $fechaFin = null)
     {
         $query = DB::table('libro_diario');
@@ -308,9 +559,6 @@ class LibroDiarioService
         ];
     }
 
-    /**
-     * Genera el siguiente número de asiento. (Tu lógica original es óptima).
-     */
     public function obtenerSiguienteNumeroAsiento()
     {
         $anio = now()->format('Y');
@@ -331,9 +579,6 @@ class LibroDiarioService
         throw new \Exception("No se pudo generar un número de asiento único.");
     }
 
-    /**
-     * Obtiene datos para el gráfico de asientos. (Tu lógica original es óptima).
-     */
     public function obtenerAsientosPorMes()
     {
         $resultado = DB::table('libro_diario')
@@ -342,8 +587,9 @@ class LibroDiarioService
             ->groupBy(DB::raw('MONTH(fecha)'))
             ->orderBy(DB::raw('MONTH(fecha)'), 'asc')
             ->get();
-        // ... (el resto de tu lógica de formateo de meses es perfecta)
-        $meses = []; $datos = [];
+            
+        $meses = [];
+        $datos = [];
         for ($i = 1; $i <= 12; $i++) {
             $mesNombre = Carbon::create(now()->year, $i)->locale('es')->isoFormat('MMM');
             $meses[] = ucfirst($mesNombre);
@@ -353,9 +599,6 @@ class LibroDiarioService
         return ['labels' => $meses, 'data' => $datos];
     }
 
-    /**
-     * Obtiene el top 10 de movimientos por cuenta. (Tu lógica original es óptima).
-     */
     public function obtenerMovimientosPorCuenta($fechaInicio = null, $fechaFin = null)
     {
         $query = DB::table('libro_diario_detalles as d')
@@ -373,9 +616,6 @@ class LibroDiarioService
             ->get();
     }
 
-    /**
-     * Genera alertas contables. (Tu lógica original es óptima).
-     */
     public function generarAlertasContables()
     {
         $alertas = [];
@@ -390,66 +630,26 @@ class LibroDiarioService
         return $alertas;
     }
 
-    /**
-     * Genera la descarga de PDF. (Tu lógica original es correcta).
-     */
     public function generarPDF($asientos, $totales, $fechaInicio, $fechaFin)
     {
         $asientosCollection = $asientos instanceof \Illuminate\Support\Collection ? $asientos : collect($asientos);
-        $filename = 'libro_diario_' . ($fechaInicio ?? 'inicio') . '_a_'."_".$fechaFin ?? 'fin' . '.pdf';
+        $filename = 'libro_diario_' . ($fechaInicio ?? 'inicio') . '_a_' . ($fechaFin ?? 'fin') . '.pdf';
         
         return DomPDF::loadView('contabilidad.libros.diario.export_pdf', compact('asientosCollection', 'totales', 'fechaInicio', 'fechaFin'))
                     ->setPaper('a4', 'landscape')
                     ->download($filename);
     }
 
-    /**
-     * Genera la descarga de Excel. (Corregido para usar tu fallback de CSV).
-     */
     public function generarExcel($asientos, $totales, $fechaInicio, $fechaFin)
     {
-        // ---
-        // ¡ACTUALIZADO!
-        // Ahora usamos la nueva clase de exportación profesional
-        // en lugar del fallback de CSV.
-        // ---
         $asientosCollection = $asientos instanceof \Illuminate\Support\Collection ? $asientos : collect($asientos);
         $fechaInicioSafe = $fechaInicio ?? 'inicio';
         $fechaFinSafe = $fechaFin ?? 'fin';
         $filename = "Libro_Diario_{$fechaInicioSafe}_a_{$fechaFinSafe}.xlsx";
 
-        // ¡Usamos la nueva clase!
         return Excel::download(
             new LibroDiarioExport($asientosCollection, $totales, $fechaInicioSafe, $fechaFinSafe), 
             $filename
         );
     }
-
-    public function deleteAsiento($id, $usuario)
-    {
-        DB::beginTransaction();
-        try {
-            $asiento = LibroDiario::findOrFail($id);
-            
-            // 记录删除操作
-            DB::table('auditoria_asientos')->insert([
-                'idasiento' => $id,
-                'usuario' => $usuario,
-                'accion' => 'ELIMINACION',
-                'fecha' => now(),
-                'detalles' => json_encode($asiento->toArray())
-            ]);
-
-            // 执行软删除或硬删除
-            $asiento->delete();
-
-            DB::commit();
-            return true;
-        } catch (\Exception $e) {
-            DB::rollBack();
-            Log::error('Error al eliminar asiento: ' . $e->getMessage());
-            throw $e;
-        }
-    }
-
 }

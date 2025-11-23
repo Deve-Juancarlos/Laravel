@@ -13,13 +13,14 @@ class CajaService
 {
     protected $connection = 'sqlsrv'; 
 
-   
     public function __construct()
     {
-       
+        // Constructor vacío
     }
 
-   
+    /**
+     * Obtiene datos para el index
+     */
     public function getIndexData(array $filters): array
     {
         $fechaInicio = $filters['fecha_inicio'] ?? Carbon::now()->startOfMonth()->format('Y-m-d');
@@ -92,18 +93,45 @@ class CajaService
         ];
     }
  
+    /**
+     * ✅ CORREGIDO: Obtiene datos para crear movimiento
+     */
     public function getCreateData(): array
     {
-        $tiposMovimiento = collect(DB::connection($this->connection)->select("SELECT n_numero, c_describe FROM Tablas WHERE n_codtabla = 3 AND n_numero IN (1, 2)"));
-        $clasesOperacion = collect(DB::connection($this->connection)->select("SELECT n_numero, c_describe FROM Tablas WHERE n_codtabla = 4"));
+        // ✅ Tipos de movimiento (n_codtabla = 10)
+        $tiposMovimiento = collect(
+            DB::connection($this->connection)
+                ->select("
+                    SELECT n_numero, c_describe 
+                    FROM Tablas 
+                    WHERE n_codtabla = 10
+                    ORDER BY n_numero
+                ")
+        );
         
-        $cuentasCaja = DB::connection($this->connection)->table('plan_cuentas')
+        // ✅ Clases de operación (n_codtabla = 11)
+        $clasesOperacion = collect(
+            DB::connection($this->connection)
+                ->select("
+                    SELECT n_numero, c_describe 
+                    FROM Tablas 
+                    WHERE n_codtabla = 11
+                    ORDER BY n_numero
+                ")
+        );
+        
+        // Cuentas de caja
+        $cuentasCaja = DB::connection($this->connection)
+            ->table('plan_cuentas')
             ->where('codigo', 'LIKE', '101%')
             ->where('activo', 1)
             ->select('codigo', 'nombre')
+            ->orderBy('codigo')
             ->get();
             
-        $cuentasContrapartida = DB::connection($this->connection)->table('plan_cuentas')
+        // Cuentas contrapartida
+        $cuentasContrapartida = DB::connection($this->connection)
+            ->table('plan_cuentas')
             ->where('activo', 1)
             ->where('codigo', 'NOT LIKE', '101%')
             ->select('codigo', 'nombre', 'tipo')
@@ -114,7 +142,9 @@ class CajaService
         return compact('tiposMovimiento', 'clasesOperacion', 'cuentasCaja', 'cuentasContrapartida');
     }
 
-   
+    /**
+     * Guarda un nuevo movimiento
+     */
     public function storeMovimiento(array $data)
     {
         return DB::connection($this->connection)->transaction(function () use ($data) {
@@ -129,6 +159,7 @@ class CajaService
             $esIngreso = ($tipo == 1);
             $numeroAsiento = $this->obtenerSiguienteNumeroAsiento($fecha); 
             
+            // Insertar asiento contable
             $asientoId = DB::connection($this->connection)->table('libro_diario')->insertGetId([
                 'numero' => $numeroAsiento,
                 'fecha' => $fecha,
@@ -142,6 +173,7 @@ class CajaService
                 'updated_at' => now(),
             ]);
 
+            // Detalle 1: Cuenta Caja
             DB::connection($this->connection)->table('libro_diario_detalles')->insert([
                 'asiento_id' => $asientoId,
                 'cuenta_contable' => $cuentaCaja,
@@ -152,6 +184,8 @@ class CajaService
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
+
+            // Detalle 2: Cuenta Contrapartida
             DB::connection($this->connection)->table('libro_diario_detalles')->insert([
                 'asiento_id' => $asientoId,
                 'cuenta_contable' => $cuentaContrapartida,
@@ -163,6 +197,7 @@ class CajaService
                 'updated_at' => now(),
             ]);
 
+            // Insertar movimiento de caja
             $cajaId = DB::connection($this->connection)->table('Caja')->insertGetId([
                 'Documento' => $data['documento'],
                 'Tipo' => $tipo,
@@ -182,7 +217,9 @@ class CajaService
         });
     }
 
-    
+    /**
+     * Obtiene datos para mostrar movimiento
+     */
     public function getShowData($id): array
     {
         $movimiento = DB::connection($this->connection)->table('Caja as c')
@@ -208,7 +245,9 @@ class CajaService
         return compact('movimiento', 'asiento', 'detalles');
     }
 
-    
+    /**
+     * Obtiene datos para editar
+     */
     public function getEditData($id): array
     {
         $data = $this->getShowData($id);
@@ -216,7 +255,9 @@ class CajaService
         return array_merge($data, $formData);
     }
 
-    
+    /**
+     * Actualiza un movimiento
+     */
     public function updateMovimiento($id, array $data)
     {
         return DB::connection($this->connection)->transaction(function () use ($id, $data) {
@@ -249,7 +290,9 @@ class CajaService
         });
     }
 
-    
+    /**
+     * Anula un movimiento
+     */
     public function anularMovimiento($id)
     {
         return DB::connection($this->connection)->transaction(function () use ($id) {
@@ -282,10 +325,11 @@ class CajaService
         });
     }
     
-  
+    /**
+     * Obtiene el siguiente número de asiento
+     */
     public function obtenerSiguienteNumeroAsiento(string $fecha): string
     {
-        
         $anio = Carbon::parse($fecha)->year;
         $ultimoAsiento = DB::connection($this->connection)
             ->table('libro_diario')
