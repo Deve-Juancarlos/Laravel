@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Services\Admin\EmpleadoService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+
 
 class EmpleadoController extends Controller
 {
@@ -122,7 +124,7 @@ class EmpleadoController extends Controller
     {
         // Primero verificar dependencias
         $tieneUsuario = $this->empleadoService->obtenerUsuarioVinculado($id) !== null;
-        $esVendedor = \DB::table('Doccab')->where('Vendedor', $id)->exists();
+        $esVendedor = DB::table('Doccab')->where('Vendedor', $id)->exists();
 
         if ($tieneUsuario || $esVendedor) {
             return back()->with('error', 'No se puede eliminar: el empleado está vinculado a ventas o tiene un usuario del sistema.');
