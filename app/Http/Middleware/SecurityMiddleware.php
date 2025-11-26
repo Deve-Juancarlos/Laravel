@@ -52,7 +52,7 @@ class SecurityMiddleware
         $key = 'rate_limit:' . $request->ip();
         $attempts = cache()->get($key, 0);
 
-        if ($attempts >= 100) { // Puedes ajustar a 100 requests/minuto
+        if ($attempts >= 100) { 
             Log::channel('security')->alert('Rate limit excedido', [
                 'ip' => $request->ip(),
                 'attempts' => $attempts

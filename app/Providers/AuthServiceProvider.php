@@ -26,7 +26,6 @@ class AuthServiceProvider extends ServiceProvider
 
         // Gate para administradores
         Gate::define('es-admin', function ($user) {
-            // --- CORREGIDO con trim() ---
             $tipo = strtolower(trim($user->tipousuario));
             return $tipo === 'administrador';
         });
@@ -34,13 +33,12 @@ class AuthServiceProvider extends ServiceProvider
         // Gate para contadores o administradores
         Gate::define('gestionar-contabilidad', function ($user) {
             
-            // --- CORREGIDO con trim() y Log::debug() ---
+            
             $original = $user->tipousario;
             $limpiado = trim($original);
             $tipo_final = strtolower($limpiado);
             $permitido = in_array($tipo_final, ['contador', 'administrador']);
 
-            // --- CORREGIDO: Forzamos el log al canal 'security' ---
             Log::channel('security')->debug('Verificando Gate [gestionar-contabilidad]', [
                 'idusuario' => $user->getKey(),
                 'tipousuario_original' => $original,
@@ -55,7 +53,6 @@ class AuthServiceProvider extends ServiceProvider
 
         // Gate solo administrador para eliminar o aprobar asientos
         Gate::define('aprobar-eliminacion-asiento', function ($user) {
-            // --- CORREGIDO con trim() ---
             $tipo = strtolower(trim($user->tipousuario));
             return $tipo === 'administrador';
         });

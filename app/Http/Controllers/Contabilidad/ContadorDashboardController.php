@@ -14,19 +14,13 @@ class ContadorDashboardController extends Controller
      */
     protected $dashboardService;
 
-    /**
-     * 3. Inyectamos el Servicio en el constructor.
-     * Laravel lo hará automáticamente por nosotros.
-     */
+   
     public function __construct(ContadorDashboardService $dashboardService)
     {
         $this->dashboardService = $dashboardService;
     }
 
-    /**
-     * Muestra el dashboard principal.
-     * Fíjate qué limpio queda.
-     */
+    
     public function contadorDashboard(Request $request)
     {
 
@@ -47,9 +41,6 @@ class ContadorDashboardController extends Controller
         }
     }
 
-    /**
-     * Endpoint de API para estadísticas rápidas.
-     */
     public function getStats(Request $request)
     {
         try {
@@ -66,9 +57,6 @@ class ContadorDashboardController extends Controller
         }
     }
 
-    /**
-     * Limpia el cache del dashboard.
-     */
     public function clearCache()
     {
         try {
