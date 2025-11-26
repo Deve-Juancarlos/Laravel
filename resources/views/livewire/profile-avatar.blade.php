@@ -1,3 +1,8 @@
+@php
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
+@endphp
+
 <style>
     .profile-avatar-container {
             position: relative;
